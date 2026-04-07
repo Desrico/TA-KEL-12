@@ -17,9 +17,10 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'nama',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -31,6 +32,17 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+    
+
+    public function mahasiswa()
+    {
+        return $this->hasOne(Mahasiswa::class);
+    }
+
+    public function konselor()
+    {
+        return $this->hasOne(Konselor::class);
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -43,5 +55,22 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function profil()
+    {
+        return $this->hasOne(Profil::class);
+    }
+
+    // Helper: cek apakah user mode anonim
+    public function isAnonim(): bool
+    {
+        return optional($this->profil)->anonim ?? false;
+    }
+
+    // Helper: nama yang ditampilkan
+    public function getNamaDisplay(): string
+    {
+        return $this->isAnonim() ? 'Mahasiswa Anonim' : $this->nama;
     }
 }
