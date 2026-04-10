@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>BK Connect - IT Del Mental Health</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
@@ -54,6 +55,28 @@
     .nav-link-custom:hover,.nav-link-custom.active{
       color:var(--primary)!important;background:rgba(26,58,92,.07);
     }
+    .notif-link{
+      position:relative;display:inline-flex;align-items:center;justify-content:center;
+      width:36px;height:36px;border-radius:50%;color:var(--text-mid);
+      text-decoration:none;background:transparent;transition:all .2s;
+    }
+    .notif-link:hover{background:rgba(26,58,92,.07);color:var(--primary);}
+    .notif-badge{
+      position:absolute;top:-2px;right:-3px;min-width:17px;height:17px;padding:0 4px;
+      border-radius:999px;background:#e74c3c;color:white;font-size:.62rem;
+      font-weight:700;display:flex;align-items:center;justify-content:center;
+      border:2px solid #fff;
+    }
+    .notif-dropdown{
+      min-width:320px;border:none;border-radius:12px;box-shadow:var(--shadow-md);
+      padding:.4rem 0;overflow:hidden;
+    }
+    .notif-header{padding:.55rem .9rem;font-size:.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;}
+    .notif-item{display:block;padding:.62rem .9rem;text-decoration:none;border-top:1px solid rgba(26,58,92,.05);}
+    .notif-item:hover{background:var(--surface);}
+    .notif-item p{margin:0;font-size:.8rem;color:var(--text-dark);line-height:1.45;}
+    .notif-time{display:block;font-size:.7rem;color:var(--text-light);margin-top:.25rem;}
+    .notif-empty{padding:.8rem .9rem;font-size:.78rem;color:var(--text-light);}
     /* Profile btn */
     .profile-wrap{position:relative;}
     .profile-btn{
@@ -125,6 +148,30 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-main" id="mainNav">
     <div class="container">
+        @php
+          $unreadNotif = 0;
+          $notifItems = collect();
+          if (Auth::check()) {
+            $mahasiswaId = optional(Auth::user()->mahasiswa)->id;
+            if ($mahasiswaId) {
+              $approvedBookings = \App\Models\JadwalKonseling::where('mahasiswa_id', $mahasiswaId)
+                ->where('status', 'disetujui')
+                ->get(['id', 'tanggal', 'waktu']);
+
+              foreach ($approvedBookings as $jadwal) {
+                $pesan = 'Booking #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.';
+                \App\Models\Notifikasi::firstOrCreate(
+                  ['user_id' => Auth::id(), 'pesan' => $pesan],
+                  ['status' => 'belum']
+                );
+              }
+            }
+
+              $unreadNotif = Auth::user()->notifikasi()->where('status', 'belum')->count();
+              $notifItems = Auth::user()->notifikasi()->latest()->take(6)->get();
+          }
+        @endphp
+
         <a class="d-flex align-items-center gap-2 text-decoration-none" href="/">
 
             <!-- LOGO GAMBAR -->
@@ -149,7 +196,35 @@
       <ul class="navbar-nav ms-auto align-items-center gap-1">
         <li class="nav-item"><a class="nav-link nav-link-custom {{ request()->is('/') ? 'active' : '' }}" href="/">Beranda</a></li>
         <li class="nav-item"><a class="nav-link nav-link-custom {{ request()->is('about') ? 'active' : '' }}" href="/about">About</a></li>
-        <li class="nav-item"><a class="nav-link nav-link-custom {{ request()->is('layanan*') ? 'active' : '' }}" href="/layanan">Layanan</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-link-custom dropdown-toggle {{ request()->is('layanan*') ? 'active' : '' }}" href="#" id="layananDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Layanan
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="layananDropdown" style="border:none;border-radius:12px;box-shadow:var(--shadow-md);padding:.4rem .35rem;min-width:190px;">
+            <li><a class="dropdown-item rounded-3" href="/layanan#online" style="font-size:.84rem;padding:.5rem .65rem;">Konseling Online</a></li>
+            <li><a class="dropdown-item rounded-3" href="/layanan#offline" style="font-size:.84rem;padding:.5rem .65rem;">Konseling Offline</a></li>
+          </ul>
+        </li>
+
+        @auth
+        <li class="nav-item dropdown ms-1">
+          <a class="notif-link" href="#" id="notifDropdownBtn" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifikasi">
+            <i class="bi bi-bell" style="font-size:1rem;"></i>
+            <span id="notifBadge" class="notif-badge {{ $unreadNotif > 0 ? '' : 'd-none' }}">{{ $unreadNotif > 9 ? '9+' : $unreadNotif }}</span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end notif-dropdown" aria-labelledby="notifDropdownBtn">
+            <div class="notif-header">Notifikasi</div>
+            @forelse($notifItems as $notif)
+              <a href="{{ route('riwayat') }}" class="notif-item">
+                <p>{{ $notif->pesan }}</p>
+                <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
+              </a>
+            @empty
+              <div class="notif-empty">Belum ada notifikasi.</div>
+            @endforelse
+          </div>
+        </li>
+        @endauth
       </ul>
       <div class="d-flex align-items-center ms-lg-3 mt-3 mt-lg-0">
         {{-- Jika SUDAH LOGIN --}}
@@ -199,11 +274,6 @@
 
                 <a href="{{ route('riwayat') }}" class="pd-item">
                     <i class="bi bi-calendar2-check"></i> Riwayat Konseling
-                </a>
-
-                <a href="#" class="pd-item">
-                    <i class="bi bi-bell"></i> Notifikasi
-                    <span class="badge bg-danger ms-auto" style="font-size:.62rem">3</span>
                 </a>
 
                 <div class="pd-divider"></div>
@@ -294,6 +364,39 @@ document.addEventListener('click',(e)=>{
     document.getElementById('profileDropdown')?.classList.remove('show');
   }
 });
+
+const notifDropdownBtn = document.getElementById('notifDropdownBtn');
+const notifBadge = document.getElementById('notifBadge');
+let notifMarkedRead = false;
+
+if (notifDropdownBtn) {
+  notifDropdownBtn.addEventListener('shown.bs.dropdown', async () => {
+    if (notifMarkedRead || !notifBadge || notifBadge.classList.contains('d-none')) {
+      return;
+    }
+
+    notifMarkedRead = true;
+
+    try {
+      const response = await fetch("{{ route('notifikasi.baca') }}", {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        notifBadge.classList.add('d-none');
+      } else {
+        notifMarkedRead = false;
+      }
+    } catch (error) {
+      notifMarkedRead = false;
+    }
+  });
+}
 </script>
 @stack('scripts')
 </body>

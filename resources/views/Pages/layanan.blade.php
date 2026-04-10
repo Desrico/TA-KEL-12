@@ -697,6 +697,13 @@ function switchTab(tab){
     document.getElementById(`panel-${tab}`).scrollIntoView({behavior:'smooth', block:'start'});
 }
 
+function applyTabFromHash() {
+  const hash = (window.location.hash || '').replace('#', '').toLowerCase();
+  if (hash === 'online' || hash === 'offline') {
+    switchTab(hash);
+  }
+}
+
 // ── ONLINE STEPS ──
 function nextOnline(step){
     // Cek login
@@ -780,15 +787,22 @@ function buildSummary(type){
     const prodiDisplay = '{{ Auth::check() ? (optional(Auth::user()->mahasiswa)->jurusan ?? "-") : "-" }}';
     const angkatanDisplay = '{{ Auth::check() ? (optional(Auth::user()->mahasiswa)->angkatan ?? "-") : "-" }}';
 
-    const rows = [
-        ['Nama',         namaDisplay + (isAnonim ? ' 🎭' : '')],
-        ['NIM',          nimDisplay],
-        ['Prodi',        prodiDisplay],
-        ['Angkatan',     angkatanDisplay],
-        ['Hari & Waktu', `${day} · ${time} WIB`],
-        ['Jenis',         isOnline ? `💻 Online (${media})` : '🏛️ Offline'],
-        ['Topik',         topik],
-        ['Konselor',     'Ibu Laura, M.Psi'],
+    const rows = isAnonim ? [
+      ['Prodi',        prodiDisplay],
+      ['Angkatan',     angkatanDisplay],
+      ['Hari & Waktu', `${day} · ${time} WIB`],
+      ['Jenis',        isOnline ? `💻 Online (${media})` : '🏛️ Offline'],
+      ['Topik',        topik],
+      ['Konselor',     'Ibu Laura, M.Psi'],
+    ] : [
+      ['Nama',         namaDisplay],
+      ['NIM',          nimDisplay],
+      ['Prodi',        prodiDisplay],
+      ['Angkatan',     angkatanDisplay],
+      ['Hari & Waktu', `${day} · ${time} WIB`],
+      ['Jenis',        isOnline ? `💻 Online (${media})` : '🏛️ Offline'],
+      ['Topik',        topik],
+      ['Konselor',     'Ibu Laura, M.Psi'],
     ];
 
     const anonimBanner = isAnonim ? `
@@ -878,6 +892,9 @@ function updateMediaUI(type){
 fetchBookedSlots().then(() => {
     buildDaySelector('online');
     buildDaySelector('offline');
+  applyTabFromHash();
 });
+
+window.addEventListener('hashchange', applyTabFromHash);
 </script>
 @endpush

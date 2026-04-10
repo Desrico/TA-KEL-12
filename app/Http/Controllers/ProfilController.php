@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\JadwalKonseling;
 use App\Models\Mahasiswa;
 use App\Models\Profil;
+use App\Models\Notifikasi;
 
 class ProfilController extends Controller
 {
@@ -72,6 +73,17 @@ class ProfilController extends Controller
                         ->get();
 
         return view('pages.riwayat', compact('riwayat'));
+    }
+
+    public function markNotificationsAsRead()
+    {
+        Notifikasi::where('user_id', Auth::id())
+            ->where('status', 'belum')
+            ->update(['status' => 'dibaca']);
+
+        return response()->json([
+            'success' => true,
+        ]);
     }
 
     
