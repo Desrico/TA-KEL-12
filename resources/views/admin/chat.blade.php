@@ -1,5 +1,5 @@
 @extends('layouts.mantis')
-@section('page-title', 'Laporan Konseling')
+@section('page-title', 'Laporan')
 @section('konten')
 <div class="kons-card">
     <div class="kons-card-header">
@@ -14,29 +14,29 @@
                         <th class="py-3">Tanggal</th>
                         <th class="py-3">Waktu</th>
                         <th class="py-3">Catatan</th>
-                        <th class="py-3">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($riwayat as $l)
+                    @forelse($laporan as $l)
                     <tr>
                         <td class="px-4 py-3">
-                            <div style="font-weight:600">{{ optional(optional($l->mahasiswa)->user)->nama ?? 'Anonim' }}</div>
-                            <div style="font-size:.75rem;color:#8898aa">{{ optional($l->mahasiswa)->nim ?? '-' }}</div>
+                            @php
+                                $isAnonimBooking = str_starts_with((string) ($l->catatan ?? ''), '[ANONIM]');
+                            @endphp
+                            @if($isAnonimBooking)
+                                <div style="font-weight:600">{{ optional($l->mahasiswa)->jurusan ?? '-' }} · {{ optional($l->mahasiswa)->angkatan ?? '-' }}</div>
+                                <div style="font-size:.75rem;color:#8898aa">Mode anonim</div>
+                            @else
+                                <div style="font-weight:600">{{ optional(optional($l->mahasiswa)->user)->nama ?? 'Anonim' }}</div>
+                                <div style="font-size:.75rem;color:#8898aa">{{ optional($l->mahasiswa)->nim ?? '-' }}</div>
+                            @endif
                         </td>
                         <td class="py-3">{{ \Carbon\Carbon::parse($l->tanggal)->format('d M Y') }}</td>
                         <td class="py-3">{{ $l->waktu }} WIB</td>
                         <td class="py-3" style="font-size:.78rem">{{ $l->catatan ?? '-' }}</td>
-                        <td>
-                            @if(!$l->catatan)
-                                <a href="{{ route('riwayat.laporan', $l->id) }}" class="btn btn-primary btn-sm">Buat Laporan</a>
-                            @else
-                                <span class="text-success">Laporan Tersedia</span>
-                            @endif
-                        </td>
                     </tr>
                     @empty
-                    <tr><td colspan="5" class="text-center py-5" style="color:#8898aa">Belum ada laporan</td></tr>
+                    <tr><td colspan="4" class="text-center py-5" style="color:#8898aa">Belum ada laporan</td></tr>
                     @endforelse
                 </tbody>
             </table>

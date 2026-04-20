@@ -10,9 +10,60 @@ use App\Models\Mahasiswa;
 use App\Models\User;
 use App\Models\Konselor;
 use App\Models\Notifikasi;
+use App\Models\SesiKonseling;
 
 class AdminController extends Controller
 {
+    public function notifications()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized.'
+            ], 401);
+        }
+
+        $items = $user->notifikasi()
+            ->latest()
+            ->take(6)
+            ->get(['id', 'pesan', 'status', 'created_at']);
+
+        return response()->json([
+            'success' => true,
+            'unread_count' => $user->notifikasi()->where('status', 'belum')->count(),
+            'items' => $items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'pesan' => $item->pesan,
+                    'status' => $item->status,
+                    'created_at_human' => $item->created_at?->diffForHumans() ?? 'Baru saja',
+                ];
+            })->values(),
+        ]);
+    }
+
+    public function markNotificationsAsRead()
+    {
+        $userId = Auth::id();
+
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized.'
+            ], 401);
+        }
+
+        Notifikasi::where('user_id', $userId)
+            ->where('status', 'belum')
+            ->update(['status' => 'dibaca']);
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
     private function createApprovalNotificationIfMissing(JadwalKonseling $jadwal): void
     {
         $mahasiswaUserId = optional(optional($jadwal->mahasiswa)->user)->id;
@@ -20,7 +71,7 @@ class AdminController extends Controller
             return;
         }
 
-        $pesan = 'Booking #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.';
+        $pesan = 'Jadwal #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.';
 
         $exists = Notifikasi::where('user_id', $mahasiswaUserId)
             ->where('pesan', $pesan)
@@ -35,151 +86,83 @@ class AdminController extends Controller
         }
     }
 
-    // Halaman login admin
-    public function showLogin()
-    {
-        // Kalau sudah login sebagai konselor, langsung ke dashboard
-        if (Auth::check() && Auth::user()->role === 'konselor') {
-            return redirect()->route('admin.dashboard');
-        }
-        return view('admin.login');
+ public function dashboard()
+{
+    $user = Auth::user();
+    
+    if ($user->role !== 'konselor') {
+        return redirect('/')->with('error', 'Akses ditolak.');
     }
 
-    // Proses login admin
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
+    $konselor = Konselor::where('user_id', $user->id)->first();
 
-        $credentials = $request->only('email', 'password');
+    $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
 
-        if (Auth::attempt($credentials)) {
-            // Cek apakah role-nya konselor
-            if (Auth::user()->role !== 'konselor') {
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'Anda tidak memiliki akses sebagai admin.',
-                ])->withInput();
-            }
+    $totalBooking   = (clone $baseQuery)->count();
+    $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
+    $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
+    $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
+    $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
+    $approvalRate   = $totalBooking > 0 ? round(($disetujui / $totalBooking) * 100) : 0;
 
-            $request->session()->regenerate();
-            return redirect()->route('admin.dashboard');
-        }
-
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->withInput();
+    $monthlyLabels = [];
+    $monthlyCounts = [];
+    for ($i = 5; $i >= 0; $i--) {
+        $month = Carbon::now()->subMonths($i);
+        $monthlyLabels[] = $month->translatedFormat('M');
+        $monthlyCounts[] = (clone $baseQuery)
+            ->whereYear('tanggal', $month->year)
+            ->whereMonth('tanggal', $month->month)
+            ->count();
     }
 
-    // Halaman dashboard admin
-   public function dashboard()
-    {
-        $user = Auth::user();
+    $statusDistribution = [
+        'Menunggu' => $menunggu,
+        'Disetujui' => $disetujui,
+        'Ditolak' => $ditolak,
+    ];
 
-        // Pastikan yang login adalah konselor
-        if ($user->role !== 'konselor') {
-            return redirect('/')->with('error', 'Akses ditolak.');
-        }
-
-        $konselor = Konselor::where('user_id', $user->id)->first();
-
-        $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
-
-        $totalBooking   = (clone $baseQuery)->count();
-        $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
-        $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
-        $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
-        $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
-        $approvalRate   = $totalBooking > 0 ? round(($disetujui / $totalBooking) * 100) : 0;
-
-        $monthlyLabels = [];
-        $monthlyCounts = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $month = Carbon::now()->subMonths($i);
-            $monthlyLabels[] = $month->translatedFormat('M');
-            $monthlyCounts[] = (clone $baseQuery)
-                ->whereYear('tanggal', $month->year)
-                ->whereMonth('tanggal', $month->month)
-                ->count();
-        }
-
-        $statusDistribution = [
-            'Menunggu' => $menunggu,
-            'Disetujui' => $disetujui,
-            'Ditolak' => $ditolak,
-        ];
-
-        $topikStats = collect();
-        if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
-            $topikStats = (clone $baseQuery)
-                ->whereNotNull('catatan')
-                ->pluck('catatan')
-                ->map(function ($catatan) {
-                    if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
-                        return trim($match[1]);
-                    }
-                    return null;
-                })
-                ->filter()
-                ->countBy()
-                ->sortDesc()
-                ->take(5);
-        }
-
-        $bookingTerbaru = (clone $baseQuery)
-            ->with('mahasiswa.user')
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
-
-        return view('admin.dashboard', compact(
-            'konselor',
-            'totalBooking',
-            'menunggu',
-            'disetujui',
-            'ditolak',
-            'mahasiswaAktif',
-            'approvalRate',
-            'monthlyLabels',
-            'monthlyCounts',
-            'statusDistribution',
-            'topikStats',
-            'bookingTerbaru'
-        ));
+    $topikStats = collect();
+    if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
+        $topikStats = (clone $baseQuery)
+            ->whereNotNull('catatan')
+            ->pluck('catatan')
+            ->map(function ($catatan) {
+                if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
+                    return trim($match[1]);
+                }
+                return null;
+            })
+            ->filter()
+            ->countBy()
+            ->sortDesc()
+            ->take(5);
     }
 
-    public function booking()
+    $bookingTerbaru = (clone $baseQuery)
+        ->with('mahasiswa.user')
+        ->orderBy('created_at', 'desc')
+        ->take(5)
+        ->get();
+
+    return view('admin.dashboard', compact(
+        'konselor',
+        'totalBooking',
+        'menunggu',
+        'disetujui',
+        'ditolak',
+        'mahasiswaAktif',
+        'approvalRate',
+        'monthlyLabels',
+        'monthlyCounts',
+        'statusDistribution',
+        'topikStats',
+        'bookingTerbaru'
+    ));
+}
+    public function jadwal()
     {
-        $konselor = Konselor::where('user_id', Auth::id())->first();
-        $bookings = JadwalKonseling::where('konselor_id', optional($konselor)->id)
-                        ->with('mahasiswa.user')
-                        ->orderBy('tanggal', 'desc')
-                        ->get();
-
-        // Backfill notifikasi booking masuk untuk admin.
-        $bookings->each(function ($jadwal) {
-            $isAnonimBooking = str_starts_with((string) ($jadwal->catatan ?? ''), '[ANONIM]');
-            $mahasiswa = $jadwal->mahasiswa;
-
-            $identitas = $isAnonimBooking
-                ? 'Mahasiswa Prodi ' . (optional($mahasiswa)->jurusan ?? '-') . ' Angkatan ' . (optional($mahasiswa)->angkatan ?? '-')
-                : (optional(optional($mahasiswa)->user)->nama ?? 'Mahasiswa');
-
-            $pesan = 'Booking baru dari ' . $identitas . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . '.';
-            Notifikasi::firstOrCreate(
-                ['user_id' => Auth::id(), 'pesan' => $pesan],
-                ['status' => 'belum']
-            );
-        });
-
-        // Backfill notifikasi untuk booking lama yang sudah disetujui.
-        $bookings->where('status', 'disetujui')->each(function ($jadwal) {
-            $this->createApprovalNotificationIfMissing($jadwal);
-        });
-
-        return view('admin.penjadwalan', compact('bookings'));
+        return view('admin.jadwal');
     }
 
     public function setujui($id)
@@ -189,25 +172,40 @@ class AdminController extends Controller
 
         $this->createApprovalNotificationIfMissing($jadwal);
 
-        return back()->with('success', 'Booking berhasil disetujui!');
+        return back()->with('success', 'Jadwal berhasil disetujui!');
     }
 
     public function tolak($id)
     {
         JadwalKonseling::findOrFail($id)->update(['status' => 'ditolak']);
-        return back()->with('success', 'Booking berhasil ditolak.');
+        return back()->with('success', 'Jadwal berhasil ditolak.');
     }
 
-    public function sesi()
+   public function sesi()
     {
-        $konselor = $this->getKonselor();
-        $sesi     = SesiKonseling::whereHas('jadwal', function($q) use ($konselor) {
-                        $q->where('konselor_id', optional($konselor)->id);
-                    })->with('jadwal.mahasiswa.user')
-                      ->orderBy('created_at', 'desc')
-                      ->get();
+        $konselor = auth()->user()->konselor;
 
-        return view('konselor.sesi', compact('konselor', 'sesi'));
+        $sesi = SesiKonseling::with('jadwal.mahasiswa.user')
+            ->when($konselor, function ($q) use ($konselor) {
+                $q->whereHas('jadwal', function ($sub) use ($konselor) {
+                    $sub->where('konselor_id', $konselor->id);
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.sesi', compact('sesi', 'konselor'));
+    }
+
+    private function getKonselor()
+    {
+        $user = auth()->user();
+
+        if (!$user || !$user->konselor) {
+            abort(403, 'Data konselor tidak ditemukan.');
+        }
+
+        return $user->konselor;
     }
 
     public function mahasiswa()
@@ -228,29 +226,58 @@ class AdminController extends Controller
         return view('admin.mahasiswa', compact('mahasiswas'));
     }
 
-    public function laporan()
-    {
-        $konselor = Konselor::where('user_id', Auth::id())->first();
-        $laporan  = JadwalKonseling::where('konselor_id', optional($konselor)->id)
-                        ->where('status', 'disetujui')
-                        ->with('mahasiswa.user')
-                        ->orderBy('tanggal', 'desc')
-                        ->get();
+    public function jadwalEvents()
+{
+    $jadwals = JadwalKonseling::with(['mahasiswa.user'])
+        ->orderBy('tanggal')
+        ->orderBy('waktu')
+        ->get();
 
-        return view('admin.laporan', compact('laporan'));
-    }
+    $events = $jadwals->map(function ($jadwal) {
+        $statusColor = match ($jadwal->status) {
+            'menunggu' => '#E9D98B',
+            'disetujui' => '#B8EEC0',
+            'berlangsung' => '#C9B8F5',
+            'selesai' => '#8EC9F5',
+            'ditolak' => '#F4A6A6',
+            default => '#D9D9D9',
+        };
+
+        $namaMahasiswa = optional(optional($jadwal->mahasiswa)->user)->nama ?? 'Mahasiswa';
+        $jenis = ucfirst($jadwal->jenis ?? '-');
+        $topik = $jadwal->topik ?? '-';
+        $waktu = $jadwal->waktu ? substr($jadwal->waktu, 0, 5) : '-';
+
+        return [
+            'id' => $jadwal->id,
+            'title' => $namaMahasiswa . ' - ' . $waktu,
+            'start' => $jadwal->tanggal,
+            'allDay' => true,
+            'backgroundColor' => $statusColor,
+            'borderColor' => $statusColor,
+            'textColor' => '#1F2937',
+            'extendedProps' => [
+                'nama' => $namaMahasiswa,
+                'waktu' => $waktu,
+                'jenis' => $jenis,
+                'topik' => $topik,
+                'status' => ucfirst($jadwal->status),
+            ],
+        ];
+    });
+
+    return response()->json($events);
+}
 
     public function pengaturan()
     {
         return view('admin.pengaturan');
     }
 
-    public function logout(Request $request)
+    public function chat()
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/login');
+        return view('admin.chat');
     }
+
 
 }

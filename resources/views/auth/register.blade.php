@@ -128,7 +128,7 @@
                         <div class="flex-1 h-[1px] bg-gray-200"></div>
                         <span class="text-gray-400 text-xs">
                             Sudah punya akun?
-                            <a href="/" class="font-semibold text-[#5FAF9F]">Masuk</a>
+                            <a href="{{ route('login') }}" class="font-semibold text-[#5FAF9F]">Masuk</a>
                         </span>
                         <div class="flex-1 h-[1px] bg-gray-200"></div>
                     </div>

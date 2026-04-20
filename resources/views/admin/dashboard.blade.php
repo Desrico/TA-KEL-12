@@ -67,27 +67,6 @@
   .s-change { font-size: .73rem; font-weight: 600; color: #0fb87a; }
   .s-change.down { color: #e74c3c; }
 
-  /* ── Cards ── */
-  .an-card {
-    background: white;
-    border-radius: 16px;
-    border: 1px solid #eef0f4;
-    box-shadow: 0 2px 10px rgba(0,0,0,.04);
-    padding: 1.35rem 1.4rem;
-    height: 100%;
-  }
-  .an-card h6 { font-size: .93rem; font-weight: 700; color: #0d1b2a; margin: 0 0 .15rem; }
-  .an-card .sub { font-size: .76rem; color: #8898aa; margin: 0 0 .8rem; }
-
-  /* ── Chart Row ── */
-  .chart-row {
-    display: grid;
-    grid-template-columns: 1.6fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  @media(max-width:840px){ .chart-row { grid-template-columns: 1fr; } }
-
   /* ── Donut Legend ── */
   .donut-wrap { display: flex; justify-content: center; margin-bottom: .75rem; }
   .donut-legend { list-style: none; padding: 0; margin: 0; }
@@ -140,7 +119,6 @@
 {{-- ── Page Header ── --}}
 <div class="an-page-header">
   <div>
-    <h4>Dashboard</h4>
     <p>Lihat statistik dan insight dari layanan konseling Anda</p>
   </div>
   <select class="filter-select">
@@ -156,26 +134,26 @@
   <div class="stat-card">
     <span class="s-emoji">🗂️</span>
     <div class="s-num">{{ $totalBooking }}</div>
-    <div class="s-lbl">Total Booking</div>
-    <div class="s-change">Semua status booking</div>
+    <div class="s-lbl">Total Penjadwalan</div>
+    <div class="s-change">Semua status penjadwalan</div>
   </div>
   <div class="stat-card">
     <span class="s-emoji">👤</span>
     <div class="s-num">{{ $mahasiswaAktif }}</div>
     <div class="s-lbl">Mahasiswa Aktif</div>
-    <div class="s-change">Sudah pernah booking</div>
+    <div class="s-change">Sudah pernah konseling</div>
   </div>
   <div class="stat-card">
     <span class="s-emoji">✅</span>
     <div class="s-num">{{ $disetujui }}</div>
-    <div class="s-lbl">Booking Disetujui</div>
+    <div class="s-lbl">Penjadwalan Disetujui</div>
     <div class="s-change">{{ $menunggu }} menunggu persetujuan</div>
   </div>
   <div class="stat-card">
     <span class="s-emoji">📉</span>
     <div class="s-num">{{ $approvalRate }}%</div>
     <div class="s-lbl">Approval Rate</div>
-    <div class="s-change {{ $ditolak > 0 ? 'down' : '' }}">{{ $ditolak }} booking ditolak</div>
+    <div class="s-change {{ $ditolak > 0 ? 'down' : '' }}">{{ $ditolak }} jadwal ditolak</div>
   </div>
 </div>
 
@@ -216,55 +194,6 @@
 
 {{-- ── Bottom Row ── --}}
 <div class="bottom-row">
-
-  {{-- Tabel Topik --}}
-  <div class="an-card">
-    <h6>Topik yang Sering Dibahas</h6>
-    <p class="sub">Berdasarkan sesi bulan ini</p>
-    <table class="topic-table">
-      <thead>
-        <tr>
-          <th>Topik</th>
-          <th>Jumlah Sesi</th>
-          <th>Persentase</th>
-          <th>Tren</th>
-        </tr>
-      </thead>
-      <tbody>
-        @forelse($topikStats as $topik => $jumlah)
-        <tr>
-          <td class="t-name">{{ $topik }}</td>
-          <td>{{ $jumlah }}</td>
-          <td>{{ $totalBooking > 0 ? round(($jumlah / $totalBooking) * 100) : 0 }}%</td>
-          <td class="t-flat">→</td>
-        </tr>
-        @empty
-        <tr>
-          <td class="t-name">Belum ada data topik</td>
-          <td>0</td>
-          <td>0%</td>
-          <td class="t-flat">→</td>
-        </tr>
-        @endforelse
-      </tbody>
-    </table>
-  </div>
-
-  {{-- Insight --}}
-  <div class="insight-card">
-    <div class="insight-emoji">💡</div>
-    <h6>Insight</h6>
-    <p>
-      Total booking saat ini {{ $totalBooking }} dengan {{ $disetujui }} sesi disetujui.
-      @if($menunggu > 0)
-      Masih ada {{ $menunggu }} booking menunggu tindakan.
-      @else
-      Semua booking telah diproses.
-      @endif
-    </p>
-  </div>
-
-</div>
 
 @endsection
 

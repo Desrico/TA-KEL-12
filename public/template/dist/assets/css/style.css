@@ -9,7 +9,7 @@ File: style.css
 =================================================================================== */
 @import url("../fonts/phosphor/duotone/style.css");
 :root {
-  --bs-body-bg: #fff;
+  --bs-body-bg: #D1FAE5;
   --bs-body-bg-rgb: 255, 255, 255;
   --pc-heading-color: #343a40;
   --pc-active-background: #e9ecef;

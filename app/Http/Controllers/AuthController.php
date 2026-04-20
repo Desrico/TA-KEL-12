@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Mahasiswa;
 
@@ -12,25 +13,41 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
+        if (Auth::check()) {
+            return Auth::user()->role === 'konselor'
+                ? redirect()->route('admin.dashboard')
+                : redirect()->route('dashboard');
+        }
+
         return view('auth.login');
     }
 
     public function showRegister()
     {
+        if (Auth::check()) {
+            return Auth::user()->role === 'konselor'
+                ? redirect()->route('admin.dashboard')
+                : redirect()->route('dashboard');
+        }
+
         return view('auth.register');
     }
 
     public function login(Request $request)
-{
-    $request->validate([
-        'email'    => 'required|email',
-        'password' => 'required',
-    ]);
+    {
+        $credentials = $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
 
-    if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->has('ingat'))) {
+        if (!Auth::attempt($credentials, $request->boolean('ingat'))) {
+            return back()->withErrors([
+                'email' => 'Email atau password salah.',
+            ])->withInput();
+        }
+
         $request->session()->regenerate();
 
-        // Redirect berdasarkan role
         if (Auth::user()->role === 'konselor') {
             return redirect()->intended('/admin/dashboard');
         }
@@ -38,14 +55,9 @@ class AuthController extends Controller
         return redirect()->intended('/dashboard');
     }
 
-    return back()->withErrors([
-        'email' => 'Email atau password salah.',
-    ])->withInput();
-}
-
     public function register(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama'     => 'required|string|max:100',
             'nim'      => 'required|string|max:20|unique:mahasiswa,nim',
             'jurusan'  => 'required|string|max:100',
@@ -54,23 +66,23 @@ class AuthController extends Controller
             'password' => 'required|min:6|confirmed',
         ]);
 
-        $user = User::create([
-            'nama'     => $request->nama,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => 'mahasiswa',
-        ]);
+        DB::transaction(function () use ($validated) {
+            $user = User::create([
+                'nama'     => $validated['nama'],
+                'email'    => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role'     => 'mahasiswa',
+            ]);
 
-        Mahasiswa::create([
-            'user_id'  => $user->id,
-            'nim'      => $request->nim,
-            'jurusan'  => $request->jurusan,
-            'angkatan' => $request->angkatan,
-        ]);
+            Mahasiswa::create([
+                'user_id'  => $user->id,
+                'nim'      => $validated['nim'],
+                'jurusan'  => $validated['jurusan'],
+                'angkatan' => $validated['angkatan'],
+            ]);
+        });
 
-        Auth::login($user);
-
-        return redirect('beranda');
+        return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login untuk masuk.');
     }
 
     public function logout(Request $request)
