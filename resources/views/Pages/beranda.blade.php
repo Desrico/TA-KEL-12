@@ -2,875 +2,960 @@
 
 @push('styles')
 <style>
+  .home-page {
+    --primary: #0A523A;
+    --primary-700: #063B2A;
+    --primary-600: #0D6A4B;
+    --primary-500: #0FB87A;
+    --primary-soft: #E5F7EF;
+    --mint: #7EF0A0;
+    --mint-soft: #EEF8F2;
+    --warm: #FDBA5A;
+    --warm-dark: #5C3200;
+    --ink: #26312D;
+    --muted: #66736E;
+    --line: #DDEAE4;
+    background: #F8FCF9;
+    color: var(--ink);
+  }
+
+  .home-page a {
+    text-decoration: none;
+  }
+
   .home-hero {
-    background: linear-gradient(180deg, var(--navbar-bg) 0%, #ffffff 78%);
-    padding: 4.5rem 0 3.5rem;
     position: relative;
     overflow: hidden;
-  }
-
-  .home-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
+    padding: 4.8rem 0 4.2rem;
     background:
-      radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.08), transparent 20%),
-      radial-gradient(circle at 10% 80%, rgba(6, 78, 59, 0.05), transparent 18%);
-    pointer-events: none;
+      linear-gradient(90deg, rgba(248, 252, 249, .98) 0%, rgba(248, 252, 249, .9) 48%, rgba(232, 244, 236, .78) 100%),
+      url("{{ asset('img/bg.png') }}") center bottom / cover no-repeat;
   }
 
-  .hero-kicker {
+  .hero-kicker,
+  .section-kicker {
     display: inline-flex;
     align-items: center;
-    gap: .5rem;
-    padding: .48rem .95rem;
+    gap: .45rem;
     border-radius: 999px;
-    background: var(--primary-soft);
-    color: var(--primary);
-    font-size: .78rem;
-    font-weight: 700;
-    letter-spacing: .03em;
+    background: #F8D59E;
+    color: #7B4E05;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .08em;
     text-transform: uppercase;
-  }
-
-  .hero-kicker .dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--primary-500);
+    padding: .42rem .82rem;
   }
 
   .hero-title {
-    font-family: 'Fraunces', serif;
-    font-size: clamp(2.2rem, 4.5vw, 4rem);
-    line-height: 1.1;
+    max-width: 11.5ch;
+    margin: 1.25rem 0 1rem;
+    color: var(--ink);
+    font-size: clamp(2.45rem, 5.2vw, 4.8rem);
+    font-weight: 800;
+    letter-spacing: -.03em;
+    line-height: .96;
+  }
+
+  .hero-title span {
+    display: block;
     color: var(--primary);
-    margin: 1rem 0 1rem;
-    max-width: 20ch;
   }
 
   .hero-desc {
-    font-size: .98rem;
-    line-height: 1.85;
-    color: var(--text-mid);
-    max-width: 520px;
-    margin-bottom: 1.6rem;
+    max-width: 470px;
+    margin-bottom: 1.5rem;
+    color: var(--muted);
+    font-size: .95rem;
+    line-height: 1.8;
   }
 
-  .hero-actions {
+  .hero-actions,
+  .cta-row {
     display: flex;
-    gap: .9rem;
     flex-wrap: wrap;
-    margin-bottom: 1.6rem;
+    gap: .85rem;
   }
 
-  .btn-home-primary {
-    background: var(--primary);
-    color: #fff;
-    border: 1px solid var(--primary);
-    border-radius: 14px;
-    padding: .92rem 1.3rem;
-    font-weight: 700;
-    font-size: .92rem;
-    text-decoration: none;
+  .btn-home-primary,
+  .btn-home-secondary,
+  .btn-dark-soft,
+  .btn-warm {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    border-radius: 999px;
+    padding: .78rem 1.25rem;
+    border: 0;
+    font-size: .86rem;
+    font-weight: 800;
     transition: all .2s ease;
   }
 
-  .btn-home-primary:hover {
+  .btn-home-primary,
+  .btn-dark-soft {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .btn-home-primary:hover,
+  .btn-dark-soft:hover {
     background: var(--primary-700);
-    border-color: var(--primary-700);
     color: #fff;
     transform: translateY(-1px);
   }
 
   .btn-home-secondary {
-    background: #fff;
-    color: var(--primary);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: .92rem 1.3rem;
-    font-weight: 700;
-    font-size: .92rem;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    transition: all .2s ease;
+    background: #DDE5E0;
+    color: var(--ink);
   }
 
   .btn-home-secondary:hover {
-    background: var(--surface-soft);
-    color: var(--primary);
+    background: #CCD8D1;
+    color: var(--ink);
   }
 
-  .hero-note {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem 1.25rem;
-    color: var(--text-mid);
-    font-size: .88rem;
-  }
-
-  .hero-note span {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-  }
-
-  .hero-note i {
-    color: var(--primary-600);
-  }
-
-  .hero-visual-clean {
+  .hero-visual {
     position: relative;
-    display: flex;
-    align-items: end;
-    justify-content: center;
-    min-height: 520px;
+    max-width: 520px;
+    margin-left: auto;
   }
 
-  .hero-image-wrap {
+  .hero-illustration-card {
     position: relative;
-    width: 100%;
-    max-width: 640px;
-    display: flex;
-    align-items: end;
-    justify-content: center;
+    overflow: hidden;
+    min-height: 455px;
+    border-radius: 34px;
+    background: linear-gradient(135deg, #C5D5B9 0%, #E4D7AF 100%);
+    box-shadow: 0 28px 70px rgba(10, 82, 58, .18);
   }
 
-  .hero-image-bg {
+  .hero-illustration-card::before {
+    content: "";
     position: absolute;
-    inset: auto 0 0 0;
-    height: 88%;
-    border-radius: 36px 36px 0 0;
-    background: linear-gradient(180deg, #EAF8F0 0%, #DDF3E7 100%);
+    inset: 1.4rem;
+    border: 2px solid rgba(255, 255, 255, .38);
+    border-radius: 999px 999px 28px 28px;
   }
 
-  .hero-image-glow {
+  .hero-illustration-card::after {
+    content: "";
     position: absolute;
-    width: 420px;
-    height: 420px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(16,185,129,.12) 0%, rgba(16,185,129,0) 70%);
-    top: 2%;
-    right: 8%;
-    filter: blur(10px);
+    right: 2.2rem;
+    top: 3.2rem;
+    width: 135px;
+    height: 185px;
+    border-radius: 72px 72px 12px 12px;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,.92) 49%, rgba(255,255,255,.45) 50%),
+      linear-gradient(180deg, #93C9B0 0%, #DDF4E8 100%);
+    border: 10px solid rgba(255, 255, 255, .92);
   }
 
-  .hero-person-img {
-    position: relative;
+  .hero-counselor-img {
+    position: absolute;
+    left: 50%;
+    bottom: -.4rem;
     z-index: 2;
-    width: 100%;
-    max-width: 560px;
-    object-fit: contain;
-    display: block;
+    width: min(78%, 380px);
+    transform: translateX(-50%);
+    filter: drop-shadow(0 18px 24px rgba(37, 47, 43, .14));
   }
 
-  .hero-soft-shape {
+  .hero-student-card {
     position: absolute;
-    border-radius: 50%;
-    background: rgba(255,255,255,.45);
-    z-index: 1;
-  }
-
-  .hero-soft-shape.shape-1 {
-    width: 84px;
-    height: 84px;
-    top: 10%;
-    left: 8%;
-  }
-
-  .hero-soft-shape.shape-2 {
-    width: 22px;
-    height: 22px;
-    top: 24%;
-    left: 20%;
-  }
-
-  .hero-soft-shape.shape-3 {
-    width: 60px;
-    height: 60px;
-    bottom: 20%;
-    right: 10%;
-  }
-
-  .hero-soft-shape.shape-4 {
-    width: 16px;
-    height: 16px;
-    bottom: 36%;
-    right: 22%;
-  }
-
-  .stats-strip {
-    margin-top: -1.5rem;
-    position: relative;
+    left: 2rem;
+    bottom: 2.4rem;
     z-index: 3;
+    max-width: 180px;
+    padding: .9rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .9);
+    box-shadow: 0 18px 42px rgba(43, 55, 50, .14);
   }
 
-  .stats-wrap {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    box-shadow: var(--shadow-sm);
-    padding: 1.25rem;
-  }
-
-  .stat-item {
-    text-align: center;
-    padding: .75rem 1rem;
-  }
-
-  .stat-item h3 {
+  .hero-student-card strong {
+    display: block;
     color: var(--primary);
-    font-weight: 800;
-    font-size: 1.6rem;
-    margin-bottom: .2rem;
+    font-size: 1.35rem;
+    line-height: 1;
   }
 
-  .stat-item p {
-    margin: 0;
-    color: var(--text-mid);
-    font-size: .88rem;
+  .hero-student-card span {
+    display: block;
+    margin-top: .25rem;
+    color: var(--ink);
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
   }
+
+  .hero-dot {
+    position: absolute;
+    z-index: 3;
+    width: 15px;
+    height: 15px;
+    border: 3px solid #F08B39;
+    border-radius: 50%;
+  }
+
+  .hero-dot.dot-1 { left: 42%; top: 16%; }
+  .hero-dot.dot-2 { right: 8%; top: 35%; }
+  .hero-dot.dot-3 { left: 12%; top: 42%; border-color: rgba(255,255,255,.82); }
 
   .section-block {
-    padding: 5rem 0;
+    padding: 4.5rem 0;
   }
 
-  .section-heading-wrap {
-    max-width: 720px;
-    margin: 0 auto 2.5rem;
-    text-align: center;
+  .section-title {
+    color: var(--ink);
+    font-size: clamp(1.85rem, 3vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -.025em;
+    line-height: 1.08;
   }
 
-  .section-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    background: var(--primary-soft);
+  .section-title span {
     color: var(--primary);
-    border-radius: 999px;
-    padding: .38rem .85rem;
-    font-size: .76rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    margin-bottom: .9rem;
-  }
-
-  .section-heading-main {
-    font-family: 'Fraunces', serif;
-    color: var(--text-dark);
-    font-size: clamp(1.8rem, 3vw, 2.7rem);
-    line-height: 1.18;
-    margin-bottom: .8rem;
   }
 
   .section-desc {
-    color: var(--text-mid);
-    line-height: 1.8;
-    font-size: .95rem;
-    margin: 0;
-  }
-
-  .feature-card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 1.6rem;
-    height: 100%;
-    transition: all .2s ease;
-  }
-
-  .feature-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .feature-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--primary-soft);
-    color: var(--primary);
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
-  }
-
-  .feature-card h5 {
-    font-weight: 700;
-    font-size: 1.02rem;
-    margin-bottom: .55rem;
-    color: var(--text-dark);
-  }
-
-  .feature-card p {
-    color: var(--text-mid);
-    font-size: .9rem;
+    max-width: 580px;
+    color: var(--muted);
+    font-size: .92rem;
     line-height: 1.75;
-    margin-bottom: 1rem;
   }
 
-  .feature-card a {
-    text-decoration: none;
-    color: var(--primary);
-    font-size: .86rem;
-    font-weight: 700;
+  .safe-space {
+    overflow: hidden;
+    border-radius: 44px;
+    background: #EFF5F2;
+    padding: 4.4rem 0;
   }
 
-  .dmhi-panel {
-    background: linear-gradient(135deg, #F7FCF9 0%, #EFFCF5 100%);
-    border: 1px solid var(--border);
-    border-radius: 24px;
+  .support-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 280px;
+    height: 100%;
+    border-radius: 28px;
     padding: 2rem;
   }
 
-  .dmhi-list {
-    display: grid;
-    gap: 1rem;
+  .support-card h3 {
+    margin: .95rem 0 .55rem;
+    color: #114735;
+    font-size: 1.45rem;
+    font-weight: 800;
   }
 
-  .dmhi-item {
-    background: rgba(255,255,255,.82);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 1rem 1rem 1rem 3.7rem;
-    position: relative;
-  }
-
-  .dmhi-item-icon {
-    position: absolute;
-    left: 1rem;
-    top: 1rem;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: var(--primary-soft);
-    color: var(--primary);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-  }
-
-  .dmhi-item h6 {
-    margin: 0 0 .35rem;
-    color: var(--text-dark);
-    font-weight: 700;
-  }
-
-  .dmhi-item p {
-    margin: 0;
-    color: var(--text-mid);
+  .support-card p {
+    max-width: 330px;
+    margin-bottom: 2rem;
+    color: rgba(17, 71, 53, .78);
     font-size: .9rem;
     line-height: 1.7;
   }
 
-  .steps-row {
-    row-gap: 1.5rem;
+  .mood-card {
+    background: var(--mint);
   }
 
-  .step-card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 1.5rem;
-    height: 100%;
-    position: relative;
+  .schedule-card {
+    background: var(--warm);
   }
 
-  .step-number {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: var(--primary);
-    color: #fff;
+  .schedule-card h3,
+  .schedule-card p {
+    color: var(--warm-dark);
+  }
+
+  .support-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
-    font-size: .92rem;
-    margin-bottom: 1rem;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .28);
+    color: #075F3F;
+    font-size: 1.2rem;
   }
 
-  .step-card h6 {
-    font-weight: 700;
-    margin-bottom: .5rem;
-    color: var(--text-dark);
+  .mood-dots {
+    position: absolute;
+    right: 1.8rem;
+    top: 1.6rem;
+    display: grid;
+    grid-template-columns: repeat(2, 34px);
+    gap: .55rem;
   }
 
-  .step-card p {
-    margin: 0;
-    color: var(--text-mid);
-    font-size: .9rem;
-    line-height: 1.75;
+  .mood-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.92);
+    color: var(--primary);
+    font-size: .95rem;
   }
 
-  .trust-box {
-    background: var(--primary);
-    color: rgba(255,255,255,.86);
+  .schedule-card::after {
+    content: "";
+    position: absolute;
+    top: -48px;
+    right: -40px;
+    width: 150px;
+    height: 150px;
+    border: 6px solid rgba(255, 244, 219, .45);
+    border-radius: 50%;
+  }
+
+  .stats-card {
+    margin-top: 2rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
     border-radius: 24px;
-    padding: 2rem;
+    background: rgba(255, 255, 255, .72);
+  }
+
+  .stat-tile {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
     height: 100%;
+    padding: .95rem;
+    border-radius: 18px;
   }
 
-  .trust-box h3 {
-    font-family: 'Fraunces', serif;
-    color: #fff;
-    margin-bottom: .75rem;
+  .stat-tile i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
   }
 
-  .trust-box p {
-    color: rgba(255,255,255,.8);
-    line-height: 1.8;
-    margin-bottom: 1.25rem;
+  .stat-tile h4 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .stat-tile p {
+    margin: .18rem 0 0;
+    color: var(--muted);
+    font-size: .78rem;
+    line-height: 1.45;
+  }
+
+  .trust-strip {
+    background: #F8FCF9;
   }
 
   .trust-list {
     display: grid;
-    gap: .8rem;
+    gap: 1.7rem;
   }
 
-  .trust-list div {
+  .trust-item {
     display: flex;
+    gap: 1rem;
     align-items: flex-start;
-    gap: .7rem;
-    font-size: .92rem;
   }
 
-  .trust-list i {
-    color: #A7F3D0;
-    margin-top: .15rem;
-  }
-
-  .testimonial-card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 1.5rem;
-    height: 100%;
-  }
-
-  .testimonial-card p {
-    color: var(--text-mid);
-    line-height: 1.8;
-    font-size: .92rem;
-    margin-bottom: 1rem;
-  }
-
-  .testimonial-meta {
-    display: flex;
-    align-items: center;
-    gap: .8rem;
-    padding-top: 1rem;
-    border-top: 1px solid #EEF5F1;
-  }
-
-  .testimonial-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: var(--primary);
-    color: #fff;
+  .trust-item i {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+
+  .trust-item:nth-child(3) i {
+    background: #FFE3B7;
+    color: #9A5B05;
+  }
+
+  .trust-item h4 {
+    margin-bottom: .3rem;
+    color: var(--ink);
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+
+  .trust-item p {
+    margin: 0;
+    color: var(--muted);
+    font-size: .88rem;
+    line-height: 1.65;
+  }
+
+  .trust-image {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    aspect-ratio: 3456 / 1216;
+    background: #EAF3EE;
+    box-shadow: 0 24px 60px rgba(10, 82, 58, .12);
+  }
+
+  .trust-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .steps-section {
+    position: relative;
+    overflow: hidden;
+    border-radius: 44px;
+    background:
+      linear-gradient(135deg, rgba(232, 246, 237, .96) 0%, rgba(201, 231, 214, .94) 52%, rgba(244, 250, 246, .98) 100%);
+  }
+
+  .steps-section::before,
+  .steps-section::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    pointer-events: none;
+  }
+
+  .steps-section::before {
+    top: 0;
+    height: 150px;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 180' preserveAspectRatio='none'%3E%3Cpath d='M0 78L80 65C160 52 320 26 480 43C640 60 800 120 960 126C1120 132 1280 84 1360 60L1440 36V0H0Z' fill='%23f8fcf9' fill-opacity='.92'/%3E%3Cpath d='M0 132L90 118C180 104 360 76 540 92C720 108 900 168 1080 160C1260 152 1350 96 1440 72V0H0Z' fill='%230a523a' fill-opacity='.08'/%3E%3C/svg%3E") top center / 100% 100% no-repeat;
+  }
+
+  .steps-section::after {
+    right: 0;
+    bottom: -18px;
+    left: auto;
+    width: min(62%, 760px);
+    height: 210px;
+    border-radius: 120px 0 44px 0;
+    background:
+      linear-gradient(145deg, rgba(10, 82, 58, .12), rgba(15, 184, 122, .07)),
+      repeating-linear-gradient(-8deg, rgba(255,255,255,.18) 0 12px, rgba(255,255,255,0) 12px 28px);
+    transform: skewY(-4deg);
+  }
+
+  .steps-section .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-card {
+    height: 100%;
+    min-height: 172px;
+    padding: 1.5rem 1.2rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, .74);
+    background: rgba(255, 255, 255, .86);
+    box-shadow: 0 18px 38px rgba(10, 82, 58, .08);
+    backdrop-filter: blur(8px);
+    text-align: center;
+  }
+
+  .step-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+
+  .step-icon.gold { background: #F8D59E; color: #875807; }
+  .step-icon.red { background: #FEE2E2; color: #B91C1C; }
+
+  .step-card small {
+    display: block;
+    color: var(--primary);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .step-card h4 {
+    max-width: 150px;
+    margin: .35rem auto 0;
+    color: var(--ink);
+    font-size: .95rem;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+
+  .dmhi-section {
+    background: #EAF8F1;
+  }
+
+  .dmhi-card {
+    height: 100%;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: rgba(255,255,255,.78);
+  }
+
+  .dmhi-thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    border-radius: 18px;
+    background: var(--primary-soft);
+  }
+
+  .dmhi-thumb img {
+    width: 82px;
+    height: 82px;
+    object-fit: contain;
+  }
+
+  .dmhi-card h4 {
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .dmhi-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: .86rem;
+    line-height: 1.7;
+  }
+
+  .impact-section {
+    background: #F8FCF9;
+  }
+
+  .impact-card {
+    height: 100%;
+    padding: 1.4rem;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #fff;
+  }
+
+  .impact-card i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 1rem;
+    border-radius: 14px;
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+
+  .impact-card h4 {
+    color: var(--ink);
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+
+  .impact-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: .86rem;
+    line-height: 1.75;
   }
 
   .final-cta {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-700) 100%);
-    border-radius: 28px;
-    padding: 3rem 2rem;
-    color: rgba(255,255,255,.85);
-    text-align: center;
-    overflow: hidden;
-    position: relative;
+    padding: 2rem 0 4.5rem;
   }
 
-  .final-cta::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at top center, rgba(255,255,255,.08), transparent 35%);
-  }
-
-  .final-cta h2 {
-    position: relative;
-    z-index: 1;
-    font-family: 'Fraunces', serif;
-    color: #fff;
-    font-size: clamp(1.9rem, 3.2vw, 2.8rem);
-    margin-bottom: .8rem;
-  }
-
-  .final-cta p {
-    position: relative;
-    z-index: 1;
-    max-width: 650px;
-    margin: 0 auto 1.6rem;
-    line-height: 1.8;
-    color: rgba(255,255,255,.82);
-  }
-
-  .final-cta .btn-wrap {
-    position: relative;
-    z-index: 1;
+  .final-cta-box {
     display: flex;
-    justify-content: center;
-    gap: .9rem;
-    flex-wrap: wrap;
-  }
-
-  .btn-cta-light {
-    background: #fff;
-    color: var(--primary);
-    border: 1px solid #fff;
-    border-radius: 14px;
-    padding: .9rem 1.25rem;
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .btn-cta-light:hover {
-    color: var(--primary);
-    background: #F7FCF9;
-  }
-
-  .btn-cta-outline {
-    background: transparent;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.6rem;
+    border-radius: 28px;
+    background: var(--primary);
     color: #fff;
-    border: 1px solid rgba(255,255,255,.35);
-    border-radius: 14px;
-    padding: .9rem 1.25rem;
-    font-weight: 700;
-    text-decoration: none;
   }
 
-  .btn-cta-outline:hover {
-    color: #fff;
-    background: rgba(255,255,255,.08);
+  .final-cta-box p {
+    max-width: 620px;
+    margin: 0;
+    color: rgba(255,255,255,.78);
+    line-height: 1.7;
+  }
+
+  .btn-warm {
+    background: var(--warm);
+    color: var(--warm-dark);
+  }
+
+  .btn-warm:hover {
+    background: #F6A83B;
+    color: var(--warm-dark);
+  }
+
+  .schedule-card .btn-warm {
+    background: #FFF8E9;
+    color: var(--warm-dark);
+    box-shadow: 0 10px 22px rgba(92, 50, 0, .12);
+  }
+
+  .schedule-card .btn-warm:hover {
+    background: var(--warm-dark);
+    color: #FFF8E9;
+    box-shadow: 0 14px 28px rgba(92, 50, 0, .18);
+    transform: translateY(-1px);
   }
 
   @media (max-width: 991.98px) {
-    .home-hero {
-      padding: 4.5rem 0 3rem;
+    .hero-visual {
+      margin: 2rem auto 0;
     }
 
     .hero-title {
       max-width: 100%;
     }
 
-    .hero-visual-clean {
-      min-height: auto;
-      margin-top: 1.5rem;
+    .safe-space,
+    .steps-section {
+      border-radius: 30px;
     }
 
-    .hero-image-wrap {
-      max-width: 520px;
-      margin: 0 auto;
-    }
-
-    .hero-image-bg {
-      height: 85%;
-      border-radius: 28px 28px 0 0;
+    .final-cta-box {
+      align-items: flex-start;
+      flex-direction: column;
     }
   }
 
   @media (max-width: 575.98px) {
-    .hero-title {
-      font-size: clamp(2.4rem, 12vw, 3.6rem);
+    .home-hero {
+      padding-top: 3.8rem;
     }
 
-    .hero-actions a {
+    .hero-illustration-card {
+      min-height: 370px;
+      border-radius: 26px;
+    }
+
+    .hero-student-card {
+      left: 1rem;
+      bottom: 1rem;
+    }
+
+    .hero-actions a,
+    .support-card .btn-dark-soft,
+    .support-card .btn-warm,
+    .final-cta-box a {
       width: 100%;
-      justify-content: center;
     }
 
-    .hero-image-bg {
-      height: 82%;
+    .support-card {
+      min-height: 250px;
+      padding: 1.5rem;
     }
 
-    .stats-wrap .row > div:not(:last-child) .stat-item {
-      border-bottom: 1px solid #EEF5F1;
+    .mood-dots {
+      right: 1.2rem;
+      top: 1.2rem;
     }
 
-    .final-cta .btn-wrap a {
-      width: 100%;
-      justify-content: center;
+    .section-block,
+    .safe-space {
+      padding: 3.5rem 0;
     }
   }
 </style>
 @endpush
+
 @section('konten')
+<div class="home-page">
+  <section class="home-hero">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <div class="hero-kicker">Kesehatan Mental Siswa</div>
+          <h1 class="hero-title">
+            Konsultasikan Dirimu, <span>Percaya Mental Sehat</span>
+          </h1>
+          <p class="hero-desc">
+            Langkah berani untuk masa depan yang lebih cerah. Campus Care hadir sebagai ruang bimbingan dan konseling yang aman, tenang, dan mudah diakses oleh mahasiswa IT Del.
+          </p>
+          <div class="hero-actions">
+            <a href="/tentang" class="btn-home-primary">Tentang Campus Care</a>
+          </div>
+        </div>
 
-<section class="home-hero">
-  <div class="container position-relative" style="z-index: 2;">
-    <div class="row align-items-center g-5">
-      <div class="col-lg-6">
+        <div class="col-lg-6">
+          <div class="hero-visual">
+            <div class="hero-illustration-card">
+              <span class="hero-dot dot-1"></span>
+              <span class="hero-dot dot-2"></span>
+              <span class="hero-dot dot-3"></span>
+              <img src="{{ asset('img/dokter.png') }}" alt="Ilustrasi konselor Campus Care" class="hero-counselor-img">
+              <div class="hero-student-card">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-
-        <h1 class="hero-title">
-          Ruang digital yang aman untuk memulai proses konseling di kampus
-        </h1>
-
-        <p class="hero-desc">
-          Campus Care membantu mahasiswa Institut Teknologi Del mengakses layanan bimbingan dan konseling secara lebih mudah, terarah, dan tetap menjaga privasi. Platform ini dikembangkan sebagai bagian dari pendekatan <em>Digital Mental Health Intervention</em> agar dukungan psikologis terasa lebih dekat dengan kebutuhan mahasiswa.
+  <section class="safe-space" id="ruang-aman">
+    <div class="container">
+      <div class="mb-4">
+        <h2 class="section-title">Ruang Aman <span>Untukmu</span></h2>
+        <p class="section-desc">
+          Kami menyediakan fitur sederhana untuk membantu kamu memantau kondisi harian dan mulai mencari bantuan saat dibutuhkan.
         </p>
+      </div>
 
-        <div class="hero-actions">
-          <a href="/layanan" class="btn-home-primary">
-            <i class="bi bi-calendar2-check me-2"></i>Jadwalkan Konseling
-          </a>
-          <a href="/about" class="btn-home-secondary">
-            <i class="bi bi-info-circle me-2"></i>Tentang Platform
-          </a>
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="support-card mood-card">
+            <span class="support-icon"><i class="bi bi-emoji-smile"></i></span>
+            <div class="mood-dots">
+              <span class="mood-dot"><i class="bi bi-emoji-smile"></i></span>
+              <span class="mood-dot"><i class="bi bi-emoji-neutral"></i></span>
+              <span class="mood-dot"><i class="bi bi-emoji-frown"></i></span>
+              <span class="mood-dot"><i class="bi bi-emoji-expressionless"></i></span>
+            </div>
+            <h3>Daily Mood Tracker</h3>
+            <p>Pahami pola emosi harian untuk kesehatan mental yang lebih stabil dan terukur.</p>
+            <a href="#ruang-aman" class="btn-dark-soft">Mulai Tracking <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="support-card schedule-card">
+            <span class="support-icon"><i class="bi bi-calendar2-week"></i></span>
+            <h3>Penjadwalan Konseling</h3>
+            <p>Pilih konselor profesional dan tentukan waktu konseling tatap muka yang paling nyaman untukmu.</p>
+            <a href="{{ route('konseling') }}" class="btn-warm">Cari Jadwal</a>
+          </div>
         </div>
       </div>
 
-      <div class="col-lg-6">
-        <div class="hero-visual-clean">
-          <div class="hero-image-wrap">
-            <div class="hero-image-glow"></div>
-            <div class="hero-image-bg"></div>
-
-            <span class="hero-soft-shape shape-1"></span>
-            <span class="hero-soft-shape shape-2"></span>
-            <span class="hero-soft-shape shape-3"></span>
-            <span class="hero-soft-shape shape-4"></span>
-
-            <img src="{{ asset('img/') }}" alt="Layanan konseling digital" class="hero-person-img">
+      <div class="stats-card">
+        <div class="row g-2">
+          <div class="col-md-6 col-lg-3">
+            <div class="stat-tile">
+              <i class="bi bi-laptop"></i>
+              <div>
+                <h4>Online</h4>
+                <p>Layanan digital yang fleksibel.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="stat-tile">
+              <i class="bi bi-incognito"></i>
+              <div>
+                <h4>Anonim</h4>
+                <p>Opsi menjaga kenyamanan awal.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="stat-tile">
+              <i class="bi bi-calendar-check"></i>
+              <div>
+                <h4>Terjadwal</h4>
+                <p>Pengajuan sesi lebih rapi.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="stat-tile">
+              <i class="bi bi-journal-check"></i>
+              <div>
+                <h4>Terpantau</h4>
+                <p>Riwayat layanan tersimpan.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="stats-strip">
-  <div class="container">
-    <div class="stats-wrap">
-      <div class="row g-0">
-        <div class="col-md-3">
-          <div class="stat-item">
-            <h3>Online</h3>
-            <p>Layanan digital yang fleksibel</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stat-item">
-            <h3>Anonim</h3>
-            <p>Opsi menjaga kenyamanan awal</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stat-item">
-            <h3>Terjadwal</h3>
-            <p>Pengajuan sesi lebih terstruktur</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stat-item">
-            <h3>Terpantau</h3>
-            <p>Riwayat konseling tersimpan rapi</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section-block">
-  <div class="container">
-    <div class="section-heading-wrap">
-      <div class="section-kicker">
-        <i class="bi bi-grid"></i>
-        Layanan Utama
-      </div>
-      <h2 class="section-heading-main">Fitur inti yang mendukung proses konseling digital</h2>
-      <p class="section-desc">
-        Halaman ini tidak hanya menampilkan layanan konseling, tetapi juga menjelaskan bagaimana platform mendukung intervensi kesehatan mental secara bertahap, praktis, dan sesuai konteks mahasiswa.
-      </p>
-    </div>
-
-    <div class="row g-4">
-      <div class="col-md-6 col-lg-4">
-        <div class="feature-card">
-          <div class="feature-icon"><i class="bi bi-person-plus"></i></div>
-          <h5>Registrasi dan Login</h5>
-          <p>
-            Mahasiswa dapat mengakses layanan menggunakan akun yang terhubung dengan sistem, sehingga alur awal penggunaan menjadi lebih sederhana dan terkontrol.
-          </p>
-          <a href="{{ route('register') }}">Mulai dari akun pengguna <i class="bi bi-arrow-right ms-1"></i></a>
-        </div>
-      </div>
-
-      <div class="col-md-6 col-lg-4">
-        <div class="feature-card">
-          <div class="feature-icon"><i class="bi bi-calendar-check"></i></div>
-          <h5>Penjadwalan Konseling</h5>
-          <p>
-            Mahasiswa dapat memilih layanan online atau offline, menentukan topik, serta mengatur jadwal sesi sesuai ketersediaan konselor.
-          </p>
-          <a href="/layanan">Lihat alur layanan <i class="bi bi-arrow-right ms-1"></i></a>
-        </div>
-      </div>
-
-      <div class="col-md-6 col-lg-4">
-        <div class="feature-card">
-          <div class="feature-icon"><i class="bi bi-incognito"></i></div>
-          <h5>Mode Anonim</h5>
-          <p>
-            Fitur ini memberi ruang awal bagi mahasiswa yang belum siap menampilkan identitas penuh, sehingga proses mencari bantuan terasa lebih nyaman.
-          </p>
-          <a href="/profil">Kelola preferensi pengguna <i class="bi bi-arrow-right ms-1"></i></a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section-block pt-0">
-  <div class="container">
-    <div class="dmhi-panel">
-      <div class="row align-items-center g-4">
+  <section class="section-block trust-strip">
+    <div class="container">
+      <div class="row align-items-center g-5">
         <div class="col-lg-5">
-          <div class="section-kicker">
-            <i class="bi bi-heart-pulse"></i>
-            Konsep DMHI
+          <div class="trust-list">
+            <div class="trust-item">
+              <i class="bi bi-lock"></i>
+              <div>
+                <h4>100% Privasi Terjamin</h4>
+                <p>Ceritamu aman bersama kami. Data dan pilihan layanan diperlakukan secara hati-hati.</p>
+              </div>
+            </div>
+            <div class="trust-item">
+              <i class="bi bi-shield-check"></i>
+              <div>
+                <h4>Konselor Berlisensi</h4>
+                <p>Tim bimbingan dan konseling siap mendengarkan dengan profesional dan tidak menghakimi.</p>
+              </div>
+            </div>
+            <div class="trust-item">
+              <i class="bi bi-headset"></i>
+              <div>
+                <h4>Respon Cepat</h4>
+                <p>Alur layanan dibuat jelas agar kamu tahu langkah berikutnya setelah mengajukan jadwal.</p>
+              </div>
+            </div>
           </div>
-          <h2 class="section-heading-main mb-3">Mengarah pada pendekatan Digital Mental Health Intervention</h2>
-          <p class="section-desc">
-            Platform ini dirancang bukan sekadar sebagai halaman informasi, tetapi sebagai media digital yang membantu mahasiswa mengakses bantuan, membangun kesiapan untuk berkonsultasi, dan menjaga kontinuitas layanan secara lebih praktis.
-          </p>
         </div>
 
         <div class="col-lg-7">
-          <div class="dmhi-list">
-            <div class="dmhi-item">
-              <span class="dmhi-item-icon"><i class="bi bi-phone"></i></span>
-              <h6>Akses yang lebih mudah</h6>
-              <p>Mahasiswa dapat memulai proses konseling tanpa harus datang lebih dulu, sehingga hambatan awal untuk mencari bantuan menjadi lebih rendah.</p>
-            </div>
-
-            <div class="dmhi-item">
-              <span class="dmhi-item-icon"><i class="bi bi-shield-lock"></i></span>
-              <h6>Privasi dan rasa aman</h6>
-              <p>Dukungan digital perlu dibangun dengan rasa aman. Karena itu, fitur akun, mode anonim, dan pengelolaan data menjadi bagian penting dari pengalaman pengguna.</p>
-            </div>
-
-            <div class="dmhi-item">
-              <span class="dmhi-item-icon"><i class="bi bi-diagram-3"></i></span>
-              <h6>Alur yang terstruktur</h6>
-              <p>Dari registrasi, pemilihan layanan, penjadwalan, hingga riwayat konseling, seluruh proses dibuat berurutan agar mahasiswa tidak bingung saat menggunakan platform.</p>
-            </div>
+          <div class="trust-image">
+            <img src="{{ asset('img/therapy-session2.png') }}" alt="Pendampingan konseling mahasiswa">
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="section-block pt-0">
-  <div class="container">
-    <div class="section-heading-wrap">
-      <div class="section-kicker">
-        <i class="bi bi-signpost-2"></i>
-        Alur Penggunaan
+  <section class="section-block steps-section">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="section-title">Tahapan Sebelum Konseling</h2>
+        <p class="section-desc mx-auto">
+          Ikuti langkah-langkah mudah berikut untuk memulai perjalanan kesehatan mentalmu bersama Campus Care.
+        </p>
       </div>
-      <h2 class="section-heading-main">Langkah penggunaan yang sederhana dan mudah dipahami</h2>
-      <p class="section-desc">
-        Agar tidak terasa rumit, alur pada platform dibagi menjadi beberapa tahapan yang jelas sejak mahasiswa pertama kali masuk hingga sesi berhasil dijadwalkan.
-      </p>
-    </div>
 
-    <div class="row steps-row">
-      <div class="col-md-6 col-lg-3">
-        <div class="step-card">
-          <div class="step-number">01</div>
-          <h6>Masuk ke sistem</h6>
-          <p>Mahasiswa membuka platform dan login menggunakan akun yang tersedia untuk mengakses layanan secara personal.</p>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="step-card">
+            <div class="step-icon"><i class="bi bi-person-plus"></i></div>
+            <small>Langkah 1</small>
+            <h4>Melakukan Pendaftaran Akun</h4>
+          </div>
         </div>
-      </div>
-
-      <div class="col-md-6 col-lg-3">
-        <div class="step-card">
-          <div class="step-number">02</div>
-          <h6>Pilih jenis layanan</h6>
-          <p>Pengguna memilih konseling online atau offline sesuai kebutuhan, kondisi, dan kenyamanan masing-masing.</p>
+        <div class="col-md-6 col-lg-3">
+          <div class="step-card">
+            <div class="step-icon gold"><i class="bi bi-box-arrow-in-right"></i></div>
+            <small>Langkah 2</small>
+            <h4>Masuk ke Akun yang Terdaftar</h4>
+          </div>
         </div>
-      </div>
-
-      <div class="col-md-6 col-lg-3">
-        <div class="step-card">
-          <div class="step-number">03</div>
-          <h6>Atur jadwal sesi</h6>
-          <p>Mahasiswa mengisi topik konseling, memilih waktu yang tersedia, lalu meninjau ringkasan sebelum konfirmasi.</p>
+        <div class="col-md-6 col-lg-3">
+          <div class="step-card">
+            <div class="step-icon"><i class="bi bi-clipboard2-pulse"></i></div>
+            <small>Langkah 3</small>
+            <h4>Mengikuti Survey atau Mood Tracker</h4>
+          </div>
         </div>
-      </div>
-
-      <div class="col-md-6 col-lg-3">
-        <div class="step-card">
-          <div class="step-number">04</div>
-          <h6>Ikuti proses konseling</h6>
-          <p>Setelah pengajuan diterima, mahasiswa dapat mengikuti sesi dan memantau riwayat konseling dari akun masing-masing.</p>
+        <div class="col-md-6 col-lg-3">
+          <div class="step-card">
+            <div class="step-icon red"><i class="bi bi-calendar2-check"></i></div>
+            <small>Langkah 4</small>
+            <h4>Memilih Menu Jadwal Konseling</h4>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="section-block pt-0">
-  <div class="container">
-    <div class="row g-4">
-      <div class="col-lg-6">
-        <div class="trust-box">
-          <h3>Mengapa pendekatan ini relevan untuk mahasiswa?</h3>
-          <p>
-            Mahasiswa sering menghadapi tekanan akademik, adaptasi lingkungan, dan tantangan personal secara bersamaan. Karena itu, layanan digital yang mudah diakses dapat menjadi pintu masuk yang lebih realistis untuk mendapatkan bantuan.
+  <section class="section-block dmhi-section">
+    <div class="container">
+      <div class="row align-items-end g-4 mb-4">
+        <div class="col-lg-7">
+          <div class="section-kicker mb-3">Konsep DMHI</div>
+          <h2 class="section-title">Mengarah pada pendekatan <span>Digital Mental Health Intervention</span></h2><br>
+        <p class="section-desc">
+            Campus Care menjadi pintu masuk digital untuk membantu mahasiswa memahami kebutuhan, mengatur sesi, dan menjaga keberlanjutan dukungan psikologis.
           </p>
-
-          <div class="trust-list">
-            <div>
-              <i class="bi bi-check-circle-fill"></i>
-              <span>Mendukung akses bantuan sejak tahap awal, tanpa proses yang terlalu rumit.</span>
-            </div>
-            <div>
-              <i class="bi bi-check-circle-fill"></i>
-              <span>Mengurangi hambatan ketika mahasiswa belum nyaman melakukan konseling tatap muka.</span>
-            </div>
-            <div>
-              <i class="bi bi-check-circle-fill"></i>
-              <span>Memberikan pengalaman yang lebih tertata melalui penjadwalan dan riwayat layanan.</span>
-            </div>
-          </div>
         </div>
       </div>
 
-      <div class="col-lg-6">
-        <div class="testimonial-card">
-          <div class="section-kicker mb-3">
-            <i class="bi bi-chat-quote"></i>
-            Gambaran Pengalaman
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="dmhi-card">
+            <div class="dmhi-thumb"><img src="{{ asset('img/ac.png') }}" alt="Akses konseling digital"></div>
+            <h4>Akses Lebih Mudah</h4>
+            <p>Mahasiswa dapat memulai proses bantuan dari platform tanpa harus datang langsung lebih dulu.</p>
           </div>
-          <p>
-            “Saya tidak langsung siap untuk bercerita secara terbuka, jadi fitur digital seperti penjadwalan dan mode anonim terasa membantu. Platform ini membuat proses awal mencari bantuan jadi lebih ringan.”
-          </p>
-          <div class="testimonial-meta">
-            <div class="testimonial-avatar">M</div>
-            <div>
-              <div style="font-weight:700; color: var(--text-dark);">Mahasiswa IT Del</div>
-              <div style="font-size:.82rem; color: var(--text-light);">Ilustrasi pengalaman pengguna</div>
-            </div>
+        </div>
+        <div class="col-md-4">
+          <div class="dmhi-card">
+            <div class="dmhi-thumb"><img src="{{ asset('img/privacy.png') }}" alt="Privasi layanan konseling"></div>
+            <h4>Privasi dan Rasa Aman</h4>
+            <p>Mode anonim, akun pengguna, dan riwayat layanan membantu pengalaman terasa lebih aman.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="dmhi-card">
+            <div class="dmhi-thumb"><img src="{{ asset('img/alur_terstruktur.png') }}" alt="Alur konseling terstruktur"></div>
+            <h4>Alur Terstruktur</h4>
+            <p>Dari registrasi hingga jadwal konseling, setiap langkah dibuat jelas dan mudah dipahami.</p>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
+  <section class="section-block impact-section">
+    <div class="container">
+      <div class="mb-4">
+        <h2 class="section-title">Mengapa pendekatan ini relevan untuk mahasiswa?</h2>
+        <p class="section-desc">
+          Mahasiswa sering menghadapi tekanan akademik, adaptasi sosial, dan tantangan personal secara bersamaan. Akses bantuan yang sederhana dapat menjadi langkah awal yang realistis.
+        </p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="impact-card">
+            <i class="bi bi-people"></i>
+            <h4>Relasi Sosial</h4>
+            <p>Membantu mahasiswa yang sedang menghadapi konflik, rasa kesepian, atau kesulitan beradaptasi.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="impact-card">
+            <i class="bi bi-person-heart"></i>
+            <h4>Personal</h4>
+            <p>Memberi ruang untuk memahami kecemasan, tekanan diri, dan kebutuhan emosi secara lebih tenang.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="impact-card">
+            <i class="bi bi-mortarboard"></i>
+            <h4>Akademik</h4>
+            <p>Mendukung mahasiswa yang mengalami stres akademik, kehilangan motivasi, atau kesulitan fokus.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
 @endsection

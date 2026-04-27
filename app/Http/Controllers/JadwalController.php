@@ -14,6 +14,54 @@ use App\Models\Notifikasi;
 
 class JadwalController extends Controller
 {
+    public function create()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+
+        return view('Pages.konseling', [
+            'namaMahasiswa'    => $user->nama ?? '-',
+            'nimMahasiswa'     => $mahasiswa->nim ?? '-',
+            'jurusanMahasiswa' => $mahasiswa->jurusan ?? '-',
+            'angkatanMahasiswa'=> $mahasiswa->angkatan ?? '-',
+            'isAnonim'         => method_exists($user, 'isAnonim') ? $user->isAnonim() : false,
+        ]);
+    }
+
+    public function detail(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $validated = $request->validate([
+            'tanggal' => 'required|date|after_or_equal:today',
+            'waktu'   => 'required|date_format:H:i',
+            'jenis'   => 'required|in:online,offline',
+            'topik'   => 'required|string|min:3|max:255',
+        ]);
+
+        $user = Auth::user();
+        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+
+        return view('Pages.detail-penjadwalan', [
+            'namaMahasiswa'     => $user->nama ?? '-',
+            'nimMahasiswa'      => $mahasiswa->nim ?? '-',
+            'jurusanMahasiswa'  => $mahasiswa->jurusan ?? '-',
+            'angkatanMahasiswa' => $mahasiswa->angkatan ?? '-',
+            'isAnonim'          => method_exists($user, 'isAnonim') ? $user->isAnonim() : false,
+            'tanggal'           => $validated['tanggal'],
+            'waktu'             => $validated['waktu'],
+            'jenis'             => $validated['jenis'],
+            'topik'             => $validated['topik'],
+        ]);
+    }
+
     private function validateSchedulingPayload(Request $request): array
     {
         return $request->validate([
@@ -125,18 +173,15 @@ class JadwalController extends Controller
             ], 409);
         }
 
-        // Cek mode anonim
         $isAnonim    = $user->isAnonim();
         $namaDisplay = $isAnonim ? 'Mahasiswa Anonim' : $user->nama;
         $prodi       = $mahasiswa->jurusan ?? '-';
         $angkatan    = $mahasiswa->angkatan ?? '-';
 
-        // Untuk konselor, jadwal anonim hanya menampilkan prodi dan angkatan.
         $identitasUntukKonselor = $isAnonim
             ? 'Mahasiswa Prodi ' . $prodi . ' Angkatan ' . $angkatan
             : $user->nama;
 
-        // Simpan jadwal dengan catatan topik + status anonim
         $jadwal = DB::transaction(function () use ($mahasiswa, $konselor, $validated, $normalizedWaktu, $isAnonim, $user, $identitasUntukKonselor) {
             $jadwal = JadwalKonseling::create([
                 'mahasiswa_id' => $mahasiswa->id,
@@ -151,7 +196,7 @@ class JadwalController extends Controller
 
             Notifikasi::create([
                 'user_id' => $user->id,
-                'pesan'   => 'Jadwal #' . $jadwal->id . ' berhasil dibuat dan menunggu persetujuan konselor.',
+                'pesan'   => 'Penjadwalan #' . $jadwal->id . ' berhasil dibuat dan menunggu persetujuan konselor.',
                 'status'  => 'belum',
             ]);
 
@@ -159,7 +204,7 @@ class JadwalController extends Controller
             if ($konselorUserId) {
                 Notifikasi::create([
                     'user_id' => $konselorUserId,
-                    'pesan'   => 'Jadwal baru dari ' . $identitasUntukKonselor . ' pada ' . $validated['tanggal'] . ' pukul ' . $validated['waktu'] . '.',
+                    'pesan'   => 'Penjadwalan baru dari ' . $identitasUntukKonselor . ' pada ' . $validated['tanggal'] . ' pukul ' . $validated['waktu'] . '.',
                     'status'  => 'belum',
                 ]);
             }

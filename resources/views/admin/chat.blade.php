@@ -1,4 +1,4 @@
-@extends('layouts.mantis')
+@extends('layouts.admin')
 @section('page-title', 'Laporan')
 @section('konten')
 <div class="kons-card">

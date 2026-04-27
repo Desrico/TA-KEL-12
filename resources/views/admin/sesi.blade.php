@@ -1,4 +1,4 @@
-@extends('layouts.mantis')
+@extends('layouts.admin')
 
 @section('page-title', 'Sesi Konseling')
 
@@ -229,7 +229,8 @@
         padding: 0 1.5rem 1.5rem;
     }
 
-    .sesi-page-item {
+    .sesi-page-item,
+    .sesi-pagination .page-link {
         width: 28px;
         height: 28px;
         border-radius: 9px;
@@ -241,9 +242,10 @@
         font-weight: 600;
         color: #065F46;
         background: transparent;
+        border: none;
     }
 
-    .sesi-page-item.active {
+    .sesi-pagination .active .page-link {
         background: #065F46;
         color: #fff;
     }
@@ -295,28 +297,27 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($sesi as $item)
+                @forelse($jadwal as $item)
                     @php
-                        $jadwal = $item->jadwal;
-                        $mahasiswa = optional($jadwal)->mahasiswa;
+                        $mahasiswa = optional($item)->mahasiswa;
                         $user = optional($mahasiswa)->user;
 
                         $nama = optional($user)->nama ?? 'Mahasiswa';
                         $nim = optional($mahasiswa)->nim ?? '-';
                         $foto = optional(optional($user)->profil)->foto ?? null;
 
-                        $tanggal = optional($jadwal)->tanggal
-                            ? \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('j F Y')
+                        $tanggal = optional($item)->tanggal
+                            ? \Carbon\Carbon::parse($item->tanggal)->translatedFormat('j F Y')
                             : '-';
 
-                        $waktu = optional($jadwal)->waktu
-                            ? substr($jadwal->waktu, 0, 5) . ' WIB'
+                        $waktu = optional($item)->waktu
+                            ? substr($item->waktu, 0, 5) . ' WIB'
                             : '-';
 
-                        $layanan = 'Sesi ' . ucfirst(optional($jadwal)->jenis ?? 'Online');
+                        $layanan = 'Sesi ' . ucfirst($item->jenis ?? 'Online');
                         $durasi = '60 Menit';
 
-                        $statusRaw = strtolower($item->status ?? optional($jadwal)->status ?? 'menunggu');
+                        $statusRaw = strtolower($item->status ?? 'menunggu');
 
                         $statusLabel = match ($statusRaw) {
                             'menunggu' => 'Menunggu Konfirmasi',
@@ -333,8 +334,7 @@
                             'disetujui', 'diterima' => 'status-diterima',
                             'berlangsung' => 'status-berlangsung',
                             'selesai' => 'status-selesai',
-                            'ditolak' => 'status-dibatalkan',
-                            'dibatalkan' => 'status-dibatalkan',
+                            'ditolak', 'dibatalkan' => 'status-dibatalkan',
                             default => 'status-menunggu',
                         };
                     @endphp
@@ -381,7 +381,7 @@
                         </td>
 
                         <td style="text-align:center;">
-                            <a href="#" class="btn-lihat">Lihat</a>
+                            <a href="{{ route('admin.sesi.detail', $item->id) }}" class="btn-lihat">Lihat</a>
                         </td>
                     </tr>
                 @empty
@@ -395,13 +395,10 @@
         </table>
     </div>
 
-    <div class="sesi-pagination">
-        <span class="sesi-page-item active">1</span>
-        <span class="sesi-page-item">2</span>
-        <span class="sesi-page-item">3</span>
-        <span class="sesi-page-item">
-            <i class="ti ti-chevron-right"></i>
-        </span>
-    </div>
+    @if(method_exists($jadwal, 'links'))
+        <div class="sesi-pagination">
+            {{ $jadwal->links() }}
+        </div>
+    @endif
 </div>
 @endsection

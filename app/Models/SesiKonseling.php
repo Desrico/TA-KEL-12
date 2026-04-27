@@ -12,7 +12,7 @@ class SesiKonseling extends Model
     protected $table = 'sesi_konseling';
 
     protected $fillable = [
-        'jadwal_konseling_id',
+        'jadwal_id',
         'status',
         'catatan_sesi',
         'waktu_mulai',
@@ -26,6 +26,6 @@ class SesiKonseling extends Model
 
     public function jadwal()
     {
-        return $this->belongsTo(JadwalKonseling::class, 'jadwal_konseling_id');
+        return $this->belongsTo(JadwalKonseling::class, 'jadwal_id');
     }
 }

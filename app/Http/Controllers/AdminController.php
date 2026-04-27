@@ -98,12 +98,12 @@ class AdminController extends Controller
 
     $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
 
-    $totalBooking   = (clone $baseQuery)->count();
+    $totalPenjadwalan   = (clone $baseQuery)->count();
     $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
     $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
     $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
     $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
-    $approvalRate   = $totalBooking > 0 ? round(($disetujui / $totalBooking) * 100) : 0;
+    $approvalRate   = $totalPenjadwalan > 0 ? round(($disetujui / $totalPenjadwalan) * 100) : 0;
 
     $monthlyLabels = [];
     $monthlyCounts = [];
@@ -116,30 +116,30 @@ class AdminController extends Controller
             ->count();
     }
 
-    $statusDistribution = [
-        'Menunggu' => $menunggu,
-        'Disetujui' => $disetujui,
-        'Ditolak' => $ditolak,
-    ];
-
     $topikStats = collect();
-    if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
-        $topikStats = (clone $baseQuery)
-            ->whereNotNull('catatan')
-            ->pluck('catatan')
-            ->map(function ($catatan) {
-                if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
-                    return trim($match[1]);
-                }
-                return null;
-            })
-            ->filter()
-            ->countBy()
-            ->sortDesc()
-            ->take(5);
-    }
 
-    $bookingTerbaru = (clone $baseQuery)
+        if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
+            $topikStats = (clone $baseQuery)
+                ->whereNotNull('catatan')
+                ->pluck('catatan')
+                ->map(function ($catatan) {
+                    if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
+                        return trim($match[1]);
+                    }
+
+                    return trim((string) $catatan);
+                })
+                ->filter()
+                ->countBy()
+                ->sortDesc()
+                ->take(5);
+        }
+
+        $topikLabels = $topikStats->keys()->values();
+        $topikCounts = $topikStats->values()->values();
+        $totalTopik = $topikCounts->sum();
+
+    $JadwalTerbaru = (clone $baseQuery)
         ->with('mahasiswa.user')
         ->orderBy('created_at', 'desc')
         ->take(5)
@@ -147,7 +147,7 @@ class AdminController extends Controller
 
     return view('admin.dashboard', compact(
         'konselor',
-        'totalBooking',
+        'totalPenjadwalan',
         'menunggu',
         'disetujui',
         'ditolak',
@@ -155,9 +155,10 @@ class AdminController extends Controller
         'approvalRate',
         'monthlyLabels',
         'monthlyCounts',
-        'statusDistribution',
         'topikStats',
-        'bookingTerbaru'
+        'topikLabels',
+        'topikCounts',
+        'totalTopik',
     ));
 }
     public function jadwal()
@@ -185,18 +186,82 @@ class AdminController extends Controller
     {
         $konselor = auth()->user()->konselor;
 
-        $sesi = SesiKonseling::with('jadwal.mahasiswa.user')
-            ->when($konselor, function ($q) use ($konselor) {
-                $q->whereHas('jadwal', function ($sub) use ($konselor) {
-                    $sub->where('konselor_id', $konselor->id);
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $jadwal = \App\Models\JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil'])
+            ->where('konselor_id', $konselor->id)
+            ->orderByRaw("
+                CASE
+                    WHEN status = 'menunggu' THEN 1
+                    WHEN status = 'disetujui' THEN 2
+                    WHEN status = 'berlangsung' THEN 3
+                    WHEN status = 'selesai' THEN 4
+                    WHEN status = 'ditolak' THEN 5
+                    ELSE 6
+                END
+            ")
+            ->orderBy('tanggal', 'asc')
+            ->orderBy('waktu', 'asc')
+            ->paginate(10);
 
-        return view('admin.sesi', compact('sesi', 'konselor'));
+        return view('admin.sesi', compact('jadwal'));
     }
 
+    public function detailSesi($id)
+    {
+        $konselor = auth()->user()->konselor;
+
+        $jadwal = \App\Models\JadwalKonseling::with(['mahasiswa.user'])
+            ->where('konselor_id', $konselor->id)
+            ->findOrFail($id);
+
+        return view('admin.detail_sesi', compact('jadwal'));
+    }
+
+    public function terimaSesi($id)
+    {
+        $konselor = auth()->user()->konselor;
+
+        $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
+            ->findOrFail($id);
+
+        $jadwal->update([
+            'status' => 'disetujui',
+        ]);
+
+        return redirect()
+            ->route('admin.sesi.detail', $jadwal->id)
+            ->with('success', 'Jadwal berhasil diterima.');
+    }
+
+    public function tolakSesi($id)
+    {
+        $konselor = auth()->user()->konselor;
+
+        $jadwal = JadwalKonseling::with(['mahasiswa.user'])
+            ->where('konselor_id', $konselor->id)
+            ->findOrFail($id);
+
+        return view('admin.tolak_sesi', compact('jadwal'));
+    }
+
+    public function kirimTolakSesi(Request $request, $id)
+    {
+        $request->validate([
+            'alasan_penolakan' => 'required|string|max:1000',
+        ]);
+
+        $konselor = auth()->user()->konselor;
+
+        $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
+            ->findOrFail($id);
+
+        $jadwal->update([
+            'status' => 'ditolak',
+            'alasan_penolakan' => $request->alasan_penolakan,
+        ]);
+
+        return redirect()->route('admin.sesi.detail', $jadwal->id)
+            ->with('success', 'Jadwal berhasil ditolak.');
+    }
     private function getKonselor()
     {
         $user = auth()->user();

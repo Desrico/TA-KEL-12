@@ -14,10 +14,10 @@ class LaporanController extends Controller
         return view('mahasiswa.riwayat', compact('riwayat'));
     }
 
-    public function riwayatAdmin()
+    public function laporanAdmin()
     {
         $riwayat = JadwalKonseling::orderBy('tanggal', 'desc')->get();
-        return view('admin.riwayat', compact('riwayat'));
+        return view('admin.laporan', compact('riwayat'));
     }
 
     public function createLaporan($id)

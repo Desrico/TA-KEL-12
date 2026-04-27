@@ -517,14 +517,10 @@ footer a:hover {
         <li class="nav-item">
           <a class="nav-link nav-link-custom {{ request()->is('tentang') ? 'active' : '' }}" href="/tentang">Tentang</a>
         </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link nav-link-custom dropdown-toggle {{ request()->is('layanan*') ? 'active' : '' }}" href="#" id="layananDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Layanan
+        <li class="nav-item">
+          <a class="nav-link nav-link-custom {{ request()->is('konseling*') ? 'active' : '' }}" href="/konseling">
+            Konseling
           </a>
-          <ul class="dropdown-menu" aria-labelledby="layananDropdown" style="border:none;border-radius:12px;box-shadow:var(--shadow-md);padding:.4rem .35rem;min-width:190px;">
-            <li><a class="dropdown-item rounded-3" href="/layanan#online" style="font-size:.84rem;padding:.5rem .65rem;">Konseling Online</a></li>
-            <li><a class="dropdown-item rounded-3" href="/layanan#offline" style="font-size:.84rem;padding:.5rem .65rem;">Konseling Offline</a></li>
-          </ul>
         </li>
 
         @auth
@@ -653,16 +649,15 @@ footer a:hover {
       </div>
       <div class="col-6 col-lg-2">
         <h6>Navigasi</h6>
-        <a href="/">Beranda</a><a href="/about">About</a><a href="/layanan">Layanan</a>
+        <a href="/">Beranda</a>
+        <a href="/tentang">Tentang</a>
+        <a href="/konseling">Konseling</a>
       </div>
       <div class="col-6 col-lg-3">
         <h6>Layanan</h6>
-        <a href="/layanan#online">Konseling Online</a>
-        <a href="/layanan#offline">Konseling Offline</a>
-        <a href="#">Self-Help Resources</a>
-        <a href="#">Hotline Darurat</a>
+        <a href="/konseling">Konseling</a>
       </div>
-      <div class="col-lg-3">
+        <div class="col-lg-3">
         <h6>Kontak</h6>
         <a href="mailto:bk@del.ac.id"><i class="bi bi-envelope me-2"></i>bk@del.ac.id</a>
         <a href="#"><i class="bi bi-telephone me-2"></i>(0623) 95102</a>

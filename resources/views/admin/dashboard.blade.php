@@ -1,4 +1,4 @@
-@extends('layouts.mantis')
+@extends('layouts.admin')
 
 @section('page-title','Dashboard')
 
@@ -69,12 +69,11 @@
 
   /* ── Donut Legend ── */
   .donut-wrap { display: flex; justify-content: center; margin-bottom: .75rem; }
-  .donut-legend { list-style: none; padding: 0; margin: 0; }
-  .donut-legend li {
-    display: flex; align-items: center;
-    justify-content: space-between;
-    font-size: .79rem; color: #5a6a72; padding: .22rem 0;
-  }
+  .donut-legend li:nth-child(1) .dot { background:#0fb87a; }
+  .donut-legend li:nth-child(2) .dot { background:#1a5c3a; }
+  .donut-legend li:nth-child(3) .dot { background:#e74c3c; }
+  .donut-legend li:nth-child(4) .dot { background:#f5a623; }
+  .donut-legend li:nth-child(5) .dot { background:#2f80ed; }
   .leg-left { display: flex; align-items: center; gap: 8px; }
   .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .leg-pct { font-weight: 700; color: #0d1b2a; font-size: .79rem; }
@@ -133,7 +132,7 @@
 <div class="stat-grid">
   <div class="stat-card">
     <span class="s-emoji">🗂️</span>
-    <div class="s-num">{{ $totalBooking }}</div>
+    <div class="s-num">{{ $totalPenjadwalan }}</div>
     <div class="s-lbl">Total Penjadwalan</div>
     <div class="s-change">Semua status penjadwalan</div>
   </div>
@@ -147,7 +146,7 @@
     <span class="s-emoji">✅</span>
     <div class="s-num">{{ $disetujui }}</div>
     <div class="s-lbl">Penjadwalan Disetujui</div>
-    <div class="s-change">{{ $menunggu }} menunggu persetujuan</div>
+    <div class="s-change">{{ $menunggu }} persetujuan</div>
   </div>
   <div class="stat-card">
     <span class="s-emoji">📉</span>
@@ -158,52 +157,77 @@
 </div>
 
 {{-- ── Chart Row ── --}}
-<div class="chart-row">
-
-  {{-- Line Chart (ApexCharts) --}}
-  <div class="an-card">
-    <h6>Tren Sesi Konseling</h6>
-    <p class="sub">Jumlah sesi dalam 6 bulan terakhir</p>
-    <div id="chart-tren"></div>
-  </div>
-
-  {{-- Donut Chart (ApexCharts) --}}
-  <div class="an-card">
-    <h6>Distribusi Masalah</h6>
-    <p class="sub">Jenis masalah yang paling sering dibahas</p>
-    <div class="donut-wrap">
-      <div id="chart-donut"></div>
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="kons-card h-100">
+            <div class="kons-card-header">
+                <h6>Tren Konseling</h6>
+            </div>
+            <div class="kons-card-body">
+                <div class="chart-box">
+                    <div id="trenHasilKonseling"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <ul class="donut-legend">
-      <li>
-        <span class="leg-left"><span class="dot" style="background:#0fb87a"></span>Menunggu</span>
-        <span class="leg-pct">{{ $totalBooking > 0 ? round(($menunggu / $totalBooking) * 100) : 0 }}%</span>
-      </li>
-      <li>
-        <span class="leg-left"><span class="dot" style="background:#1a5c3a"></span>Disetujui</span>
-        <span class="leg-pct">{{ $totalBooking > 0 ? round(($disetujui / $totalBooking) * 100) : 0 }}%</span>
-      </li>
-      <li>
-        <span class="leg-left"><span class="dot" style="background:#e74c3c"></span>Ditolak</span>
-        <span class="leg-pct">{{ $totalBooking > 0 ? round(($ditolak / $totalBooking) * 100) : 0 }}%</span>
-      </li>
-    </ul>
-  </div>
 
+    <div class="col-lg-4">
+        <div class="kons-card h-100">
+            <div class="kons-card-header">
+                <h6>Distribusi Masalah</h6>
+            </div>
+            <div class="kons-card-body d-flex flex-column">
+                <div class="chart-box chart-box-small">
+                    <div id="distribusiMasalah"></div>
+                </div>
+
+                <ul class="donut-legend mt-3">
+                    @forelse(($topikLabels ?? collect()) as $index => $label)
+                        @php
+                            $count = $topikCounts[$index] ?? 0;
+                            $total = $totalTopik ?? 0;
+                            $percent = $total > 0 ? round(($count / $total) * 100) : 0;
+                        @endphp
+
+                        <li>
+                            <span class="leg-left">
+                                <span class="dot"></span>
+                                {{ $label }}
+                            </span>
+                            <span class="leg-pct">{{ $percent }}%</span>
+                        </li>
+                    @empty
+                        <li>
+                            <span class="leg-left">Belum ada topik</span>
+                            <span class="leg-pct">0%</span>
+                        </li>
+                    @endforelse
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
-
-{{-- ── Bottom Row ── --}}
-<div class="bottom-row">
-
 @endsection
 
 @push('scripts')
-{{-- ApexCharts sudah tersedia dari template Mantis --}}
 <script src="{{ asset('template/dist')}}/assets/js/plugins/apexcharts.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-  // ── Line Chart ── Tren Sesi Konseling ──────────────────────────
+  const trenEl = document.querySelector('#trenHasilKonseling');
+  const donutEl = document.querySelector('#distribusiMasalah');
+
+  if (!trenEl) {
+    console.error('Element #trenHasilKonseling tidak ditemukan');
+    return;
+  }
+
+  if (!donutEl) {
+    console.error('Element #distribusiMasalah tidak ditemukan');
+    return;
+  }
+
+  // ── Line Chart ──
   var optionsLine = {
     series: [{
       name: 'Jumlah Sesi',
@@ -214,12 +238,12 @@ document.addEventListener('DOMContentLoaded', function () {
       height: 220,
       toolbar: { show: false },
       zoom: { enabled: false },
-      fontFamily: 'Plus Jakarta Sans, Public Sans, sans-serif',
+      fontFamily: 'Plus Jakarta Sans, Public Sans, sans-serif'
     },
     colors: ['#0fb87a'],
     stroke: {
       curve: 'smooth',
-      width: 2.5,
+      width: 2.5
     },
     fill: {
       type: 'gradient',
@@ -228,15 +252,18 @@ document.addEventListener('DOMContentLoaded', function () {
         opacityFrom: 0.18,
         opacityTo: 0,
         stops: [0, 100],
-        colorStops: [{
-          offset: 0,
-          color: '#0fb87a',
-          opacity: 0.18
-        }, {
-          offset: 100,
-          color: '#0fb87a',
-          opacity: 0
-        }]
+        colorStops: [
+          {
+            offset: 0,
+            color: '#0fb87a',
+            opacity: 0.18
+          },
+          {
+            offset: 100,
+            color: '#0fb87a',
+            opacity: 0
+          }
+        ]
       }
     },
     markers: {
@@ -269,61 +296,72 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     tooltip: {
       theme: 'dark',
-      y: { formatter: val => val + ' sesi' }
-    },
-    legend: { show: false },
-    dataLabels: { enabled: false },
-  };
-
-  var chartLine = new ApexCharts(document.querySelector('#chart-tren'), optionsLine);
-  chartLine.render();
-
-
-  // ── Donut Chart ── Distribusi Masalah ──────────────────────────
-  var optionsDonut = {
-    series: [{{ $menunggu }}, {{ $disetujui }}, {{ $ditolak }}],
-    chart: {
-      type: 'donut',
-      height: 200,
-      fontFamily: 'Plus Jakarta Sans, Public Sans, sans-serif',
-      toolbar: { show: false },
-    },
-    labels: ['Menunggu', 'Disetujui', 'Ditolak'],
-    colors: ['#0fb87a', '#1a5c3a', '#e74c3c'],
-    plotOptions: {
-      pie: {
-        donut: {
-          size: '65%',
-          labels: {
-            show: true,
-            total: {
-              show: true,
-              label: 'Total',
-              fontSize: '12px',
-              color: '#8898aa',
-              formatter: () => '{{ $totalBooking }} Booking'
-            },
-            value: {
-              fontSize: '18px',
-              fontWeight: 700,
-              color: '#0d1b2a',
-            }
-          }
+      y: {
+        formatter: function(val) {
+          return val + ' sesi';
         }
       }
     },
-    stroke: { width: 3, colors: ['#ffffff'] },
-    dataLabels: { enabled: false },
     legend: { show: false },
-    tooltip: {
-      theme: 'dark',
-      y: { formatter: val => val + ' booking' }
-    },
+    dataLabels: { enabled: false }
   };
 
-  var chartDonut = new ApexCharts(document.querySelector('#chart-donut'), optionsDonut);
-  chartDonut.render();
+  var chartLine = new ApexCharts(trenEl, optionsLine);
+  chartLine.render();
 
-});
+  // ── Donut Chart ──
+    var optionsDonut = {
+      series: @json($topikCounts ?? []),
+      chart: {
+        type: 'donut',
+        height: 200,
+        fontFamily: 'Plus Jakarta Sans, Public Sans, sans-serif',
+        toolbar: { show: false }
+      },
+      labels: @json($topikLabels ?? []),
+      colors: ['#0fb87a', '#1a5c3a', '#e74c3c', '#f5a623', '#2f80ed'],
+      plotOptions: {
+        pie: {
+          donut: {
+            size: '65%',
+            labels: {
+              show: true,
+              total: {
+                show: true,
+                label: 'Total',
+                fontSize: '12px',
+                color: '#8898aa',
+                formatter: function() {
+                  return '{{ $totalTopik ?? 0 }} topik';
+                }
+              },
+              value: {
+                fontSize: '18px',
+                fontWeight: 700,
+                color: '#0d1b2a'
+              }
+            }
+          }
+        }
+      },
+      stroke: {
+        width: 3,
+        colors: ['#ffffff']
+      },
+      dataLabels: { enabled: false },
+      legend: { show: false },
+      tooltip: {
+        theme: 'dark',
+        y: {
+          formatter: function(val) {
+            return val + ' topik';
+          }
+        }
+      }
+    };
+
+    var chartDonut = new ApexCharts(donutEl, optionsDonut);
+    chartDonut.render();
+    });
 </script>
 @endpush
