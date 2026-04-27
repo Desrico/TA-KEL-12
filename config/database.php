@@ -110,14 +110,10 @@ return [
         ],
 
         'mongodb' => [
-            'driver' => 'mongodb',
-            'connection' => env('MONGODB_CONNECTION', 'mongodb'),
-            'host' => env('MONGODB_HOST', 'localhost'),
-            'port' => env('MONGODB_PORT', 27017),
-            'database' => env('MONGODB_DATABASE', 'laravel'),
-            'username' => env('MONGODB_USERNAME', ''),
-            'password' => env('MONGODB_PASSWORD', ''),
-            'options' => [
+            'driver'   => 'mongodb',
+            'dsn'      => env('MONGODB_URI'),
+            'database' => env('MONGODB_DATABASE', 'monitoring'),
+            'options'  => [
                 'retryWrites' => true,
             ]
         ],
