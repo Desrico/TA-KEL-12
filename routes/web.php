@@ -9,6 +9,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\KampusApiController;
 
+
 // ═══════════════════════════════
 // HALAMAN PUBLIK
 // ═══════════════════════════════
@@ -86,6 +87,36 @@ Route::prefix('admin')
         Route::get('/mahasiswa', [AdminController::class, 'mahasiswa'])->name('mahasiswa');
         Route::get('/jadwal/events', [AdminController::class, 'jadwalEvents'])->name('jadwal.events');
 
+
         Route::get('/kampus-api/mahasiswa', [KampusApiController::class, 'mahasiswa']);
         Route::get('/kampus-api/mahasiswa/{nim}', [KampusApiController::class, 'mahasiswaByNim']);
     });
+
+
+Route::get('/test-mongodb', function () {
+    try {
+        $client = new MongoDB\Client(env('MONGODB_URI'));
+        $database = $client->{env('MONGODB_DATABASE', 'monitoring')};
+        $collections = $database->listCollections();
+        
+        $collectionList = [];
+        foreach ($collections as $collection) {
+            $collectionList[] = $collection->getName();
+        }
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Connected to MongoDB successfully',
+            'database' => env('MONGODB_DATABASE', 'monitoring'),
+            'collections' => $collectionList,
+            'connection_uri' => preg_replace('/([a-zA-Z0-9]+):([^@]+)@/', '$1:****@', env('MONGODB_URI'))
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'MongoDB Connection Failed',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
