@@ -698,7 +698,7 @@
                             <td>${s.prodi || '-'}</td>
                             <td>${s.angkatan || '-'}</td>
                             <td>
-                                <a href="/konselor/mahasiswa/${s.nim}" class="action-link">Detail Profil</a>
+                                <a href="/konselor/detail/${s.nim}" class="action-link">Detail Profil</a>
                             </td>
                         </tr>
                     `;
