@@ -7,6 +7,7 @@ use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\KampusApiController;
 
 // ═══════════════════════════════
 // HALAMAN PUBLIK
@@ -15,13 +16,12 @@ Route::get('/', function () {
     return view('Pages.beranda');
 })->name('beranda');
 
-Route::get('/tentang', function () {
+Route::get('/tentang', function () {    
     return view('Pages.tentang');
 })->name('tentang');
 
-Route::get('/layanan', function () {
-    return view('Pages.layanan');
-})->name('layanan');
+// halaman konseling
+Route::get('/konseling', [JadwalController::class, 'create'])->name('konseling');
 
 // ═══════════════════════════════
 // AUTH
@@ -29,14 +29,9 @@ Route::get('/layanan', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
-
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 });
 
-Route::post('/logout', [LoginController::class, 'logout'])
-    ->middleware('auth')
-    ->name('logout');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // ═══════════════════════════════
 // MAHASISWA
@@ -50,11 +45,11 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
 
-    // Riwayat Konseling Mahasiswa
-    Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat'); // Mahasiswa hanya melihat riwayat mereka sendiri
-
+    Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
 
+    // flow penjadwalan
+    Route::get('/detail-penjadwalan', [JadwalController::class, 'detail'])->name('jadwal.detail');
     Route::post('/jadwal', [JadwalController::class, 'store'])->name('jadwal.store');
     Route::post('/jadwal/cek', [JadwalController::class, 'checkAvailability'])->name('jadwal.check');
     Route::get('/jadwal/terisi', [JadwalController::class, 'getBookedSlots'])->name('jadwal.terisi');
@@ -77,13 +72,20 @@ Route::prefix('admin')
         Route::post('/jadwal/{id}/tolak', [AdminController::class, 'tolak'])->name('jadwal.tolak');
 
         Route::get('/chat', [AdminController::class, 'chat'])->name('chat');
-        Route::get('/sesi', [AdminController::class, 'sesi'])->name('sesi');
 
-        // Laporan (Admin)
+        Route::get('/sesi', [AdminController::class, 'sesi'])->name('sesi');
+        Route::get('/sesi/{id}', [AdminController::class, 'detailSesi'])->name('sesi.detail');
+        Route::post('/sesi/{id}/terima', [AdminController::class, 'terimaSesi'])->name('sesi.terima');
+        Route::get('/sesi/{id}/tolak', [AdminController::class, 'tolakSesi'])->name('sesi.tolak');
+        Route::post('/sesi/{id}/tolak', [AdminController::class, 'kirimTolakSesi'])->name('sesi.tolak.kirim');
+
         Route::get('/laporan', [LaporanController::class, 'laporanAdmin'])->name('laporan');
         Route::get('/laporan/{id}/laporan', [LaporanController::class, 'createLaporan'])->name('laporan.laporan');
         Route::post('/laporan/{id}/laporan', [LaporanController::class, 'storeLaporan'])->name('laporan.laporan.store');
 
         Route::get('/mahasiswa', [AdminController::class, 'mahasiswa'])->name('mahasiswa');
         Route::get('/jadwal/events', [AdminController::class, 'jadwalEvents'])->name('jadwal.events');
+
+        Route::get('/kampus-api/mahasiswa', [KampusApiController::class, 'mahasiswa']);
+        Route::get('/kampus-api/mahasiswa/{nim}', [KampusApiController::class, 'mahasiswaByNim']);
     });
