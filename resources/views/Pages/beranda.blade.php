@@ -738,6 +738,15 @@
 
       <div class="row g-4">
         <div class="col-lg-6">
+          <div class="support-card schedule-card">
+            <span class="support-icon"><i class="bi bi-calendar2-week"></i></span>
+            <h3>Penjadwalan Konseling</h3>
+            <p>Pilih konselor profesional dan tentukan waktu konseling tatap muka yang paling nyaman untukmu.</p>
+            <a href="{{ route('konseling') }}" class="btn-warm">Cari Jadwal</a>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
           <div class="support-card mood-card">
             <span class="support-icon"><i class="bi bi-emoji-smile"></i></span>
             <div class="mood-dots">
@@ -749,15 +758,6 @@
             <h3>Daily Mood Tracker</h3>
             <p>Pahami pola emosi harian untuk kesehatan mental yang lebih stabil dan terukur.</p>
             <a href="#ruang-aman" class="btn-dark-soft">Mulai Tracking <i class="bi bi-arrow-right"></i></a>
-          </div>
-        </div>
-
-        <div class="col-lg-6">
-          <div class="support-card schedule-card">
-            <span class="support-icon"><i class="bi bi-calendar2-week"></i></span>
-            <h3>Penjadwalan Konseling</h3>
-            <p>Pilih konselor profesional dan tentukan waktu konseling tatap muka yang paling nyaman untukmu.</p>
-            <a href="{{ route('konseling') }}" class="btn-warm">Cari Jadwal</a>
           </div>
         </div>
       </div>

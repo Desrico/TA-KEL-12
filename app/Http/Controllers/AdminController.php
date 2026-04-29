@@ -14,6 +14,27 @@ use App\Models\SesiKonseling;
 
 class AdminController extends Controller
 {
+    private function formatKonselingDateTime(?string $tanggal, ?string $waktu): string
+    {
+        if (!$tanggal) {
+            return 'jadwal yang ditentukan';
+        }
+
+        $dateTime = Carbon::parse(trim($tanggal . ' ' . ($waktu ?? '00:00:00')));
+
+        return $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i');
+    }
+
+    private function formatJenisKonseling(?string $jenis): string
+    {
+        $jenis = strtolower(trim((string) $jenis));
+
+        return match ($jenis) {
+            'offline' => 'offline',
+            default => 'online',
+        };
+    }
+
     public function notifications()
     {
         $user = Auth::user();
@@ -71,19 +92,34 @@ class AdminController extends Controller
             return;
         }
 
-        $pesan = 'Jadwal #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.';
+        $pesan = 'Konseling ' . $this->formatJenisKonseling($jadwal->jenis) . ' pada ' . $this->formatKonselingDateTime($jadwal->tanggal, $jadwal->waktu) . ' telah disetujui oleh konselor.';
+        $legacyMessages = [
+            'Jadwal #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.',
+            'Booking #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.',
+        ];
 
-        $exists = Notifikasi::where('user_id', $mahasiswaUserId)
-            ->where('pesan', $pesan)
-            ->exists();
+        $existingNotification = Notifikasi::where('user_id', $mahasiswaUserId)
+            ->where(function ($query) use ($pesan, $legacyMessages) {
+                $query->where('pesan', $pesan)
+                    ->orWhereIn('pesan', $legacyMessages);
+            })
+            ->latest()
+            ->first();
 
-        if (!$exists) {
-            Notifikasi::create([
-                'user_id' => $mahasiswaUserId,
-                'pesan'   => $pesan,
-                'status'  => 'belum',
-            ]);
+        if ($existingNotification) {
+            if ($existingNotification->pesan !== $pesan) {
+                $existingNotification->pesan = $pesan;
+                $existingNotification->save();
+            }
+
+            return;
         }
+
+        Notifikasi::create([
+            'user_id' => $mahasiswaUserId,
+            'pesan'   => $pesan,
+            'status'  => 'belum',
+        ]);
     }
 
  public function dashboard()
@@ -245,7 +281,7 @@ class AdminController extends Controller
 
     public function kirimTolakSesi(Request $request, $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'alasan_penolakan' => 'required|string|max:1000',
         ]);
 
@@ -254,10 +290,9 @@ class AdminController extends Controller
         $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
             ->findOrFail($id);
 
-        $jadwal->update([
-            'status' => 'ditolak',
-            'alasan_penolakan' => $request->alasan_penolakan,
-        ]);
+        $jadwal->status = 'ditolak';
+        $jadwal->alasan_penolakan = $validated['alasan_penolakan'];
+        $jadwal->save();
 
         return redirect()->route('admin.sesi.detail', $jadwal->id)
             ->with('success', 'Jadwal berhasil ditolak.');

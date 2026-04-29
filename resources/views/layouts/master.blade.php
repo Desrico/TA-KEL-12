@@ -475,19 +475,68 @@ footer a:hover {
             if ($mahasiswaId) {
               $approvedBookings = \App\Models\JadwalKonseling::where('mahasiswa_id', $mahasiswaId)
                 ->where('status', 'disetujui')
-                ->get(['id', 'tanggal', 'waktu']);
+                ->get(['id', 'tanggal', 'waktu', 'jenis']);
 
               foreach ($approvedBookings as $jadwal) {
-                $pesan = 'Booking #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.';
-                \App\Models\Notifikasi::firstOrCreate(
-                  ['user_id' => Auth::id(), 'pesan' => $pesan],
-                  ['status' => 'belum']
-                );
+                $jenisKonseling = strtolower(trim((string) $jadwal->jenis)) === 'offline' ? 'offline' : 'online';
+                $dateTime = \Carbon\Carbon::parse(trim($jadwal->tanggal . ' ' . ($jadwal->waktu ?? '00:00:00')));
+                $pesanBaru = 'Konseling ' . $jenisKonseling . ' pada ' . $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i') . ' telah disetujui oleh konselor.';
+                $pesanLama = [
+                  'Booking #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.',
+                  'Jadwal #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.',
+                ];
+
+                $existingNotif = \App\Models\Notifikasi::where('user_id', Auth::id())
+                  ->where(function ($query) use ($pesanBaru, $pesanLama) {
+                    $query->where('pesan', $pesanBaru)
+                      ->orWhereIn('pesan', $pesanLama);
+                  })
+                  ->latest()
+                  ->first();
+
+                if ($existingNotif) {
+                  if ($existingNotif->pesan !== $pesanBaru) {
+                    $existingNotif->pesan = $pesanBaru;
+                    $existingNotif->save();
+                  }
+                } else {
+                  \App\Models\Notifikasi::create([
+                    'user_id' => Auth::id(),
+                    'pesan' => $pesanBaru,
+                    'status' => 'belum',
+                  ]);
+                }
               }
             }
 
               $unreadNotif = Auth::user()->notifikasi()->where('status', 'belum')->count();
               $notifItems = Auth::user()->notifikasi()->latest()->take(6)->get();
+
+              $jadwalById = \App\Models\JadwalKonseling::where('mahasiswa_id', $mahasiswaId)
+                ->get(['id', 'tanggal', 'waktu', 'jenis'])
+                ->keyBy('id');
+
+              $notifItems = $notifItems->map(function ($notif) use ($jadwalById) {
+                $pesan = $notif->pesan;
+
+                if (preg_match('/^(Booking|Jadwal|Penjadwalan)\s+#(\d+)\s+/i', $pesan, $match)) {
+                  $jadwal = $jadwalById->get((int) $match[2]);
+
+                  if ($jadwal) {
+                    $jenisKonseling = strtolower(trim((string) $jadwal->jenis)) === 'offline' ? 'offline' : 'online';
+                    $dateTime = \Carbon\Carbon::parse(trim($jadwal->tanggal . ' ' . ($jadwal->waktu ?? '00:00:00')));
+                    $tanggalWaktu = $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i');
+
+                    if (str_contains(strtolower($pesan), 'telah disetujui oleh konselor')) {
+                      $notif->pesan = 'Konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.';
+                    } elseif (str_contains(strtolower($pesan), 'menunggu persetujuan konselor')) {
+                      $notif->pesan = 'Pengajuan konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' berhasil dibuat dan menunggu persetujuan konselor.';
+                    }
+                  }
+                }
+
+                return $notif;
+              });
           }
         @endphp
 
