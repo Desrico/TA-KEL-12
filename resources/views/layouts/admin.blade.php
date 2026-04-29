@@ -494,8 +494,8 @@
             <ul class="pc-navbar">
                 <li class="pc-item pc-caption"><label>Menu</label></li>
 
-                <li class="pc-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('admin.dashboard') }}" class="pc-link">
+                <li class="pc-item {{ request()->routeIs('counselor.dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('counselor.dashboard') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-home"></i></span>
                         <span class="pc-mtext">Dashboard</span>
                     </a>
@@ -526,6 +526,13 @@
                     <a href="{{ route('admin.laporan') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-file-report"></i></span>
                         <span class="pc-mtext">Laporan Konseling</span>
+                    </a>
+                </li>
+
+                <li class="pc-item {{ request()->routeIs('counselor.education.*') ? 'active' : '' }}">
+                    <a href="{{ route('counselor.education.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-book"></i></span>
+                        <span class="pc-mtext">Edukasi</span>
                     </a>
                 </li>
             </ul>
@@ -737,21 +744,81 @@
       }
     }
 
-    async function fetchAdminNotifications() {
+    async function fetchUrgentNotifications() {
       try {
+        const res = await fetch('{{ route('counselor.notifications') }}', {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!res.ok) return [];
+
+        const data = await res.json();
+        return data.notifications || [];
+      } catch (err) {
+        console.error('Gagal memuat notifikasi urgent:', err);
+        return [];
+      }
+    }
+
+    async function fetchAllNotifications() {
+      try {
+        // 1. Ambil notifikasi sistem biasa
         const res = await fetch('{{ route('admin.notifikasi.list') }}', {
           headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
 
         if (!res.ok) return;
-
         const data = await res.json();
         if (!data.success) return;
 
-        renderBadge(data.unread_count);
-        renderNotifications(data.items || []);
+        let items = data.items || [];
+        let unreadCount = Number(data.unread_count || 0);
+
+        // 2. Ambil mahasiswa urgent
+        const urgentStudents = await fetchUrgentNotifications();
+        
+        // 3. Gabungkan mahasiswa urgent ke daftar teratas jika ada
+        const urgentItems = urgentStudents.map(student => ({
+          id: 'urgent-' + student.nim,
+          pesan: `⚠️ KRITIS: ${student.name} (${student.nim}) berada di Level ${student.mental_level}!`,
+          created_at_human: 'Sekarang',
+          status: 'urgent',
+          link: `{{ url('/konselor/detail') }}/${student.nim}`
+        }));
+
+        const finalItems = [...urgentItems, ...items];
+        const finalUnreadCount = unreadCount + urgentItems.length;
+
+        renderBadge(finalUnreadCount);
+        
+        // Modifikasi fungsi renderNotifications untuk menangani item urgent
+        notifList.innerHTML = finalItems.map((notif) => {
+          let dotColor = notif.status === 'belum' ? 'var(--admin-primary-500)' : '#d0dce4';
+          let bgColor = 'transparent';
+          let textColor = 'var(--admin-text)';
+          let link = notif.link || '{{ route('admin.jadwal') }}';
+
+          if (notif.status === 'urgent') {
+            dotColor = '#EF4444';
+            bgColor = '#FEF2F2';
+            textColor = '#B91C1C';
+          }
+
+          return `
+            <a class="dropdown-item admin-notif-item" href="${link}" style="background-color: ${bgColor}">
+              <div class="d-flex gap-2 align-items-start">
+                <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};margin-top:5px;flex-shrink:0;"></div>
+                <div style="min-width:0;">
+                  <p class="mb-0" style="font-size:.8rem;color:${textColor};font-weight:600;line-height:1.4;">${escapeHtml(notif.pesan)}</p>
+                  <span style="font-size:.72rem;color:#aab5bc;">${escapeHtml(notif.created_at_human || 'Baru saja')}</span>
+                </div>
+              </div>
+            </a>
+          `;
+        }).join('');
+
       } catch (err) {
-        console.error('Gagal memuat notifikasi admin:', err);
+        console.error('Gagal memuat semua notifikasi:', err);
       }
     }
 
@@ -772,12 +839,12 @@
     notifTrigger.addEventListener('click', function () {
       setTimeout(async function () {
         await markAdminNotificationsAsRead();
-        await fetchAdminNotifications();
+        await fetchAllNotifications();
       }, 120);
     });
 
-    fetchAdminNotifications();
-    setInterval(fetchAdminNotifications, 8000);
+    fetchAllNotifications();
+    setInterval(fetchAllNotifications, 10000);
   })();
 </script>
 
