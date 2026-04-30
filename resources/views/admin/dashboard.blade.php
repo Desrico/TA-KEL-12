@@ -296,7 +296,7 @@
                             </button>
                         </div>
                     </div>
-                    <div style="height: 400px; position: relative;">
+                    <div style="height: 250px; position: relative;">
                         <canvas id="moodTrendChart"></canvas>
                     </div>
                 </div>
@@ -319,7 +319,7 @@
                             </button>
                         </div>
                     </div>
-                    <div style="height: 400px; position: relative;">
+                    <div style="height: 250px; position: relative;">
                         <canvas id="feelingsTrendChart"></canvas>
                     </div>
                 </div>
