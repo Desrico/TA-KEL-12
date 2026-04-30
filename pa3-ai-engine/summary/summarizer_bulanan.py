@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Load API Key dari .env milik simulasi_ai_jurnal
-load_dotenv(dotenv_path=os.path.join(BASE_DIR, '..', '.env'))
+# Load dari pa3-ai-engine/.env dulu, fallback ke Laravel .env
+load_dotenv(dotenv_path=os.path.join(BASE_DIR, '..', '.env'))  # pa3-ai-engine/.env
+load_dotenv(dotenv_path=os.path.join(BASE_DIR, '..', '..', '.env'), override=False)  # root .env fallback
 
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 api_key    = os.getenv("GROQ_API_KEY")

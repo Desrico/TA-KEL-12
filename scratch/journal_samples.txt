@@ -1,0 +1,13 @@
+Array
+(
+    [0] => Hari ini merasa sangat cemas karena deadline PKM dan tugas akhir (TA) makin dekat, tapi dosen pembimbing susah banget dihubungi.
+    [1] => Revisi sistem manajemen dari dosen ternyata banyak banget. Rasanya capek dan ingin menyerah saja ngodingnya.
+    [2] => Masih kepikiran soal revisi kemarin. Takut kalau sidang nanti ditanya hal-hal yang belum kupahami soal arsitektur microservices.
+    [3] => Akhirnya proposal ACC! Lega banget rasanya bisa tidur nyenyak malam ini tanpa kepikiran revisi.
+    [4] => Hubungan saya dengan teman sekelompok sedang tidak baik, komunikasi macet total dan itu membuat saya stres karena deadline semakin dekat sementara pekerjaan belum selesai.
+    [5] => Saya mulai merasa lelah dengan rutinitas kampus yang monoton. Rasanya ingin sekali mengambil waktu istirahat sejenak untuk menenangkan pikiran yang sudah mulai jenuh dengan segala tuntutan akademik.
+    [6] => Hari ini saya merasa sedikit lelah dengan tugas kuliah.
+    [7] => Meskipun hari ini cukup sibuk, saya merasa senang karena bisa membantu teman yang sedang kesulitan memahami materi kuliah tadi siang. Berbagi ilmu ternyata bisa memberikan kepuasan batin tersendiri.
+    [8] => Hari ini saya merasa sedikit lelah dengan tugas kuliah.
+    [9] => Meskipun hari ini cukup sibuk, saya merasa senang karena bisa membantu teman yang sedang kesulitan memahami materi kuliah tadi siang. Berbagi ilmu ternyata bisa memberikan kepuasan batin tersendiri.
+)

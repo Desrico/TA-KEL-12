@@ -468,9 +468,34 @@
 
 <body data-pc-preset="preset-1" data-pc-direction="ltr" data-pc-theme="light">
 
+
 @php
-  $adminNotifUnread = Auth::user()->notifikasi()->where('status', 'belum')->count();
-  $adminNotifItems = Auth::user()->notifikasi()->latest()->take(6)->get();
+  $user = Auth::user();
+@endphp
+
+
+@if(!$user)
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#F7FCF9;">
+    <div style="background:white;padding:2.5rem 2.2rem 2.2rem 2.2rem;border-radius:18px;box-shadow:0 4px 24px rgba(6,78,59,0.07);display:flex;flex-direction:column;align-items:center;min-width:320px;max-width:95vw;">
+      <div style="background:#D1FAE5;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:1.2rem;border:1.5px solid #10B981;">
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="none"/><path d="M8 11V9a4 4 0 1 1 8 0v2" stroke="#047857" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="6.5" y="11" width="11" height="7" rx="2.5" stroke="#047857" stroke-width="1.5"/><circle cx="12" cy="15" r="1.2" fill="#047857"/></svg>
+      </div>
+      <div style="font-size:1.35rem;font-weight:700;color:#047857;margin-bottom:0.7rem;text-align:center;">Sesi Anda Telah Berakhir</div>
+      <div style="font-size:0.98rem;color:#475569;margin-bottom:2.1rem;text-align:center;max-width:320px;">
+        Demi keamanan, sesi Anda telah habis karena tidak ada aktivitas dalam waktu lama. Silakan masuk kembali untuk melanjutkan pekerjaan Anda.
+      </div>
+      <a href="{{ route('login') }}" style="display:flex;align-items:center;justify-content:center;gap:0.7rem;padding:0.85rem 0;width:100%;background:#065F46;color:white;border-radius:8px;font-weight:600;text-decoration:none;font-size:1.05rem;transition:background .18s;box-shadow:0 2px 8px rgba(6,78,59,0.06);">
+        Masuk Kembali
+        <svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M8 15l4-5-4-5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+  @php exit; @endphp
+@endif
+
+@php
+  $adminNotifUnread = $user->notifikasi()->where('status', 'belum')->count();
+  $adminNotifItems = $user->notifikasi()->latest()->take(6)->get();
 @endphp
 
 <div class="loader-bg">

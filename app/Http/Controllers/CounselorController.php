@@ -97,15 +97,16 @@ class CounselorController extends Controller
 
         $moodTrend = $grouped->map(function ($entries) {
             $scores = $entries->map(function ($entry) {
-                // Mapping Mood ID ke skor 1-5 (sesuai MoodFeelingSeeder)
-                // 1: Marah, 2: Sedih, 3: Senang, 4: Takut, 5: Biasa, 6: Terkejut, 7: Jijik
-                return match ($entry->mood_id) {
-                    3 => 5, // Senang
-                    5 => 4, // Biasa
-                    6, 7 => 3, // Netral (Terkejut/Jijik)
-                    4 => 2, // Takut
-                    1, 2 => 1, // Marah / Sedih
-                    default => 3,
+                // Mapping Mood ID ke skor 1-7 (Berdasarkan Data Master MongoDB)
+                return match ((int)$entry->mood_id) {
+                    7 => 1, // Marah
+                    6 => 2, // Takut
+                    5 => 3, // Sedih
+                    4 => 4, // Terkejut
+                    3 => 5, // Netral
+                    2 => 6, // Antusias
+                    1 => 7, // Senang
+                    default => 5,
                 };
             });
             return round($scores->average(), 2);
@@ -132,11 +133,11 @@ class CounselorController extends Controller
         
         if ($totalCheckins > 0) {
             $topFeelingIds = $feelingsCount->sortDesc()->take(5)->keys();
-            $feelings = Feeling::whereIn('feeling_id', $topFeelingIds)->get()->keyBy('feeling_id');
+            $feelings = Feeling::whereIn('_id', $topFeelingIds)->get()->keyBy('_id');
 
             foreach ($topFeelingIds as $fid) {
                 $count = $feelingsCount[$fid];
-                $feeling = $feelings[$fid];
+                $feeling = $feelings[$fid] ?? null;
                 if (!$feeling) continue;
                 
                 $fName = $feeling->feeling_name;
@@ -177,16 +178,15 @@ class CounselorController extends Controller
         }
 
         // Hitung Distribusi Mood (Senang, Antusias, Netral, dll)
+
+        // Mood Distribution dinamis sesuai data di database
         $allCheckins = DailyCheckin::with('mood')->get();
         $totalAll = $allCheckins->count();
-        $moodDist = [
-            'Senang' => 0, 'Antusias' => 0, 'Netral' => 0, 'Terkejut' => 0, 'Sedih' => 0, 'Takut' => 0, 'Marah' => 0
-        ];
-
+        $moodDist = [];
         if ($totalAll > 0) {
             $counts = $allCheckins->groupBy('mood.mood_name')->map->count();
-            foreach ($moodDist as $m => $val) {
-                $moodDist[$m] = round((($counts[$m] ?? 0) / $totalAll) * 100);
+            foreach ($counts as $moodName => $count) {
+                $moodDist[$moodName] = round(($count / $totalAll) * 100);
             }
         }
 
@@ -202,6 +202,15 @@ class CounselorController extends Controller
     public function getFeelingDistribution(Request $request)
     {
         $name = $request->query('name', 'all');
+        
+        $categories = [
+            'CAT:Positif'   => ['Gembira', 'Bangga', 'Bersyukur', 'Ceria', 'Semangat', 'Energik', 'Kagum', 'Bergairah'],
+            'CAT:Netral'    => ['Biasa Saja', 'Stabil', 'Tenang', 'Santai'],
+            'CAT:Penasaran' => ['Tercengang', 'Penasaran', 'Tertarik', 'Gelagapan'],
+            'CAT:Sedih'     => ['Pilu', 'Depresi', 'Kesepian', 'Putus Asa'],
+            'CAT:Cemas'     => ['Cemas', 'Khawatir', 'Panik', 'Gelisah'],
+            'CAT:Kesal'     => ['Kesal', 'Jengkel', 'Benci', 'Kecewa'],
+        ];
 
         if ($name === 'all') {
             $distribution = DailyCheckin::with('feeling')
@@ -210,7 +219,7 @@ class CounselorController extends Controller
                 ->map(function ($checkins) {
                     $feeling = $checkins->first()->feeling;
                     return [
-                        'name'       => $feeling->feeling_name ?? 'Unknown',
+                        'name'       => $feeling?->feeling_name ?? 'Tidak Ada',
                         'count'      => $checkins->count(),
                         'percentage' => 0
                     ];
@@ -225,6 +234,33 @@ class CounselorController extends Controller
                 })->sortByDesc('count')->take(10)->values();
             }
 
+            return response()->json(['items' => $distribution]);
+        } elseif (str_starts_with($name, 'CAT:')) {
+            $feelingNames = $categories[$name] ?? [];
+            $feelingIds = Feeling::whereIn('feeling_name', $feelingNames)->pluck('feeling_id')->toArray();
+            
+            $distribution = DailyCheckin::with('feeling')
+                ->whereIn('feeling_id', $feelingIds)
+                ->get()
+                ->groupBy('feeling_id')
+                ->map(function ($checkins) {
+                    $feeling = $checkins->first()->feeling;
+                    return [
+                        'name'       => $feeling?->feeling_name ?? 'Tidak Ada',
+                        'count'      => $checkins->count(),
+                        'percentage' => 0
+                    ];
+                })
+                ->values();
+                
+            $totalAll = DailyCheckin::count();
+            if ($totalAll > 0) {
+                $distribution = $distribution->map(function ($item) use ($totalAll) {
+                    $item['percentage'] = round(($item['count'] / $totalAll) * 100);
+                    return $item;
+                })->sortByDesc('count')->values();
+            }
+            
             return response()->json(['items' => $distribution]);
         } else {
             $feeling = Feeling::where('feeling_name', $name)->first();
@@ -424,8 +460,8 @@ class CounselorController extends Controller
                 ->get()
                 ->map(function($checkin) {
                     return [
-                        'mood'    => $checkin->mood->mood_name    ?? 'Biasa',
-                        'feeling' => $checkin->feeling->feeling_name ?? 'Kalem'
+                        'mood'    => $checkin->mood?->mood_name    ?? 'Biasa',
+                        'feeling' => $checkin->feeling?->feeling_name ?? 'Biasa'
                     ];
                 })
                 ->toArray();
@@ -488,4 +524,3 @@ class CounselorController extends Controller
         return response()->json($response->json());
     }
 }
-

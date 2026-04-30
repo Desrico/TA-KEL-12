@@ -197,6 +197,18 @@
         @media (max-width: 1024px) {
             .charts-stats-grid { grid-template-columns: 1fr; }
         }
+
+        /* ── Print Styles ── */
+        @media print {
+            .pc-sidebar, .pc-header, .top-nav, .btn-outline, .btn-primary, .btn-icon, select, .alert-banner, .table-area, .filter-dropdown { display: none !important; }
+            .pc-container { margin-left: 0 !important; padding: 0 !important; }
+            body { background: white !important; font-size: 10pt; color: #000; }
+            .card-box { box-shadow: none !important; border: 1px solid #eee !important; margin-bottom: 20px !important; }
+            .charts-stats-grid { display: block !important; }
+            .charts-stats-grid > div { width: 100% !important; page-break-inside: avoid; }
+            .progress-bar-bg { background: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .progress-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
     </style>
 @endpush
 
@@ -229,7 +241,7 @@
                 <a href="{{ route('counselor.detail', $s->nim) }}" class="p-card">
                     <div class="p-card-top">
                         <div class="p-card-name">{{ $s->name }}</div>
-                        <div class="p-card-badge">SIAGA TINGGI</div>
+                        <div class="p-card-badge">PERLU PENANGANAN</div>
                     </div>
                     <div class="p-card-meta">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -270,8 +282,8 @@
                 <div class="card-box">
                     <div class="card-header">
                         <div>
-                            <div class="card-title">Grafik Tren Suasana Hati</div>
-                            <div class="card-subtitle">Perkembangan psikologis mingguan</div>
+                            <div class="card-title">Grafik Tren Mood Mahasiswa</div>
+                            <div class="card-subtitle">Perkembangan psikologis kolektif mingguan</div>
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <select class="filter-dropdown" onchange="loadChartData(this.value)">
@@ -279,8 +291,8 @@
                                 <option value="1m">1 Bulan terakhir</option>
                                 <option value="4m">4 Bulan terakhir</option>
                             </select>
-                            <button class="btn-icon" onclick="printElementToPDF('printChartArea', 'Laporan_Mood_Trend.pdf')">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <button class="btn-icon" title="Ekspor PDF" onclick="window.print()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                             </button>
                         </div>
                     </div>
@@ -302,8 +314,8 @@
                                 <option value="1m">1 Bulan terakhir</option>
                                 <option value="4m">4 Bulan terakhir</option>
                             </select>
-                            <button class="btn-icon" onclick="printElementToPDF('feelingsTrendChart', 'Laporan_Feelings_Trend.pdf')">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <button class="btn-icon" title="Ekspor PDF" onclick="window.print()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                             </button>
                         </div>
                     </div>
@@ -330,6 +342,7 @@
                     <div class="stats-section-title" style="margin: 0;">PERASAAN UMUM</div>
                     <select class="filter-dropdown" id="feelingFilter" style="width: auto;" onchange="loadFeelingDistribution(this.value)">
                         <option value="all">Semua Perasaan</option>
+                        <option value="CAT:Positif" style="font-weight: 700; color: #059669; background: #ecfdf5;">📊 SEMUA POSITIF</option>
                         <optgroup label="Positif">
                             <option value="Gembira">Gembira</option>
                             <option value="Bangga">Bangga</option>
@@ -340,30 +353,35 @@
                             <option value="Kagum">Kagum</option>
                             <option value="Bergairah">Bergairah</option>
                         </optgroup>
+                        <option value="CAT:Netral" style="font-weight: 700; color: #64748b; background: #f8fafc;">📊 SEMUA NETRAL / STABIL</option>
                         <optgroup label="Netral / Stabil">
                             <option value="Biasa Saja">Biasa Saja</option>
                             <option value="Stabil">Stabil</option>
                             <option value="Tenang">Tenang</option>
                             <option value="Santai">Santai</option>
                         </optgroup>
+                        <option value="CAT:Penasaran" style="font-weight: 700; color: #f59e0b; background: #fffbeb;">📊 SEMUA PENASARAN / TERKEJUT</option>
                         <optgroup label="Penasaran / Terkejut">
                             <option value="Tercengang">Tercengang</option>
                             <option value="Penasaran">Penasaran</option>
                             <option value="Tertarik">Tertarik</option>
                             <option value="Gelagapan">Gelagapan</option>
                         </optgroup>
+                        <option value="CAT:Sedih" style="font-weight: 700; color: #3b82f6; background: #eff6ff;">📊 SEMUA SEDIH / PUTUS ASA</option>
                         <optgroup label="Sedih / Putus Asa">
                             <option value="Pilu">Pilu</option>
                             <option value="Depresi">Depresi</option>
                             <option value="Kesepian">Kesepian</option>
                             <option value="Putus Asa">Putus Asa</option>
                         </optgroup>
+                        <option value="CAT:Cemas" style="font-weight: 700; color: #8b5cf6; background: #f5f3ff;">📊 SEMUA CEMAS / PANIK</option>
                         <optgroup label="Cemas / Panik">
                             <option value="Cemas">Cemas</option>
                             <option value="Khawatir">Khawatir</option>
                             <option value="Panik">Panik</option>
                             <option value="Gelisah">Gelisah</option>
                         </optgroup>
+                        <option value="CAT:Kesal" style="font-weight: 700; color: #ef4444; background: #fef2f2;">📊 SEMUA KESAL / MARAH</option>
                         <optgroup label="Kesal / Marah">
                             <option value="Kesal">Kesal</option>
                             <option value="Jengkel">Jengkel</option>
@@ -385,7 +403,16 @@
                     <div class="card-title">Pratinjau Direktori Mahasiswa</div>
                     <div class="card-subtitle">Profil mahasiswa aktif terbaru dan informasi akademik.</div>
                 </div>
-                <a href="{{ route('counselor.semua-mahasiswa') }}" class="btn-link">Lihat Selengkapnya <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <select id="previewProdiFilter" onchange="loadTopStudents()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 500; outline: none; background: white; cursor: pointer; color: #475569;">
+                        <option value="Semua">Semua Program Studi</option>
+                        <option value="Teknologi Rekayasa Perangkat Lunak">TRPL</option>
+                        <option value="Informatika">Informatika</option>
+                        <option value="Sistem Informasi Manajemen">Sistem Informasi Manajemen</option>
+                        <option value="Teknik Elektro">Teknik Elektro</option>
+                    </select>
+                    <a href="{{ route('counselor.semua-mahasiswa') }}" class="btn-link">Lihat Selengkapnya <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                </div>
             </div>
             <table class="premium-table">
                 <thead>
@@ -408,7 +435,6 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
     function showToast(msg, isError = false) {
         const t = document.getElementById('toast');
@@ -417,26 +443,6 @@
         t.style.background = isError ? 'var(--red)' : 'var(--text-1)';
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 3500);
-    }
-
-    function printElementToPDF(elementId, filename) {
-        showToast('⏳ Menyusun dokumen PDF...');
-        const element = document.getElementById(elementId);
-
-        const opt = {
-            margin:       10,
-            filename:     filename,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        };
-
-        html2pdf().set(opt).from(element).save().then(() => {
-            showToast('✅ Berhasil mengunduh PDF');
-        }).catch(err => {
-            console.error(err);
-            showToast('⚠️ Gagal menyusun PDF', true);
-        });
     }
 
     function runScan() {
@@ -506,15 +512,11 @@
                     y: { 
                         display: true, 
                         min: 1, 
-                        max: 5,
+                        max: 7,
                         ticks: {
                             callback: function(value) {
-                                if(value === 5) return '🤩 Senang (5)';
-                                if(value === 4) return '🤫 Biasa (4)';
-                                if(value === 3) return '😐 Netral (3)';
-                                if(value === 2) return '😨 Takut (2)';
-                                if(value === 1) return '🤬 Marah/Sedih (1)';
-                                return null;
+                                const labels = ['', 'Marah', 'Takut', 'Sedih', 'Terkejut', 'Netral', 'Antusias', 'Senang'];
+                                return labels[value] || '';
                             },
                             stepSize: 1,
                             font: { size: 11, family: 'Inter' },
@@ -578,11 +580,11 @@
                         max: 5,
                         ticks: {
                             callback: function(value) {
-                                if(value === 5) return 'Gembira';
-                                if(value === 4) return 'Biasa';
-                                if(value === 3) return 'Stabil';
-                                if(value === 2) return 'Cemas';
-                                if(value === 1) return 'Sedih';
+                                if(value === 5) return 'Semangat';
+                                if(value === 4) return 'Tenang';
+                                if(value === 3) return 'Netral';
+                                if(value === 2) return 'Lelah';
+                                if(value === 1) return 'Cemas';
                                 return '';
                             },
                             stepSize: 1,
@@ -677,9 +679,14 @@
 
     function loadTopStudents() {
         const body = document.getElementById('topStudentsBody');
+        const prodiFilter = document.getElementById('previewProdiFilter');
         if(!body) return;
 
-        fetch('{{ route("counselor.top-students") }}')
+        body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 32px;"><div class="spin" style="margin:0 auto; border-top-color:var(--accent);"></div></td></tr>';
+
+        const prodiParam = prodiFilter ? encodeURIComponent(prodiFilter.value) : 'Semua';
+
+        fetch('{{ route("counselor.top-students") }}?prodi=' + prodiParam)
             .then(res => res.json())
             .then(data => {
                 if(!data.students || data.students.length === 0) {

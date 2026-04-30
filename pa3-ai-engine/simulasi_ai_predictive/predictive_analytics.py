@@ -5,14 +5,16 @@ from utils.db_connector import get_database
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# KONFIGURASI SKORING (1 = Positif, 5 = Sangat Negatif / Krisis)
+# KONFIGURASI SKORING (1 = Sangat Positif, 5 = Sangat Negatif / Krisis)
 MOOD_SCORES = {
     'Senang': 1,
     'Antusias': 1,
-    'Netral': 3,
+    'Biasa': 2,
+    'Netral': 2,
     'Terkejut': 3,
+    'Jijik': 4,
+    'Takut': 4,
     'Sedih': 5,
-    'Takut': 5,
     'Marah': 5
 }
 
@@ -20,12 +22,13 @@ FEELING_SCORES = {
     # Positif (1)
     'Gembira': 1, 'Bangga': 1, 'Bersyukur': 1, 'Ceria': 1, 
     'Semangat': 1, 'Energik': 1, 'Kagum': 1, 'Bergairah': 1,
+    'Antusias': 1,
     # Netral/Stabil (2)
-    'Biasa Saja': 2, 'Stabil': 2, 'Tenang': 2, 'Santai': 2,
+    'Biasa Saja': 2, 'Stabil': 2, 'Tenang': 2, 'Santai': 2, 'Biasa': 2,
     # Ambigu/Netral (3)
-    'Tercengang': 3, 'Penasaran': 3, 'Tertarik': 3, 'Gelagapan': 3,
+    'Tercengang': 3, 'Penasaran': 3, 'Tertarik': 3, 'Gelagapan': 3, 'Bosan': 3,
     # Negatif/Stress (4)
-    'Kesal': 4, 'Jengkel': 4, 'Benci': 4, 'Kecewa': 4,
+    'Kesal': 4, 'Jengkel': 4, 'Benci': 4, 'Kecewa': 4, 'Lelah': 4, 'Stres': 4,
     # Sangat Negatif/Krisis (5)
     'Pilu': 5, 'Depresi': 5, 'Kesepian': 5, 'Putus Asa': 5,
     'Cemas': 5, 'Khawatir': 5, 'Panik': 5, 'Gelisah': 5
@@ -61,10 +64,14 @@ def run_clinical_analysis() -> list:
 
     try:
         db = get_database()
-        # Ambil semua data check-in dalam 30 hari terakhir untuk memastikan punya buffer 14 hari
+        
+        # Load master data mappings
+        mood_map = {str(m['mood_id']): m['mood_name'] for m in db.moods.find({"mood_id": {"$exists": True}})}
+        feel_map = {str(f['id']): f['feeling_name'] for f in db.feelings.find({"id": {"$exists": True}})}
+
+        # Ambil semua data check-in dalam 30 hari terakhir
         cutoff_date = datetime.now() - timedelta(days=30)
         
-        # Query MongoDB
         checkins_cursor = db.daily_checkins.find({
             "created_at": {"$gte": cutoff_date}
         }).sort([("nim", 1), ("created_at", 1)])
@@ -74,18 +81,17 @@ def run_clinical_analysis() -> list:
         if df.empty:
             return [{"message": "Tidak ada data check-in terbaru di database."}]
 
-        # Ambil nama mood dan feeling dari koleksi relasi jika tidak ada di dokumen checkin
-        # (Asumsi di MongoDB dokumen daily_checkins sudah memiliki mood_name/feeling_name hasil denormalisasi atau join)
-        # Jika hanya ada ID, kita perlu join. Namun biasanya di NoSQL disarankan denormalisasi.
-        # Mari kita asumsikan struktur dokumen memiliki field mood_name dan feeling_name.
-        
+        # Resolve names from IDs
+        df['mood_name'] = df['mood_id'].apply(lambda x: mood_map.get(str(x), 'Netral'))
+        df['feeling_name'] = df['feeling_id'].apply(lambda x: feel_map.get(str(x), 'Biasa Saja'))
+
         for nim in df['nim'].unique():
             user_data = df[df['nim'] == nim].copy()
             total_hari = len(user_data)
             
             # Hitung skor harian
             user_data['daily_score'] = user_data.apply(
-                lambda row: get_combined_score(row.get('mood_name', 'Netral'), row.get('feeling_name', 'Biasa Saja')), axis=1
+                lambda row: get_combined_score(row.get('mood_name'), row.get('feeling_name')), axis=1
             )
             
             two_weeks_data = user_data.tail(14)
@@ -149,10 +155,10 @@ def evaluate_predictive_risk(recent_emotions: list[float], days_since_last_journ
         alert["reason"] = f"Penurunan mood menetap berdasarkan riwayat rentang panjang (avg score: {avg_score:.1f})."
         return alert
         
-    # Kondisi 3: Mood menurun drastis pada 3 observasi berturut-turut
-    if total_hari >= 3 and all(x >= 3.5 for x in recent_emotions[:3]):
+    # Kondisi 3: Mood memburuk drastis pada 3 observasi terakhir (bukan pertama)
+    if total_hari >= 3 and all(x >= 4.0 for x in recent_emotions[-3:]):
         alert["is_high_risk"] = True
-        alert["reason"] = "Mood & perasaan menurun drastis dalam 3 catatan terakhir."
+        alert["reason"] = "Mood & perasaan memburuk dalam 3 catatan terakhir secara konsisten (skor >= 4.0)."
         return alert
 
     return alert

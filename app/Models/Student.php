@@ -22,6 +22,15 @@ class Student extends Model
     ];
 
     protected $hidden = ['password'];
+    protected $appends = ['angkatan'];
+
+    public function getAngkatanAttribute()
+    {
+        if (preg_match('/^\d{3}(\d{2})\d{3}$/', $this->nim, $matches)) {
+            return '20' . $matches[1];
+        }
+        return '-';
+    }
 
     public function journalTexts()
     {
