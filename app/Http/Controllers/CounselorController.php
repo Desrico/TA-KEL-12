@@ -213,13 +213,13 @@ class CounselorController extends Controller
         ];
 
         if ($name === 'all') {
-            $distribution = DailyCheckin::with('feeling')
-                ->get()
+            $allFeelings = Feeling::all()->keyBy('_id');
+            $distribution = DailyCheckin::all()
                 ->groupBy('feeling_id')
-                ->map(function ($checkins) {
-                    $feeling = $checkins->first()->feeling;
+                ->map(function ($checkins, $feelingId) use ($allFeelings) {
+                    $feeling = $allFeelings->get($feelingId);
                     return [
-                        'name'       => $feeling?->feeling_name ?? 'Tidak Ada',
+                        'name'       => $feeling ? $feeling->feeling_name : 'Tidak Ada',
                         'count'      => $checkins->count(),
                         'percentage' => 0
                     ];
@@ -237,16 +237,16 @@ class CounselorController extends Controller
             return response()->json(['items' => $distribution]);
         } elseif (str_starts_with($name, 'CAT:')) {
             $feelingNames = $categories[$name] ?? [];
-            $feelingIds = Feeling::whereIn('feeling_name', $feelingNames)->pluck('feeling_id')->toArray();
+            $matchingFeelings = Feeling::whereIn('feeling_name', $feelingNames)->get()->keyBy('_id');
+            $feelingIds = $matchingFeelings->keys()->toArray();
             
-            $distribution = DailyCheckin::with('feeling')
-                ->whereIn('feeling_id', $feelingIds)
+            $distribution = DailyCheckin::whereIn('feeling_id', $feelingIds)
                 ->get()
                 ->groupBy('feeling_id')
-                ->map(function ($checkins) {
-                    $feeling = $checkins->first()->feeling;
+                ->map(function ($checkins, $feelingId) use ($matchingFeelings) {
+                    $feeling = $matchingFeelings->get($feelingId);
                     return [
-                        'name'       => $feeling?->feeling_name ?? 'Tidak Ada',
+                        'name'       => $feeling ? $feeling->feeling_name : 'Tidak Ada',
                         'count'      => $checkins->count(),
                         'percentage' => 0
                     ];
@@ -268,7 +268,7 @@ class CounselorController extends Controller
                 return response()->json(['items' => []]);
             }
 
-            $count = DailyCheckin::where('feeling_id', $feeling->feeling_id)->count();
+            $count = DailyCheckin::where('feeling_id', $feeling->_id)->count();
             $total = DailyCheckin::count();
             $percentage = $total > 0 ? round(($count / $total) * 100) : 0;
 

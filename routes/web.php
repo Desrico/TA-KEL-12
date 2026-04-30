@@ -66,7 +66,7 @@ Route::prefix('admin')
     ->middleware(['auth', 'role:konselor'])
     ->group(function () {
         Route::get('/', fn () => redirect()->route('admin.dashboard'));
-        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/dashboard', [CounselorController::class, 'index'])->name('dashboard');
         Route::get('/notifikasi', [AdminController::class, 'notifications'])->name('notifikasi.list');
         Route::post('/notifikasi/baca', [AdminController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
 
