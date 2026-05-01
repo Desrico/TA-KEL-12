@@ -88,6 +88,13 @@
         </div>
 
         <div class="choice-grid">
+            <a href="{{ route('counselor.education.about-page.edit') }}" class="choice-card">
+                <div class="icon-box">🪄</div>
+                <div class="choice-title">Konten Halaman Tentang</div>
+                <div class="choice-desc">Perbarui section relaksasi, artikel dukungan mahasiswa, dan trending topik yang tampil di halaman Tentang.</div>
+                <div class="badge">Landing Page</div>
+            </a>
+
             <!-- Module Choice -->
             <a href="{{ route('counselor.education.modules.index') }}" class="choice-card">
                 <div class="icon-box">📖</div>

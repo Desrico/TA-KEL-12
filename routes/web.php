@@ -10,6 +10,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\KampusApiController;
 use App\Http\Controllers\CounselorController;
 use App\Http\Controllers\EducationController;
+use App\Http\Controllers\AboutPageController;
 
 
 // ═══════════════════════════════
@@ -19,9 +20,7 @@ Route::get('/', function () {
     return view('Pages.beranda');
 })->name('beranda');
 
-Route::get('/tentang', function () {    
-    return view('Pages.tentang');
-})->name('tentang');
+Route::get('/tentang', [AboutPageController::class, 'show'])->name('tentang');
 
 // halaman konseling
 Route::get('/konseling', [JadwalController::class, 'create'])->name('konseling');
@@ -140,6 +139,10 @@ Route::post('/konselor/summary', [CounselorController::class, 'getSummary'])->na
 // --- FITUR EDUKASI ---
 Route::prefix('konselor/edukasi')->name('counselor.education.')->group(function () {
     Route::get('/', [EducationController::class, 'index'])->name('index');
+
+    // About page content
+    Route::get('/about-page', [AboutPageController::class, 'edit'])->name('about-page.edit');
+    Route::put('/about-page', [AboutPageController::class, 'update'])->name('about-page.update');
     
     // Modules
     Route::get('/modules', [EducationController::class, 'moduleIndex'])->name('modules.index');
