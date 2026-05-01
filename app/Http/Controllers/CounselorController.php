@@ -75,8 +75,9 @@ class CounselorController extends Controller
 
     public function getChartData(Request $request)
     {
+        $activeNims = Student::pluck('nim')->toArray();
         $range = $request->query('range', '14d');
-        $query = DailyCheckin::with(['mood', 'feeling']); // Eager load sekali untuk hindari N+1
+        $query = DailyCheckin::with(['mood', 'feeling'])->whereIn('nim', $activeNims); // Filter by active users
 
         if ($range === '14d') {
             $query->where('created_at', '>=', now()->subDays(14));
@@ -205,7 +206,8 @@ class CounselorController extends Controller
 
         if ($name === 'all') {
             $allFeelings = Feeling::all()->keyBy('_id');
-            $distribution = DailyCheckin::all()
+            $activeNims = Student::pluck('nim')->toArray();
+            $distribution = DailyCheckin::whereIn('nim', $activeNims)->get()
                 ->groupBy('feeling_id')
                 ->map(function ($checkins, $feelingId) use ($allFeelings) {
                     $feeling = $allFeelings->get($feelingId);
@@ -230,8 +232,10 @@ class CounselorController extends Controller
             $feelingNames = $categories[$name] ?? [];
             $matchingFeelings = Feeling::whereIn('feeling_name', $feelingNames)->get()->keyBy('_id');
             $feelingIds = $matchingFeelings->keys()->toArray();
+            $activeNims = Student::pluck('nim')->toArray();
             
             $distribution = DailyCheckin::whereIn('feeling_id', $feelingIds)
+                ->whereIn('nim', $activeNims)
                 ->get()
                 ->groupBy('feeling_id')
                 ->map(function ($checkins, $feelingId) use ($matchingFeelings) {
@@ -244,7 +248,7 @@ class CounselorController extends Controller
                 })
                 ->values();
                 
-            $totalAll = DailyCheckin::count();
+            $totalAll = DailyCheckin::whereIn('nim', $activeNims)->count();
             if ($totalAll > 0) {
                 $distribution = $distribution->map(function ($item) use ($totalAll) {
                     $item['percentage'] = round(($item['count'] / $totalAll) * 100);
@@ -259,8 +263,9 @@ class CounselorController extends Controller
                 return response()->json(['items' => []]);
             }
 
-            $count = DailyCheckin::where('feeling_id', $feeling->_id)->count();
-            $total = DailyCheckin::count();
+            $activeNims = Student::pluck('nim')->toArray();
+            $count = DailyCheckin::where('feeling_id', $feeling->_id)->whereIn('nim', $activeNims)->count();
+            $total = DailyCheckin::whereIn('nim', $activeNims)->count();
             $percentage = $total > 0 ? round(($count / $total) * 100) : 0;
 
             return response()->json([
@@ -294,9 +299,9 @@ class CounselorController extends Controller
 
     public function getUrgentNotifications()
     {
-        // Ambil mahasiswa dengan mental_level >= 2 (Waspada/Bahaya)
-        // Diurutkan berdasarkan level tertinggi dan scan terbaru
-        $urgentStudents = Student::where('mental_level', '>=', 2)
+        // Ambil mahasiswa dengan mental_level = 3 (Krisis / Bahaya)
+        // Diurutkan berdasarkan scan terbaru
+        $urgentStudents = Student::where('mental_level', 3)
             ->orderBy('mental_level', 'desc')
             ->orderBy('mental_scanned_at', 'desc')
             ->take(10)
@@ -516,6 +521,17 @@ class CounselorController extends Controller
             ], 502);
         }
 
-        return response()->json($response->json());
+        $data = $response->json();
+        $summary = $data['summary'] ?? null;
+
+        if ($summary) {
+            // Simpan insight ke database agar persisten
+            Student::where('nim', $nim)->update([
+                'mental_insight' => $summary,
+                'mental_scanned_at' => now(), // Update waktu scan terakhir
+            ]);
+        }
+
+        return response()->json($data);
     }
 }

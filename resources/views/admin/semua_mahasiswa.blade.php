@@ -159,7 +159,7 @@
                                 {{ $s->nim }}
                             </td>
                             <td style="color: #475569; font-size: 0.85rem;">
-                                <div style="font-weight: 500;">{{ $s->gender }}</div>
+                                <div style="font-weight: 500;">{{ $s->jenis_kelamin }}</div>
                                 <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">{{ $s->journal_texts_count }} jurnal</div>
                             </td>
                             <td>

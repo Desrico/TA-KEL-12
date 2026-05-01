@@ -147,8 +147,8 @@
                     <div style="display: flex; align-items: center; gap: 24px;">
                         <!-- Gender & NIM -->
                         <div class="info-group">
-                            <span class="pill {{ $student->gender === 'Laki-laki' ? 'pill-L' : 'pill-P' }}" style="font-size: 0.7rem; padding: 4px 10px;">
-                                {{ $student->gender }}
+                            <span class="pill {{ $student->jenis_kelamin === 'Laki-laki' ? 'pill-L' : 'pill-P' }}" style="font-size: 0.7rem; padding: 4px 10px;">
+                                {{ $student->jenis_kelamin }}
                             </span>
                             <div class="info-item">
                                 <span class="info-label">Identitas</span>
@@ -254,7 +254,11 @@
                             Insight Analisis Jurnal
                         </div>
                         <p id="insightText">
-                            Insight otomatis dari jurnal mahasiswa belum digenerate. Klik tombol Ringkas Jurnal di bawah untuk menggunakan AI merangkum kondisi psikologis mahasiswa ini berdasarkan seluruh riwayat jurnalnya.
+                            @if($student->mental_insight)
+                                {{ $student->mental_insight }}
+                            @else
+                                Insight otomatis dari jurnal mahasiswa belum digenerate. Klik tombol Ringkas Jurnal di bawah untuk menggunakan AI merangkum kondisi psikologis mahasiswa ini berdasarkan seluruh riwayat jurnalnya.
+                            @endif
                         </p>
                     </div>
                     
@@ -273,7 +277,7 @@
 
                         @if($student->journalTexts->count() > 0)
                         <button class="btn-white" style="margin-top: 20px;" id="btnSummary" onclick="openSummary('{{ $student->nim }}')">
-                            📄 Ringkas Jurnal
+                            {{ $student->mental_insight ? '🔄 Perbarui Analisis' : '📄 Ringkas Jurnal' }}
                         </button>
                         @endif
                     </div>

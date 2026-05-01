@@ -7,15 +7,23 @@ use MongoDB\Laravel\Eloquent\Model;
 class Student extends Model
 {
     protected $connection = 'mongodb';
+    protected $table = 'users';
 
     protected $primaryKey = 'nim';
     public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [
-        'nim', 'name', 'gender', 'prodi', 'password', 'point', 'energy_score', 'phone_number',
-        'mental_level', 'mental_label', 'mental_confidence', 'mental_red_flag', 'mental_scanned_at',
+        'nim', 'name', 'jenis_kelamin', 'prodi', 'password', 'point', 'energy_score', 'phone_number',
+        'mental_level', 'mental_label', 'mental_confidence', 'mental_red_flag', 'mental_insight', 'mental_scanned_at',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope('is_student', function ($builder) {
+            $builder->whereNotNull('nim');
+        });
+    }
 
     protected $casts = [
         'mental_scanned_at' => 'datetime',
