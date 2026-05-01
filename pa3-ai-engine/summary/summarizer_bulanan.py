@@ -4,18 +4,19 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Load API Key dari .env milik simulasi_ai_jurnal
-load_dotenv(dotenv_path=os.path.join(BASE_DIR, '..', '.env'))
+# Path ke file .env di dalam folder pa3-ai-engine (prioritas utama)
+env_path = os.path.join(BASE_DIR, '..', '.env')
+load_dotenv(dotenv_path=env_path, override=True)
 
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 api_key    = os.getenv("GROQ_API_KEY")
 
-if api_key:
+if api_key and api_key.startswith("gsk_"):
     client = Groq(api_key=api_key)
-    print("Summarizer: Groq client siap.")
+    print(f"Summarizer: Groq client siap menggunakan model {GROQ_MODEL}.")
 else:
     client = None
-    print("Warning: GROQ_API_KEY tidak ditemukan — summarizer fallback ke mode sederhana.")
+    print(f"Warning: GROQ_API_KEY tidak valid ({api_key[:10] if api_key else 'None'}...) — summarizer fallback ke mode sederhana.")
 
 def _summarize_with_groq(semua_jurnal: list) -> str:
     """Kirim semua jurnal sekaligus ke Groq LLaMA untuk diringkas."""
@@ -32,16 +33,16 @@ def _summarize_with_groq(semua_jurnal: list) -> str:
                 {
                     "role": "system",
                     "content": (
-                        "Kamu adalah asisten konselor kesehatan mental kampus. "
-                        "Tugasmu adalah membuat ringkasan kondisi psikologis mahasiswa "
-                        "berdasarkan SELURUH kumpulan jurnal harian yang mereka tulis dalam satu bulan. "
-                        "Ringkasan harus mencakup: "
-                        "(1) tren emosi dan kondisi mahasiswa secara keseluruhan, "
-                        "(2) masalah atau tekanan utama yang muncul berulang, "
-                        "(3) gambaran umum kondisi psikologis mahasiswa bulan ini. "
-                        "Tulis dalam bahasa Indonesia yang jelas dan formal, maksimal 4 kalimat. "
-                        "JANGAN menggunakan bullet point, daftar, angka, atau format markdown. "
-                        "Tulis sebagai paragraf mengalir yang enak dibaca."
+                        "Kamu adalah seorang psikolog klinis ahli. "
+                        "Tugasmu adalah menganalisis kumpulan jurnal harian mahasiswa untuk memberikan INSIGHT MENDALAM bagi konselor kampus. "
+                        "Jangan hanya merangkum isi jurnal, tapi analisislah pola psikologisnya. "
+                        "Fokus pada: "
+                        "1. Tren Emosional: Apakah ada peningkatan kecemasan, tanda-tanda depresi, atau justru stabilitas? "
+                        "2. Pola Perilaku & Koping: Bagaimana mahasiswa menghadapi masalahnya? Apakah kopingnya sehat atau maladaptif? "
+                        "3. Isu Berulang: Identifikasi masalah inti yang terus muncul (misal: tekanan akademik, masalah keluarga, atau isolasi sosial). "
+                        "4. Rekomendasi Pendekatan: Berikan saran singkat bagi konselor cara mendekati mahasiswa ini. "
+                        "Tulis dalam Bahasa Indonesia yang profesional, empati, dan padat (maksimal 5 kalimat). "
+                        "Gunakan format paragraf mengalir. JANGAN gunakan bullet points, angka, atau format markdown."
                     )
                 },
                 {

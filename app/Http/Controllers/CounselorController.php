@@ -14,13 +14,19 @@ class CounselorController extends Controller
 {
     public function index()
     {
-        // Ganti journals menjadi journalTexts sesuai relasi model Student terbaru
-        $students = Student::with('journalTexts')
+        // OPTIMASI PERFORMA MongoDB:
+        // MongoDB tidak mendukung withCount() secara langsung.
+        // Sebagai gantinya, kita memuat relasi tetapi HANYA mengambil kolom ID.
+        // Ini mencegah ribuan teks ditarik ke RAM, sehingga query menjadi sangat ringan.
+        $students = Student::with(['journalTexts' => function ($q) {
+                $q->select('_id', 'nim');
+            }])
             ->orderBy('mental_level', 'desc')
             ->orderBy('name')
             ->get()
             ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts->count();
+                $student->journal_texts_count = $student->journalTexts ? $student->journalTexts->count() : 0;
+                unset($student->journalTexts); // Bebaskan memori
                 return $student;
             });
 
@@ -69,9 +75,9 @@ class CounselorController extends Controller
 
     public function getChartData(Request $request)
     {
+        $activeNims = Student::pluck('nim')->toArray();
         $range = $request->query('range', '14d');
-        // DailyCheckin menggantikan JournalEntry untuk kebutuhan grafik trend mood
-        $query = DailyCheckin::query();
+        $query = DailyCheckin::with(['mood', 'feeling'])->whereIn('nim', $activeNims); // Filter by active users
 
         if ($range === '14d') {
             $query->where('created_at', '>=', now()->subDays(14));
@@ -97,15 +103,9 @@ class CounselorController extends Controller
 
         $moodTrend = $grouped->map(function ($entries) {
             $scores = $entries->map(function ($entry) {
-                // Mapping Mood ID ke skor 1-5 (sesuai MoodFeelingSeeder)
-                // 1: Marah, 2: Sedih, 3: Senang, 4: Takut, 5: Biasa, 6: Terkejut, 7: Jijik
-                return match ($entry->mood_id) {
-                    3 => 5, // Senang
-                    5 => 4, // Biasa
-                    6, 7 => 3, // Netral (Terkejut/Jijik)
-                    4 => 2, // Takut
-                    1, 2 => 1, // Marah / Sedih
-                    default => 3,
+                return match ((int)$entry->mood_id) {
+                    7 => 1, 6 => 2, 5 => 3, 4 => 4, 3 => 5, 2 => 6, 1 => 7,
+                    default => 5,
                 };
             });
             return round($scores->average(), 2);
@@ -113,7 +113,6 @@ class CounselorController extends Controller
 
         $labels = [];
         $data = [];
-
         foreach ($moodTrend as $key => $val) {
             if ($range === '1y' || $range === '4m') {
                 $labels[] = \Carbon\Carbon::createFromFormat('Y-m', $key)->isoFormat('MMMM YYYY');
@@ -123,94 +122,97 @@ class CounselorController extends Controller
             $data[] = $val;
         }
 
-        // Hitung Distribusi & Trend Feeling (Sebaran Emosi)
+        // Hitung Distribusi & Trend Feeling — reuse $rawEntries, relasi sudah di-eager-load
         $feelingsCount = $rawEntries->groupBy('feeling_id')->map->count();
         $totalCheckins = $rawEntries->count();
-        
+
         $distribution = [];
-        $feelingsTrend = [];
-        
         if ($totalCheckins > 0) {
             $topFeelingIds = $feelingsCount->sortDesc()->take(5)->keys();
-            $feelings = Feeling::whereIn('feeling_id', $topFeelingIds)->get()->keyBy('feeling_id');
+            $feelings = Feeling::whereIn('_id', $topFeelingIds)->get()->keyBy('_id');
 
             foreach ($topFeelingIds as $fid) {
                 $count = $feelingsCount[$fid];
-                $feeling = $feelings[$fid];
+                $feeling = $feelings[$fid] ?? null;
                 if (!$feeling) continue;
-                
+
                 $fName = $feeling->feeling_name;
                 $meta = $this->getFeelingMeta($fName);
-
-                // For Distribution (Percentage Cards)
                 $distribution[] = [
-                    'name' => $fName,
+                    'name'       => $fName,
                     'percentage' => round(($count / $totalCheckins) * 100),
-                    'count' => $count,
-                    'icon' => $meta['icon'],
-                    'color' => $meta['color'],
-                    'desc' => $meta['desc']
+                    'count'      => $count,
+                    'icon'       => $meta['icon'],
+                    'color'      => $meta['color'],
+                    'desc'       => $meta['desc']
                 ];
             }
         }
 
-        // For Trend Chart (Time Series) - Single Line Average Feeling
+        // Feelings Trend — gunakan relasi yang sudah di-load (tidak ada query baru)
         $feelingsTrendData = $grouped->map(function ($entries) {
             $scores = $entries->map(function ($entry) {
-                if (!$entry->feeling) return 3; // Default
-                $fName = $entry->feeling->feeling_name;
-                
+                $fName = $entry->feeling->feeling_name ?? null;
+                if (!$fName) return 3;
                 return match (true) {
-                    in_array($fName, ['Aktif', 'Enerjik', 'Antusias', 'Bersemangat']) => 5, // Semangat
-                    in_array($fName, ['Santai', 'Kalem', 'Damai', 'Tenang']) => 4, // Tenang
-                    in_array($fName, ['Bosan', 'Jemu', 'Letih', 'Malas']) => 2, // Lelah
-                    in_array($fName, ['Takut', 'Marah', 'Cemas', 'Gugup']) => 1, // Cemas
-                    default => 3, // Netral
+                    in_array($fName, ['Aktif', 'Enerjik', 'Antusias', 'Bersemangat']) => 5,
+                    in_array($fName, ['Santai', 'Kalem', 'Damai', 'Tenang'])           => 4,
+                    in_array($fName, ['Bosan', 'Jemu', 'Letih', 'Malas'])              => 2,
+                    in_array($fName, ['Takut', 'Marah', 'Cemas', 'Gugup'])             => 1,
+                    default => 3,
                 };
             });
             return round($scores->average(), 2);
         });
 
-        $feelingsTrend = [];
-        foreach ($feelingsTrendData as $key => $val) {
-            $feelingsTrend[] = $val; // Array statik untuk single line chart
-        }
+        $feelingsTrend = array_values($feelingsTrendData->toArray());
 
-        // Hitung Distribusi Mood (Senang, Antusias, Netral, dll)
-        $allCheckins = DailyCheckin::with('mood')->get();
-        $totalAll = $allCheckins->count();
-        $moodDist = [
-            'Senang' => 0, 'Antusias' => 0, 'Netral' => 0, 'Terkejut' => 0, 'Sedih' => 0, 'Takut' => 0, 'Marah' => 0
-        ];
-
+        // Mood Distribution — reuse $rawEntries, tidak perlu fetch ulang dari database
+        $moodDist = [];
+        $totalAll = $rawEntries->count();
         if ($totalAll > 0) {
-            $counts = $allCheckins->groupBy('mood.mood_name')->map->count();
-            foreach ($moodDist as $m => $val) {
-                $moodDist[$m] = round((($counts[$m] ?? 0) / $totalAll) * 100);
+            $counts = $rawEntries->groupBy(function ($e) {
+                return $e->mood->mood_name ?? 'Tidak Diketahui';
+            })->map->count();
+            foreach ($counts as $moodName => $count) {
+                $moodDist[$moodName] = round(($count / $totalAll) * 100);
             }
         }
 
         return response()->json([
-            'labels' => $labels,
-            'data' => $data,
-            'distribution' => $distribution,
-            'feelingsTrend' => $feelingsTrend,
+            'labels'           => $labels,
+            'data'             => $data,
+            'distribution'     => $distribution,
+            'feelingsTrend'    => $feelingsTrend,
             'mood_distribution' => $moodDist
         ]);
     }
 
+
+
+
     public function getFeelingDistribution(Request $request)
     {
         $name = $request->query('name', 'all');
+        
+        $categories = [
+            'CAT:Positif'   => ['Gembira', 'Bangga', 'Bersyukur', 'Ceria', 'Semangat', 'Energik', 'Kagum', 'Bergairah'],
+            'CAT:Netral'    => ['Biasa Saja', 'Stabil', 'Tenang', 'Santai'],
+            'CAT:Penasaran' => ['Tercengang', 'Penasaran', 'Tertarik', 'Gelagapan'],
+            'CAT:Sedih'     => ['Pilu', 'Depresi', 'Kesepian', 'Putus Asa'],
+            'CAT:Cemas'     => ['Cemas', 'Khawatir', 'Panik', 'Gelisah'],
+            'CAT:Kesal'     => ['Kesal', 'Jengkel', 'Benci', 'Kecewa'],
+        ];
 
         if ($name === 'all') {
-            $distribution = DailyCheckin::with('feeling')
-                ->get()
+            $allFeelings = Feeling::all()->keyBy('_id');
+            $activeNims = Student::pluck('nim')->toArray();
+            $distribution = DailyCheckin::whereIn('nim', $activeNims)->get()
                 ->groupBy('feeling_id')
-                ->map(function ($checkins) {
-                    $feeling = $checkins->first()->feeling;
+                ->map(function ($checkins, $feelingId) use ($allFeelings) {
+                    $feeling = $allFeelings->get($feelingId);
                     return [
-                        'name'       => $feeling->feeling_name ?? 'Unknown',
+                        'name'       => $feeling ? $feeling->feeling_name : 'Tidak Ada',
                         'count'      => $checkins->count(),
                         'percentage' => 0
                     ];
@@ -226,14 +228,44 @@ class CounselorController extends Controller
             }
 
             return response()->json(['items' => $distribution]);
+        } elseif (str_starts_with($name, 'CAT:')) {
+            $feelingNames = $categories[$name] ?? [];
+            $matchingFeelings = Feeling::whereIn('feeling_name', $feelingNames)->get()->keyBy('_id');
+            $feelingIds = $matchingFeelings->keys()->toArray();
+            $activeNims = Student::pluck('nim')->toArray();
+            
+            $distribution = DailyCheckin::whereIn('feeling_id', $feelingIds)
+                ->whereIn('nim', $activeNims)
+                ->get()
+                ->groupBy('feeling_id')
+                ->map(function ($checkins, $feelingId) use ($matchingFeelings) {
+                    $feeling = $matchingFeelings->get($feelingId);
+                    return [
+                        'name'       => $feeling ? $feeling->feeling_name : 'Tidak Ada',
+                        'count'      => $checkins->count(),
+                        'percentage' => 0
+                    ];
+                })
+                ->values();
+                
+            $totalAll = DailyCheckin::whereIn('nim', $activeNims)->count();
+            if ($totalAll > 0) {
+                $distribution = $distribution->map(function ($item) use ($totalAll) {
+                    $item['percentage'] = round(($item['count'] / $totalAll) * 100);
+                    return $item;
+                })->sortByDesc('count')->values();
+            }
+            
+            return response()->json(['items' => $distribution]);
         } else {
             $feeling = Feeling::where('feeling_name', $name)->first();
             if (!$feeling) {
                 return response()->json(['items' => []]);
             }
 
-            $count = DailyCheckin::where('feeling_id', $feeling->feeling_id)->count();
-            $total = DailyCheckin::count();
+            $activeNims = Student::pluck('nim')->toArray();
+            $count = DailyCheckin::where('feeling_id', $feeling->_id)->whereIn('nim', $activeNims)->count();
+            $total = DailyCheckin::whereIn('nim', $activeNims)->count();
             $percentage = $total > 0 ? round(($count / $total) * 100) : 0;
 
             return response()->json([
@@ -267,9 +299,9 @@ class CounselorController extends Controller
 
     public function getUrgentNotifications()
     {
-        // Ambil mahasiswa dengan mental_level >= 2 (Waspada/Bahaya)
-        // Diurutkan berdasarkan level tertinggi dan scan terbaru
-        $urgentStudents = Student::where('mental_level', '>=', 2)
+        // Ambil mahasiswa dengan mental_level = 3 (Krisis / Bahaya)
+        // Diurutkan berdasarkan scan terbaru
+        $urgentStudents = Student::where('mental_level', 3)
             ->orderBy('mental_level', 'desc')
             ->orderBy('mental_scanned_at', 'desc')
             ->take(10)
@@ -285,7 +317,10 @@ class CounselorController extends Controller
     {
         $prodi = $request->query('prodi', 'Semua');
 
-        $students = Student::with('journalTexts')
+        // OPTIMASI PERFORMA MongoDB: Hanya memanggil kolom _id dari relasi untuk menghemat RAM
+        $students = Student::with(['journalTexts' => function ($q) {
+                $q->select('_id', 'nim');
+            }])
             ->whereNotNull('mental_level')
             ->orderBy('mental_level', 'desc')
             ->orderBy('mental_confidence', 'desc')
@@ -295,7 +330,8 @@ class CounselorController extends Controller
             ->take(5)
             ->get()
             ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts->count();
+                $student->journal_texts_count = $student->journalTexts ? $student->journalTexts->count() : 0;
+                unset($student->journalTexts);
                 return $student;
             });
 
@@ -424,8 +460,8 @@ class CounselorController extends Controller
                 ->get()
                 ->map(function($checkin) {
                     return [
-                        'mood'    => $checkin->mood->mood_name    ?? 'Biasa',
-                        'feeling' => $checkin->feeling->feeling_name ?? 'Kalem'
+                        'mood'    => $checkin->mood?->mood_name    ?? 'Biasa',
+                        'feeling' => $checkin->feeling?->feeling_name ?? 'Biasa'
                     ];
                 })
                 ->toArray();
@@ -485,7 +521,17 @@ class CounselorController extends Controller
             ], 502);
         }
 
-        return response()->json($response->json());
+        $data = $response->json();
+        $summary = $data['summary'] ?? null;
+
+        if ($summary) {
+            // Simpan insight ke database agar persisten
+            Student::where('nim', $nim)->update([
+                'mental_insight' => $summary,
+                'mental_scanned_at' => now(), // Update waktu scan terakhir
+            ]);
+        }
+
+        return response()->json($data);
     }
 }
-
