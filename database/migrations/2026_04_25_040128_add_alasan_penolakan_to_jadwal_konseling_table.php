@@ -8,15 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('jadwal_konseling', function (Blueprint $table) {
-            $table->text('alasan_penolakan')->nullable()->after('status');
-        });
+        if (!Schema::hasColumn('jadwal_konseling', 'alasan_penolakan')) {
+            Schema::table('jadwal_konseling', function (Blueprint $table) {
+                $table->text('alasan_penolakan')->nullable()->after('status');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('jadwal_konseling', function (Blueprint $table) {
-            $table->dropColumn('alasan_penolakan');
-        });
+        if (Schema::hasColumn('jadwal_konseling', 'alasan_penolakan')) {
+            Schema::table('jadwal_konseling', function (Blueprint $table) {
+                $table->dropColumn('alasan_penolakan');
+            });
+        }
     }
 };
