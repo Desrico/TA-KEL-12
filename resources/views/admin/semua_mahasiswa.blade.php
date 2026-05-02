@@ -149,7 +149,7 @@
                                     <div class="avatar {{ $lvlClass }}">{{ substr($s->name, 0, 1) }}</div>
                                     <div class="name-wrapper">
                                         <span class="name">{{ $s->name }}</span>
-                                        @if($s->mental_red_flag)
+                                        @if($s->mental_red_flag && $s->mental_level === 3)
                                             <span class="red-flag">🚨 Red Flag Terdeteksi</span>
                                         @endif
                                     </div>

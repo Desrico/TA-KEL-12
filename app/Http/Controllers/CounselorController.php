@@ -317,6 +317,19 @@ class CounselorController extends Controller
     {
         $prodi = $request->query('prodi', 'Semua');
 
+        // Pemetaan Fakultas → daftar Prodi yang termasuk di dalamnya
+        // Mendukung dua format key: "FAK:X" (dari dropdown fakultas) dan "Semua X" (dari opsi pertama dropdown prodi)
+        $fakultasMap = [
+            'FAK:Vokasi'                  => ['Teknologi Rekayasa Perangkat Lunak', 'Teknologi Informasi', 'Teknologi Komputer'],
+            'Semua Vokasi'                => ['Teknologi Rekayasa Perangkat Lunak', 'Teknologi Informasi', 'Teknologi Komputer'],
+            'FAK:Informatika & Elektro'   => ['Informatika', 'Teknik Elektro'],
+            'Semua Informatika & Elektro' => ['Informatika', 'Teknik Elektro'],
+            'FAK:Bioteknologi'            => ['Bioproses', 'Bioteknologi'],
+            'Semua Bioteknologi'          => ['Bioproses', 'Bioteknologi'],
+            'FAK:Teknik Industri'         => ['Managemen Rekayasa', 'Metalurgi'],
+            'Semua Teknik Industri'       => ['Managemen Rekayasa', 'Metalurgi'],
+        ];
+
         // OPTIMASI PERFORMA MongoDB: Hanya memanggil kolom _id dari relasi untuk menghemat RAM
         $students = Student::with(['journalTexts' => function ($q) {
                 $q->select('_id', 'nim');
@@ -324,8 +337,19 @@ class CounselorController extends Controller
             ->whereNotNull('mental_level')
             ->orderBy('mental_level', 'desc')
             ->orderBy('mental_confidence', 'desc')
-            ->when($prodi !== 'Semua', function ($q) use ($prodi) {
-                $q->where('prodi', $prodi);
+            ->when($prodi !== 'Semua', function ($q) use ($prodi, $fakultasMap) {
+                if (array_key_exists($prodi, $fakultasMap)) {
+                    // Filter per-Fakultas: cocokkan semua prodi yang termasuk
+                    $prodiList = $fakultasMap[$prodi];
+                    $q->where(function ($sub) use ($prodiList) {
+                        foreach ($prodiList as $p) {
+                            $sub->orWhere('prodi', 'like', "%{$p}%");
+                        }
+                    });
+                } else {
+                    // Filter per-Prodi: fuzzy match agar toleran terhadap variasi penulisan di DB
+                    $q->where('prodi', 'like', "%{$prodi}%");
+                }
             })
             ->take(5)
             ->get()
