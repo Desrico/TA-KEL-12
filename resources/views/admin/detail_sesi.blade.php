@@ -188,8 +188,14 @@
 
     @elseif($status === 'disetujui')
         <div class="detail-actions">
-            <a href="#" class="btn-terima" style="min-width:220px;text-align:center;">
+            <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
                 Mulai Sesi
+            </a>
+        </div>
+    @elseif($status === 'berlangsung')
+        <div class="detail-actions">
+            <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
+                Lanjutkan Chat
             </a>
         </div>
     @endif

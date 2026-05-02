@@ -189,6 +189,8 @@ class AdminController extends Controller
             'status' => 'disetujui',
         ]);
 
+        $this->createApprovalNotificationIfMissing($jadwal->fresh(['mahasiswa.user']));
+
         return redirect()
             ->route('admin.sesi.detail', $jadwal->id)
             ->with('success', 'Jadwal berhasil diterima.');

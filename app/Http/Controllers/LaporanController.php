@@ -10,8 +10,13 @@ class LaporanController extends Controller
     public function riwayat()
     {
         $mahasiswa = auth()->user()->mahasiswa;
-        $riwayat = JadwalKonseling::where('mahasiswa_id', $mahasiswa->id)->orderBy('tanggal', 'desc')->get();
-        return view('mahasiswa.riwayat', compact('riwayat'));
+        $riwayat = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
+            ->where('mahasiswa_id', optional($mahasiswa)->id)
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('waktu', 'desc')
+            ->get();
+
+        return view('Pages.riwayat', compact('riwayat'));
     }
 
     public function laporanAdmin()
