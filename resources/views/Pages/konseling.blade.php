@@ -499,10 +499,59 @@
     line-height: 1.55;
   }
 
+  .confirmation-wrap {
+    margin-top: 1.3rem;
+  }
+
+  .confirmation-box {
+    display: flex;
+    align-items: flex-start;
+    gap: .9rem;
+    border: 1px solid var(--care-border);
+    border-radius: 18px;
+    background: #F8FCFA;
+    padding: 1rem 1.1rem;
+  }
+
+  .confirmation-box.has-error {
+    border-color: #E6B1B1;
+    background: #FFF8F8;
+  }
+
+  .confirmation-box .form-check-input {
+    float: none;
+    width: 1.12rem;
+    height: 1.12rem;
+    margin: .18rem 0 0;
+    flex-shrink: 0;
+    cursor: pointer;
+    border-color: #A0B6AB;
+  }
+
+  .confirmation-box .form-check-label {
+    margin: 0;
+    color: #42504A;
+    font-size: .92rem;
+    line-height: 1.65;
+    cursor: pointer;
+  }
+
+  .confirmation-feedback {
+    display: none;
+    margin-top: .65rem;
+    color: #C24141;
+    font-size: .82rem;
+    font-weight: 700;
+  }
+
+  .confirmation-feedback.is-visible {
+    display: block;
+  }
+
   .submit-wrap {
     display: flex;
     justify-content: center;
-    margin-top: 2rem;
+    margin-top: 1.35rem;
   }
 
   .schedule-submit {
@@ -531,45 +580,277 @@
   }
 
   .schedule-submit:disabled {
-    opacity: .72;
-    cursor: wait;
+    opacity: .64;
+    cursor: not-allowed;
     transform: none;
   }
 
-  .success-screen {
-    display: none;
-    border: 1px solid #CFE8D7;
-    border-radius: 20px;
-    background: #F3FBF6;
-    padding: 1.25rem;
-    margin-top: 1.5rem;
+  .schedule-submit.is-loading {
+    cursor: wait;
   }
 
-  .success-screen h4 {
-    margin-bottom: .4rem;
+  body.schedule-modal-open {
+    overflow: hidden;
+  }
+
+  .schedule-modal {
+    --care-green: #0A523A;
+    --care-green-dark: #063B2A;
+    --care-green-soft: #E5F7EF;
+    --care-border: #DCE9E3;
+    --care-text: #26312D;
+    --care-muted: #66736E;
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background: rgba(9, 24, 18, .42);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    z-index: 1080;
+  }
+
+  .schedule-modal.is-open {
+    display: flex;
+  }
+
+  .schedule-modal-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 560px);
+    max-height: calc(100vh - 2.5rem);
+    border: 1px solid rgba(220, 233, 227, .98);
+    border-radius: 28px;
+    background: #fff;
+    box-shadow: 0 28px 60px rgba(16, 40, 29, .18);
+    overflow: hidden;
+  }
+
+  .schedule-modal-card--compact {
+    width: min(100%, 460px);
+    text-align: center;
+  }
+
+  .schedule-modal-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 1.7rem;
+  }
+
+  .schedule-modal-card--compact .schedule-modal-scroll {
+    padding: 1.95rem 1.65rem;
+  }
+
+  .schedule-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: #F2F6F3;
+    color: #53625C;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s ease, color .2s ease, transform .2s ease;
+  }
+
+  .schedule-modal-close:hover {
+    background: #E5EEE8;
+    color: #23342D;
+    transform: translateY(-1px);
+  }
+
+  .schedule-modal-badge {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #E2F6EA 0%, #CBEFD7 100%);
     color: var(--care-green);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.1rem;
+  }
+
+  .schedule-modal-badge--soft {
+    width: 64px;
+    height: 64px;
+    margin-left: 0;
+    background: #F0F8F3;
+    font-size: 1.75rem;
+  }
+
+  .schedule-modal-card h4 {
+    margin: 0 0 .45rem;
+    color: var(--care-green);
+    font-weight: 800;
+    font-size: 1.4rem;
+  }
+
+  .schedule-modal-card p {
+    margin: 0;
+    color: var(--care-muted);
+    line-height: 1.7;
+  }
+
+  .schedule-checklist {
+    display: grid;
+    gap: .7rem;
+    margin-top: 1.2rem;
+    text-align: left;
+  }
+
+  .schedule-checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    border-radius: 16px;
+    background: #F6FBF8;
+    padding: .85rem .95rem;
+    color: #31413A;
+    font-size: .92rem;
+    line-height: 1.55;
+  }
+
+  .schedule-checklist-item i {
+    color: var(--care-green);
+    font-size: 1rem;
+    margin-top: .15rem;
+  }
+
+  .schedule-modal-detail {
+    margin-top: 1.2rem;
+    display: grid;
+    gap: .7rem;
+  }
+
+  .schedule-modal-heading {
+    display: grid;
+    gap: .45rem;
+  }
+
+  .schedule-modal-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    width: fit-content;
+    border-radius: 999px;
+    background: #F2FAF5;
+    color: var(--care-green);
+    padding: .42rem .72rem;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .schedule-modal-detail-card {
+    margin-top: 1.25rem;
+    border: 1px solid #DCE9E3;
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(246, 251, 248, .96) 0%, rgba(255, 255, 255, 1) 100%);
+    padding: 1rem 1rem 1.05rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9);
+  }
+
+  .schedule-modal-detail-title {
+    margin: 0;
+    color: #1F2D27;
+    font-size: .9rem;
     font-weight: 800;
   }
 
-  .success-screen p {
-    margin: 0;
+  .schedule-modal-detail-note {
+    margin-top: .25rem;
     color: var(--care-muted);
-  }
-
-  .success-detail {
-    margin-top: 1rem;
-    display: grid;
-    gap: .55rem;
+    font-size: .8rem;
+    line-height: 1.55;
   }
 
   .success-detail-row {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     gap: 1rem;
-    border-top: 1px dashed #CFE8D7;
-    padding-top: .55rem;
+    border-top: 1px dashed #D1E4D8;
+    padding-top: .8rem;
     color: #46514B;
-    font-size: .9rem;
+    font-size: .92rem;
+  }
+
+  .success-detail-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .success-detail-row span {
+    color: var(--care-muted);
+  }
+
+  .success-detail-row strong {
+    color: #203029;
+    text-align: right;
+    font-weight: 800;
+  }
+
+  .schedule-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: .8rem;
+    margin-top: 1.35rem;
+  }
+
+  .schedule-modal-primary,
+  .schedule-modal-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    min-width: 220px;
+    border-radius: 999px;
+    padding: .8rem 1.3rem;
+    font-size: .92rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all .2s ease;
+  }
+
+  .schedule-modal-primary {
+    border: 0;
+    background: var(--care-green);
+    color: #fff;
+    box-shadow: 0 14px 28px rgba(10, 82, 58, .18);
+  }
+
+  .schedule-modal-primary:hover {
+    background: var(--care-green-dark);
+    color: #fff;
+  }
+
+  .schedule-modal-secondary {
+    border: 1px solid #CFE8D7;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F3FBF6 100%);
+    color: var(--care-green);
+    box-shadow: 0 10px 22px rgba(10, 82, 58, .08);
+  }
+
+  .schedule-modal-secondary:hover {
+    background: linear-gradient(180deg, #F9FFFB 0%, #E6F4EB 100%);
+    border-color: #B9D8C5;
+    color: var(--care-green-dark);
+    box-shadow: 0 14px 28px rgba(10, 82, 58, .12);
+    transform: translateY(-1px);
   }
 
   @media (max-width: 991.98px) {
@@ -618,6 +899,39 @@
       align-items: flex-start;
       border-radius: 14px;
       line-height: 1.45;
+    }
+
+    .schedule-modal-card,
+    .schedule-modal-card--compact {
+      border-radius: 24px;
+    }
+
+    .schedule-modal {
+      align-items: flex-start;
+      padding: 1rem;
+    }
+
+    .schedule-modal-scroll,
+    .schedule-modal-card--compact .schedule-modal-scroll {
+      padding: 1.35rem;
+    }
+
+    .schedule-modal-actions {
+      flex-direction: column;
+    }
+
+    .schedule-modal-primary,
+    .schedule-modal-secondary {
+      width: 100%;
+    }
+
+    .success-detail-row {
+      flex-direction: column;
+      gap: .25rem;
+    }
+
+    .success-detail-row strong {
+      text-align: left;
     }
   }
 </style>
@@ -846,29 +1160,88 @@
               <input type="text" class="schedule-input" id="jenis-display" value="Online" disabled>
             </div>
 
-            <div class="form-check">
-              <input type="checkbox" class="form-check-input" id="confirmation-checkbox">
-              <label class="form-check-label" for="confirmation-checkbox">
-                  <span style="font-size: 0.9rem; color: #555;">Saya sudah memeriksa dan memastikan data penjadwalan sudah benar.</span>
-              </label>
+            <div class="col-12 confirmation-wrap">
+              <div class="confirmation-box" id="confirmation-box">
+                <input type="checkbox" class="form-check-input" id="confirmation-checkbox">
+                <label class="form-check-label" for="confirmation-checkbox">
+                  Saya sudah memeriksa dan memastikan data penjadwalan sudah benar.
+                </label>
+              </div>
+              <div class="confirmation-feedback" id="confirmation-feedback">
+                Centang pernyataan konfirmasi sebelum menjadwalkan konseling.
+              </div>
             </div>
-            <div class="submit-wrap">
-              <button type="button" class="schedule-submit" id="submit-booking" onclick="submitJadwal()">
+            <div class="col-12 submit-wrap">
+              <button type="button" class="schedule-submit" id="submit-booking" onclick="submitJadwal()" disabled>
                 Jadwalkan Konseling
               </button>
             </div>
-          
-
-          <div class="success-screen" id="success-booking">
-            <h4>Pengajuan jadwal berhasil</h4>
-            <p>Jadwalmu sudah dibuat dan menunggu persetujuan konselor.</p>
-            <div class="success-detail" id="success-detail"></div>
           </div>
         </main>
       </div>
     </div>
   </div>
 </section>
+
+<div class="schedule-modal" id="success-created-modal" aria-hidden="true">
+  <div class="schedule-modal-card schedule-modal-card--compact" role="dialog" aria-modal="true" aria-labelledby="success-created-title">
+    <div class="schedule-modal-scroll">
+      <div class="schedule-modal-badge">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+      <h4 id="success-created-title">Pengajuan jadwal berhasil</h4>
+      <p>Jadwalmu sudah dibuat dan menunggu persetujuan konselor.</p>
+
+      <div class="schedule-checklist">
+        <div class="schedule-checklist-item">
+          <i class="bi bi-check2"></i>
+          <span>Pengajuan jadwal berhasil tersimpan.</span>
+        </div>
+        <div class="schedule-checklist-item">
+          <i class="bi bi-check2"></i>
+          <span>Pengajuan sedang menunggu persetujuan konselor.</span>
+        </div>
+      </div>
+
+      <div class="schedule-modal-actions">
+        <button type="button" class="schedule-modal-primary" id="success-created-continue">
+          Lanjut ke Informasi Jadwal
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="schedule-modal" id="success-info-modal" aria-hidden="true">
+  <div class="schedule-modal-card" role="dialog" aria-modal="true" aria-labelledby="success-info-title">
+    <button type="button" class="schedule-modal-close" id="success-info-close" aria-label="Tutup informasi jadwal">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <div class="schedule-modal-scroll">
+      <div class="schedule-modal-heading">
+        <div class="schedule-modal-badge schedule-modal-badge--soft">
+          <i class="bi bi-calendar2-check"></i>
+        </div>
+        <div class="schedule-modal-kicker">
+          <i class="bi bi-journal-check"></i>
+          <span>Informasi Konseling</span>
+        </div>
+        <h4 id="success-info-title">Informasi Pengajuan Jadwal</h4>
+        <p>Berikut detail pengajuan jadwalmu yang baru dibuat.</p>
+      </div>
+      <div class="schedule-modal-detail-card">
+        <h5 class="schedule-modal-detail-title">Ringkasan Pengajuan</h5>
+        <div class="schedule-modal-detail-note">Pastikan informasi jadwal berikut sudah sesuai dengan pengajuan yang barusan dikirim.</div>
+        <div class="schedule-modal-detail" id="success-detail"></div>
+      </div>
+      <div class="schedule-modal-actions">
+        <button type="button" class="schedule-modal-secondary" id="success-info-done">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -922,7 +1295,15 @@ const topikLainnyaEl = document.getElementById('topik-lainnya');
 const submitBtn = document.getElementById('submit-booking');
 const tanggalNote = document.getElementById('tanggal-note');
 const waktuNote = document.getElementById('waktu-note');
-const successEl = document.getElementById('success-booking');
+const confirmationCheckboxEl = document.getElementById('confirmation-checkbox');
+const confirmationBoxEl = document.getElementById('confirmation-box');
+const confirmationFeedbackEl = document.getElementById('confirmation-feedback');
+const successCreatedModalEl = document.getElementById('success-created-modal');
+const successCreatedContinueBtn = document.getElementById('success-created-continue');
+const successInfoModalEl = document.getElementById('success-info-modal');
+const successInfoCloseBtn = document.getElementById('success-info-close');
+const successInfoDoneBtn = document.getElementById('success-info-done');
+let isSubmittingSchedule = false;
 
 function todayYmd() {
   const d = new Date();
@@ -947,8 +1328,131 @@ function isWeekday(ymd) {
   return day >= 1 && day <= 5;
 }
 
+function formatDateDisplay(ymd) {
+  if (!ymd) {
+    return '-';
+  }
+
+  return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(parseYmd(ymd));
+}
+
 function setMediaButton(button, icon, label, text) {
+  if (!button) {
+    return;
+  }
+
   button.innerHTML = `<i class="bi ${icon}"></i> ${label}<span>${text}</span>`;
+}
+
+function getResponseMessage(data, fallback) {
+  if (data && data.message) {
+    return data.message;
+  }
+
+  if (data && data.errors) {
+    const firstErrorGroup = Object.values(data.errors)[0];
+    if (Array.isArray(firstErrorGroup) && firstErrorGroup.length) {
+      return firstErrorGroup[0];
+    }
+  }
+
+  return fallback;
+}
+
+function syncModalBodyState() {
+  const hasOpenModal = document.querySelector('.schedule-modal.is-open') !== null;
+  document.body.classList.toggle('schedule-modal-open', hasOpenModal);
+}
+
+function ensureScheduleModalsMounted() {
+  [successCreatedModalEl, successInfoModalEl].forEach(modalEl => {
+    if (modalEl && modalEl.parentElement !== document.body) {
+      document.body.appendChild(modalEl);
+    }
+  });
+}
+
+function openScheduleModal(modalEl) {
+  if (!modalEl) {
+    return;
+  }
+
+  // Keep the modal outside animated page containers so fixed positioning stays viewport-based.
+  ensureScheduleModalsMounted();
+
+  const scrollEl = modalEl.querySelector('.schedule-modal-scroll');
+  modalEl.scrollTop = 0;
+  if (scrollEl) {
+    scrollEl.scrollTop = 0;
+  }
+
+  modalEl.classList.add('is-open');
+  modalEl.setAttribute('aria-hidden', 'false');
+  syncModalBodyState();
+}
+
+function closeScheduleModal(modalEl) {
+  if (!modalEl) {
+    return;
+  }
+
+  modalEl.classList.remove('is-open');
+  modalEl.setAttribute('aria-hidden', 'true');
+  syncModalBodyState();
+}
+
+function closeAllScheduleModals() {
+  closeScheduleModal(successCreatedModalEl);
+  closeScheduleModal(successInfoModalEl);
+}
+
+function clearConfirmationError() {
+  if (confirmationBoxEl) {
+    confirmationBoxEl.classList.remove('has-error');
+  }
+
+  if (confirmationFeedbackEl) {
+    confirmationFeedbackEl.classList.remove('is-visible');
+  }
+}
+
+function showConfirmationError(message) {
+  if (confirmationBoxEl) {
+    confirmationBoxEl.classList.add('has-error');
+  }
+
+  if (confirmationFeedbackEl) {
+    confirmationFeedbackEl.textContent = message;
+    confirmationFeedbackEl.classList.add('is-visible');
+  }
+}
+
+function syncSubmitState() {
+  if (!submitBtn) {
+    return;
+  }
+
+  const isConfirmed = confirmationCheckboxEl ? confirmationCheckboxEl.checked : false;
+  submitBtn.disabled = isSubmittingSchedule || !isConfirmed;
+  submitBtn.classList.toggle('is-loading', isSubmittingSchedule);
+}
+
+function ensureConfirmationChecked() {
+  if (confirmationCheckboxEl && confirmationCheckboxEl.checked) {
+    clearConfirmationError();
+    return true;
+  }
+
+  showConfirmationError('Centang pernyataan konfirmasi sebelum menjadwalkan konseling.');
+  if (confirmationCheckboxEl) {
+    confirmationCheckboxEl.focus();
+  }
+  return false;
 }
 
 function handleTopikChange() {
@@ -1017,7 +1521,10 @@ function setServiceMode(mode, shouldScroll = false) {
   document.getElementById('selected-mode-pill').className = `selected-mode-pill ${mode === 'online' ? 'online' : ''}`;
   document.getElementById('selected-mode-pill').innerHTML = `<i class="bi ${config.icon}"></i> ${config.label}`;
   document.getElementById('jenis-display').value = config.label;
-  document.getElementById('jenis-note').textContent = config.stored;
+  const jenisNoteEl = document.getElementById('jenis-note');
+  if (jenisNoteEl) {
+    jenisNoteEl.textContent = config.stored;
+  }
   document.getElementById('side-media').innerHTML = config.sideMedia;
   document.getElementById('side-location').innerHTML = config.sideLocation;
   document.getElementById('session-note').className = `session-note ${config.noteClass}`;
@@ -1026,10 +1533,8 @@ function setServiceMode(mode, shouldScroll = false) {
   setMediaButton(document.getElementById('media-secondary'), config.mediaSecondaryIcon, config.mediaSecondary, config.mediaSecondaryText);
   submitBtn.textContent = config.submit;
   submitBtn.classList.toggle('online', mode === 'online');
-
-  if (successEl) {
-    successEl.style.display = 'none';
-  }
+  closeAllScheduleModals();
+  syncSubmitState();
 
   if (shouldScroll) {
     document.getElementById('booking').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1117,11 +1622,12 @@ function buildSuccessDetail(data, topikValue) {
   const config = serviceConfig[selectedService];
   const rows = [
     ['Kode Jadwal', data.kode_jadwal || '-'],
-    ['Tanggal', tanggalEl.value],
+    ['Mahasiswa', data.nama_display || document.getElementById('profile-nama').value || '-'],
+    ['Tanggal', formatDateDisplay(tanggalEl.value)],
     ['Waktu', `${waktuEl.value} WIB`],
-    ['Topik', topikValue],
-    ['Layanan', config.label],
-    ['Status', 'Menunggu Konfirmasi'],
+    ['Topik Konseling', topikValue],
+    ['Jenis Layanan', config.label],
+    ['Status', 'Menunggu Persetujuan Konselor'],
   ];
 
   document.getElementById('success-detail').innerHTML = rows.map(([label, value]) => `
@@ -1137,6 +1643,10 @@ async function submitJadwal() {
     if (confirm('Anda harus login terlebih dahulu untuk membuat jadwal. Login sekarang?')) {
       window.location.href = '/login';
     }
+    return;
+  }
+
+  if (!ensureConfirmationChecked()) {
     return;
   }
 
@@ -1160,10 +1670,12 @@ async function submitJadwal() {
     waktu: waktuEl.value,
     jenis: selectedService,
     topik: topikValue,
+    konfirmasi: confirmationCheckboxEl ? confirmationCheckboxEl.checked : false,
   };
 
   const originalText = submitBtn.textContent;
-  submitBtn.disabled = true;
+  isSubmittingSchedule = true;
+  syncSubmitState();
   submitBtn.textContent = 'Memproses...';
 
   try {
@@ -1179,8 +1691,13 @@ async function submitJadwal() {
 
     const checkData = await checkRes.json();
 
+    if (!checkRes.ok) {
+      alert(getResponseMessage(checkData, 'Data penjadwalan belum lengkap.'));
+      return;
+    }
+
     if (!checkData.success || !checkData.is_available) {
-      alert(checkData.message || 'Jadwal ini sudah tidak tersedia. Silakan pilih waktu lain.');
+      alert(getResponseMessage(checkData, 'Jadwal ini sudah tidak tersedia. Silakan pilih waktu lain.'));
       await fetchBookedSlots();
       renderTimeOptions();
       return;
@@ -1198,22 +1715,33 @@ async function submitJadwal() {
 
     const data = await res.json();
 
+    if (!res.ok) {
+      alert(getResponseMessage(data, 'Jadwal gagal dibuat.'));
+      if (data.redirect) window.location.href = data.redirect;
+      return;
+    }
+
     if (data.success) {
       buildSuccessDetail(data, topikValue);
-      successEl.style.display = 'block';
-      successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      closeAllScheduleModals();
+      openScheduleModal(successCreatedModalEl);
+      if (confirmationCheckboxEl) {
+        confirmationCheckboxEl.checked = false;
+      }
+      clearConfirmationError();
       await fetchBookedSlots();
       renderTimeOptions();
     } else {
-      alert(data.message || 'Jadwal gagal dibuat.');
+      alert(getResponseMessage(data, 'Jadwal gagal dibuat.'));
       if (data.redirect) window.location.href = data.redirect;
     }
   } catch (error) {
     alert('Terjadi kesalahan. Coba lagi.');
     console.error(error);
   } finally {
-    submitBtn.disabled = false;
+    isSubmittingSchedule = false;
     submitBtn.textContent = originalText;
+    syncSubmitState();
   }
 }
 
@@ -1230,6 +1758,15 @@ if (topikEl) {
   topikEl.addEventListener('change', handleTopikChange);
 }
 
+if (confirmationCheckboxEl) {
+  confirmationCheckboxEl.addEventListener('change', () => {
+    if (confirmationCheckboxEl.checked) {
+      clearConfirmationError();
+    }
+    syncSubmitState();
+  });
+}
+
 if (tanggalEl) {
   tanggalEl.min = todayYmd();
   tanggalEl.addEventListener('change', () => {
@@ -1238,7 +1775,38 @@ if (tanggalEl) {
   });
 }
 
+if (successCreatedContinueBtn) {
+  successCreatedContinueBtn.addEventListener('click', () => {
+    closeScheduleModal(successCreatedModalEl);
+    openScheduleModal(successInfoModalEl);
+  });
+}
+
+if (successInfoCloseBtn) {
+  successInfoCloseBtn.addEventListener('click', () => closeScheduleModal(successInfoModalEl));
+}
+
+if (successInfoDoneBtn) {
+  successInfoDoneBtn.addEventListener('click', () => closeScheduleModal(successInfoModalEl));
+}
+
+if (successInfoModalEl) {
+  successInfoModalEl.addEventListener('click', event => {
+    if (event.target === successInfoModalEl) {
+      closeScheduleModal(successInfoModalEl);
+    }
+  });
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && successInfoModalEl && successInfoModalEl.classList.contains('is-open')) {
+    closeScheduleModal(successInfoModalEl);
+  }
+});
+
+ensureScheduleModalsMounted();
 handleTopikChange();
+syncSubmitState();
 fetchBookedSlots().then(renderTimeOptions);
 </script>
 @endpush

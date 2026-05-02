@@ -112,11 +112,13 @@ class ProfilController extends Controller
     {
         $mahasiswa = Auth::user()->mahasiswa;
 
-        $riwayat = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)
+        $riwayat = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
+            ->where('mahasiswa_id', optional($mahasiswa)->id)
             ->orderBy('tanggal', 'desc')
+            ->orderBy('waktu', 'desc')
             ->get();
 
-        return view('pages.riwayat', compact('riwayat'));
+        return view('Pages.riwayat', compact('riwayat'));
     }
 
     public function markNotificationsAsRead()
