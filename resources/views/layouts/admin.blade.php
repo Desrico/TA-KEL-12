@@ -23,7 +23,7 @@
         --admin-primary-500: #10B981;
         --admin-soft: #D1FAE5;
         --admin-soft-2: #EFFCF5;
-        --admin-bg: #F7FCF9;
+        --admin-bg: #FFFAF4;
         --admin-border: #DDEFE7;
         --admin-text: #0F172A;
         --admin-text-mid: #475569;
@@ -40,9 +40,10 @@
     }
 
     /* SIDEBAR */
-    .pc-sidebar .navbar-wrapper {
-          background: var(--admin-white);
-          border-right: 1px solid var(--admin-border);
+        .pc-sidebar .navbar-wrapper {
+          background: var(--admin-soft);
+          /* remove outer border to avoid double line */
+          border-right: none !important;
           display: flex;
           flex-direction: column;
           min-height: 100vh;
@@ -50,12 +51,12 @@
           position: relative;
       }
 
-      .pc-sidebar .m-header {
+        .pc-sidebar .m-header {
           padding: 20px 22px 18px;
-          border-bottom: 1px solid var(--admin-border);
+          border-bottom: 2px solid var(--admin-border);
           flex-shrink: 0;
-          background: var(--admin-soft-2);
-      }
+          background: var(--admin-soft);
+        }
     .pc-sidebar .navbar-content {
       padding: 16px 12px 120px;
       flex: 1;
@@ -85,6 +86,19 @@
       gap: 10px;
       text-decoration: none;
   }
+
+    .pc-navbar .pc-item .pc-link:focus,
+    .pc-navbar .pc-item .pc-link:focus-visible,
+    .pc-navbar .pc-item.active > .pc-link {
+      outline: none !important;
+      box-shadow: none !important;
+      border-right: none !important;
+    }
+
+    .pc-navbar .pc-item .pc-link::after,
+    .pc-navbar .pc-item.active > .pc-link::after {
+      display: none !important;
+    }
 
     .pc-navbar .pc-item .pc-link:hover {
       background: var(--admin-soft-2);
@@ -120,14 +134,14 @@
     }
 
     /* SIDEBAR PROFILE BOTTOM */
-   .admin-sidebar-profile {
+  .admin-sidebar-profile {
       position: absolute;
       left: 0;
       right: 0;
       bottom: 0;
       padding: 16px 12px 18px;
-      border-top: 1px solid var(--admin-border);
-      background: var(--admin-white);
+      border-top: 2px solid var(--admin-border);
+    background: transparent;
       z-index: 5;
     }
 
@@ -202,7 +216,7 @@
       min-width: unset;
       margin: 8px 2px 0;
       border-radius: 14px;
-      border: 1px solid var(--admin-border);
+      border: 2px solid var(--admin-border);
       box-shadow: var(--admin-shadow-md);
       overflow: hidden;
       padding: 6px 0;
@@ -228,13 +242,13 @@
     /* HEADER */
     .pc-header {
       background: rgba(255,255,255,.96);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--admin-border);
+      border-bottom: 2px solid var(--admin-border);
       box-shadow: 0 1px 8px rgba(0,0,0,.03);
     }
 
     .pc-head-link {
       color: var(--admin-text-mid);
+        
     }
 
     .pc-header .header-wrapper {
@@ -253,7 +267,7 @@
       width: 42px;
       height: 42px;
       border-radius: 12px;
-      border: 1px solid var(--admin-border);
+      border: 2px solid var(--admin-border);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -293,7 +307,7 @@
     .admin-notif-menu {
       min-width: 300px;
       border-radius: 16px;
-      border: 1px solid var(--admin-border);
+      border: 2px solid var(--admin-border);
       box-shadow: var(--admin-shadow-md);
       overflow: hidden;
       padding: 0;
@@ -397,7 +411,7 @@
 
     .kons-card-header {
       padding: 1.1rem 1.4rem;
-      border-bottom: 1px solid var(--admin-border);
+      border-bottom: 2px solid var(--admin-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -444,13 +458,19 @@
     }
 
     .pc-footer {
-      border-top: 1px solid var(--admin-border);
+      border-top: 2px solid var(--admin-border);
       background: transparent;
     }
 
     .pc-footer p {
       font-size: .78rem;
       color: var(--admin-text-light);
+    }
+
+    /* Ensure main content area uses admin background color */
+    .pc-container,
+    .pc-content {
+      background: var(--admin-bg) !important;
     }
 
     @media (max-width: 768px) {
@@ -512,7 +532,6 @@
                     style="width:36px;height:36px;object-fit:contain;border-radius:8px;">
                 <div>
                     <div style="font-weight:800;font-size:1rem;color:var(--admin-primary);line-height:1.1;">Campus Care</div>
-                    <div style="font-size:.7rem;color:var(--admin-text-light);margin-top:2px;">Admin Panel</div>
                 </div>
             </a>
         </div>
@@ -668,7 +687,7 @@
   </div>
 </header>
 
-<div class="pc-container">
+    <div class="pc-container">
   <div class="pc-content">
     <div class="page-header">
       <div class="page-block">

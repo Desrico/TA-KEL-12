@@ -21,7 +21,10 @@ class LaporanController extends Controller
 
     public function laporanAdmin()
     {
-        $riwayat = JadwalKonseling::orderBy('tanggal', 'desc')->get();
+        $riwayat = JadwalKonseling::orderByRaw("CASE WHEN laporan IS NOT NULL OR LOWER(status) = 'selesai' THEN 0 ELSE 1 END")
+            ->orderByDesc('updated_at')
+            ->orderByDesc('tanggal')
+            ->get();
         return view('admin.laporan', compact('riwayat'));
     }
 
@@ -34,15 +37,26 @@ class LaporanController extends Controller
     public function storeLaporan(Request $request, $id)
     {
         $request->validate([
-            'catatan' => 'required|string',
+            'ringkasan_masalah' => 'nullable|string',
+            'observasi_konselor' => 'nullable|string',
+            'progress' => 'nullable|string',
+            'perlu_lanjut' => 'nullable',
+            'tanggal_lanjut' => 'nullable|date',
         ]);
 
         $jadwal = JadwalKonseling::findOrFail($id);
         $jadwal->update([
-            'catatan' => $request->catatan,
+            'ringkasan_masalah' => $request->ringkasan_masalah,
+            'observasi_konselor' => $request->observasi_konselor,
+            'progress' => $request->progress,
+            'tindak_lanjut_tipe' => $request->perlu_lanjut ? 'perlu_lanjut' : null,
+            'tanggal_lanjut' => $request->perlu_lanjut ? $request->tanggal_lanjut : null,
+            'laporan' => $request->ringkasan_masalah || $request->observasi_konselor ? 'ada' : null,
             'status' => 'Selesai',
         ]);
 
-        return redirect()->route('admin.laporan')->with('success', 'Laporan berhasil disimpan!');
+        return redirect()
+            ->route('admin.laporan', ['scroll_to' => $jadwal->id])
+            ->with('success', 'Laporan berhasil disimpan!');
     }
 }

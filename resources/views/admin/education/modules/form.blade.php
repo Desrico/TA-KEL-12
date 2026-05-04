@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
     <style>
         .pc-container {
-            background: #f8fafc;
+            background: var(--admin-bg) !important;
         }
 
         .container { max-width: 850px; margin: 0 auto; width: 100%; padding: 48px 32px; }

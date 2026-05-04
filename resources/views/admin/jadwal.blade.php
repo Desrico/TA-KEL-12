@@ -13,7 +13,7 @@
   .jadwal-calendar-card,
   .jadwal-detail-card {
     background: #ffffff;
-    border: 1px solid var(--admin-border);
+    border: 2px solid var(--admin-border);
     border-radius: 18px;
     box-shadow: var(--admin-shadow-sm);
   }
@@ -63,7 +63,7 @@
 
   .fc .fc-button {
     background: #fff !important;
-    border: 1px solid var(--admin-border) !important;
+    border: 2px solid var(--admin-border) !important;
     color: var(--admin-text-mid) !important;
     box-shadow: none !important;
     border-radius: 10px !important;

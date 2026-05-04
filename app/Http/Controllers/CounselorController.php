@@ -179,17 +179,208 @@ class CounselorController extends Controller
             }
         }
 
+        // Get JadwalKonseling statistics
+        $konselor_id = auth()->guard('konselor')->id();
+        $jadwalQuery = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id);
+        
+        // Apply date range filter
+        if ($range === '14d') {
+            $jadwalQuery->where('created_at', '>=', now()->subDays(14));
+        } elseif ($range === '1m') {
+            $jadwalQuery->where('created_at', '>=', now()->subMonths(1));
+        } elseif ($range === '4m') {
+            $jadwalQuery->where('created_at', '>=', now()->subMonths(4));
+        } elseif ($range === '1y') {
+            $jadwalQuery->where('created_at', '>=', now()->subYears(1));
+        }
+        
+        $totalPenjadwalan = $jadwalQuery->count();
+        $selesaiCount = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id)
+            ->whereNotNull('laporan')
+            ->orWhere('status', 'selesai')
+            ->count();
+        $diterimaPenjadwalan = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('status', 'diterima')
+            ->count();
+        $ditolakPenjadwalan = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('status', 'ditolak')
+            ->count();
+
+        // Get problem distribution from JadwalKonseling (ringkasan_masalah field)
+        $problemDist = [];
+        $problemCategories = [
+            'Akademik' => ['nilai', 'ujian', 'mata kuliah', 'beasiswa', 'akademik', 'tugas'],
+            'Finansial' => ['uang', 'biaya', 'tuition', 'finansial', 'utang', 'duit'],
+            'Relasi' => ['hubungan', 'pacar', 'teman', 'keluarga', 'orang tua', 'relasi'],
+            'Keluarga' => ['keluarga', 'orang tua', 'saudara', 'ayah', 'ibu', 'keluarga'],
+            'Pribadi' => ['diri sendiri', 'kepribadian', 'identitas', 'harga diri', 'percaya diri'],
+            'Karir' => ['karir', 'pekerjaan', 'magang', 'lowongan', 'profesi'],
+            'Kesehatan' => ['kesehatan', 'sakit', 'medis', 'fisik', 'kesehatan']
+        ];
+        
+        $allJadwal = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id)
+            ->whereNotNull('ringkasan_masalah')
+            ->get();
+        
+        foreach ($problemCategories as $category => $keywords) {
+            $count = 0;
+            foreach ($allJadwal as $jadwal) {
+                $summary = strtolower($jadwal->ringkasan_masalah ?? '');
+                foreach ($keywords as $keyword) {
+                    if (strpos($summary, strtolower($keyword)) !== false) {
+                        $count++;
+                        break;
+                    }
+                }
+            }
+            if ($count > 0) {
+                $problemDist[$category] = $count;
+            }
+        }
+
+        // Calculate trend data (konsultasi per period)
+        $trendData = [];
+        $jadwalGrouped = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id);
+        
+        if ($range === '1y' || $range === '4m') {
+            $jadwalGrouped = $jadwalGrouped->where('created_at', '>=', now()->subtract($range === '4m' ? 4 : 12, 'months'))->get()
+                ->groupBy(function ($d) {
+                    return $d->created_at->format('Y-m');
+                });
+        } else {
+            $daysBack = $range === '14d' ? 14 : 30;
+            $jadwalGrouped = $jadwalGrouped->where('created_at', '>=', now()->subDays($daysBack))->get()
+                ->groupBy(function ($d) {
+                    return $d->created_at->format('Y-m-d');
+                });
+        }
+        
+        foreach ($jadwalGrouped as $period => $jadwals) {
+            $trendData[] = $jadwals->count();
+        }
+
         return response()->json([
             'labels'           => $labels,
             'data'             => $data,
+            'trend_data'       => $trendData,
             'distribution'     => $distribution,
             'feelingsTrend'    => $feelingsTrend,
-            'mood_distribution' => $moodDist
+            'mood_distribution' => $moodDist,
+            'problem_distribution' => $problemDist,
+            'total_penjadwalan' => $totalPenjadwalan,
+            'selesai_count'    => $selesaiCount,
+            'diterima_count'   => $diterimaPenjadwalan,
+            'ditolak_count'    => $ditolakPenjadwalan
         ]);
     }
 
 
 
+
+    public function getJadwalData(Request $request)
+    {
+        $konselor = auth()->user()->konselor;
+        $konselor_id = optional($konselor)->id;
+        $range = $request->query('range', '14d');
+
+        // Get stat counters
+        $totalPenjadwalan = JadwalKonseling::where('konselor_id', $konselor_id)->count();
+        $selesaiCount = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where(function($q) {
+                $q->where('status', 'berlangsung')
+                  ->orWhere('status', 'selesai');
+            })
+            ->count();
+        $diterimaPenjadwalan = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('status', 'disetujui')
+            ->count();
+        $ditolakPenjadwalan = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('status', 'ditolak')
+            ->count();
+
+        // Get trend data (jumlah konseling per period)
+        $daysBack = 14;
+        if ($range === '1m') {
+            $daysBack = 30;
+        } elseif ($range === '4m') {
+            $daysBack = 120;
+        } elseif ($range === '1y') {
+            $daysBack = 365;
+        }
+
+        $jadwalRaw = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('created_at', '>=', now()->subDays($daysBack))
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $labels = [];
+        $data = [];
+        
+        if ($range === '1y' || $range === '4m') {
+            $grouped = $jadwalRaw->groupBy(function ($d) {
+                return $d->created_at->format('Y-m');
+            });
+            foreach ($grouped as $month => $items) {
+                $labels[] = \Carbon\Carbon::createFromFormat('Y-m', $month)->isoFormat('MMM YYYY');
+                $data[] = $items->count();
+            }
+        } else {
+            $grouped = $jadwalRaw->groupBy(function ($d) {
+                return $d->created_at->format('Y-m-d');
+            });
+            foreach ($grouped as $day => $items) {
+                $labels[] = \Carbon\Carbon::parse($day)->isoFormat('D MMM');
+                $data[] = $items->count();
+            }
+        }
+
+        // Get problem distribution
+        $problemDist = [];
+        $problemCategories = [
+            'Akademik' => ['nilai', 'ujian', 'mata kuliah', 'beasiswa', 'akademik', 'tugas'],
+            'Finansial' => ['uang', 'biaya', 'tuition', 'finansial', 'utang', 'duit'],
+            'Relasi' => ['hubungan', 'pacar', 'teman', 'keluarga', 'orang tua', 'relasi'],
+            'Keluarga' => ['keluarga', 'orang tua', 'saudara', 'ayah', 'ibu'],
+            'Pribadi' => ['diri sendiri', 'kepribadian', 'identitas', 'harga diri', 'percaya diri'],
+            'Karir' => ['karir', 'pekerjaan', 'magang', 'lowongan', 'profesi'],
+            'Kesehatan' => ['kesehatan', 'sakit', 'medis', 'fisik']
+        ];
+        
+        $allJadwal = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->whereNotNull('ringkasan_masalah')
+            ->get();
+        
+        foreach ($problemCategories as $category => $keywords) {
+            $count = 0;
+            foreach ($allJadwal as $jadwal) {
+                $summary = strtolower($jadwal->ringkasan_masalah ?? '');
+                foreach ($keywords as $keyword) {
+                    if (strpos($summary, strtolower($keyword)) !== false) {
+                        $count++;
+                        break;
+                    }
+                }
+            }
+            if ($count > 0) {
+                $problemDist[$category] = $count;
+            }
+        }
+
+        return response()->json([
+            'total_count' => $totalPenjadwalan,
+            'status_counts' => [
+                'selesai' => $selesaiCount,
+                'diterima' => $diterimaPenjadwalan,
+                'ditolak' => $ditolakPenjadwalan,
+                'menunggu' => $totalPenjadwalan - $selesaiCount - $diterimaPenjadwalan - $ditolakPenjadwalan
+            ],
+            'trend_data' => [
+                'labels' => $labels,
+                'data' => $data
+            ],
+            'problem_distribution' => $problemDist
+        ]);
+    }
 
     public function getFeelingDistribution(Request $request)
     {

@@ -5,7 +5,7 @@
 @push('styles')
     <style>
         .pc-container {
-            background: #f8fafc;
+            background: var(--admin-bg) !important;
         }
         .container-fluid { padding: 32px; }
 

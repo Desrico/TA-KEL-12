@@ -19,6 +19,14 @@ class JadwalKonseling extends Model
         'jenis',
         'anonim',
         'catatan',
+        'ringkasan_masalah',
+        'observasi_konselor',
+        'progress',
+        'tindak_lanjut',
+        'tindak_lanjut_tipe',
+        'tanggal_lanjut',
+        'laporan',
+        'topik',
     ];
 
     public function mahasiswa(): BelongsTo
