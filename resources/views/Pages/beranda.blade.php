@@ -755,7 +755,7 @@
               <span class="mood-dot"><i class="bi bi-emoji-frown"></i></span>
               <span class="mood-dot"><i class="bi bi-emoji-expressionless"></i></span>
             </div>
-            <h3>Daily Mood Tracker</h3>
+            <h3>Daily Mood Checkin</h3>
             <p>Pahami pola emosi harian untuk kesehatan mental yang lebih stabil dan terukur.</p>
             <a href="#ruang-aman" class="btn-dark-soft">Mulai Tracking <i class="bi bi-arrow-right"></i></a>
           </div>

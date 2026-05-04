@@ -4,50 +4,121 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use App\Models\Student;
 use App\Models\JournalText;
 use App\Models\DailyCheckin;
 use App\Models\Mood;
 use App\Models\Feeling;
+use App\Models\JadwalKonseling;
+use App\Models\Konselor;
 
 class CounselorController extends Controller
 {
     public function index()
     {
         // OPTIMASI PERFORMA MongoDB:
-        // MongoDB tidak mendukung withCount() secara langsung.
-        // Sebagai gantinya, kita memuat relasi tetapi HANYA mengambil kolom ID.
-        // Ini mencegah ribuan teks ditarik ke RAM, sehingga query menjadi sangat ringan.
-        $students = Student::with(['journalTexts' => function ($q) {
-                $q->select('_id', 'nim');
-            }])
-            ->orderBy('mental_level', 'desc')
-            ->orderBy('name')
-            ->get()
-            ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts ? $student->journalTexts->count() : 0;
-                unset($student->journalTexts); // Bebaskan memori
-                return $student;
-            });
+        if (!Schema::hasTable('students')) {
+            \Log::warning('CounselorController@index: table "students" not found. Returning empty collection.');
+            $students = collect();
+            $lastScan = null;
+        } else {
+            $students = Student::with('journalTexts')
+                ->orderBy('mental_level', 'desc')
+                ->orderBy('name')
+                ->get()
+                ->map(function ($student) {
+                    $student->journal_texts_count = $student->journalTexts->count();
+                    return $student;
+                });
 
-        $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
+            $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
+        }
 
-        return view('admin.dashboard', [
-            'students' => $students,
-            'lastScan' => $lastScan,
-        ]);
+        // Get current konselor
+        $user = Auth::user();
+        $konselor = Konselor::where('user_id', $user->id)->first();
+
+        // Get jadwal statistics
+        $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
+
+        $totalPenjadwalan   = (clone $baseQuery)->count();
+        $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
+        $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
+        $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
+        $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
+        $approvalRate   = $totalPenjadwalan > 0 ? round(($disetujui / $totalPenjadwalan) * 100) : 0;
+
+        // Monthly statistics
+        $monthlyLabels = [];
+        $monthlyCounts = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = Carbon::now()->subMonths($i);
+            $monthlyLabels[] = $month->translatedFormat('M');
+            $monthlyCounts[] = (clone $baseQuery)
+                ->whereYear('tanggal', $month->year)
+                ->whereMonth('tanggal', $month->month)
+                ->count();
+        }
+
+        // Topic statistics
+        $topikStats = collect();
+        if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
+            $topikStats = (clone $baseQuery)
+                ->whereNotNull('catatan')
+                ->pluck('catatan')
+                ->map(function ($catatan) {
+                    if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
+                        return trim($match[1]);
+                    }
+                    return trim((string) $catatan);
+                })
+                ->filter()
+                ->countBy()
+                ->sortDesc()
+                ->take(5);
+        }
+
+        $topikLabels = $topikStats->keys()->values();
+        $topikCounts = $topikStats->values()->values();
+        $totalTopik = $topikCounts->sum();
+
+        return view('admin.dashboard', compact(
+            'students',
+            'lastScan',
+            'konselor',
+            'totalPenjadwalan',
+            'menunggu',
+            'disetujui',
+            'ditolak',
+            'mahasiswaAktif',
+            'approvalRate',
+            'monthlyLabels',
+            'monthlyCounts',
+            'topikStats',
+            'topikLabels',
+            'topikCounts',
+            'totalTopik',
+        ));
     }
 
     public function prioritas()
     {
-        $students = Student::with('journalTexts')
-            ->where('mental_level', 3)
-            ->orderBy('name')
-            ->get()
-            ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts->count();
-                return $student;
-            });
+        if (!Schema::hasTable('students')) {
+            \Log::warning('CounselorController@prioritas: table "students" not found. Returning empty collection.');
+            $students = collect();
+        } else {
+            $students = Student::with('journalTexts')
+                ->where('mental_level', 3)
+                ->orderBy('name')
+                ->get()
+                ->map(function ($student) {
+                    $student->journal_texts_count = $student->journalTexts->count();
+                    return $student;
+                });
+        }
 
         return view('admin.prioritas', compact('students'));
     }
@@ -56,19 +127,24 @@ class CounselorController extends Controller
     {
         $search = $request->query('search');
 
-        $students = Student::with('journalTexts')
-            ->whereNotNull('mental_level')
-            ->when($search, function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nim', 'like', "%{$search}%");
-            })
-            ->orderBy('mental_level', 'desc')
-            ->orderBy('mental_confidence', 'desc')
-            ->get()
-            ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts->count();
-                return $student;
-            });
+        if (!Schema::hasTable('students')) {
+            \Log::warning('CounselorController@semuaMahasiswa: table "students" not found. Returning empty collection.');
+            $students = collect();
+        } else {
+            $students = Student::with('journalTexts')
+                ->whereNotNull('mental_level')
+                ->when($search, function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('nim', 'like', "%{$search}%");
+                })
+                ->orderBy('mental_level', 'desc')
+                ->orderBy('mental_confidence', 'desc')
+                ->get()
+                ->map(function ($student) {
+                    $student->journal_texts_count = $student->journalTexts->count();
+                    return $student;
+                });
+        }
 
         return view('admin.semua_mahasiswa', compact('students', 'search'));
     }

@@ -15,6 +15,7 @@ class ProfilController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $user->load('profil');
         $mahasiswa = $user->mahasiswa;
         $totalKonseling = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)->count();
         $sesiBerlangsung = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)
@@ -32,6 +33,12 @@ class ProfilController extends Controller
             ['user_id' => $user->id],
             ['bio' => null, 'anonim' => false]
         );
+
+        \Log::info('Profil Update Request', [
+            'has_file' => $request->hasFile('foto'),
+            'file_info' => $request->hasFile('foto') ? $request->file('foto')->getClientOriginalName() : 'no file',
+            'all_files' => $request->allFiles(),
+        ]);
 
         $request->validate([
             'nama'     => 'required|string|max:100',
@@ -61,6 +68,8 @@ class ProfilController extends Controller
 
         // Update foto profil jika ada file baru
         if ($request->hasFile('foto')) {
+            \Log::info('File foto diterima, menyimpan...');
+            
             // hapus foto lama jika ada
             if ($profil->foto && Storage::disk('public')->exists($profil->foto)) {
                 Storage::disk('public')->delete($profil->foto);
@@ -68,6 +77,7 @@ class ProfilController extends Controller
 
             // simpan foto baru
             $path = $request->file('foto')->store('profil', 'public');
+            \Log::info('Foto tersimpan di: ' . $path);
             $profil->foto = $path;
         }
 
@@ -118,7 +128,11 @@ class ProfilController extends Controller
             ->orderBy('waktu', 'desc')
             ->get();
 
+
         return view('Pages.riwayat', compact('riwayat'));
+        $selectedJadwal = request()->query('jadwal');
+
+        return view('pages.riwayat', compact('riwayat', 'selectedJadwal'));
     }
 
     public function markNotificationsAsRead()

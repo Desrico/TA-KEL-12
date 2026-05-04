@@ -10,6 +10,28 @@
         border-radius: 22px;
         box-shadow: 0 6px 20px rgba(0,0,0,.04);
         overflow: hidden;
+        max-width: 1100px;
+        margin: 0 auto;
+        width: calc(100% - 48px);
+    }
+
+    .sesi-head {
+        padding: 1.5rem 1.7rem 1rem;
+        border-bottom: 1px solid #edf2ef;
+    }
+
+    .sesi-head h6 {
+        margin: 0 0 .3rem 0;
+        font-weight: 700;
+        color: var(--admin-primary);
+        font-size: 1.25rem;
+        letter-spacing: -0.3px;
+    }
+
+    .sesi-head p {
+        margin: 0;
+        color: var(--admin-text-light);
+        font-size: .85rem;
     }
 
     .sesi-toolbar {
@@ -17,8 +39,9 @@
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
-        padding: 1.25rem 1.5rem 0;
+        padding: 1.2rem 1.5rem 1.2rem;
         flex-wrap: wrap;
+        border-bottom: 1px solid #edf2ef;
     }
 
     .sesi-search-wrap {
@@ -61,7 +84,7 @@
     }
 
     .sesi-table-wrap {
-        padding: 1.2rem 1.5rem 1.5rem;
+        padding: 0 1.5rem 1.5rem;
     }
 
     .sesi-table {
@@ -269,6 +292,11 @@
 
 @section('konten')
 <div class="sesi-card">
+    <div class="sesi-head">
+        <h6>Daftar Sesi Konseling</h6>
+        <p>Kelola dan lihat detail semua sesi konseling yang telah dijadwalkan</p>
+    </div>
+
     <div class="sesi-toolbar">
         <div></div>
 
@@ -277,10 +305,6 @@
                 <i class="ti ti-search"></i>
                 <input type="text" placeholder="Cari mahasiswa...">
             </div>
-
-            <button type="button" class="sesi-filter-btn">
-                <i class="ti ti-filter me-1"></i> Filter
-            </button>
         </div>
     </div>
 

@@ -14,6 +14,8 @@ use App\Http\Controllers\KampusApiController;
 use App\Http\Controllers\CounselorController;
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\AboutPageController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\SesiKonselingController;
 
 
 // ═══════════════════════════════
@@ -51,6 +53,14 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
 
     Route::get('/riwayat', [RiwayatController::class, 'riwayatMahasiswa'])->name('riwayat');
+    Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
+    Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('riwayat.detail');
+    Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
+    
+    Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
+    Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->name('chat.student');
+    Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->name('chat.student.store');
+
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
     Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
     Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
@@ -85,11 +95,16 @@ Route::prefix('admin')
         Route::get('/chat/pesan', [ChatAdminController::class, 'messages'])->name('chat.messages');
         Route::post('/chat/pesan', [ChatAdminController::class, 'store'])->name('chat.store');
 
-        Route::get('/sesi', [AdminController::class, 'sesi'])->name('sesi');
-        Route::get('/sesi/{id}', [AdminController::class, 'detailSesi'])->name('sesi.detail');
-        Route::post('/sesi/{id}/terima', [AdminController::class, 'terimaSesi'])->name('sesi.terima');
-        Route::get('/sesi/{id}/tolak', [AdminController::class, 'tolakSesi'])->name('sesi.tolak');
-        Route::post('/sesi/{id}/tolak', [AdminController::class, 'kirimTolakSesi'])->name('sesi.tolak.kirim');
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+        Route::get('/chat/{sessionId}', [ChatController::class, 'session'])->name('chat.session');
+        Route::post('/chat/{sessionId}', [ChatController::class, 'store'])->name('chat.store');
+
+        Route::get('/sesi', [SesiKonselingController::class, 'index'])->name('sesi');
+        Route::get('/sesi/{id}', [SesiKonselingController::class, 'detail'])->name('sesi.detail');
+        Route::post('/sesi/{id}/terima', [SesiKonselingController::class, 'terima'])->name('sesi.terima');
+        Route::get('/sesi/{id}/tolak', [SesiKonselingController::class, 'tolak'])->name('sesi.tolak');
+        Route::post('/sesi/{id}/tolak', [SesiKonselingController::class, 'kirimTolak'])->name('sesi.tolak.kirim');
+        Route::post('/sesi/{id}/selesai', [SesiKonselingController::class, 'selesai'])->name('sesi.selesai');
 
         Route::get('/laporan', [LaporanController::class, 'laporanAdmin'])->name('laporan');
         Route::get('/laporan/{id}/laporan', [LaporanController::class, 'createLaporan'])->name('laporan.laporan');

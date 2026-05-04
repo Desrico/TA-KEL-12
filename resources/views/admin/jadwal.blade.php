@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Penjadwalan')
+@section('page-title', 'Penjadwalan Konseling')
 
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
@@ -16,10 +16,14 @@
     border: 2px solid var(--admin-border);
     border-radius: 18px;
     box-shadow: var(--admin-shadow-sm);
+    max-width: 1100px;
+    margin: 0 auto;
+    width: calc(100% - 48px);
   }
 
   .jadwal-calendar-card {
-    padding: 1.2rem;
+    padding: 0;
+    overflow: hidden;
   }
 
   .jadwal-detail-card {
@@ -30,25 +34,31 @@
   }
 
   .jadwal-head {
+    padding: 1.5rem 1.7rem 1rem;
+    border-bottom: 1px solid #edf2ef;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1rem;
     flex-wrap: wrap;
   }
 
   .jadwal-head h6 {
-    margin: 0;
-    font-size: 1.05rem;
+    margin: 0 0 .3rem 0;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: var(--admin-text);
+    color: var(--admin-primary);
+    letter-spacing: -0.3px;
   }
 
   .jadwal-head p {
-    margin: .25rem 0 0;
-    font-size: .84rem;
+    margin: 0;
+    font-size: .85rem;
     color: var(--admin-text-light);
+  }
+
+  .jadwal-calendar-content {
+    padding: 1.2rem;
   }
 
   #calendar {
@@ -110,8 +120,8 @@
     display: flex;
     gap: 1rem 1.5rem;
     flex-wrap: wrap;
-    margin-top: 1.2rem;
-    padding-top: 1rem;
+    margin-top: 0;
+    padding: 1rem 1.2rem 0;
     border-top: 1px solid #E9F1EC;
   }
 
@@ -203,28 +213,30 @@
       </div>
     </div>
 
-    <div id="calendar"></div>
+    <div class="jadwal-calendar-content">
+      <div id="calendar"></div>
 
-    <div class="jadwal-legend">
-      <div class="legend-item">
-        <span class="legend-dot" style="background:#E9D98B;"></span>
-        <span>Menunggu Konfirmasi</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-dot" style="background:#B8EEC0;"></span>
-        <span>Diterima</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-dot" style="background:#C9B8F5;"></span>
-        <span>Sedang Berlangsung</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-dot" style="background:#8EC9F5;"></span>
-        <span>Selesai</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-dot" style="background:#F4A6A6;"></span>
-        <span>Ditolak</span>
+      <div class="jadwal-legend">
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#E9D98B;"></span>
+          <span>Menunggu Konfirmasi</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#B8EEC0;"></span>
+          <span>Diterima</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#C9B8F5;"></span>
+          <span>Sedang Berlangsung</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#8EC9F5;"></span>
+          <span>Selesai</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#F4A6A6;"></span>
+          <span>Ditolak</span>
+        </div>
       </div>
     </div>
   </div>

@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\JadwalKonseling;
+use App\Models\Laporan;
+use App\Models\SesiKonseling;
 
 class LaporanController extends Controller
 {
     public function riwayat()
     {
         $mahasiswa = auth()->user()->mahasiswa;
+
         $riwayat = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
             ->where('mahasiswa_id', optional($mahasiswa)->id)
             ->orderBy('tanggal', 'desc')
@@ -17,41 +21,45 @@ class LaporanController extends Controller
             ->get();
 
         return view('Pages.riwayat', compact('riwayat'));
+
+        $riwayat = JadwalKonseling::with(['mahasiswa.user'])
+            ->where('mahasiswa_id', optional($mahasiswa)->id)
+            ->orderBy('tanggal', 'desc')
+            ->get();
+
+        $selectedJadwal = request()->query('jadwal');
+
+        return view('Pages.riwayat', compact('riwayat', 'selectedJadwal'));
+
     }
 
     public function laporanAdmin()
     {
-        $riwayat = JadwalKonseling::orderByRaw("CASE WHEN laporan IS NOT NULL OR LOWER(status) = 'selesai' THEN 0 ELSE 1 END")
-            ->orderByDesc('updated_at')
-            ->orderByDesc('tanggal')
-            ->get();
+        $riwayat = JadwalKonseling::orderBy('tanggal', 'desc')->get();
         return view('admin.laporan', compact('riwayat'));
     }
 
     public function createLaporan($id)
     {
-        $jadwal = JadwalKonseling::findOrFail($id);
-        return view('admin.laporan', compact('jadwal'));
+        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'konselor.user', 'sesiKonseling.laporan'])->findOrFail($id);
+        $foreignKey = SesiKonseling::jadwalForeignKey();
+        $statusSelesai = strtolower($jadwal->status ?? '') === 'selesai';
+
+        $sudahAdaLaporan = Laporan::whereHas('sesi', function ($query) use ($id, $foreignKey) {
+            $query->where($foreignKey, $id);
+        })->exists() || $statusSelesai;
+
+        return view('admin.laporan_form', compact('jadwal', 'sudahAdaLaporan'));
     }
 
     public function storeLaporan(Request $request, $id)
     {
         $request->validate([
-            'ringkasan_masalah' => 'nullable|string',
-            'observasi_konselor' => 'nullable|string',
-            'progress' => 'nullable|string',
-            'perlu_lanjut' => 'nullable',
-            'tanggal_lanjut' => 'nullable|date',
+            'catatan' => 'required|string',
         ]);
-
         $jadwal = JadwalKonseling::findOrFail($id);
         $jadwal->update([
-            'ringkasan_masalah' => $request->ringkasan_masalah,
-            'observasi_konselor' => $request->observasi_konselor,
-            'progress' => $request->progress,
-            'tindak_lanjut_tipe' => $request->perlu_lanjut ? 'perlu_lanjut' : null,
-            'tanggal_lanjut' => $request->perlu_lanjut ? $request->tanggal_lanjut : null,
-            'laporan' => $request->ringkasan_masalah || $request->observasi_konselor ? 'ada' : null,
+            'catatan' => $request->catatan,
             'status' => 'Selesai',
         ]);
 

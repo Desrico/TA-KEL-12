@@ -40,69 +40,119 @@
     }
 
     /* SIDEBAR */
-        .pc-sidebar .navbar-wrapper {
-          background: var(--admin-soft);
-          /* remove outer border to avoid double line */
-          border-right: none !important;
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-          height: 100vh;
-          position: relative;
-      }
+    .pc-sidebar .navbar-wrapper {
+        background: var(--admin-soft);
+        border-right: 1px solid var(--admin-border);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        height: 100vh;
+        position: relative;
+    }
 
-        .pc-sidebar .m-header {
-          padding: 20px 22px 18px;
-          border-bottom: 2px solid var(--admin-border);
-          flex-shrink: 0;
-          background: var(--admin-soft);
-        }
+    .pc-sidebar .m-header {
+        padding: 20px 22px 18px;
+        border-bottom: 2px solid var(--admin-border);
+        flex-shrink: 0;
+        background: var(--admin-soft);
+    }
+
     .pc-sidebar .navbar-content {
-      padding: 16px 12px 120px;
-      flex: 1;
-      overflow-y: auto;
+        padding: 16px 12px 120px;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    /* Stronger overrides to ensure the sidebar uses the requested color */
+    .pc-sidebar .navbar-wrapper,
+    .pc-sidebar .m-header,
+    .pc-sidebar .navbar-content,
+    .admin-sidebar-profile,
+    .admin-sidebar-menu {
+        background-color: var(--admin-soft) !important;
+        border-color: var(--admin-border) !important;
     }
 
     .pc-navbar .pc-caption label {
-      font-size: .67rem;
-      font-weight: 700;
-      color: #9AA8B5;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      padding: 10px 13px 6px;
-      display: block;
+        font-size: .67rem;
+        font-weight: 700;
+        color: #9AA8B5;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        padding: 10px 13px 6px;
+        display: block;
+    }
+
+    .pc-navbar .pc-item {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .pc-navbar .pc-item * {
+        outline: none !important;
+        border: none !important;
     }
 
     .pc-navbar .pc-item .pc-link {
-      border-radius: 12px;
-      font-size: .88rem;
-      font-weight: 600;
-      color: var(--admin-text-mid);
-      padding: 10px 14px;
-      margin-bottom: 4px;
-      transition: all .18s ease;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-  }
+        border-radius: 12px;
+        font-size: .88rem;
+        font-weight: 600;
+        color: var(--admin-text-mid);
+        padding: 10px 14px;
+        margin-bottom: 4px;
+        transition: all .18s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        -webkit-box-shadow: none !important;
+    }
 
     .pc-navbar .pc-item .pc-link:focus,
     .pc-navbar .pc-item .pc-link:focus-visible,
     .pc-navbar .pc-item.active > .pc-link {
-      outline: none !important;
-      box-shadow: none !important;
-      border-right: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        border-right: none !important;
     }
 
-    .pc-navbar .pc-item .pc-link::after,
-    .pc-navbar .pc-item.active > .pc-link::after {
-      display: none !important;
+    .pc-navbar .pc-item .pc-link::before,
+    .pc-navbar .pc-item .pc-link::after {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .pc-navbar .pc-item .pc-link:focus {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        -webkit-appearance: none !important;
+    }
+      box-shadow: none !important;
+      -webkit-box-shadow: none !important;
+      -webkit-appearance: none !important;
+    }
+
+    .pc-navbar .pc-item .pc-link:active {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
     }
 
     .pc-navbar .pc-item .pc-link:hover {
       background: var(--admin-soft-2);
       color: var(--admin-primary);
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
     }
 
     .pc-navbar .pc-item .pc-link:hover .pc-micon i {
@@ -112,7 +162,31 @@
     .pc-navbar .pc-item.active > .pc-link {
       background: var(--admin-primary);
       color: white !important;
-      box-shadow: var(--admin-shadow-sm);
+      outline: none !important;
+      border: none !important;
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3) !important;
+      -webkit-box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .pc-navbar .pc-item.active {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Override template's ::after pseudo-element that creates the blue line */
+    .pc-sidebar .pc-navbar > .pc-item.active:not(.pc-hasmenu) > .pc-link::after {
+      display: none !important;
+      content: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      background: none !important;
+    }
+
+    /* Override template's ::before pseudo-element */
+    .pc-sidebar .pc-navbar > .pc-item.active > .pc-link:before {
+      opacity: 0 !important;
+      background: none !important;
     }
 
     .pc-navbar .pc-item.active > .pc-link .pc-micon i {
@@ -246,6 +320,8 @@
       box-shadow: 0 1px 8px rgba(0,0,0,.03);
     }
 
+    /* top navbar visible (notifications are in header) */
+
     .pc-head-link {
       color: var(--admin-text-mid);
         
@@ -327,17 +403,21 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    .page-header .page-header-title h5 {
-      font-size: 1.6rem;
-      font-weight: 800;
-      color: var(--admin-primary);
+    .page-header {
+      margin-bottom: 1rem;
+      padding: 0 1.5rem;
     }
 
-    .breadcrumb .breadcrumb-item,
-    .breadcrumb .breadcrumb-item a {
-      font-size: .8rem;
-      color: var(--admin-text-light);
-      text-decoration: none;
+    .page-header .page-header-title h5 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--admin-primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 0 !important;
+    }
+
+    .page-block {
+      padding: 0;
     }
 
     .alert {
@@ -482,6 +562,75 @@
         min-width: 280px;
       }
     }
+
+    /* Modal confirm override (use on modals with class .modal-confirm) */
+    .modal-backdrop.show {
+      background: rgba(0,0,0,0.55) !important;
+    }
+
+    .modal.modal-confirm .modal-dialog {
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .modal.modal-confirm .modal-content {
+      background: var(--admin-primary);
+      color: #fff;
+      border-radius: 12px;
+      padding: 1.6rem;
+      box-shadow: 0 18px 40px rgba(6,78,59,0.25);
+      border: none;
+      text-align: center;
+    }
+
+    .modal.modal-confirm .modal-body { padding: 0; }
+
+    .modal.modal-confirm .modal-icon {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.15);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      background: rgba(255,255,255,0.04);
+      margin: 0 auto;
+      color: #fff;
+    }
+
+    .modal.modal-confirm .modal-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-top: .85rem;
+      color: #fff;
+    }
+
+    .modal.modal-confirm .modal-text {
+      color: rgba(255,255,255,0.9);
+      margin-top: .45rem;
+      font-size: .95rem;
+    }
+
+    .modal.modal-confirm .btn-confirm {
+      background: #FDE68A;
+      color: var(--admin-primary);
+      border: 0;
+      padding: .5rem 1.05rem;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .modal.modal-confirm .btn-confirm:hover { background: #FCD34D; }
+
+    .modal.modal-confirm .btn-cancel {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 10px;
+      padding: .45rem .9rem;
+    }
+
   </style>
 
   @vite(['resources/js/app.js'])
@@ -582,8 +731,6 @@
                     </a>
                 </li>
             </ul>
-        </div>
-
         <div class="admin-sidebar-profile">
             <div class="dropdown">
                 <a href="#" class="admin-sidebar-profile-trigger" data-bs-toggle="dropdown" aria-expanded="false">
@@ -667,11 +814,29 @@
 
             <div style="max-height:260px;overflow-y:auto;" id="adminNotifList">
               @forelse($adminNotifItems as $notif)
-                <a class="dropdown-item admin-notif-item" href="{{ route('admin.jadwal') }}">
+                @php
+                  $payload = null;
+                  try {
+                    $decoded = json_decode($notif->pesan, true);
+                    $payload = is_array($decoded) ? $decoded : null;
+                  } catch (\Exception $e) {
+                    $payload = null;
+                  }
+
+                  $link = route('admin.jadwal');
+                  $label = $notif->pesan;
+                  if ($payload && ($payload['type'] ?? null) === 'penjadwalan') {
+                    // student riwayat route with selected jadwal id
+                    $link = route('riwayat', ['jadwal' => $payload['jadwal_id']]);
+                    $label = $payload['text'] ?? $label;
+                  }
+                @endphp
+
+                <a class="dropdown-item admin-notif-item" href="{{ $link }}">
                   <div class="d-flex gap-2 align-items-start">
                     <div style="width:8px;height:8px;border-radius:50%;background:{{ $notif->status === 'belum' ? 'var(--admin-primary-500)' : '#d0dce4' }};margin-top:5px;flex-shrink:0;"></div>
                     <div style="min-width:0;">
-                      <p class="mb-0" style="font-size:.8rem;color:var(--admin-text);font-weight:600;line-height:1.4;">{{ $notif->pesan }}</p>
+                      <p class="mb-0" style="font-size:.8rem;color:var(--admin-text);font-weight:600;line-height:1.4;">{{ $label }}</p>
                       <span style="font-size:.72rem;color:#aab5bc;">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
                     </div>
                   </div>
@@ -689,25 +854,21 @@
 
     <div class="pc-container">
   <div class="pc-content">
-    <div class="page-header">
-      <div class="page-block">
-        <div class="row align-items-center">
-          <div class="col-md-12">
-            <div class="page-header-title">
-              <h5 class="m-b-10">@yield('page-title', 'Dashboard')</h5>
+    @hasSection('page-hero')
+      @yield('page-hero')
+    @else
+      <div class="page-header">
+        <div class="page-block">
+          <div class="row align-items-center">
+            <div class="col-md-12">
+              <div class="page-header-title">
+                <h5 class="m-b-10">@yield('page-title', 'Dashboard')</h5>
+              </div>
             </div>
-            <ul class="breadcrumb">
-              <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}"></a>
-              </li>
-              <li class="breadcrumb-item" aria-current="page">
-                @yield('page-title', 'Dashboard')
-              </li>
-            </ul>
           </div>
         </div>
       </div>
-    </div>
+    @endif
 
     @if(session('success'))
       <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
@@ -727,12 +888,53 @@
   </div>
 </div>
 
+@include('components.modal_confirm')
+
 <script src="{{ asset('template/dist') }}/assets/js/plugins/popper.min.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/plugins/simplebar.min.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/plugins/bootstrap.min.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/fonts/custom-font.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/pcoded.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/plugins/feather.min.js"></script>
+
+<script>
+  // Global confirm modal handler: elements can use data-confirm, data-confirm-title, data-confirm-text, data-confirm-ok, data-confirm-url
+  document.addEventListener('click', function (e) {
+    const trigger = e.target.closest('[data-confirm]');
+    if (!trigger) return;
+    e.preventDefault();
+
+    const title = trigger.getAttribute('data-confirm-title') || 'Konfirmasi Penjadwalan';
+    const text = trigger.getAttribute('data-confirm-text') || 'Apakah kamu yakin ingin melanjutkan aksi ini?';
+    const okText = trigger.getAttribute('data-confirm-ok') || 'Jadwalkan';
+    const url = trigger.getAttribute('data-confirm-url') || null;
+
+    const modalEl = document.getElementById('globalConfirmModal');
+    if (!modalEl) return;
+
+    document.getElementById('globalConfirmTitle').textContent = title;
+    document.getElementById('globalConfirmText').textContent = text;
+    const okBtn = document.getElementById('globalConfirmYes');
+    okBtn.textContent = okText;
+
+    // clear previous handler
+    okBtn.onclick = function () {
+      if (url) {
+        window.location.href = url;
+        return;
+      }
+      // if inside a form, submit it
+      const form = trigger.closest('form');
+      if (form) {
+        form.submit();
+      }
+      bootstrap.Modal.getInstance(modalEl)?.hide();
+    };
+
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  });
+</script>
 
 <script>layout_change('light');</script>
 <script>change_box_container('false');</script>

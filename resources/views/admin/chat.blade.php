@@ -553,6 +553,381 @@
     .admin-message-content {
       max-width: 100%;
     }
+=======
+@section('page-title', 'Chat')
+
+@push('styles')
+<style>
+  .chat-container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 0;
+    height: calc(100vh - 200px);
+    min-height: 0;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .08);
+  }
+
+  .chat-sidebar {
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    background: #fafbfc;
+  }
+
+  .chat-search {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .chat-search input {
+    width: 100%;
+    border: 1px solid #dfe6e1;
+    border-radius: 10px;
+    padding: .65rem .9rem;
+    font-size: .9rem;
+    background: #fff;
+    transition: border-color .15s ease;
+  }
+
+  .chat-search input:focus {
+    outline: none;
+    border-color: #0f766e;
+  }
+
+  .chat-list {
+    flex: 1;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .chat-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background .15s ease;
+    display: flex;
+    gap: .8rem;
+    align-items: center;
+  }
+
+  .chat-item:hover {
+    background: #f0f8f5;
+  }
+
+  .chat-item.active {
+    background: #e0f2f1;
+    border-left: 4px solid #0f766e;
+    padding-left: calc(1rem - 4px);
+  }
+
+  .chat-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #d1fae5;
+    color: #064e3b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .9rem;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .chat-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .chat-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .chat-name {
+    font-weight: 700;
+    font-size: .9rem;
+    color: #111827;
+    margin: 0;
+  }
+
+  .chat-status {
+    font-size: .8rem;
+    color: #6b7280;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .chat-header {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chat-header-info h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #111827;
+  }
+
+  .chat-header-info p {
+    margin: 0.2rem 0 0;
+    font-size: .8rem;
+    color: #6b7280;
+  }
+
+  .chat-header-actions {
+    display: flex;
+    gap: .6rem;
+  }
+
+  .chat-header-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s ease;
+  }
+
+  .chat-header-btn:hover {
+    background: #e5e7eb;
+  }
+
+  .messages-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .message {
+    width: 100%;
+    display: flex;
+    gap: .6rem;
+    align-items: flex-end;
+  }
+
+  .message.sent {
+    justify-content: flex-end;
+  }
+
+  .message.sent > div {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .message.received > div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .message > div {
+    min-width: 0;
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #d1fae5;
+    color: #064e3b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .75rem;
+    flex-shrink: 0;
+  }
+
+  .message-bubble {
+    display: inline-block;
+    width: fit-content;
+    max-width: min(70%, 520px);
+    padding: .8rem 1rem;
+    border-radius: 14px;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: pre-wrap;
+    line-height: 1.45;
+  }
+
+  .message.sent .message-bubble {
+    margin-left: auto;
+  }
+
+  .message.received .message-bubble {
+    background: #f0f0f0;
+    color: #111827;
+  }
+
+  .message.sent .message-bubble {
+    background: #0f766e;
+    color: #fff;
+  }
+
+  .message-time {
+    font-size: .75rem;
+    color: #9ca3af;
+    margin-top: .2rem;
+  }
+
+  .chat-input-area {
+    padding: 1.2rem 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: .7rem;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  .chat-input-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    border: 1px solid #dfe6e1;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0 1rem;
+  }
+
+  .chat-input-wrap input {
+    flex: 1;
+    border: none;
+    padding: .75rem 0;
+    font-size: .9rem;
+    background: transparent;
+    color: #111827;
+  }
+
+  .chat-input-wrap input:focus {
+    outline: none;
+  }
+
+  .chat-input-wrap input::placeholder {
+    color: #9ca3af;
+  }
+
+  .chat-send-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: #0f766e;
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s ease;
+  }
+
+  .chat-send-btn:hover {
+    background: #065f46;
+  }
+
+  .sidebar-counselor {
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+    background: #fafbfc;
+  }
+
+  .counselor-info {
+    display: flex;
+    gap: .8rem;
+    align-items: center;
+  }
+
+  .counselor-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #d1fae5;
+    color: #064e3b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .counselor-details h4 {
+    margin: 0;
+    font-size: .95rem;
+    font-weight: 800;
+    color: #111827;
+  }
+
+  .counselor-details p {
+    margin: 0.1rem 0 0;
+    font-size: .8rem;
+    color: #6b7280;
+  }
+
+  @media (max-width: 1024px) {
+    .chat-container {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+
+    .chat-sidebar {
+      max-height: 400px;
+    }
+  }
+
+  /* Scrollbar styling */
+  .chat-list::-webkit-scrollbar,
+  .messages-container::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-list::-webkit-scrollbar-track,
+  .messages-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .chat-list::-webkit-scrollbar-thumb,
+  .messages-container::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+
+  .chat-list::-webkit-scrollbar-thumb:hover,
+  .messages-container::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
   }
 </style>
 @endpush
@@ -728,6 +1103,112 @@
       </div>
     @endif
   </section>
+</div>
+@php
+  $sessionActive = isset($sessionData);
+  $studentName = $sessionActive ? $sessionData['nama'] : 'Aldo Darrel';
+  $studentInitials = $sessionActive ? strtoupper(substr($sessionData['nama'], 0, 1)) : 'AD';
+  $messages = $messages ?? collect();
+  $participants = $participants ?? collect();
+  $currentUserId = auth()->id();
+@endphp
+
+<div class="chat-container">
+  <!-- Sidebar -->
+  <div class="chat-sidebar">
+    <div class="chat-search">
+      <input type="text" placeholder="Cari percakapan..." id="searchChat">
+    </div>
+
+    <ul class="chat-list" id="chatList">
+      @forelse($participants as $p)
+        @php
+          $isActive = $sessionActive && ($sessionData['id'] == $p['id']);
+        @endphp
+        <li class="chat-item {{ $isActive ? 'active' : '' }}" data-session-id="{{ $p['id'] }}" onclick="window.location='{{ route('admin.chat.session', $p['id']) }}'">
+          <div class="chat-avatar">{{ $p['initial'] }}</div>
+          <div class="chat-info">
+            <p class="chat-name">{{ $p['nama'] }}</p>
+            <p class="chat-status">{{ $p['last'] }}</p>
+          </div>
+        </li>
+      @empty
+        <li class="chat-item">
+          <div class="chat-avatar">-</div>
+          <div class="chat-info">
+            <p class="chat-name">Belum ada percakapan</p>
+            <p class="chat-status">Mulai sesi untuk membuat percakapan</p>
+          </div>
+        </li>
+      @endforelse
+    </ul>
+
+    <!-- Counselor Info -->
+    <div class="sidebar-counselor">
+      <div class="counselor-info">
+        <div class="counselor-avatar">L</div>
+        <div class="counselor-details">
+          <h4>Laura</h4>
+          <p>Konselor Utama</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Chat Area -->
+  <div class="chat-main">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <h3>{{ $studentName }}</h3>
+      </div>
+      <div class="chat-header-actions">
+        <button class="chat-header-btn" title="Video">
+          <i class="bi bi-camera-video-fill"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-container" id="messagesContainer">
+      @forelse($messages as $message)
+        @php
+          $isSent = $message->pengirim_id === $currentUserId;
+          $initial = strtoupper(substr(optional($message->pengirim)->nama ?? 'A', 0, 1));
+          $messageTime = $message->created_at
+            ? $message->created_at->timezone(config('app.timezone'))->format('H:i')
+            : now()->timezone(config('app.timezone'))->format('H:i');
+        @endphp
+        <div class="message {{ $isSent ? 'sent' : 'received' }}">
+          @if(!$isSent)
+            <div class="message-avatar">{{ $initial }}</div>
+            <div>
+              <div class="message-bubble">{{ $message->pesan }}</div>
+              <div class="message-time">{{ $messageTime }}</div>
+            </div>
+          @else
+            <div>
+              <div class="message-bubble">{{ $message->pesan }}</div>
+              <div class="message-time">{{ $messageTime }}</div>
+            </div>
+          @endif
+        </div>
+      @empty
+        <div class="text-center text-muted py-5">Belum ada pesan. Mulai percakapan sekarang.</div>
+      @endforelse
+    </div>
+
+    <!-- Input Area -->
+    <form class="chat-input-area" method="POST" action="{{ $sessionActive ? route('admin.chat.store', $sessionData['id']) : '#' }}">
+      @csrf
+      <div class="chat-input-wrap">
+        <input type="text" name="pesan" id="messageInput" placeholder="Tulis pesan..." autocomplete="off" {{ $sessionActive ? '' : 'disabled' }}>
+      </div>
+      <button class="chat-send-btn" id="sendBtn" title="Send" {{ $sessionActive ? '' : 'disabled' }}>
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </form>
+  </div>
 </div>
 @endsection
 
@@ -947,3 +1428,30 @@
 </script>
 @endpush
 @endif
+  // Chat item selection
+  document.querySelectorAll('.chat-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      
+      const name = this.querySelector('.chat-name').textContent;
+      document.querySelector('.chat-header-info h3').textContent = name;
+    });
+  });
+
+  const messagesContainer = document.getElementById('messagesContainer');
+  if (messagesContainer) {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  // Search functionality
+  const searchInput = document.getElementById('searchChat');
+  searchInput.addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('.chat-item').forEach(item => {
+      const name = item.querySelector('.chat-name').textContent.toLowerCase();
+      item.style.display = name.includes(query) ? '' : 'none';
+    });
+  });
+</script>
+@endpush

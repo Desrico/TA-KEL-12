@@ -45,7 +45,6 @@
         $topikText = trim(str_replace('Topik:', '', $parts[0]));
     }
 
-    // ===== ALASAN =====
     $alasanText = $jadwal->alasan_penolakan ?? null;
 @endphp
 

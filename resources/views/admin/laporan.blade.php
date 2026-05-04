@@ -9,52 +9,66 @@
         background: #fff;
         border: 1px solid #dceee4;
         border-radius: 22px;
-        box-shadow: 0 6px 20px rgba(0,0,0,.04);
+        box-shadow: 0 8px 22px rgba(6, 78, 59, 0.08);
         overflow: hidden;
+        max-width: 1100px;
+        margin: 0 auto;
+        width: calc(100% - 48px);
     }
 
     .laporan-head {
-        padding: 1.4rem 1.6rem;
+        padding: 1.5rem 1.7rem 1rem;
         border-bottom: 1px solid #edf2ef;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-        flex-wrap: wrap;
     }
 
     .laporan-head h5 {
-        margin: 0;
-        font-weight: 800;
-        color: #064E3B;
+        margin: 0 0 .3rem 0;
+        font-weight: 700;
+        color: var(--admin-primary);
+        font-size: 1.25rem;
+        line-height: 1.2;
+        letter-spacing: -0.3px;
+    }
+
+    .laporan-head h5 .accent {
+        color: var(--admin-primary);
     }
 
     .laporan-head p {
-        margin: .25rem 0 0;
-        color: #718096;
-        font-size: .86rem;
+        margin: 0;
+        color: var(--admin-text-light);
+        font-size: .85rem;
+    }
+
+    .laporan-table-wrap {
+        padding: 1.2rem 1.2rem 1.35rem;
     }
 
     .laporan-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        font-size: .86rem;
+        font-size: .82rem;
+        border: 1px solid #d7e7de;
+        border-radius: 16px;
+        overflow: hidden;
     }
 
     .laporan-table thead th {
-        background: #e6f5ec;
-        color: #0f172a;
+        background: #f5f8f7;
+        color: #111827;
         font-weight: 700;
-        padding: 1rem;
+        padding: .72rem .9rem;
         border-bottom: 1px solid #d6e9de;
+        font-size: .86rem;
+        text-align: left;
     }
 
     .laporan-table tbody td {
-        padding: 1rem;
+        padding: .62rem .9rem;
         border-bottom: 1px solid #edf2ef;
         vertical-align: middle;
-        color: #334155;
+        color: #1f2937;
     }
 
     .laporan-table tbody tr:hover {
@@ -63,50 +77,33 @@
 
     .student-name {
         font-weight: 700;
-        color: #0f172a;
+        color: #111827;
     }
 
-    .student-sub {
-        font-size: .76rem;
-        color: #8191a3;
-        margin-top: 2px;
+    .jadwal-text {
+        line-height: 1.35;
+        color: #334155;
+        min-width: 120px;
     }
 
-    .topic-text {
-        max-width: 230px;
-        color: #475569;
-        font-size: .82rem;
-    }
-
-    .status-pill {
-        display: inline-flex;
-        border-radius: 999px;
-        padding: .42rem .85rem;
-        font-size: .74rem;
-        font-weight: 700;
-    }
-
-    .status-selesai {
-        background: #d1fae5;
-        color: #047857;
-    }
-
-    .status-belum {
-        background: #fef3c7;
-        color: #b45309;
+    .ringkasan-text {
+        max-width: 340px;
+        color: #374151;
+        line-height: 1.35;
     }
 
     .btn-laporan {
         border: none;
-        border-radius: 10px;
-        padding: .55rem .9rem;
-        font-size: .78rem;
+        border-radius: 8px;
+        padding: .3rem .9rem;
+        font-size: .72rem;
         font-weight: 700;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: .35rem;
+        justify-content: center;
         white-space: nowrap;
+        min-width: 74px;
     }
 
     .btn-buat {
@@ -120,14 +117,13 @@
     }
 
     .btn-lihat {
-        background: #ecfdf5;
-        color: #047857;
-        border: 1px solid #bbf7d0;
+        background: #065F46;
+        color: #fff;
     }
 
     .btn-lihat:hover {
-        background: #d1fae5;
-        color: #065F46;
+        background: #064E3B;
+        color: #fff;
     }
 
     .empty-state {

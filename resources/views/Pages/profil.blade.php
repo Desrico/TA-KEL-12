@@ -456,15 +456,6 @@
                     <span>Ganti Foto</span>
                     </div>
                 </div>
-
-                <input
-                    type="file"
-                    id="foto-input"
-                    name="foto"
-                    accept="image/jpg,image/jpeg,image/png"
-                    style="display:none"
-                    onchange="previewFoto(this)"
-                >
                 </div>
 
             <div class="profil-user-name" id="nama-header">
@@ -517,6 +508,16 @@
       <div class="col-lg-8">
         <form method="POST" action="{{ route('profil.update') }}" id="profil-form" enctype="multipart/form-data">
             @csrf
+            
+            <!-- File input untuk foto (tersembunyi secara visual, tapi dalam form) -->
+            <input
+                type="file"
+                id="foto-input"
+                name="foto"
+                accept="image/jpg,image/jpeg,image/png"
+                style="display:none"
+                onchange="previewFoto(this)"
+            >
 
           <div class="profil-main-card">
             <div class="profil-main-head">
