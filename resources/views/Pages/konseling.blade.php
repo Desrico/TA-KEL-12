@@ -572,6 +572,97 @@
     font-size: .9rem;
   }
 
+  .confirm-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, .28);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999 !important;
+}
+
+.confirm-overlay.show {
+  display: flex !important;
+}
+
+.confirm-box {
+  width: 360px;
+  max-width: 90%;
+  background: #066847;
+  color: #fff;
+  border-radius: 12px;
+  padding: 1.8rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,.25);
+  animation: popFade .25s ease both;
+}
+
+.confirm-icon {
+  width: 58px;
+  height: 58px;
+  border: 4px solid #ffe66d;
+  color: #ffe66d;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 auto 1rem;
+}
+
+.confirm-box h3 {
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: .8rem;
+}
+
+.confirm-box p {
+  color: #fff;
+  font-size: .78rem;
+  line-height: 1.45;
+  margin-bottom: 1.3rem;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: .8rem;
+}
+
+.btn-confirm {
+  border: 0;
+  background: #ffe66d;
+  color: #064e3b;
+  font-weight: 800;
+  font-size: .78rem;
+  border-radius: 5px;
+  padding: .45rem .9rem;
+}
+
+.btn-cancel {
+  border: 1px solid #fff;
+  background: transparent;
+  color: #fff;
+  font-weight: 700;
+  font-size: .78rem;
+  border-radius: 5px;
+  padding: .45rem .9rem;
+}
+
+@keyframes popFade {
+  from {
+    opacity: 0;
+    transform: scale(.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
   @media (max-width: 991.98px) {
     .service-hero {
       padding-bottom: 2.7rem;
@@ -699,7 +790,7 @@
                 <span>Lantai 2</span>
               </div>
             </div>
-            <a href="#penjadwalan" class="mode-action" data-mode-action="offline">Pilih Offline <i class="bi bi-arrow-right"></i></a>
+            <a href="#booking" class="mode-action" data-mode-action="offline">Pilih Offline <i class="bi bi-arrow-right"></i></a>
           </article>
         </div>
       </div>
@@ -853,7 +944,7 @@
               </label>
             </div>
             <div class="submit-wrap">
-              <button type="button" class="schedule-submit" id="submit-booking" onclick="submitJadwal()">
+              <button type="button" class="schedule-submit" id="submit-booking" onclick="openConfirmModal()">
                 Jadwalkan Konseling
               </button>
             </div>
@@ -869,6 +960,48 @@
     </div>
   </div>
 </section>
+
+<div class="confirm-overlay" id="confirmModal">
+  <div class="confirm-box">
+    <div class="confirm-icon">?</div>
+
+    <h3>Konfirmasi Penjadwalan</h3>
+
+    <p>
+      Apakah kamu yakin ingin menjadwalkan sesi konseling ini?<br>
+      Pastikan tanggal, waktu, dan metode yang dipilih sudah sesuai.
+    </p>
+
+    <div class="confirm-actions">
+      <button type="button" class="btn-confirm" onclick="confirmSubmitJadwal()">
+        Jadwalkan
+      </button>
+      <button type="button" class="btn-cancel" onclick="closeConfirmModal()">
+        Batalkan
+      </button>
+    </div>
+  </div>
+</div>
+<div class="confirm-overlay" id="successModal">
+  <div class="confirm-box">
+    <div class="confirm-icon">
+      <i class="bi bi-check-lg"></i>
+    </div>
+
+    <h3>Penjadwalan Berhasil</h3>
+    <p>
+      Pengajuan jadwal konseling berhasil dibuat dan sedang menunggu persetujuan konselor.
+    </p>
+
+    <div id="success-detail" style="margin-top: 1rem; text-align: left;"></div>
+
+    <div class="confirm-actions">
+      <button type="button" class="btn-confirm" onclick="closeSuccessModal()">
+        OK
+      </button>
+    </div>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1017,13 +1150,10 @@ function setServiceMode(mode, shouldScroll = false) {
   document.getElementById('selected-mode-pill').className = `selected-mode-pill ${mode === 'online' ? 'online' : ''}`;
   document.getElementById('selected-mode-pill').innerHTML = `<i class="bi ${config.icon}"></i> ${config.label}`;
   document.getElementById('jenis-display').value = config.label;
-  document.getElementById('jenis-note').textContent = config.stored;
   document.getElementById('side-media').innerHTML = config.sideMedia;
   document.getElementById('side-location').innerHTML = config.sideLocation;
   document.getElementById('session-note').className = `session-note ${config.noteClass}`;
   document.getElementById('session-note-text').textContent = config.note;
-  setMediaButton(document.getElementById('media-primary'), config.mediaPrimaryIcon, config.mediaPrimary, config.mediaPrimaryText);
-  setMediaButton(document.getElementById('media-secondary'), config.mediaSecondaryIcon, config.mediaSecondary, config.mediaSecondaryText);
   submitBtn.textContent = config.submit;
   submitBtn.classList.toggle('online', mode === 'online');
 
@@ -1089,6 +1219,91 @@ function renderTimeOptions() {
   });
 
   waktuNote.textContent = 'Pilih salah satu slot konseling yang tersedia.';
+}
+
+// Confirmation modal controls
+function openConfirmModal() {
+  if (!isLoggedIn) {
+    window.location.href = '/login';
+    return;
+  }
+
+  const checkbox = document.getElementById('confirmation-checkbox');
+
+  if (!checkbox.checked) {
+    alert('Centang konfirmasi bahwa data penjadwalan sudah benar.');
+    return;
+  }
+
+  if (!validateDate()) {
+    alert('Pilih tanggal layanan yang valid.');
+    return;
+  }
+
+  if (!waktuEl.value) {
+    alert('Pilih waktu konseling terlebih dahulu.');
+    return;
+  }
+
+  const topikValue = getTopikValue();
+  if (!topikValue) return;
+
+  const modal = document.getElementById('confirmModal');
+  document.body.appendChild(modal);
+  modal.classList.add('show');
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmModal').classList.remove('show');
+}
+
+function confirmSubmitJadwal() {
+  closeConfirmModal();
+  submitJadwal();
+}
+
+function openSuccessModal() {
+  const modal = document.getElementById('successModal');
+  document.body.appendChild(modal);
+  modal.classList.add('show');
+}
+
+function closeSuccessModal() {
+  document.getElementById('successModal').classList.remove('show');
+  window.location.href = '{{ route("konseling") }}';
+}
+
+window.openSuccessModal = openSuccessModal;
+window.closeSuccessModal = closeSuccessModal;
+
+// Show/hide success modal
+function showSuccessModal(data, topikValue) {
+  try {
+    document.getElementById('success-kode').textContent = data.kode_jadwal || '-';
+  } catch(e){}
+  const detail = document.getElementById('success-detail');
+  if (detail) {
+    detail.innerHTML = `
+      <div class="success-detail-row" style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid rgba(255,255,255,.18);">
+        <span>Kode Jadwal</span>
+        <strong>${data.kode_jadwal || '-'}</strong>
+      </div>
+      <div class="success-detail-row" style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid rgba(255,255,255,.18);">
+        <span>Tanggal</span>
+        <strong>${tanggalEl.value || '-'}</strong>
+      </div>
+      <div class="success-detail-row" style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid rgba(255,255,255,.18);">
+        <span>Waktu</span>
+        <strong>${waktuEl.value ? `${waktuEl.value} WIB` : '-'}</strong>
+      </div>
+      <div class="success-detail-row" style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid rgba(255,255,255,.18);">
+        <span>Topik</span>
+        <strong>${topikValue || '-'}</strong>
+      </div>
+    `;
+  }
+
+  openSuccessModal();
 }
 
 function validateDate() {
@@ -1199,9 +1414,7 @@ async function submitJadwal() {
     const data = await res.json();
 
     if (data.success) {
-      buildSuccessDetail(data, topikValue);
-      successEl.style.display = 'block';
-      successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showSuccessModal(data, topikValue);
       await fetchBookedSlots();
       renderTimeOptions();
     } else {

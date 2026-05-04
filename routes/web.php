@@ -88,7 +88,7 @@ Route::prefix('admin')
 
         Route::get('/mahasiswa', [AdminController::class, 'mahasiswa'])->name('mahasiswa');
         Route::get('/jadwal/events', [AdminController::class, 'jadwalEvents'])->name('jadwal.events');
-
+        Route::get('/jadwal/data', [CounselorController::class, 'getJadwalData'])->name('jadwal.data');
 
         Route::get('/kampus-api/mahasiswa', [KampusApiController::class, 'mahasiswa']);
         Route::get('/kampus-api/mahasiswa/{nim}', [KampusApiController::class, 'mahasiswaByNim']);
@@ -130,6 +130,7 @@ Route::get('/konselor/prioritas', [CounselorController::class, 'prioritas'])->na
 Route::get('/konselor/semua-mahasiswa', [CounselorController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
 Route::post('/konselor/update-status/{nim}', [CounselorController::class, 'updateStatus'])->name('counselor.update-status');
 Route::get('/konselor/chart-data', [CounselorController::class, 'getChartData'])->name('counselor.chart-data');
+Route::get('/konselor/jadwal-data', [CounselorController::class, 'getJadwalData'])->name('counselor.jadwal-data');
 Route::get('/konselor/top-students', [CounselorController::class, 'getStudentPreview'])->name('counselor.top-students');
 Route::get('/konselor/notifications', [CounselorController::class, 'getUrgentNotifications'])->name('counselor.notifications');
 Route::get('/konselor/feeling-distribution', [CounselorController::class, 'getFeelingDistribution'])->name('counselor.feeling-distribution');
