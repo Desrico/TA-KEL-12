@@ -217,7 +217,12 @@
                     <div class="card-title">
                         Grafik Tren Mood Mahasiswa
                         <div style="display: flex; gap: 8px; margin-left: auto;">
-                            <div style="background: #f8fafc; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1px solid #e2e8f0; color: #475569;">14 Hari Terakhir</div>
+                            <select id="chartRange" onchange="updateCharts(this.value)" style="background: #f8fafc; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1px solid #e2e8f0; color: #475569; outline: none; cursor: pointer;">
+                                <option value="14">14 Hari Terakhir</option>
+                                <option value="30">30 Hari Terakhir</option>
+                                <option value="90">3 Bulan Terakhir</option>
+                                <option value="all">Semua Riwayat</option>
+                            </select>
                             <button onclick="window.print()" class="btn-outline" style="padding: 6px 12px; font-size: 0.75rem; display: flex; align-items: center; gap: 5px;">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                                 Ekspor PDF
@@ -232,12 +237,7 @@
                 <div class="card" style="padding: 12px 20px;">
                     <div class="card-title">
                         Tren Perasaan
-                        <div style="display: flex; gap: 8px; margin-left: auto;">
-                            <button onclick="window.print()" class="btn-outline" style="padding: 6px 12px; font-size: 0.75rem; display: flex; align-items: center; gap: 5px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                Ekspor PDF
-                            </button>
-                        </div>
+                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;" id="feelingRangeText">14 Hari Terakhir</span>
                     </div>
                     <div style="height: 200px; position: relative;">
                         <canvas id="detailFeelingChart"></canvas>
@@ -533,49 +533,83 @@
         rows.forEach(row => tbody.appendChild(row));
     }
 
-    // ── Chart.js: Mood & Feeling Charts for Detail Page ──
-    const moodLevels  = { 'Marah':1,'Takut':2,'Sedih':3,'Terkejut':4,'Netral':5,'Antusias':6,'Senang':7 };
-    const moodLblMap  = ['','Marah','Takut','Sedih','Terkejut','Netral','Antusias','Senang'];
+    // ── Chart.js Setup ──
+    const moodLevels = { 'Marah': 1, 'Takut': 2, 'Sedih': 3, 'Terkejut': 4, 'Netral': 5, 'Antusias': 6, 'Senang': 7 };
+    const moodLblMap = ['', 'Marah', 'Takut', 'Sedih', 'Terkejut', 'Netral', 'Antusias', 'Senang'];
+    const checkinsRaw = @json($student->dailyCheckins);
+    
+    let moodChart, feelingChart;
 
-    // Mood Chart
-    const moodCtx = document.getElementById('detailMoodChart');
-    const moodData = [
-        @foreach($student->dailyCheckins->reverse()->take(14) as $c)
-        { x:'{{ $c->created_at->format("d M") }}', y:(moodLevels['{{ $c->mood?->mood_name ?? "Netral" }}']||5) },
-        @endforeach
-    ];
-    if (moodCtx && moodData.length > 0) {
-        new Chart(moodCtx, {
-            type:'line',
-            data:{ datasets:[{ label:'Mood', data:moodData, borderColor:'#059669', backgroundColor:'rgba(5,150,105,0.1)', borderWidth:2.5, tension:0.4, pointRadius:4, pointBackgroundColor:'#059669', fill:true }] },
-            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ y:{ min:1,max:7, ticks:{ stepSize:1, callback:v=>moodLblMap[v]||'', font:{size:10} }, grid:{color:'#f1f5f9'} }, x:{ grid:{display:false}, ticks:{font:{size:10}} } } }
-        });
-    } else if (moodCtx) {
-        moodCtx.parentElement.innerHTML = '<div style="height:200px;display:flex;align-items:center;justify-content:center;color:#94a3b8;">Belum ada data check-in</div>';
-    }
+    function initCharts(days = 14) {
+        const checkins = [...checkinsRaw].reverse();
+        let filtered = checkins;
+        
+        if (days !== 'all') {
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - parseInt(days));
+            filtered = checkins.filter(c => new Date(c.created_at) >= cutoffDate);
+        }
+        
+        // Mood Data
+        const moodData = filtered.map(c => ({
+            x: new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+            y: moodLevels[c.mood?.mood_name] || 5
+        }));
 
-    // Feeling Chart
-    const feelCtx = document.getElementById('detailFeelingChart');
-    const rawFeelings = [
-        @foreach($student->dailyCheckins->reverse()->take(14) as $c)
-        @if($c->feeling)
-        { x:'{{ $c->created_at->format("d M") }}', label:'{{ $c->feeling?->feeling_name ?? "Biasa" }}' },
-        @endif
-        @endforeach
-    ];
-    const uniqueF = rawFeelings.map(function(d){ return d.label; }).filter(function(value, index, self) {
-        return self.indexOf(value) === index;
-    });
-    const feelData = rawFeelings.map(function(d){ return { x:d.x, y:uniqueF.indexOf(d.label)+1 }; });
+        const moodCtx = document.getElementById('detailMoodChart');
+        if (moodChart) moodChart.destroy();
+        if (moodCtx && moodData.length > 0) {
+            moodChart = new Chart(moodCtx, {
+                type: 'line',
+                data: { datasets: [{ label: 'Mood', data: moodData, borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)', borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#059669', fill: true }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 1, max: 7, ticks: { stepSize: 1, callback: v => moodLblMap[v] || '', font: { size: 10 } }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+            });
+        } else if (moodCtx) {
+            // Render empty chart
+            moodChart = new Chart(moodCtx, {
+                type: 'line',
+                data: { labels: ['Tidak ada data'], datasets: [{ data: [] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
+            });
+        }
+
+        // Feeling Data
+        const feelingDataRaw = filtered.filter(c => c.feeling).map(c => ({
+            x: new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+            label: c.feeling.feeling_name
+        }));
+
+        const uniqueF = feelingDataRaw.map(d => d.label).filter((v, i, s) => s.indexOf(v) === i);
+        const feelData = feelingDataRaw.map(d => ({ x: d.x, y: uniqueF.indexOf(d.label) + 1 }));
+
+        const feelCtx = document.getElementById('detailFeelingChart');
+        if (feelingChart) feelingChart.destroy();
         if (feelCtx && feelData.length > 0) {
-        new Chart(feelCtx, {
-            type:'line',
-            data:{ datasets:[{ label:'Perasaan', data:feelData, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.1)', borderWidth:2.5, tension:0.4, pointRadius:4, pointBackgroundColor:'#10b981', fill:true }] },
-            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>uniqueF[ctx.parsed.y-1]||''}} }, scales:{ y:{ min:1,max:Math.max(uniqueF.length,2), ticks:{ stepSize:1, callback:v=>uniqueF[v-1]||'', font:{size:9} }, grid:{color:'#f1f5f9'} }, x:{ grid:{display:false}, ticks:{font:{size:10}} } } }
-        });
-    } else if (feelCtx) {
-        feelCtx.parentElement.innerHTML = '<div style="height:200px;display:flex;align-items:center;justify-content:center;color:#94a3b8;">Belum ada data perasaan</div>';
+            feelingChart = new Chart(feelCtx, {
+                type: 'line',
+                data: { datasets: [{ label: 'Perasaan', data: feelData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#10b981', fill: true }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => uniqueF[ctx.parsed.y - 1] || '' } } }, scales: { y: { min: 1, max: Math.max(uniqueF.length, 2), ticks: { stepSize: 1, callback: v => uniqueF[v - 1] || '', font: { size: 9 } }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+            });
+        } else if (feelCtx) {
+            // Render empty chart
+            feelingChart = new Chart(feelCtx, {
+                type: 'line',
+                data: { labels: ['Tidak ada data'], datasets: [{ data: [] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
+            });
+        }
     }
+
+    function updateCharts(range) {
+        initCharts(range === 'all' ? 'all' : parseInt(range));
+        
+        // Update label text for feeling chart
+        const rangeText = document.getElementById('chartRange').options[document.getElementById('chartRange').selectedIndex].text;
+        document.getElementById('feelingRangeText').textContent = rangeText;
+    }
+
+    // Initial load
+    initCharts(14);
 
     // ── Download Chart with Preview ──
     const getImgFromCanvas = (canvas) => {

@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="{{ asset('template/dist') }}/assets/fonts/tabler-icons.min.css">
@@ -805,6 +806,7 @@
         // 3. Gabungkan mahasiswa urgent ke daftar teratas jika ada
         const urgentItems = urgentStudents.map(student => ({
           id: 'urgent-' + student.nim,
+          nim: student.nim,
           pesan: `⚠️ KRITIS: ${student.name} (${student.nim}) berada di Level ${student.mental_level}!`,
           created_at_human: 'Sekarang',
           status: 'urgent',
@@ -829,8 +831,13 @@
             textColor = '#B91C1C';
           }
 
+          let onClickAttr = '';
+          if (notif.status === 'urgent' && notif.nim) {
+            onClickAttr = `onclick="event.preventDefault(); window.markUrgentRead('${notif.nim}', '${link}')"`;
+          }
+
           return `
-            <a class="dropdown-item admin-notif-item" href="${link}" style="background-color: ${bgColor}">
+            <a class="dropdown-item admin-notif-item" href="${link}" style="background-color: ${bgColor}" ${onClickAttr}>
               <div class="d-flex gap-2 align-items-start">
                 <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};margin-top:5px;flex-shrink:0;"></div>
                 <div style="min-width:0;">
@@ -860,6 +867,21 @@
         console.error('Gagal menandai notifikasi dibaca:', err);
       }
     }
+
+    window.markUrgentRead = async function(nim, targetUrl) {
+      try {
+        await fetch(`{{ url('/konselor/notifications') }}/${nim}/read`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+      } catch (err) {
+        console.error(err);
+      }
+      window.location.href = targetUrl;
+    };
 
     notifTrigger.addEventListener('click', function () {
       setTimeout(async function () {

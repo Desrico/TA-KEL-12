@@ -10,9 +10,14 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\KampusApiController;
 use App\Http\Controllers\CounselorController;
 use App\Http\Controllers\EducationController;
-
+use App\Http\Controllers\PushSubscriptionController;
 
 // ═══════════════════════════════
+// NOTIFIKASI WEB PUSH
+// ═══════════════════════════════
+Route::post('/subscriptions', [PushSubscriptionController::class, 'update']);
+Route::post('/subscriptions/delete', [PushSubscriptionController::class, 'destroy']);
+
 // HALAMAN PUBLIK
 // ═══════════════════════════════
 Route::get('/', function () {
@@ -132,6 +137,7 @@ Route::post('/konselor/update-status/{nim}', [CounselorController::class, 'updat
 Route::get('/konselor/chart-data', [CounselorController::class, 'getChartData'])->name('counselor.chart-data');
 Route::get('/konselor/top-students', [CounselorController::class, 'getStudentPreview'])->name('counselor.top-students');
 Route::get('/konselor/notifications', [CounselorController::class, 'getUrgentNotifications'])->name('counselor.notifications');
+Route::post('/konselor/notifications/{nim}/read', [CounselorController::class, 'markUrgentRead'])->name('counselor.notifications.read');
 Route::get('/konselor/feeling-distribution', [CounselorController::class, 'getFeelingDistribution'])->name('counselor.feeling-distribution');
 Route::get('/konselor/detail/{nim}', [CounselorController::class, 'showDetail'])->name('counselor.detail');
 Route::post('/konselor/scan', [CounselorController::class, 'scanLevel3'])->name('counselor.scan');

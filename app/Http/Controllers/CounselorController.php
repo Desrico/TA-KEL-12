@@ -129,7 +129,7 @@ class CounselorController extends Controller
         $distribution = [];
         if ($totalCheckins > 0) {
             $topFeelingIds = $feelingsCount->sortDesc()->take(5)->keys();
-            $feelings = Feeling::whereIn('_id', $topFeelingIds)->get()->keyBy('_id');
+            $feelings = Feeling::whereIn('feeling_id', $topFeelingIds)->get()->keyBy('feeling_id');
 
             foreach ($topFeelingIds as $fid) {
                 $count = $feelingsCount[$fid];
@@ -205,7 +205,7 @@ class CounselorController extends Controller
         ];
 
         if ($name === 'all') {
-            $allFeelings = Feeling::all()->keyBy('_id');
+            $allFeelings = Feeling::all()->keyBy('feeling_id');
             $activeNims = Student::pluck('nim')->toArray();
             $distribution = DailyCheckin::whereIn('nim', $activeNims)->get()
                 ->groupBy('feeling_id')
@@ -230,7 +230,7 @@ class CounselorController extends Controller
             return response()->json(['items' => $distribution]);
         } elseif (str_starts_with($name, 'CAT:')) {
             $feelingNames = $categories[$name] ?? [];
-            $matchingFeelings = Feeling::whereIn('feeling_name', $feelingNames)->get()->keyBy('_id');
+            $matchingFeelings = Feeling::whereIn('feeling_name', $feelingNames)->get()->keyBy('feeling_id');
             $feelingIds = $matchingFeelings->keys()->toArray();
             $activeNims = Student::pluck('nim')->toArray();
             
@@ -299,9 +299,9 @@ class CounselorController extends Controller
 
     public function getUrgentNotifications()
     {
-        // Ambil mahasiswa dengan mental_level = 3 (Krisis / Bahaya)
-        // Diurutkan berdasarkan scan terbaru
+        // Ambil mahasiswa dengan mental_level = 3 (Krisis / Bahaya) yang belum dibaca notifnya
         $urgentStudents = Student::where('mental_level', 3)
+            ->where('mental_notif_read', '!=', true)
             ->orderBy('mental_level', 'desc')
             ->orderBy('mental_scanned_at', 'desc')
             ->take(10)
@@ -311,6 +311,12 @@ class CounselorController extends Controller
             'count' => $urgentStudents->count(),
             'notifications' => $urgentStudents
         ]);
+    }
+
+    public function markUrgentRead(string $nim)
+    {
+        Student::where('nim', $nim)->update(['mental_notif_read' => true]);
+        return response()->json(['success' => true]);
     }
 
     public function getStudentPreview(Request $request)
@@ -442,14 +448,28 @@ class CounselorController extends Controller
 
                 if ($response->successful()) {
                     $data = $response->json('data');
+                    $oldLevel = $student->mental_level;
 
-                    $student->update([
+                    $updateData = [
                         'mental_level'      => $data['level']      ?? null,
                         'mental_label'      => $data['label']      ?? null,
                         'mental_confidence' => $data['confidence'] ?? null,
                         'mental_red_flag'   => $data['red_flag']   ?? null,
                         'mental_scanned_at' => now(),
-                    ]);
+                    ];
+
+                    if (($data['level'] ?? 0) == 3 && $oldLevel != 3) {
+                        $updateData['mental_notif_read'] = false;
+                    }
+
+                    $student->update($updateData);
+
+                    // Kirim notifikasi HANYA JIKA sebelumnya bukan Level 3
+                    // untuk mencegah spam notifikasi yang sama setiap kali dipindai
+                    if (($data['level'] ?? 0) == 3 && $oldLevel != 3) {
+                        $counselors = \App\Models\User::all();
+                        \Illuminate\Support\Facades\Notification::send($counselors, new \App\Notifications\HighRiskStudentDetected($student));
+                    }
 
                     $saved++;
                 }

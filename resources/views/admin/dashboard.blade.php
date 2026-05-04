@@ -209,6 +209,47 @@
             .progress-bar-bg { background: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .progress-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
+
+        .btn-notification {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #475569;
+        }
+        .btn-notification:hover {
+            background: #f8fafc;
+            color: #1e293b;
+        }
+        .btn-notification.enabled {
+            background: #ecfdf5;
+            color: #059669;
+            border-color: #a7f3d0;
+        }
+
+        .btn-report {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 12px 28px; border-radius: var(--radius-md);
+            font-size: 0.95rem; font-weight: 700;
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white; border: none; cursor: pointer;
+            text-decoration: none; transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+        }
+        .btn-report:hover {
+            background: linear-gradient(135deg, #047857, #065f46);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
+            color: white;
+        }
+        .btn-report i { font-size: 1.1rem; }
     </style>
 @endpush
 
@@ -265,10 +306,15 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                     Pindai Ulang
                 </button>
+                
+                <button class="btn-notification" id="btnWebPush" onclick="togglePush()">
+                    <i class="ti ti-bell"></i>
+                    <span>Aktifkan Notifikasi Sistem</span>
+                </button>
                 @if($countL3 > 0)
-                <a href="{{ route('counselor.prioritas') ?? '#' }}" class="btn-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    Buat Laporan
+                <a href="{{ route('counselor.prioritas') ?? '#' }}" class="btn-report">
+                    <i class="ti ti-file-analytics"></i>
+                    Buat Laporan Prioritas
                 </a>
                 @endif
             </div>
@@ -796,6 +842,35 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadChartData('14d');
         loadTopStudents();
+
+        // Check notification status
+        const btn = document.getElementById('btnWebPush');
+        if (Notification.permission === 'granted') {
+            btn.classList.add('enabled');
+            btn.querySelector('span').innerText = 'Notifikasi Aktif';
+            btn.querySelector('i').className = 'ti ti-bell-filled';
+        }
     });
+
+    function togglePush() {
+        if (Notification.permission === 'granted') {
+            showToast('✅ Notifikasi sudah aktif!');
+            return;
+        }
+
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                initWebPush();
+                const btn = document.getElementById('btnWebPush');
+                btn.classList.add('enabled');
+                btn.querySelector('span').innerText = 'Notifikasi Aktif';
+                btn.querySelector('i').className = 'ti ti-bell-filled';
+                showToast('🚀 Notifikasi sistem berhasil diaktifkan!');
+            } else {
+                showToast('⚠️ Izin notifikasi ditolak.', true);
+            }
+        });
+    }
 </script>
+<script src="{{ asset('js/webpush.js') }}"></script>
 @endpush
