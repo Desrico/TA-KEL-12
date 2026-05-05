@@ -52,20 +52,14 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
 
+    // Riwayat - Mahasiswa dapat melihat riwayat sesi konseling mereka
     Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
     Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('riwayat.detail');
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
 
-    Route::get('/riwayat', [RiwayatController::class, 'riwayatMahasiswa'])->name('riwayat');
-    Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
-    Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('riwayat.detail');
-    Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
-    
-    Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
+    // Chat - Mahasiswa dapat melakukan chat dengan konselor
     Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->name('chat.student');
     Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->name('chat.student.store');
-
-    Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
     Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
     Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
     Route::get('/chat/pesan', [ChatMahasiswaController::class, 'messages'])->name('mahasiswa.chat.messages');

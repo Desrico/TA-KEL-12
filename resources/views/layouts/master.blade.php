@@ -1,4 +1,4 @@
-<!doctype html>
+<doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -1792,86 +1792,6 @@ footer a:hover {
     width: 250px;
   }
 }
-
-/* Success modal used by konseling submission flow */
-.modal-backdrop.show {
-  background: rgba(0,0,0,0.55) !important;
-}
-
-.modal.modal-success .modal-dialog {
-  max-width: 460px;
-  margin: 0 auto;
-}
-
-.modal.modal-success .modal-content {
-  background: var(--primary);
-  color: #fff;
-  border-radius: 16px;
-  padding: 1.7rem 1.6rem 1.5rem;
-  box-shadow: 0 18px 40px rgba(6, 78, 59, 0.24);
-  border: none;
-  text-align: center;
-}
-
-.modal.modal-success .modal-body { padding: 0; }
-
-.modal.modal-success .modal-icon {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 4px solid rgba(255,255,255,.18);
-  font-size: 32px;
-  line-height: 1;
-  color: #fff;
-  background: rgba(255,255,255,.06);
-}
-
-.modal.modal-success .modal-title {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #fff;
-}
-
-.modal.modal-success .modal-text {
-  margin: .5rem 0 0;
-  color: rgba(255,255,255,.9);
-  font-size: .95rem;
-}
-
-.modal.modal-success .success-detail {
-  margin-top: 1rem;
-  display: grid;
-  gap: .55rem;
-  text-align: left;
-}
-
-.modal.modal-success .success-detail-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  border-top: 1px dashed rgba(255,255,255,.18);
-  padding-top: .55rem;
-  color: rgba(255,255,255,.92);
-  font-size: .9rem;
-}
-
-.modal.modal-success .btn-success-close {
-  background: #FDE68A;
-  color: var(--primary);
-  border: none;
-  border-radius: 10px;
-  padding: .5rem 1.1rem;
-  font-weight: 800;
-}
-
-.modal.modal-success .btn-success-close:hover {
-  background: #FCD34D;
-  color: var(--primary);
-}
 </style>
   @vite(['resources/js/app.js'])
   @stack('styles')
@@ -1930,27 +1850,6 @@ footer a:hover {
                   ]);
                 }
               }
-                $relevantBookings = \App\Models\JadwalKonseling::where('mahasiswa_id', $mahasiswaId)
-                  ->whereIn('status', ['disetujui', 'menunggu'])
-                  ->get(['id', 'tanggal', 'waktu', 'status']);
-
-                foreach ($relevantBookings as $jadwal) {
-                  $statusText = $jadwal->status === 'disetujui' ? 'telah disetujui oleh konselor' : 'menunggu persetujuan konselor';
-                  $text = 'Penjadwalan pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' ' . $statusText . '.';
-
-                  // store structured payload in the pesan field as JSON so the frontend can build contextual links
-                  $payload = json_encode([
-                    'type' => 'penjadwalan',
-                    'status' => $jadwal->status,
-                    'jadwal_id' => $jadwal->id,
-                    'text' => $text,
-                  ]);
-
-                  \App\Models\Notifikasi::firstOrCreate(
-                    ['user_id' => Auth::id(), 'pesan' => $payload],
-                    ['status' => 'belum']
-                  );
-                }
             }
 
               $chatGuardSchedule = \App\Models\JadwalKonseling::where('mahasiswa_id', $mahasiswaId)
@@ -2912,19 +2811,7 @@ if (notifDropdownBtn) {
     }
   });
 }
-
-const successModalEl = document.getElementById('globalSuccessModal');
-if (successModalEl) {
-  successModalEl.addEventListener('hidden.bs.modal', () => {
-    const redirectUrl = successModalEl.dataset.redirectUrl;
-    if (redirectUrl) {
-      successModalEl.dataset.redirectUrl = '';
-      window.location.href = redirectUrl;
-    }
-  });
-}
 </script>
-@include('components.modal_success')
 @stack('scripts')
 </body>
 </html>

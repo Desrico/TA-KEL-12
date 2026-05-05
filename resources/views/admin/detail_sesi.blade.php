@@ -11,8 +11,6 @@
         box-shadow: 0 6px 20px rgba(0,0,0,.04);
         padding: 1.5rem 1.6rem;
         max-width: 900px;
-        margin: 1.5rem auto; /* center horizontally */
-        width: calc(100% - 48px);
     }
 
     .detail-title {
@@ -120,9 +118,7 @@
 @endphp
 
 <div class="detail-card">
-    <div style="display:flex;align-items:center;justify-content:flex-start;gap:1rem;">
-        <div class="detail-title">Detail Penjadwalan</div>
-    </div>
+    <div class="detail-title">Detail Penjadwalan</div>
 
     <div class="detail-section-title">Informasi Pribadi</div>
     <table class="detail-table">
@@ -193,19 +189,8 @@
     @elseif($status === 'disetujui')
         <div class="detail-actions">
             <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
-            <a href="{{ route('admin.chat.session', $jadwal->id) }}" class="btn-terima" style="min-width:220px;text-align:center;">
                 Mulai Sesi
             </a>
-            <form action="{{ route('admin.sesi.selesai', $jadwal->id) }}" method="POST" style="display:inline-block;">
-                @csrf
-                <button type="submit" class="btn-tolak" style="background:#0f766e; border-radius:10px; padding:.75rem 1.2rem;">Tandai Selesai</button>
-            </form>
-        </div>
-    @endif
-
-    @if($status === 'ditolak')
-        <div style="text-align:center;margin-top:1.8rem;">
-            <a href="{{ route('admin.sesi') }}" class="btn-terima" style="background:#065F46; min-width:160px;">Kembali</a>
         </div>
     @elseif($status === 'berlangsung')
         <div class="detail-actions">

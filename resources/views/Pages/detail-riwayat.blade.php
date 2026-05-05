@@ -1,669 +1,697 @@
 @extends('layouts.master')
 
-@section('konten')
-@php
-    $status = strtolower(trim($jadwal->jenis ?? 'menunggu konfirmasi'));
-
-    $statusClass = match($status) {
-        'menunggu konfirmasi' => 'bg-yellow',
-        'disetujui', 'diterima' => 'bg-green',
-        'ditolak' => 'bg-red',
-        'sedang berlangsung' => 'bg-blue',
-        'selesai' => 'bg-gray',
-        default => 'bg-gray',
-    };
-
-    // ===== FIX JENIS =====
-    $jenis = strtolower(trim($jadwal->jenis ?? $jadwal->metode ?? ''));
-
-    // fallback dari catatan jika kosong
-    if (!$jenis && !empty($jadwal->catatan) && str_contains($jadwal->catatan, 'Jenis:')) {
-        $parts = explode('Jenis:', $jadwal->catatan);
-        $jenis = strtolower(trim($parts[1]));
-    }
-
-    // NORMALISASI
-    if ($jenis === 'online') {
-        $mediaText = 'Chat, Video Call';
-        $lokasiText = '-';
-        $layananText = 'Online (Chat)';
-    } elseif ($jenis === 'offline') {
-        $mediaText = 'Tatap Muka';
-        $lokasiText = 'Gedung 5 Lantai 2<br>(Antara GD 525 - GD 526)';
-        $layananText = 'Offline (Tatap Muka)';
-    } else {
-        $mediaText = '-';
-        $lokasiText = '-';
-        $layananText = '-';
-    }
-
-    // ===== TOPIK =====
-    $topikText = $jadwal->catatan ?? '-';
-
-    if (!empty($jadwal->catatan) && str_contains($jadwal->catatan, 'Topik:')) {
-        $parts = explode('|', $jadwal->catatan);
-        $topikText = trim(str_replace('Topik:', '', $parts[0]));
-    }
-
-    $alasanText = $jadwal->alasan_penolakan ?? null;
-@endphp
-
-<div class="detail-page">
-
-    <div class="detail-header">
-        <a href="/riwayat" class="back-icon">←</a>
-        <h1>Detail <span>Sesi Konseling</span></h1>
-        <p>Lihat informasi lengkap dari sesi konseling yang telah Anda jadwalkan.</p>
-    </div>
-
-    <div class="detail-wrapper">
-
-        <div class="side-section">
-            <div class="counselor-card">
-                <div class="counselor-top">
-                    <div class="avatar">
-                        <img src="{{ asset('assets/images/avatar-konselor.png') }}" alt="Konselor">
-                    </div>
-                    <div>
-                        <h3>{{ $jadwal->konselor->nama ?? 'Laura' }}</h3>
-                        <p>Konselor Utama</p>
-                    </div>
-                </div>
-
-                <div class="info-row">
-                    <span>⏱️ Durasi</span>
-                    <strong>{{ $jadwal->durasi ?? '60 Menit' }}</strong>
-                </div>
-
-                <div class="info-row">
-                    <span>🎥 Media</span>
-                    <strong>{{ $mediaText }}</strong>
-                </div>
-
-                <div class="info-row">
-                    <span>📍 Lokasi</span>
-                    <strong>{!! $lokasiText !!}</strong>
-                </div>
-            </div>
-
-            <div class="prepare-card">
-                <h3>Persiapan Sesi</h3>
-
-                @if($jenis == 'offline')
-                    <p>Harap tiba 10 menit lebih awal di lokasi konseling yang telah ditentukan.</p>
-                @else
-                    <p>
-                        Pastikan Anda berada di tempat yang tenang dan memiliki koneksi internet
-                        yang stabil sebelum sesi dimulai. Kami merekomendasikan penggunaan
-                        <em>earphone</em>.
-                    </p>
-                @endif
-            </div>
-        </div>
-
-        <div class="detail-card">
-
-            <h2>Detail Penjadwalan</h2>
-
-            <div class="section-title">👤 Informasi Pribadi</div>
-
-            <div class="detail-list">
-                <div class="detail-row">
-                    <span>NIM</span>
-                    <strong>{{ $jadwal->mahasiswa->nim ?? '-' }}</strong>
-                </div>
-
-                <div class="detail-row">
-                    <span>Nama</span>
-                    <strong>
-                        {{ $jadwal->mahasiswa->user->nama ?? '-' }}
-                    </strong>
-                </div>
-
-                <div class="detail-row">
-                    <span>Program Studi</span>
-                    <strong>{{ $jadwal->mahasiswa->program_studi ?? $jadwal->mahasiswa->jurusan ?? '-' }}</strong>
-                </div>
-
-                <div class="detail-row">
-                    <span>Angkatan</span>
-                    <strong>{{ $jadwal->mahasiswa->angkatan ?? '-' }}</strong>
-                </div>
-            </div>
-
-            <div class="section-title">🕒 Detail Jadwal</div>
-
-            <div class="detail-list">
-                <div class="detail-row">
-                    <span>Tanggal</span>
-                    <strong>{{ $jadwal->tanggal }}</strong>
-                </div>
-
-                <div class="detail-row">
-                    <span>Waktu</span>
-                    <strong>{{ $jadwal->waktu }}</strong>
-                </div>
-            </div>
-
-            <div class="section-title">🎧 Layanan</div>
-
-            <div class="detail-list">
-                <div class="detail-row">
-                    <span>Layanan Konseling</span>
-                    <strong>{{ $layananText }}</strong>
-                </div>
-
-                <div class="detail-row">
-                    <span>Topik</span>
-                    <strong>{{ $topikText }}</strong>
-                </div>
-
-                <div class="detail-row">
-                    <span>Status</span>
-                    <span class="status-pill {{ $statusClass }}">
-                        {{ ucwords($jadwal->status) }}
-                    </span>
-                </div>
-
-               @php
-                    $statusLower = strtolower($jadwal->status ?? '');
-                @endphp
-
-                @if(in_array($statusLower, ['menunggu', 'menunggu konfirmasi']))
-                    <div class="action-center">
-                        <a href="{{ route('riwayat') }}" class="btn-ubah">
-                            Kembali ke Riwayat
-                        </a>
-                    </div>
-                @endif
-
-@if(in_array($status, ['disetujui', 'diterima', 'sedang berlangsung']) && !empty($jadwal->link_zoom))
-    <div class="detail-row zoom-row">
-        <span>Link Zoom</span>
-
-        <div class="zoom-link-box">
-            <a href="{{ $jadwal->link_zoom }}" target="_blank">
-                {{ $jadwal->link_zoom }}
-            </a>
-
-            <button type="button" class="btn-copy" onclick="copyZoomLink('{{ $jadwal->link_zoom }}')">
-                Copy
-            </button>
-        </div>
-    </div>
-@endif
-
-            </div>
-
-            @php
-    $statusLower = strtolower($jadwal->status ?? '');
-@endphp
-
-<div class="action-section" style="margin-top: 20px;">
-
-    {{-- DITERIMA --}}
-    @if(in_array($statusLower, ['disetujui', 'diterima']))
-    <div style="text-align: center; margin-top: 20px;">
-    <a href="{{ route('sesi.mulai', $jadwal->id) }}" class="btn-mulai">
-        Mulai Sesi
-    </a>
-</div>
-
-    {{-- MENUNGGU --}}
-    @elseif($statusLower == 'menunggu konfirmasi')
-        <button class="btn-disabled">Menunggu Konfirmasi</button>
-
-    {{-- DITOLAK --}}
-    @elseif($statusLower == 'ditolak')
-        <a href="{{ route('riwayat') }}" class="btn-secondary">
-            Kembali ke Riwayat
-        </a>
-
-    {{-- BERLANGSUNG --}}
-    @elseif($statusLower == 'sedang berlangsung')
-        <a href="{{ route('sesi.lanjut', $jadwal->id) }}" class="btn-mulai">
-            Lanjutkan Sesi
-        </a>
-
-    {{--     SELESAI --}}
-    @elseif($statusLower == 'selesai')
-        <a href="{{ route('sesi.detail', $jadwal->id) }}" class="btn-secondary">
-            Lihat Sesi
-        </a>
-    @endif
-
-</div>
-
-            @if($status == 'ditolak')
-                <div class="catatan">
-                    <strong>Alasan Penolakan:</strong>
-                    <p>{{ $alasanText ?: 'Tidak ada keterangan.' }}</p>
-                </div>
-            @endif
-
-            @if($status == 'selesai')
-                <div class="catatan">
-                    <strong>Catatan Konselor:</strong>
-                    <p>{{ $jadwal->catatan ?? 'Tidak ada catatan.' }}</p>
-                </div>
-            @endif
-
-            <div class="bottom-action">
-
-                @if($status == 'menunggu konfirmasi')
-                    <a href="#" class="btn-outline">Ubah Jadwal</a>
-                @endif
-
-                @if(in_array($status, ['disetujui', 'diterima']))
-                    @if($jenis == 'online' && !empty($jadwal->link_zoom))
-                        <a href="{{ $jadwal->link_zoom }}" target="_blank" class="btn-primary">Mulai Sesi</a>
-                    @elseif($jenis == 'online')
-                        <button class="btn-disabled" disabled>Link Zoom Belum Ada</button>
-                    @else
-                        <a href="#" class="btn-primary">Mulai Sesi</a>
-                    @endif
-                @endif
-
-                @if($status == 'sedang berlangsung')
-                    @if($jenis == 'online' && !empty($jadwal->link_zoom))
-                        <a href="{{ $jadwal->link_zoom }}" target="_blank" class="btn-primary">Lanjutkan Sesi</a>
-                    @elseif($jenis == 'online')
-                        <button class="btn-disabled" disabled>Link Zoom Belum Ada</button>
-                    @else
-                        <a href="#" class="btn-primary">Lanjutkan Sesi</a>
-                    @endif
-                @endif
-
-                @if($status == 'selesai')
-                    <a href="#" class="btn-outline">Lihat Sesi</a>
-                @endif
-
-                @if(in_array($status, ['ditolak', 'selesai']))
-                    <a href="/riwayat" class="btn-back">Kembali ke Riwayat</a>
-                @endif
-
-            </div>
-
-        </div>
-    </div>
-</div>
-
+@push('styles')
 <style>
-.detail-page {
-    padding: 70px 80px;
-    background: #F6FBF8;
-    min-height: 100vh;
-    color: #242424;
-}
+  .profil-page {
+    background: linear-gradient(180deg, var(--navbar-bg) 0%, #ffffff 28%);
+    padding: 2.5rem 0 4rem;
+  }
 
-.back-icon {
-    width: 34px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    color: #1F2937;
-    border: 1px solid #E5E7EB;
-    border-radius: 8px;
+  .profil-page-head {
+    margin-bottom: 1.5rem;
+  }
+
+  .profil-breadcrumb {
+    font-size: .82rem;
+    color: var(--text-light);
+    margin-bottom: .7rem;
+  }
+
+  .profil-breadcrumb a {
+    color: var(--text-light);
     text-decoration: none;
-    margin-bottom: 18px;
-}
+  }
 
-.detail-header h1 {
-    font-size: 54px;
-    line-height: 1.08;
-    font-weight: 900;
-    margin-bottom: 14px;
-    max-width: 720px;
-}
+  .profil-breadcrumb a:hover {
+    color: var(--primary);
+  }
 
-.detail-header span {
-    color: #416B4C;
-}
+  .profil-page-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    color: var(--text-dark);
+    margin-bottom: .45rem;
+  }
 
-.detail-header p {
-    color: #6B7280;
-    margin-bottom: 34px;
-    font-size: 17px;
-    max-width: 560px;
-    line-height: 1.6;
-}
+  .profil-page-desc {
+    color: var(--text-mid);
+    font-size: .95rem;
+    line-height: 1.8;
+    margin: 0;
+    max-width: 700px;
+  }
 
-.detail-wrapper {
-    display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: 42px;
-    align-items: flex-start;
-}
+  .profil-layout {
+    row-gap: 1.5rem;
+  }
 
-.side-section {
-    display: flex;
-    flex-direction: column;
-    gap: 26px;
-}
+  .profil-side-card,
+  .profil-main-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: var(--shadow-sm);
+  }
 
-.counselor-card,
-.detail-card {
-    background: white;
-    border: 1px solid #E5E7EB;
-    border-radius: 24px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
-}
+  .profil-side-card {
+    padding: 1.25rem;
+  }
 
-.counselor-card {
-    padding: 24px;
-}
+  .profil-main-card {
+    padding: 1.5rem;
+  }
 
-.counselor-top {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    margin-bottom: 28px;
-}
+  .profil-user-box {
+    text-align: center;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid #eef5f1;
+    margin-bottom: 1.2rem;
+  }
 
-.avatar {
-    width: 64px;
-    height: 64px;
+  .profil-avatar-wrap {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 1rem;
+  }
+
+  .profil-avatar {
+    width: 96px;
+    height: 96px;
     border-radius: 50%;
-    background: #DDF6F2;
     overflow: hidden;
-}
+    background: #f1f5f9;
+    border: 3px solid #fff;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    position: relative;
+  }
 
-.avatar img {
+  .profil-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-}
-
-.counselor-top h3 {
-    margin: 0;
-    font-size: 17px;
-}
-
-.counselor-top p {
-    margin: 5px 0 0;
-    color: #55715F;
-    font-size: 14px;
-}
-
-.info-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 18px;
-    padding: 15px 0;
-    border-top: 1px solid #E5E7EB;
-    font-size: 14px;
-}
-
-.info-row span {
-    color: #55715F;
-}
-
-.info-row strong {
-    color: #416B4C;
-    text-align: right;
-}
-
-.prepare-card {
-    background: #D1F0D5;
-    border-radius: 24px;
-    padding: 24px;
-    color: #047857;
-}
-
-.prepare-card h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 18px;
-}
-
-.prepare-card p {
-    margin: 0;
-    line-height: 1.7;
-    font-size: 14px;
-}
-
-.detail-card {
-    padding: 28px 32px 34px;
-}
-
-.detail-card h2 {
-    font-size: 25px;
-    margin: 0 0 25px;
-}
-
-.section-title {
-    font-size: 19px;
-    font-weight: 800;
-    margin: 24px 0 12px;
-}
-
-.detail-list {
-    width: 100%;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 24px;
-    padding: 12px 0;
-    border-bottom: 1px solid #E5E7EB;
-    font-size: 16px;
-}
-
-.detail-row span {
-    color: #444;
-}
-
-.detail-row strong {
-    text-align: right;
-    font-weight: 800;
-}
-
-.status-pill {
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 800;
-    display: inline-block;
-}
-
-.bg-blue { background: #DBEAFE; color: #1D4ED8; }
-.bg-red { background: #FEE2E2; color: #B91C1C; }
-.bg-green { background: #D1FAE5; color: #047857; }
-.bg-yellow { background: #FEF3C7; color: #B45309; }
-.bg-gray { background: #F3F4F6; color: #4B5563; }
-
-.catatan {
-    margin-top: 22px;
-}
-
-.catatan strong {
     display: block;
-    margin-bottom: 8px;
-}
+  }
 
-.catatan p {
-    margin: 0;
-}
-
-.bottom-action {
-    display: flex;
-    justify-content: center;
-    gap: 14px;
-    margin-top: 30px;
-    flex-wrap: wrap;
-}
-
-.btn-mulai {
-    display: inline-block;
-    padding: 12px 26px;
-    background: #064E3B;
-    color: white;
-    border-radius: 999px;
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.btn-mulai:hover {
-    background: #043d2f;
-}
-
-.action-center {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.btn-ubah {
-    background: #FDBA5A;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 999px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: 0.3s;
-}
-
-.btn-ubah:hover {
-    background: #f59e0b;
-}
-
-.btn-secondary {
-    display: inline-block;
-    padding: 12px 26px;
-    background: #E5E7EB;
-    color: #374151;
-    border-radius: 999px;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.action-center {
-    display: flex;
-    justify-content: center;
-    margin-top: 24px;
-}
-
-.btn-ubah {
-    background: #064E3B;
-    color: white;
-    padding: 12px 28px;
-    border-radius: 999px;
-    text-decoration: none;
-    font-weight: 700;
-}
-
-.btn-disabled {
-    padding: 12px 26px;
-    background: #F3F4F6;
-    color: #9CA3AF;
-    border-radius: 999px;
-    border: none;
-}
-
-.btn-outline,
-.btn-primary,
-.btn-back,
-.btn-disabled {
-    min-width: 220px;
-    text-align: center;
-    padding: 12px 22px;
-    border-radius: 999px;
-    text-decoration: none;
-    font-weight: 700;
-    transition: 0.2s ease;
-}
-
-.btn-outline {
-    border: 1px solid #D1D5DB;
-    color: #374151;
-    background: white;
-}
-
-.btn-primary {
-    background: #064E3B;
-    color: white;
-    border: 1px solid #064E3B;
-}
-
-.btn-back {
-    background: #F3F4F6;
-    color: #374151;
-    border: 1px solid #E5E7EB;
-}
-
-.btn-disabled {
-    background: #E5E7EB;
-    color: #6B7280;
-    border: 1px solid #D1D5DB;
-    cursor: not-allowed;
-}
-
-.zoom-row {
-    align-items: center;
-}
-
-.zoom-link-box {
+  .profil-avatar-fallback {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
-    gap: 10px;
-    max-width: 70%;
-}
+    justify-content: center;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 2rem;
+  }
 
-.zoom-link-box a {
-    color: #064E3B;
-    font-weight: 700;
-    word-break: break-all;
-}
-
-.btn-copy {
-    border: none;
-    background: #E5F7EF;
-    color: #064E3B;
-    padding: 8px 14px;
-    border-radius: 999px;
-    font-weight: 700;
+  .profil-avatar-edit {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .78rem;
     cursor: pointer;
-}
+    box-shadow: var(--shadow-sm);
+  }
 
-.btn-copy:hover {
-    background: #CFEFD8;
-}
+  .profil-user-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-dark);
+    margin-bottom: .2rem;
+  }
 
-@media (max-width: 900px) {
-    .detail-page {
-        padding: 40px 24px;
+  .profil-user-meta {
+    color: var(--text-light);
+    font-size: .84rem;
+    line-height: 1.6;
+    margin-bottom: .8rem;
+  }
+
+  .profil-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-radius: 999px;
+    padding: .3rem .8rem;
+    font-size: .74rem;
+    font-weight: 700;
+  }
+
+  .profil-status-badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--primary-500);
+  }
+
+  .profil-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .8rem;
+    margin-bottom: 1rem;
+  }
+
+  .profil-stat-box {
+    background: #f8fffb;
+    border: 1px solid #e6f2ec;
+    border-radius: 16px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .profil-stat-number {
+    font-family: 'Fraunces', serif;
+    font-size: 1.8rem;
+    line-height: 1;
+    color: var(--primary);
+    margin-bottom: .25rem;
+  }
+
+  .profil-stat-label {
+    font-size: .76rem;
+    color: var(--text-light);
+  }
+
+  .profil-link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 12px;
+    padding: .75rem 1rem;
+    font-size: .86rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all .2s ease;
+  }
+
+  .profil-link-btn:hover {
+    background: #f8fffb;
+    color: var(--primary);
+  }
+
+  .profil-anon-card {
+    margin-top: 1rem;
+    background: #f8fffb;
+    border: 1px solid #e6f2ec;
+    border-radius: 18px;
+    padding: 1rem;
+  }
+
+  .profil-anon-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: .7rem;
+  }
+
+  .profil-anon-title {
+    font-weight: 700;
+    font-size: .92rem;
+    color: var(--text-dark);
+    margin-bottom: .15rem;
+  }
+
+  .profil-anon-desc {
+    font-size: .8rem;
+    color: var(--text-light);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #d1d5db;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: .25s ease;
+  }
+
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: .25s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background: var(--primary);
+  }
+
+  .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(22px);
+  }
+
+  .profil-main-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .profil-main-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-dark);
+    margin: 0;
+  }
+
+  .profil-main-sub {
+    font-size: .84rem;
+    color: var(--text-light);
+    margin: .2rem 0 0;
+  }
+
+  .profil-edit-btn {
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: white;
+    border-radius: 12px;
+    padding: .7rem 1rem;
+    font-size: .84rem;
+    font-weight: 700;
+    transition: all .2s ease;
+  }
+
+  .profil-edit-btn:hover {
+    background: var(--primary-700);
+    border-color: var(--primary-700);
+    color: white;
+  }
+
+  .profil-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 1.1rem;
+  }
+
+  .profil-field {
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+  }
+
+  .profil-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .profil-label {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+
+  .profil-value-box {
+    min-height: 46px;
+    border: 1px solid #d8e8df;
+    border-radius: 12px;
+    background: #fff;
+    padding: .72rem .9rem;
+    font-size: .9rem;
+    color: var(--text-mid);
+    display: flex;
+    align-items: center;
+  }
+
+  .edit-field {
+    min-height: 46px;
+    border: 1px solid #d8e8df;
+    border-radius: 12px;
+    background: #fff;
+    padding: .72rem .9rem;
+    font-size: .9rem;
+    width: 100%;
+    transition: all .2s ease;
+  }
+
+  .edit-field:focus {
+    border-color: #9ccdb5;
+    box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.08);
+    outline: none;
+  }
+
+  .profil-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-radius: 999px;
+    padding: .32rem .8rem;
+    font-size: .75rem;
+    font-weight: 700;
+  }
+
+  .profil-actions {
+    margin-top: 1.2rem;
+    display: none;
+    gap: .75rem;
+    flex-wrap: wrap;
+  }
+
+  .profil-save-btn {
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: white;
+    border-radius: 12px;
+    padding: .75rem 1.1rem;
+    font-size: .84rem;
+    font-weight: 700;
+  }
+
+  .profil-save-btn:hover {
+    background: var(--primary-700);
+    border-color: var(--primary-700);
+    color: white;
+  }
+
+  .profil-note-box {
+    margin-top: 1rem;
+    background: #f8fffb;
+    border: 1px solid #e6f2ec;
+    border-radius: 16px;
+    padding: 1rem;
+    color: var(--text-mid);
+    font-size: .84rem;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 991.98px) {
+    .profil-grid {
+      grid-template-columns: 1fr;
     }
-
-    .detail-header h1 {
-        font-size: 40px;
-    }
-
-    .detail-wrapper {
-        grid-template-columns: 1fr;
-    }
-
-    .bottom-action {
-        flex-direction: column;
-    }
-
-    .btn-outline,
-    .btn-primary,
-    .btn-back,
-    .btn-disabled {
-        width: 100%;
-    }
-}
+  }
 </style>
+@endpush
 
+@section('konten')
+
+@php
+    $mahasiswa = $user->mahasiswa;
+    $profil = $user->profil;
+@endphp
+
+<section class="profil-page">
+  <div class="container">
+    @if(session('success'))
+      <div class="alert alert-success rounded-3 mb-4">
+        <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+      </div>
+    @endif
+
+    <div class="row profil-layout">
+      <div class="col-lg-4">
+        <div class="profil-side-card">
+          <div class="profil-user-box">
+            <div class="profil-avatar-wrap">
+                <div class="profil-avatar" id="avatar-preview-wrap">
+                    @if(optional($profil)->foto)
+                    <img src="{{ Storage::url($profil->foto) }}" id="avatar-img" alt="Foto Profil">
+                    @else
+                    <div class="profil-avatar-fallback">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    @endif
+
+                    <div class="profil-avatar-overlay" id="avatar-overlay">
+                    <i class="bi bi-camera"></i>
+                    <span>Ganti Foto</span>
+                    </div>
+                </div>
+                </div>
+
+            <div class="profil-user-name" id="nama-header">
+              {{ $user->isAnonim() ? 'Mahasiswa Anonim' : $user->nama }}
+            </div>
+
+            <div class="profil-user-meta">
+              {{ $mahasiswa->nim ?? '-' }}<br>
+              {{ $mahasiswa->jurusan ?? '-' }} · Angkatan {{ $mahasiswa->angkatan ?? '-' }}
+            </div>
+          </div>
+
+          <div class="profil-stat-grid">
+            <div class="profil-stat-box">
+              <div class="profil-stat-number">{{ $totalKonseling }}</div>
+              <div class="profil-stat-label">Total Konseling</div>
+            </div>
+            <div class="profil-stat-box">
+              <div class="profil-stat-number">{{ $sesiBerlangsung }}</div>
+              <div class="profil-stat-label">Sesi Disetujui</div>
+            </div>
+          </div>
+
+          <a href="{{ route('riwayat') }}" class="profil-link-btn">
+            <i class="bi bi-clock-history me-2"></i>Lihat Riwayat
+          </a>
+
+          <div class="profil-anon-card">
+            <div class="profil-anon-top">
+              <div>
+                <div class="profil-anon-title">Mode Anonim</div>
+                <p class="profil-anon-desc">
+                  Sembunyikan identitas dari konselor pada kondisi tertentu.
+                </p>
+              </div>
+
+              <label class="toggle-switch">
+                <input type="checkbox" {{ optional($profil)->anonim ? 'checked' : '' }} onchange="toggleAnonim(this)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="profil-note-box">
+              Saat mode anonim aktif, identitas mahasiswa tidak ditampilkan secara penuh pada alur layanan tertentu sehingga pengguna dapat merasa lebih nyaman saat memulai proses konseling.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <form method="POST" action="{{ route('profil.update') }}" id="profil-form" enctype="multipart/form-data">
+            @csrf
+            
+            <!-- File input untuk foto (tersembunyi secara visual, tapi dalam form) -->
+            <input
+                type="file"
+                id="foto-input"
+                name="foto"
+                accept="image/jpg,image/jpeg,image/png"
+                style="display:none"
+                onchange="previewFoto(this)"
+            >
+
+          <div class="profil-main-card">
+            <div class="profil-main-head">
+              <div>
+                <h2 class="profil-main-title">Informasi Profil</h2>
+                <p class="profil-main-sub">Data ini digunakan untuk kebutuhan akun dan layanan konseling.</p>
+              </div>
+
+              <button type="button" class="profil-edit-btn" onclick="toggleEdit()">
+                <i class="bi bi-pencil-fill me-1" id="edit-icon"></i>
+                <span id="edit-btn-text">Edit Profil</span>
+                </button>
+            </div>
+
+            <div class="profil-grid">
+              <div class="profil-field full">
+                <label class="profil-label">Nama Lengkap</label>
+                <div class="profil-value-box" id="view-nama">
+                  {{ $user->isAnonim() ? 'Mahasiswa Anonim' : $user->nama }}
+                </div>
+                <input type="text" name="nama" id="edit-nama" class="edit-field" style="display:none" value="{{ $user->nama }}">
+              </div>
+
+              <div class="profil-field">
+                <label class="profil-label">NIM</label>
+                <div class="profil-value-box" id="view-nim">
+                  {{ $user->isAnonim() ? '••••••••' : ($mahasiswa->nim ?? '-') }}
+                </div>
+                <input type="text" name="nim" id="edit-nim" class="edit-field" style="display:none" value="{{ $mahasiswa->nim ?? '' }}">
+              </div>
+
+              <div class="profil-field">
+                <label class="profil-label">Angkatan</label>
+                <div class="profil-value-box" id="view-angkatan">{{ $mahasiswa->angkatan ?? '-' }}</div>
+                <select name="angkatan" id="edit-angkatan" class="edit-field" style="display:none">
+                  @foreach(['2021','2022','2023','2024','2025'] as $tahun)
+                    <option value="{{ $tahun }}" {{ ($mahasiswa->angkatan ?? '') == $tahun ? 'selected' : '' }}>
+                      {{ $tahun }}
+                    </option>
+                  @endforeach
+                </select>
+              </div>
+
+              <div class="profil-field full">
+                <label class="profil-label">Program Studi</label>
+                <div class="profil-value-box" id="view-jurusan">{{ $mahasiswa->jurusan ?? '-' }}</div>
+                <select name="jurusan" id="edit-jurusan" class="edit-field" style="display:none">
+                  <option value="D3 Teknologi Informasi" {{ ($mahasiswa->jurusan ?? '') == 'D3 Teknologi Informasi' ? 'selected' : '' }}>D3 Teknologi Informasi</option>
+                  <option value="D3 Teknologi Komputer" {{ ($mahasiswa->jurusan ?? '') == 'D3 Teknologi Komputer' ? 'selected' : '' }}>D3 Teknologi Komputer</option>
+                  <option value="D4 Teknologi Rekayasa Perangkat Lunak" {{ ($mahasiswa->jurusan ?? '') == 'D4 Teknologi Rekayasa Perangkat Lunak' ? 'selected' : '' }}>D4 Teknologi Rekayasa Perangkat Lunak</option>
+                  <option value="S1 Sistem Informasi" {{ ($mahasiswa->jurusan ?? '') == 'S1 Sistem Informasi' ? 'selected' : '' }}>S1 Sistem Informasi</option>
+                  <option value="S1 Manajemen Rekayasa" {{ ($mahasiswa->jurusan ?? '') == 'S1 Manajemen Rekayasa' ? 'selected' : '' }}>S1 Manajemen Rekayasa</option>
+                  <option value="S1 Teknik Elektro" {{ ($mahasiswa->jurusan ?? '') == 'S1 Teknik Elektro' ? 'selected' : '' }}>S1 Teknik Elektro</option>
+                  <option value="S1 Informatika" {{ ($mahasiswa->jurusan ?? '') == 'S1 Informatika' ? 'selected' : '' }}>S1 Informatika</option>
+                  <option value="S1 Teknik Bioproses" {{ ($mahasiswa->jurusan ?? '') == 'S1 Teknik Bioproses' ? 'selected' : '' }}>S1 Teknik Bioproses</option>
+                  <option value="S1 Bioteknologi" {{ ($mahasiswa->jurusan ?? '') == 'S1 Bioteknologi' ? 'selected' : '' }}>S1 Bioteknologi</option>
+                  <option value="S1 Metalurgi" {{ ($mahasiswa->jurusan ?? '') == 'S1 Metalurgi' ? 'selected' : '' }}>S1 Metalurgi</option>
+                </select>
+              </div>
+
+              <div class="profil-field full">
+                <label class="profil-label">Email</label>
+                <div class="profil-value-box">{{ $user->email }}</div>
+              </div>
+
+              <div class="profil-field full">
+                <label class="profil-label">Status</label>
+                <div class="profil-value-box">
+                  <span class="profil-status-pill">
+                    <i class="bi bi-check-circle"></i> Mahasiswa Aktif
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="profil-actions" id="save-btn-wrap">
+              <button type="submit" class="profil-save-btn">
+                <i class="bi bi-check2 me-1"></i>Simpan Perubahan
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+@endsection
+
+@push('scripts')
 <script>
-function copyZoomLink(link) {
-    navigator.clipboard.writeText(link).then(function () {
-        alert('Link Zoom berhasil disalin.');
+let isEditMode = false;
+
+document.addEventListener('DOMContentLoaded', function () {
+    const hideIds = ['edit-nama', 'edit-nim', 'edit-jurusan', 'edit-angkatan'];
+    hideIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
     });
+
+    const saveBtn = document.getElementById('save-btn-wrap');
+    if (saveBtn) saveBtn.style.display = 'none';
+
+    ['view-nama', 'view-nim', 'view-jurusan', 'view-angkatan'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'flex';
+    });
+
+    setAvatarEditState(false);
+    isEditMode = false;
+});
+
+function toggleEdit() {
+    isEditMode = !isEditMode;
+
+    ['nama', 'nim', 'jurusan', 'angkatan'].forEach(field => {
+        const viewEl = document.getElementById(`view-${field}`);
+        const editEl = document.getElementById(`edit-${field}`);
+
+        if (viewEl) viewEl.style.display = isEditMode ? 'none' : 'flex';
+        if (editEl) editEl.style.display = isEditMode ? 'block' : 'none';
+    });
+
+    const saveBtn = document.getElementById('save-btn-wrap');
+    if (saveBtn) saveBtn.style.display = isEditMode ? 'flex' : 'none';
+
+    document.getElementById('edit-icon').className = isEditMode ? 'bi bi-x-lg me-1' : 'bi bi-pencil-fill me-1';
+    document.getElementById('edit-btn-text').textContent = isEditMode ? 'Batal Edit' : 'Edit Profil';
+
+    setAvatarEditState(isEditMode);
+}
+
+function setAvatarEditState(editable) {
+    const avatar = document.getElementById('avatar-preview-wrap');
+    const fotoInput = document.getElementById('foto-input');
+
+    if (!avatar || !fotoInput) return;
+
+    if (editable) {
+        avatar.classList.add('editable');
+        avatar.onclick = function () {
+            fotoInput.click();
+        };
+    } else {
+        avatar.classList.remove('editable');
+        avatar.onclick = null;
+    }
+}
+
+function previewFoto(input) {
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const wrap = document.getElementById('avatar-preview-wrap');
+        wrap.innerHTML = `
+            <img src="${e.target.result}" alt="Preview Foto Profil">
+            <div class="profil-avatar-overlay" id="avatar-overlay">
+              <i class="bi bi-camera"></i>
+              <span>Ganti Foto</span>
+            </div>
+        `;
+
+        if (isEditMode) {
+            wrap.classList.add('editable');
+            wrap.onclick = function () {
+                document.getElementById('foto-input').click();
+            };
+        }
+    };
+
+    reader.readAsDataURL(file);
 }
 </script>
-
-@endsection 
+@endpush

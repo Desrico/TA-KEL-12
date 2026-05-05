@@ -12,69 +12,6 @@
         </p>
     </div>
 
-    <div class="kons-card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0" style="font-size:.85rem">
-                <thead style="background:#f8fafb">
-                    <tr style="color:#8898aa;font-size:.73rem;text-transform:uppercase">
-                        <th class="px-4 py-3">Mahasiswa</th>
-                        <th class="py-3">Jenis</th>
-                        <th class="py-3">Status</th>
-                        <th class="py-3">Tanggal</th>
-                        <th class="py-3">Waktu</th>
-                        <th class="py-3">Catatan</th>
-                        <th class="py-3 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($riwayat as $l)
-                    @php
-                        $status = strtolower($l->status ?? 'menunggu');
-                        $jenis = strtolower($l->jenis ?? 'offline');
-                        $scheduledAt = $jenis === 'online'
-                            ? \Carbon\Carbon::parse(trim($l->tanggal . ' ' . ($l->waktu ?? '00:00:00')))
-                            : null;
-                        $isBeforeSchedule = $scheduledAt && now()->lt($scheduledAt);
-                        $canStartChat = $jenis === 'online'
-                            && in_array($status, ['disetujui', 'berlangsung'], true)
-                            && ! $isBeforeSchedule;
-                    @endphp
-                    <tr>
-                        <td class="px-4 py-3">
-                            <div style="font-weight:600">{{ optional(optional($l->mahasiswa)->user)->nama ?? 'Anonim' }}</div>
-                            <div style="font-size:.75rem;color:#8898aa">{{ optional($l->mahasiswa)->nim ?? '-' }}</div>
-                        </td>
-                        <td class="py-3">{{ ucfirst($l->jenis ?? '-') }}</td>
-                        <td class="py-3">{{ ucfirst($l->status ?? '-') }}</td>
-                        <td class="py-3">{{ \Carbon\Carbon::parse($l->tanggal)->format('d M Y') }}</td>
-                        <td class="py-3">{{ $l->waktu }} WIB</td>
-                        <td class="py-3" style="font-size:.78rem">{{ $l->catatan ?? '-' }}</td>
-                        <td class="py-3 text-center">
-                            @if($canStartChat)
-                                <a href="{{ route('mahasiswa.chat') }}" class="btn btn-sm" style="background:#065F46;color:#fff;border-radius:10px;padding:.45rem .85rem;font-weight:600;">
-                                    {{ $status === 'berlangsung' ? 'Lanjutkan Chat' : 'Mulai Sesi' }}
-                                </a>
-                            @elseif($jenis === 'online' && in_array($status, ['disetujui', 'berlangsung'], true) && $isBeforeSchedule)
-                                <button
-                                    type="button"
-                                    class="btn btn-sm"
-                                    style="background:#cbd5e1;color:#475569;border-radius:10px;padding:.45rem .85rem;font-weight:600;border:none;"
-                                    title="Sesi dimulai {{ $scheduledAt->translatedFormat('j F Y') }} pukul {{ $scheduledAt->format('H:i') }} WIB"
-                                    disabled
-                                >
-                                    Mulai {{ $scheduledAt->format('H:i') }} WIB
-                                </button>
-                            @else
-                                <span style="font-size:.75rem;color:#94a3b8;">-</span>
-                            @endif
-                        </td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="7" class="text-center py-5" style="color:#8898aa">Belum ada laporan</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-
     <div class="riwayat-content">
 
         <!-- LEFT: LIST -->
@@ -118,55 +55,42 @@
     @endphp
 
     <div class="riwayat-card">
-
         <div class="card-left">
             <div class="avatar">
                 {{ strtoupper(substr($item->mahasiswa->nama ?? 'M', 0, 1)) }}
             </div>
-
             <div class="info">
                 <h3>{{ $item->mahasiswa->nama ?? 'Mahasiswa' }}</h3>
-                <p>
-                    {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d F Y') }}
-                    • {{ $item->waktu ?? '00:00' }} WIB
-                </p>
+                <p>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }} • {{ substr($item->waktu ?? '00:00', 0, 5) }} WIB</p>
             </div>
         </div>
 
         <div class="card-middle">
-            <div>
+            <div class="meta-col">
                 <small>DURASI</small>
                 <strong>{{ $item->durasi ?? '60 Menit' }}</strong>
             </div>
-
-            <div>
+            <div class="meta-col">
                 <small>METODE</small>
                 <strong>{{ $metodeText }}</strong>
             </div>
-
-            <div>
+            <div class="meta-col meta-topic">
                 <small>TOPIK</small>
-                <strong>{{ $topikText }}</strong>
+                <strong>{{ Str::limit($topikText, 45, '...') }}</strong>
             </div>
         </div>
 
         <div class="card-right">
-            <span class="status-pill {{ $statusClass }}">
-                {{ $statusLabel }}
-            </span>
-
-            <a href="{{ route('riwayat.detail', $item->id) }}" class="btn-riwayat">
-                Lihat Riwayat
-            </a>
+            <span class="status-pill {{ $statusClass }}">{{ $statusLabel }}</span>
+            <a href="{{ route('riwayat.detail', $item->id) }}" class="btn-riwayat">Lihat Riwayat</a>
         </div>
-
     </div>
 @endforeach
 
-      @if($riwayat->hasPages())
+@if(is_object($riwayat) && method_exists($riwayat, 'hasPages') && $riwayat->hasPages())
     <div class="simple-pagination">
 
-        @if(!$riwayat->onFirstPage())
+        @if(method_exists($riwayat,'onFirstPage') && !$riwayat->onFirstPage())
             <a href="{{ $riwayat->previousPageUrl() }}" class="simple-next">
                 ‹
             </a>
@@ -179,9 +103,9 @@
             </a>
         @endfor
 
-        @if($riwayat->hasMorePages())
+        @if(method_exists($riwayat,'hasMorePages') && $riwayat->hasMorePages())
             <a href="{{ $riwayat->nextPageUrl() }}" class="simple-next">
-                ›
+                >
             </a>
         @endif
 
@@ -198,12 +122,12 @@
 
                 <div class="summary-item">
                     <span>Total Sesi</span>
-                    <strong>{{ $totalSesi }}</strong>
+                    <strong>{{ count($riwayat) ?? 0 }}</strong>
                 </div>
 
                 <div class="summary-item">
                     <span>Sesi Selesai</span>
-                    <strong>{{ $sesiSelesai }}</strong>
+                    <strong>{{ isset($riwayat) ? collect($riwayat)->where('status','Selesai')->count() : 0 }}</strong>
                 </div>
             </div>
 
@@ -223,11 +147,9 @@
     </div>
 </div>
 
-@endsection
-
 <style>
 .riwayat-page {
-    padding: 70px 80px;
+    padding: 60px 60px;
     background: #F6FBF8;
     min-height: 100vh;
     overflow-x: hidden;
@@ -236,7 +158,7 @@
 
 /* HEADER */
 .riwayat-header h1 {
-    font-size: 52px;
+    font-size: 42px;
     line-height: 1.1;
     font-weight: 800;
     margin-bottom: 16px;
@@ -250,16 +172,16 @@
 .riwayat-header p {
     color: #6B7280;
     max-width: 680px;
-    font-size: 17px;
-    line-height: 1.7;
-    margin-bottom: 55px;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 45px;
 }
 
 /* MAIN LAYOUT */
 .riwayat-content {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 32px;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 28px;
     align-items: flex-start;
 }
 
@@ -268,24 +190,24 @@
 }
 
 .riwayat-sidebar {
-    width: 300px;
-    min-width: 300px;
+    width: 280px;
+    min-width: 280px;
 }
 
 /* CARD */
 .riwayat-card {
     display: grid;
-    grid-template-columns: 300px minmax(280px, 1fr) 320px;
+    grid-template-columns: minmax(250px, 280px) minmax(300px, 1fr) minmax(280px, 340px);
     align-items: center;
     gap: 20px;
     width: 100%;
     box-sizing: border-box;
-    padding: 22px 26px;
-    border-radius: 22px;
-    border: 2px solid #CFF2E3;
-    margin-bottom: 20px;
+    padding: 20px 24px;
+    border-radius: 20px;
+    border: 2px solid #E8F0EB;
+    margin-bottom: 14px;
     background: #ffffff;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* LEFT */
@@ -316,42 +238,56 @@
 
 .info h3 {
     margin: 0 0 4px;
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 800;
     color: #111827;
 }
 
 .info p {
     margin: 0;
-    font-size: 14px;
+    font-size: 13px;
     color: #6B7280;
-    line-height: 1.4;
+    line-height: 1.3;
     white-space: nowrap;
 }
 
 /* MIDDLE */
 .card-middle {
     display: grid;
-    grid-template-columns: 90px 110px 90px;
+    grid-template-columns: 90px 110px minmax(120px, 1fr);
     gap: 20px;
     align-items: center;
     min-width: 0;
+    flex: 1;
+}
+
+.meta-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.meta-topic {
+    min-width: 120px;
 }
 
 .card-middle small {
     display: block;
-    font-size: 11px;
+    font-size: 10px;
     color: #9CA3AF;
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 .card-middle strong {
     display: block;
-    font-size: 15px;
+    font-size: 14px;
     color: #111827;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.3;
+    word-break: break-word;
 }
 
 /* RIGHT */
@@ -359,24 +295,24 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 16px;
-    min-width: 0;
+    gap: 12px;
+    flex-shrink: 0;
+    min-width: auto;
 }
 
 .status-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 170px;
-    height: 42px;
+    min-width: 130px;
+    height: 38px;
     padding: 0 14px;
     border-radius: 999px;
-    font-size: 13px;
-    font-weight: 800;
+    font-size: 11px;
+    font-weight: 700;
     text-align: center;
-    line-height: 1.1;
+    line-height: 1.2;
     white-space: nowrap;
-    margin-left: 10px;
 }
 
 /* STATUS COLOR */
@@ -416,20 +352,23 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 130px;
-    height: 42px;
+    min-width: 130px;
+    height: 38px;
     background: #064E3B;
     color: white;
     border-radius: 999px;
     text-decoration: none;
-    font-size: 13px;
-    font-weight: 800;
+    font-size: 11px;
+    font-weight: 700;
     white-space: nowrap;
-    margin-left: 6px;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
 }
 
 .btn-riwayat:hover {
-    opacity: 0.9;
+    background: #053B2E;
+    transform: translateY(-1px);
 }
 
 /* LOAD MORE */
@@ -464,15 +403,15 @@
 /* SUMMARY */
 .summary-box {
     background: white;
-    padding: 28px;
-    border-radius: 22px;
-    margin-bottom: 22px;
+    padding: 24px;
+    border-radius: 20px;
+    margin-bottom: 18px;
     box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
 }
 
 .summary-box h3 {
-    margin: 0 0 22px;
-    font-size: 28px;
+    margin: 0 0 18px;
+    font-size: 22px;
     line-height: 1.1;
     font-weight: 800;
     color: #111827;
@@ -482,33 +421,33 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     color: #111827;
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .summary-item strong {
-    font-size: 18px;
+    font-size: 16px;
 }
 
 /* CTA */
 .cta-box {
     background: #D1FAE5;
-    padding: 28px;
-    border-radius: 22px;
+    padding: 24px;
+    border-radius: 20px;
 }
 
 .cta-box h4 {
-    margin: 0 0 10px;
-    font-size: 22px;
+    margin: 0 0 8px;
+    font-size: 18px;
     font-weight: 800;
     color: #064E3B;
 }
 
 .cta-box p {
-    font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 22px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 18px;
     color: #374151;
 }
 
@@ -516,11 +455,12 @@
     display: block;
     background: #064E3B;
     color: white;
-    padding: 13px 18px;
+    padding: 12px 16px;
     text-align: center;
     border-radius: 10px;
     text-decoration: none;
-    font-weight: 800;
+    font-weight: 700;
+    font-size: 13px;
 }
 
 .simple-pagination {
@@ -562,9 +502,26 @@
 }
 
 /* RESPONSIVE */
-@media (max-width: 1250px) {
+@media (max-width: 1400px) {
     .riwayat-page {
-        padding: 55px 45px;
+        padding: 55px 40px;
+    }
+
+    .riwayat-card {
+        grid-template-columns: minmax(240px, 260px) minmax(280px, 1fr) minmax(260px, 320px);
+        gap: 20px;
+        padding: 22px 24px;
+    }
+
+    .card-middle {
+        grid-template-columns: 80px 100px minmax(100px, 1fr);
+        gap: 18px;
+    }
+}
+
+@media (max-width: 1050px) {
+    .riwayat-page {
+        padding: 45px 30px;
     }
 
     .riwayat-content {
@@ -578,15 +535,29 @@
 
     .riwayat-card {
         grid-template-columns: 1fr;
-        gap: 18px;
+        gap: 16px;
+    }
+
+    .card-left {
+        gap: 12px;
     }
 
     .card-middle {
         grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
     }
 
     .card-right {
-        justify-content: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .status-pill {
+        min-width: 120px;
+    }
+
+    .btn-riwayat {
+        min-width: 120px;
     }
 }
 
@@ -600,7 +571,8 @@
     }
 
     .riwayat-card {
-        padding: 20px;
+        padding: 18px;
+        gap: 12px;
     }
 
     .card-middle {
@@ -611,11 +583,13 @@
     .card-right {
         flex-direction: column;
         align-items: stretch;
+        gap: 10px;
     }
 
     .status-pill,
     .btn-riwayat {
         width: 100%;
+        min-width: auto;
     }
 }
 </style>

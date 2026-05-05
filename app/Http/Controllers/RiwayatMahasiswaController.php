@@ -42,11 +42,13 @@ class RiwayatMahasiswaController extends Controller
             ->where('mahasiswa_id', $mahasiswa->id)
             ->firstOrFail();
 
-        if (strtolower($jadwal->status) !== 'menunggu konfirmasi') {
+        $status = strtolower($jadwal->status ?? '');
+
+        if (!in_array($status, ['menunggu', 'menunggu konfirmasi'])) {
             return redirect()->back()->with('error', 'Jadwal tidak bisa diubah.');
         }
 
-        return view('Pages.edit-jadwal', compact('jadwal'));
+        return view('Pages.konseling', compact('jadwal'));
     }
 
     public function update(Request $request, $id)
@@ -57,24 +59,34 @@ class RiwayatMahasiswaController extends Controller
             ->where('mahasiswa_id', $mahasiswa->id)
             ->firstOrFail();
 
-        if (strtolower($jadwal->status) !== 'menunggu konfirmasi') {
-            return redirect()->back()->with('error', 'Jadwal tidak bisa diubah.');
+        $status = strtolower($jadwal->status ?? '');
+
+        if (!in_array($status, ['menunggu', 'menunggu konfirmasi'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jadwal tidak bisa diubah.'
+            ], 403);
         }
 
         $request->validate([
             'tanggal' => 'required|date',
             'waktu' => 'required',
             'jenis' => 'required|in:online,offline',
+            'topik' => 'required|string',
         ]);
 
         $jadwal->update([
             'tanggal' => $request->tanggal,
             'waktu' => $request->waktu,
             'jenis' => $request->jenis,
-            'status' => 'menunggu konfirmasi',
+            'catatan' => 'Topik: ' . $request->topik . ' | Jenis: ' . $request->jenis,
+            'status' => 'menunggu',
         ]);
 
-        return redirect()->route('riwayat.detail', $jadwal->id)
-            ->with('success', 'Jadwal berhasil diubah.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Jadwal berhasil diubah.',
+            'redirect' => route('riwayat.detail', $jadwal->id),
+        ]);
     }
 }

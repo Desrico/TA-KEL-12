@@ -11,45 +11,70 @@ use Illuminate\Support\Facades\Schema;
 
 class ChatController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $konselor = \App\Models\Konselor::where('user_id', Auth::id())->first();
 
-        $query = JadwalKonseling::with(['mahasiswa.user', 'sesiKonseling.chatMessages'])
+        $jadwalList = JadwalKonseling::with(['mahasiswa.user', 'sesiKonseling.chatMessages'])
             ->when($konselor, function ($q) use ($konselor) {
                 $q->where('konselor_id', $konselor->id);
             })
-            ->where(function ($q) {
-                $q->whereHas('sesiKonseling')
-                  ->orWhereHas('sesiKonseling.chatMessages');
-            })
-            ->orderByDesc('id');
+            ->where('jenis', 'online')
+            ->whereIn('status', ['disetujui', 'berlangsung'])
+            ->orderBy('tanggal', 'asc')
+            ->orderBy('waktu', 'asc')
+            ->get();
 
-        $jadwals = $query->get();
+        $activeJadwal = null;
 
-        $participants = $jadwals->map(function ($jadwal) {
-            $mahasiswa = $jadwal->mahasiswa;
-            $user = $mahasiswa?->user;
-            $name = $user->nama ?? ($mahasiswa->nama ?? 'Anonymous');
-            $initial = strtoupper(substr($name, 0, 1));
+        if ($request->filled('jadwal')) {
+            $activeJadwal = JadwalKonseling::with(['mahasiswa.user', 'sesiKonseling.chatMessages'])
+                ->when($konselor, function ($q) use ($konselor) {
+                    $q->where('konselor_id', $konselor->id);
+                })
+                ->where('jenis', 'online')
+                ->whereIn('status', ['disetujui', 'berlangsung'])
+                ->find($request->jadwal);
+        }
 
-            $messages = optional($jadwal->sesiKonseling)->chatMessages ?? collect();
-            $lastMsg = $messages->sortBy('created_at')->last();
-            $lastAt = $lastMsg->created_at ?? $jadwal->updated_at;
-            $lastLabel = $lastAt ? \Carbon\Carbon::parse($lastAt)->diffForHumans() : '-';
+        $activeSession = $activeJadwal?->sesiKonseling;
 
-            return [
-                'id' => $jadwal->id,
-                'nama' => $name,
-                'initial' => $initial,
-                'nim' => $mahasiswa->nim ?? '-',
-                'last' => $lastLabel,
-            ];
-        });
+        $scheduledStart = null;
+        if ($activeJadwal) {
+            $scheduledStart = \Carbon\Carbon::parse(
+                $activeJadwal->tanggal . ' ' . $activeJadwal->waktu,
+                'Asia/Jakarta'
+            );
+        }
 
-        return view('admin.chat', [
-            'participants' => $participants,
-        ]);
+        $canStartNow = $scheduledStart
+            ? now('Asia/Jakarta')->greaterThanOrEqualTo($scheduledStart)
+            : false;
+
+        $isBlockedBySchedule = $scheduledStart
+            ? now('Asia/Jakarta')->lt($scheduledStart)
+            : false;
+
+        $isReadyToStart = $activeJadwal && $activeJadwal->status === 'disetujui';
+        $chatAccessGranted = $activeJadwal && $activeJadwal->status === 'berlangsung';
+
+        $scheduledStartLabel = $scheduledStart
+            ? $scheduledStart->translatedFormat('j F Y, H:i') . ' WIB'
+            : '-';
+
+        $chatPayload = null;
+
+        return view('admin.chat', compact(
+            'jadwalList',
+            'activeJadwal',
+            'activeSession',
+            'chatPayload',
+            'isReadyToStart',
+            'isBlockedBySchedule',
+            'chatAccessGranted',
+            'canStartNow',
+            'scheduledStartLabel'
+        ));
     }
 
     public function session($sessionId)
@@ -86,9 +111,15 @@ class ChatController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        $isReadyToStart = $jadwal->status === 'disetujui';
+
         return view('admin.chat', [
+            'activeJadwal' => $jadwal,
             'sessionData' => $sessionData,
             'messages' => $messages,
+            'isReadyToStart' => $isReadyToStart,
+            'isBlockedBySchedule' => false,
+            'chatAccessGranted' => false,
         ]);
     }
 
