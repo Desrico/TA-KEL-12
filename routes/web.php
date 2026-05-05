@@ -50,6 +50,10 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
 
+    Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
+    Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('riwayat.detail');
+    Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
+
     Route::get('/riwayat', [RiwayatController::class, 'riwayatMahasiswa'])->name('riwayat');
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
     Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
@@ -71,7 +75,7 @@ Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'role:konselor'])
     ->group(function () {
-        Route::get('/', fn () => redirect()->route('admin.dashboard'));
+        Route::get('/', fn() => redirect()->route('admin.dashboard'));
         Route::get('/dashboard', [CounselorController::class, 'index'])->name('dashboard');
         Route::get('/notifikasi', [AdminController::class, 'notifications'])->name('notifikasi.list');
         Route::post('/notifikasi/baca', [AdminController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
@@ -109,12 +113,12 @@ Route::get('/test-mongodb', function () {
         $client = new MongoDB\Client(env('MONGODB_URI'));
         $database = $client->{env('MONGODB_DATABASE', 'monitoring')};
         $collections = $database->listCollections();
-        
+
         $collectionList = [];
         foreach ($collections as $collection) {
             $collectionList[] = $collection->getName();
         }
-        
+
         return response()->json([
             'status' => 'success',
             'message' => 'Connected to MongoDB successfully',
@@ -154,7 +158,7 @@ Route::prefix('konselor/edukasi')->name('counselor.education.')->group(function 
     // About page content
     Route::get('/about-page', [AboutPageController::class, 'edit'])->name('about-page.edit');
     Route::put('/about-page', [AboutPageController::class, 'update'])->name('about-page.update');
-    
+
     // Modules
     Route::get('/modules', [EducationController::class, 'moduleIndex'])->name('modules.index');
     Route::get('/modules/create', [EducationController::class, 'moduleCreate'])->name('modules.create');
@@ -175,14 +179,14 @@ Route::prefix('konselor/edukasi')->name('counselor.education.')->group(function 
 // --- DEBUG ROUTE UNTUK PENGETESAN (HAPUS SETELAH DIGUNAKAN) ---
 Route::get('/debug/seed-if001', function () {
     $nim = 'IF-001';
-    
+
     // 1. Buat/Update Mahasiswa
     \App\Models\Student::updateOrCreate(['nim' => $nim], [
         'name' => 'Mahasiswa Test Predictive',
         'gender' => 'Laki-laki',
         'prodi' => 'IF',
         'password' => \Illuminate\Support\Facades\Hash::make('password'),
-        'mental_level' => null, 
+        'mental_level' => null,
     ]);
 
     // 2. Buat Check-in Negatif SEBANYAK 14 HARI (Untuk memicu Predictive Level 3)

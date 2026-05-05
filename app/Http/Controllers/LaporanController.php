@@ -4,9 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\JadwalKonseling;
+use Illuminate\Support\Facades\Schema;
 
 class LaporanController extends Controller
 {
+    private function jadwalHasColumn(string $column): bool
+    {
+        static $cache = [];
+
+        return $cache[$column] ??= Schema::hasColumn('jadwal_konseling', $column);
+    }
+
     public function riwayat()
     {
         $mahasiswa = auth()->user()->mahasiswa;
@@ -21,16 +29,24 @@ class LaporanController extends Controller
 
     public function laporanAdmin()
     {
-        $riwayat = JadwalKonseling::orderByRaw("CASE WHEN laporan IS NOT NULL OR LOWER(status) = 'selesai' THEN 0 ELSE 1 END")
+        $statusDoneSql = "LOWER(COALESCE(status, '')) = 'selesai'";
+        $prioritySql = $this->jadwalHasColumn('laporan')
+            ? "CASE WHEN laporan IS NOT NULL OR {$statusDoneSql} THEN 0 ELSE 1 END"
+            : "CASE WHEN {$statusDoneSql} THEN 0 ELSE 1 END";
+
+        $riwayat = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
+            ->orderByRaw($prioritySql)
             ->orderByDesc('updated_at')
             ->orderByDesc('tanggal')
             ->get();
+
         return view('admin.laporan', compact('riwayat'));
     }
 
     public function createLaporan($id)
     {
-        $jadwal = JadwalKonseling::findOrFail($id);
+        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])->findOrFail($id);
+
         return view('admin.laporan', compact('jadwal'));
     }
 
@@ -45,15 +61,39 @@ class LaporanController extends Controller
         ]);
 
         $jadwal = JadwalKonseling::findOrFail($id);
-        $jadwal->update([
-            'ringkasan_masalah' => $request->ringkasan_masalah,
-            'observasi_konselor' => $request->observasi_konselor,
-            'progress' => $request->progress,
-            'tindak_lanjut_tipe' => $request->perlu_lanjut ? 'perlu_lanjut' : null,
-            'tanggal_lanjut' => $request->perlu_lanjut ? $request->tanggal_lanjut : null,
-            'laporan' => $request->ringkasan_masalah || $request->observasi_konselor ? 'ada' : null,
-            'status' => 'Selesai',
-        ]);
+        $updates = [
+            'status' => 'selesai',
+        ];
+
+        if ($this->jadwalHasColumn('ringkasan_masalah')) {
+            $updates['ringkasan_masalah'] = $request->ringkasan_masalah;
+        }
+
+        if ($this->jadwalHasColumn('observasi_konselor')) {
+            $updates['observasi_konselor'] = $request->observasi_konselor;
+        }
+
+        if ($this->jadwalHasColumn('progress')) {
+            $updates['progress'] = $request->progress;
+        }
+
+        if ($this->jadwalHasColumn('tindak_lanjut_tipe')) {
+            $updates['tindak_lanjut_tipe'] = $request->perlu_lanjut ? 'perlu_lanjut' : null;
+        }
+
+        if ($this->jadwalHasColumn('tanggal_lanjut')) {
+            $updates['tanggal_lanjut'] = $request->perlu_lanjut ? $request->tanggal_lanjut : null;
+        }
+
+        if ($this->jadwalHasColumn('tindak_lanjut')) {
+            $updates['tindak_lanjut'] = $request->perlu_lanjut ? 'perlu_lanjut' : null;
+        }
+
+        if ($this->jadwalHasColumn('laporan')) {
+            $updates['laporan'] = ($request->ringkasan_masalah || $request->observasi_konselor) ? 'ada' : null;
+        }
+
+        $jadwal->update($updates);
 
         return redirect()
             ->route('admin.laporan', ['scroll_to' => $jadwal->id])

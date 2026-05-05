@@ -229,9 +229,11 @@
     inset: 0;
     z-index: 2000;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 1.25rem;
+    padding: 1rem 1.25rem 1.5rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     opacity: 0;
     pointer-events: none;
     transition: opacity .24s ease;
@@ -243,41 +245,32 @@
   }
 
   .letter-modal-backdrop {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background:
-      radial-gradient(circle at top, rgba(16, 185, 129, 0.22), transparent 35%),
-      rgba(15, 23, 42, 0.48);
-    backdrop-filter: blur(10px);
+      radial-gradient(circle at top, rgba(16, 185, 129, 0.18), transparent 36%),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.74), rgba(15, 23, 42, 0.7));
+    backdrop-filter: blur(12px);
   }
 
   .letter-modal-dialog {
     position: relative;
     z-index: 1;
-    width: min(100%, 520px);
+    width: min(100%, 640px);
     max-height: calc(100vh - 2.5rem);
-    background:
-      radial-gradient(circle at top right, rgba(110, 231, 183, 0.18), transparent 26%),
-      radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.12), transparent 32%),
-      linear-gradient(180deg, #f5fff8, #fcfffd);
-    border: 1px solid rgba(209, 250, 229, 0.95);
-    border-radius: 30px;
-    box-shadow: 0 30px 90px rgba(6, 78, 59, 0.22);
-    overflow: hidden;
-    isolation: isolate;
+    margin: .75rem auto;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
     transform: translateY(18px) scale(.96);
     transition: transform .3s ease;
   }
 
   .letter-modal-dialog::before,
   .letter-modal-dialog::after {
-    content: "";
-    position: absolute;
-    border-radius: 999px;
-    filter: blur(8px);
-    opacity: .9;
-    z-index: -1;
-    animation: letterFloat 10s ease-in-out infinite;
+    display: none;
   }
 
   .letter-modal-dialog::before {
@@ -302,62 +295,51 @@
   }
 
   .letter-modal-head {
+    position: absolute;
+    top: -.15rem;
+    right: .1rem;
+    z-index: 4;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1.05rem 1.2rem .3rem;
+    justify-content: flex-end;
+    width: 100%;
+    pointer-events: none;
   }
 
   .letter-modal-label {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    color: #047857;
-    font-size: .76rem;
-    font-weight: 800;
-    letter-spacing: .06em;
-    text-transform: uppercase;
+    display: none;
   }
 
   .letter-modal-close {
+    pointer-events: auto;
     width: 38px;
     height: 38px;
     border-radius: 999px;
     border: none;
-    background: rgba(209, 250, 229, 0.9);
+    background: rgba(255, 255, 255, 0.84);
     color: #065f46;
     font-size: 1.1rem;
+    box-shadow: 0 16px 36px rgba(6, 78, 59, 0.18);
+    backdrop-filter: blur(14px);
   }
 
   .letter-modal-body {
     position: relative;
-    padding: .25rem 1.35rem 1.4rem;
-    overflow-y: auto;
-    max-height: calc(100vh - 160px);
-    display: grid;
-    gap: 1rem;
+    padding: .4rem 0 .75rem;
+    overflow: visible;
+    max-height: calc(100vh - 3.25rem);
+    display: block;
   }
 
   .letter-modal-body::before {
-    content: "";
-    position: absolute;
-    inset: 18% auto auto 8%;
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(167, 243, 208, 0.24), rgba(167, 243, 208, 0));
-    filter: blur(6px);
-    animation: letterPulse 6.5s ease-in-out infinite;
-    pointer-events: none;
+    display: none;
   }
 
   .envelope-stage {
     position: relative;
-    padding: .55rem 0 1.15rem;
+    padding: .95rem 0 1rem;
     display: grid;
     place-items: center;
-    gap: .85rem;
+    gap: 1.2rem;
     perspective: 1600px;
   }
 
@@ -376,14 +358,15 @@
 
   .envelope-speech {
     position: relative;
-    width: min(100%, 330px);
+    width: min(100%, 410px);
     max-height: 0;
     overflow: hidden;
-    padding: 0 1rem;
-    border-radius: 24px;
-    background: linear-gradient(180deg, rgba(255, 250, 241, 0.98), rgba(255, 255, 255, 1));
-    border: 1px solid transparent;
-    box-shadow: 0 18px 34px rgba(122, 92, 39, 0.09);
+    padding: 0 1.15rem;
+    border-radius: 26px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 255, 251, 0.92));
+    border: 1px solid rgba(209, 250, 229, 0.42);
+    box-shadow: 0 24px 56px rgba(6, 78, 59, 0.16);
+    backdrop-filter: blur(18px);
     text-align: left;
     animation: speechFloat 5.8s ease-in-out infinite;
     z-index: 1;
@@ -396,27 +379,27 @@
   }
 
   .envelope-stage.has-speech .envelope-speech {
-    max-height: 220px;
+    max-height: 340px;
     overflow: visible;
-    padding: .95rem 1rem 1rem;
-    border-color: rgba(214, 170, 99, 0.45);
+    padding: 1rem 1.15rem 1.25rem;
+    border-color: rgba(110, 231, 183, 0.42);
     opacity: 1;
     pointer-events: auto;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, -8px, 0) scale(1);
   }
 
   .envelope-speech::after {
     content: "";
     position: absolute;
     left: 50%;
-    bottom: -14px;
+    bottom: -10px;
     width: 24px;
     height: 24px;
     border-radius: 999px;
     transform: translateX(-50%) scale(.78);
-    background: linear-gradient(180deg, rgba(255, 250, 241, 0.98), rgba(255, 255, 255, 1));
-    border: 1px solid rgba(214, 170, 99, 0.35);
-    box-shadow: 0 10px 24px rgba(122, 92, 39, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 255, 251, 0.92));
+    border: 1px solid rgba(110, 231, 183, 0.34);
+    box-shadow: 0 10px 24px rgba(6, 78, 59, 0.1);
     opacity: 0;
     transition: opacity .3s ease, transform .42s cubic-bezier(.18,.9,.22,1);
   }
@@ -431,14 +414,14 @@
   .envelope-speech-link::after {
     position: absolute;
     border-radius: 999px;
-    background: linear-gradient(180deg, rgba(255, 250, 241, 0.98), rgba(255, 255, 255, 1));
-    border: 1px solid rgba(214, 170, 99, 0.28);
-    box-shadow: 0 10px 24px rgba(122, 92, 39, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 255, 251, 0.92));
+    border: 1px solid rgba(110, 231, 183, 0.28);
+    box-shadow: 0 10px 24px rgba(6, 78, 59, 0.1);
   }
 
   .envelope-speech-link {
     left: 50%;
-    bottom: -30px;
+    bottom: -18px;
     width: 22px;
     height: 22px;
     opacity: 0;
@@ -455,15 +438,15 @@
   .envelope-speech-link::before {
     width: 16px;
     height: 16px;
-    left: -12px;
-    top: 10px;
+    left: -10px;
+    top: 6px;
   }
 
   .envelope-speech-link::after {
     width: 30px;
     height: 30px;
-    left: 9px;
-    top: 18px;
+    left: 8px;
+    top: 11px;
   }
 
   .envelope-stage.has-speech .envelope-speech-link {
@@ -472,42 +455,43 @@
   }
 
   .letter-modal[data-tone="waiting"] .envelope-speech {
-    background: linear-gradient(180deg, rgba(241, 249, 255, 0.98), rgba(255, 255, 255, 1));
-    box-shadow: 0 18px 34px rgba(59, 130, 246, 0.08);
+    background: linear-gradient(180deg, rgba(240, 253, 244, 0.9), rgba(255, 255, 255, 0.92));
+    box-shadow: 0 24px 56px rgba(16, 185, 129, 0.14);
   }
 
   .letter-modal[data-tone="waiting"] .envelope-stage.has-speech .envelope-speech {
-    border-color: rgba(111, 168, 211, 0.45);
+    border-color: rgba(110, 231, 183, 0.45);
   }
 
   .letter-modal[data-tone="waiting"] .envelope-speech::after {
-    background: linear-gradient(180deg, rgba(241, 249, 255, 0.98), rgba(255, 255, 255, 1));
-    border-color: rgba(111, 168, 211, 0.35);
-    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.08);
+    background: linear-gradient(180deg, rgba(240, 253, 244, 0.98), rgba(255, 255, 255, 1));
+    border-color: rgba(110, 231, 183, 0.35);
+    box-shadow: 0 10px 24px rgba(16, 185, 129, 0.08);
   }
 
   .letter-modal[data-tone="waiting"] .envelope-speech-link,
   .letter-modal[data-tone="waiting"] .envelope-speech-link::before,
   .letter-modal[data-tone="waiting"] .envelope-speech-link::after {
-    background: linear-gradient(180deg, rgba(241, 249, 255, 0.98), rgba(255, 255, 255, 1));
-    border-color: rgba(111, 168, 211, 0.28);
-    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.08);
+    background: linear-gradient(180deg, rgba(240, 253, 244, 0.98), rgba(255, 255, 255, 1));
+    border-color: rgba(110, 231, 183, 0.28);
+    box-shadow: 0 10px 24px rgba(16, 185, 129, 0.08);
   }
 
   .envelope-speech:hover {
     transform: translate3d(0, -3px, 0) scale(1.01);
-    box-shadow: 0 20px 38px rgba(122, 92, 39, 0.12);
+    box-shadow: 0 28px 60px rgba(16, 185, 129, 0.16);
   }
 
   .letter-modal[data-tone="waiting"] .envelope-speech:hover {
-    box-shadow: 0 20px 38px rgba(59, 130, 246, 0.12);
+    box-shadow: 0 28px 60px rgba(16, 185, 129, 0.18);
   }
 
   .envelope-speech-kicker {
     display: inline-flex;
     align-items: center;
+    width: 100%;
     gap: .45rem;
-    color: #8c5a17;
+    color: #047857;
     font-size: .72rem;
     font-weight: 800;
     letter-spacing: .05em;
@@ -515,18 +499,20 @@
   }
 
   .letter-modal[data-tone="waiting"] .envelope-speech-kicker {
-    color: #2f6f9d;
+    color: #047857;
   }
 
   .envelope-speech p {
-    margin: .5rem 0 0;
-    color: #4b5563;
-    font-size: .88rem;
-    line-height: 1.65;
+    display: block;
+    margin: .7rem 0 0;
+    color: #475569;
+    font-size: .94rem;
+    line-height: 1.78;
+    min-height: 5.3rem;
   }
 
   .envelope-speech-actions {
-    margin-top: .85rem;
+    margin-top: 1.15rem;
     max-height: 0;
     overflow: hidden;
     opacity: 0;
@@ -539,13 +525,14 @@
   }
 
   .envelope-stage.is-revealed .envelope-speech-actions {
-    max-height: 80px;
+    max-height: 120px;
     opacity: 1;
     transform: translateY(0);
   }
 
   .envelope-speech-actions form {
     margin: 0;
+    padding-top: .15rem;
   }
 
   .envelope {
@@ -553,11 +540,11 @@
     --tilt-y: 0deg;
     --lift: 0px;
     --shell-scale: 1;
-    --paper-1: #fff6de;
-    --paper-2: #f5d59d;
-    --paper-3: #e6bb77;
-    --edge: #9d6d3b;
-    --spark: rgba(251, 191, 36, 0.6);
+    --paper-1: #ecfdf5;
+    --paper-2: #bbf7d0;
+    --paper-3: #6ee7b7;
+    --edge: #047857;
+    --spark: rgba(16, 185, 129, 0.5);
     --blush: #f8b6a8;
     position: relative;
     width: min(100%, 340px);
@@ -569,11 +556,11 @@
   }
 
   .letter-modal[data-tone="waiting"] .envelope {
-    --paper-1: #edf6ff;
-    --paper-2: #d4e9fb;
-    --paper-3: #b1d3f2;
-    --edge: #5d87a9;
-    --spark: rgba(96, 165, 250, 0.58);
+    --paper-1: #f0fdf4;
+    --paper-2: #d1fae5;
+    --paper-3: #86efac;
+    --edge: #059669;
+    --spark: rgba(16, 185, 129, 0.58);
     --blush: #f6c2b9;
   }
 
@@ -581,13 +568,13 @@
     position: absolute;
     inset: 30px 42px 76px;
     border-radius: 999px;
-    background: radial-gradient(circle, rgba(255, 224, 163, 0.48), rgba(255, 224, 163, 0));
+    background: radial-gradient(circle, rgba(134, 239, 172, 0.42), rgba(134, 239, 172, 0));
     filter: blur(10px);
     animation: auraPulse 4.8s ease-in-out infinite;
   }
 
   .letter-modal[data-tone="waiting"] .envelope-aura {
-    background: radial-gradient(circle, rgba(125, 211, 252, 0.42), rgba(125, 211, 252, 0));
+    background: radial-gradient(circle, rgba(110, 231, 183, 0.42), rgba(110, 231, 183, 0));
   }
 
   .envelope-shadow {
@@ -655,7 +642,7 @@
   }
 
   .letter-modal[data-tone="waiting"] .envelope-shell {
-    filter: drop-shadow(0 20px 26px rgba(59, 130, 246, 0.12));
+    filter: drop-shadow(0 20px 26px rgba(16, 185, 129, 0.12));
   }
 
   .envelope-back {
@@ -682,14 +669,14 @@
   .envelope-letter {
     position: absolute;
     left: 50%;
-    top: 58px;
+    top: 50px;
     width: calc(100% - 78px);
-    min-height: 128px;
-    transform: translateX(-50%) translateY(46px);
+    min-height: 140px;
+    transform: translateX(-50%) translateY(34px);
     border-radius: 22px;
     background: linear-gradient(180deg, #fffefd, #fff6ec);
     box-shadow: 0 22px 38px rgba(15, 23, 42, 0.08);
-    padding: 1rem 1rem 1.15rem;
+    padding: 1rem 1rem 1.25rem;
     transition: transform .62s cubic-bezier(.2,.9,.2,1), box-shadow .3s ease;
     z-index: 2;
     display: flex;
@@ -699,7 +686,7 @@
   }
 
   .letter-modal[data-tone="waiting"] .envelope-letter {
-    background: linear-gradient(180deg, #ffffff, #f4fbff);
+    background: linear-gradient(180deg, #ffffff, #f0fdf4);
   }
 
   .envelope-letter::before {
@@ -725,7 +712,7 @@
   }
 
   .envelope.is-open .envelope-letter {
-    transform: translateX(-50%) translateY(-46px);
+    transform: translateX(-50%) translateY(-86px);
     box-shadow: 0 26px 44px rgba(15, 23, 42, 0.12);
   }
 
@@ -734,7 +721,7 @@
     z-index: 1;
     font-size: .98rem;
     font-weight: 800;
-    color: #7a4b15;
+    color: #065f46;
     margin: 0;
     opacity: 0;
     transform: translateY(10px);
@@ -742,7 +729,7 @@
   }
 
   .letter-modal[data-tone="waiting"] .envelope-letter h4 {
-    color: #2b628a;
+    color: #047857;
   }
 
   .envelope-letter p {
@@ -750,8 +737,8 @@
     position: relative;
     z-index: 1;
     color: #64748b;
-    font-size: .8rem;
-    line-height: 1.6;
+    font-size: .82rem;
+    line-height: 1.68;
     opacity: 0;
     transform: translateY(10px);
     transition: opacity .24s ease .22s, transform .24s ease .22s;
@@ -835,7 +822,7 @@
   .envelope-face {
     position: absolute;
     left: 50%;
-    top: 80px;
+    top: 86px;
     width: 160px;
     height: 92px;
     transform: translateX(-50%);
@@ -863,7 +850,7 @@
   }
 
   .letter-modal[data-tone="waiting"] .envelope-brow {
-    border-top-color: rgba(43, 98, 138, 0.9);
+    border-top-color: rgba(4, 120, 87, 0.9);
   }
 
   .envelope-eye {
@@ -880,7 +867,7 @@
   }
 
   .letter-modal[data-tone="waiting"] .envelope-eye {
-    background: #173956;
+    background: #064e3b;
   }
 
   .envelope-eye--left {
@@ -916,7 +903,7 @@
   }
 
   .letter-modal[data-tone="waiting"] .envelope-mouth {
-    background: #5a3147;
+    background: #14532d;
   }
 
   .envelope-mouth-inner {
@@ -1073,21 +1060,21 @@
     border-radius: 18px 20px 18px 20px;
     display: grid;
     place-items: center;
-    background: linear-gradient(135deg, #fff0cb, #f1ba56);
-    color: #7c4700;
+    background: linear-gradient(135deg, #d1fae5, #34d399);
+    color: #065f46;
     font-size: 1.15rem;
-    box-shadow: 0 12px 24px rgba(245, 158, 11, 0.24);
-    border: 2px solid rgba(124, 71, 0, 0.18);
+    box-shadow: 0 12px 24px rgba(16, 185, 129, 0.22);
+    border: 2px solid rgba(6, 95, 70, 0.18);
     z-index: 7;
     transform: rotate(8deg);
     transition: transform .3s ease, box-shadow .3s ease;
   }
 
   .letter-modal[data-tone="waiting"] .envelope-badge {
-    background: linear-gradient(135deg, #e0f2fe, #93c5fd);
-    color: #13416a;
-    border-color: rgba(19, 65, 106, 0.18);
-    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, #d1fae5, #6ee7b7);
+    color: #065f46;
+    border-color: rgba(6, 95, 70, 0.18);
+    box-shadow: 0 12px 24px rgba(16, 185, 129, 0.2);
   }
 
   .envelope:hover .envelope-badge {
@@ -1147,14 +1134,16 @@
   }
 
   .envelope-helper {
-    margin-top: .2rem;
-    color: #64748b;
+    margin-top: .35rem;
+    color: rgba(248, 250, 252, 0.96);
     font-size: .82rem;
+    font-weight: 600;
     text-align: center;
-    max-width: 310px;
+    max-width: 360px;
     max-height: 48px;
     overflow: hidden;
     line-height: 1.55;
+    text-shadow: 0 2px 14px rgba(15, 23, 42, 0.42);
     transition: opacity .2s ease, transform .2s ease, max-height .2s ease, margin .2s ease;
   }
 
@@ -1163,6 +1152,49 @@
     transform: translateY(-6px);
     max-height: 0;
     margin-top: -.2rem;
+  }
+
+  @media (max-width: 767.98px) {
+    .letter-modal {
+      padding: .7rem .85rem 1rem;
+    }
+
+    .letter-modal-dialog {
+      width: min(100%, 460px);
+      margin: .35rem auto;
+    }
+
+    .letter-modal-body {
+      max-height: calc(100vh - 1.5rem);
+    }
+
+    .envelope-stage {
+      padding-top: .6rem;
+      gap: 1rem;
+    }
+
+    .envelope {
+      width: min(100%, 312px);
+      height: 278px;
+    }
+
+    .envelope-shell {
+      width: 276px;
+      height: 202px;
+    }
+
+    .envelope-speech {
+      width: min(100%, 360px);
+    }
+
+    .envelope-stage.has-speech .envelope-speech {
+      max-height: 380px;
+      transform: translate3d(0, -10px, 0) scale(1);
+    }
+
+    .envelope-helper {
+      max-width: 320px;
+    }
   }
 
   .letter-start-btn {
@@ -1178,6 +1210,7 @@
     box-shadow: 0 16px 34px rgba(6, 95, 70, 0.22);
     font-weight: 800;
     width: 100%;
+    margin-top: .15rem;
     transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
   }
 
@@ -1187,8 +1220,8 @@
   }
 
   .letter-modal[data-tone="waiting"] .letter-start-btn {
-    background: linear-gradient(135deg, #2f6f9d, #60a5fa);
-    box-shadow: 0 16px 34px rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, #047857, #10b981);
+    box-shadow: 0 16px 34px rgba(16, 185, 129, 0.22);
   }
 
   .letter-start-btn:disabled {
@@ -1313,6 +1346,12 @@
   @keyframes speechFloat {
     0%, 100% { transform: translate3d(0, 0, 0); }
     50% { transform: translate3d(0, -6px, 0); }
+  }
+
+  @keyframes speechTextSweep {
+    0% { opacity: 0; transform: translate3d(-24px, 0, 0); }
+    55% { opacity: 1; transform: translate3d(10px, 0, 0); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0); }
   }
 
   @keyframes sparkleOrbit {
@@ -1462,6 +1501,29 @@
     .letter-modal-close {
       transition-duration: .01ms !important;
     }
+
+    .envelope-stage.animate-copy #letterSpeechKickerText,
+    .envelope-stage.animate-copy #letterSpeechMessage {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  .envelope-stage.animate-copy #letterSpeechKickerText,
+  .envelope-stage.animate-copy #letterSpeechMessage {
+    display: inline-block;
+    width: 100%;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .envelope-stage.animate-copy #letterSpeechKickerText {
+    animation: speechTextSweep .9s cubic-bezier(.2,.9,.2,1) forwards;
+  }
+
+  .envelope-stage.animate-copy #letterSpeechMessage {
+    animation: speechTextSweep 1.2s cubic-bezier(.18,.9,.22,1) .12s forwards;
   }
 
   .profile-wrap { position: relative; }
@@ -1755,7 +1817,12 @@ footer a:hover {
 
               foreach ($approvedBookings as $jadwal) {
                 $jenisKonseling = strtolower(trim((string) $jadwal->jenis)) === 'offline' ? 'offline' : 'online';
-                $dateTime = \Carbon\Carbon::parse(trim($jadwal->tanggal . ' ' . ($jadwal->waktu ?? '00:00:00')));
+                $dateTime = $jadwal->scheduledAt();
+
+                if (! $dateTime) {
+                  continue;
+                }
+
                 $pesanBaru = 'Konseling ' . $jenisKonseling . ' pada ' . $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i') . ' telah disetujui oleh konselor.';
                 $pesanLama = [
                   'Booking #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.',
@@ -1788,22 +1855,15 @@ footer a:hover {
               $chatGuardSchedule = \App\Models\JadwalKonseling::where('mahasiswa_id', $mahasiswaId)
                 ->where('jenis', 'online')
                 ->whereIn('status', ['disetujui', 'berlangsung'])
-                ->orderByRaw("
-                  CASE
-                    WHEN status = 'berlangsung' THEN 1
-                    WHEN status = 'disetujui' THEN 2
-                    ELSE 3
-                  END
-                ")
-                ->orderBy('tanggal')
-                ->orderBy('waktu')
-                ->first(['id', 'tanggal', 'waktu', 'status']);
+                ->get(['id', 'tanggal', 'waktu', 'status', 'jenis'])
+                ->sort(fn ($left, $right) => $left->compareSessionPriority($right))
+                ->first();
 
-              if ($chatGuardSchedule && $chatGuardSchedule->tanggal && $chatGuardSchedule->waktu) {
-                $chatGuardAt = \Carbon\Carbon::parse(trim($chatGuardSchedule->tanggal . ' ' . $chatGuardSchedule->waktu));
-                $nextOnlineChatSchedule = $chatGuardAt->translatedFormat('j F Y \\p\\u\\k\\u\\l H:i');
+              if ($chatGuardSchedule) {
+                $chatGuardAt = $chatGuardSchedule->scheduledAt();
+                $nextOnlineChatSchedule = $chatGuardSchedule->scheduledStartLabel();
 
-                if (now()->lt($chatGuardAt)) {
+                if ($chatGuardAt && ! $chatGuardSchedule->hasScheduledTimeStarted()) {
                   $chatGuardBlocked = true;
                   $chatGuardMessage = 'Sesi konseling online Anda akan dimulai pada ' . $nextOnlineChatSchedule . '. Sebelum itu, ruang chat belum bisa diakses.';
                 }
@@ -1818,7 +1878,12 @@ footer a:hover {
               $jadwalById = $jadwalItems->keyBy('id');
               $jadwalByApprovedMessage = $jadwalItems->mapWithKeys(function ($jadwalItem) {
                 $jenisKonseling = strtolower(trim((string) $jadwalItem->jenis)) === 'offline' ? 'offline' : 'online';
-                $dateTime = \Carbon\Carbon::parse(trim($jadwalItem->tanggal . ' ' . ($jadwalItem->waktu ?? '00:00:00')));
+                $dateTime = $jadwalItem->scheduledAt();
+
+                if (! $dateTime) {
+                  return [];
+                }
+
                 $approvedMessage = 'Konseling ' . $jenisKonseling . ' pada ' . $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i') . ' telah disetujui oleh konselor.';
 
                 return [$approvedMessage => $jadwalItem];
@@ -1841,15 +1906,15 @@ footer a:hover {
 
                   if ($jadwal) {
                     $jenisKonseling = strtolower(trim((string) $jadwal->jenis)) === 'offline' ? 'offline' : 'online';
-                    $dateTime = \Carbon\Carbon::parse(trim($jadwal->tanggal . ' ' . ($jadwal->waktu ?? '00:00:00')));
-                    $tanggalWaktu = $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i');
+                    $dateTime = $jadwal->scheduledAt();
+                    $tanggalWaktu = $jadwal->scheduledStartLabel();
 
                     if (str_contains(strtolower($pesan), 'telah disetujui oleh konselor')) {
                       $notif->pesan = 'Konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.';
 
                       if ($jenisKonseling === 'online') {
-                        $isLockedBySchedule = now()->lt($dateTime);
-                        $notif->cta_target = route('mahasiswa.chat.start');
+                        $isLockedBySchedule = $dateTime ? ! $jadwal->hasScheduledTimeStarted() : true;
+                        $notif->cta_target = route('mahasiswa.chat.start', ['jadwal_id' => $jadwal->id]);
                         $notif->is_letter_prompt = true;
                         $notif->prompt_locked = $isLockedBySchedule;
                         $notif->prompt_title = $isLockedBySchedule ? 'Sesi Belum Dimulai' : 'Undangan Sesi Konseling';
@@ -1876,15 +1941,15 @@ footer a:hover {
                   $matchedTanggalWaktu = null;
 
                   if ($matchedApprovedJadwal) {
-                    $matchedDateTime = \Carbon\Carbon::parse(trim($matchedApprovedJadwal->tanggal . ' ' . ($matchedApprovedJadwal->waktu ?? '00:00:00')));
-                    $matchedTanggalWaktu = $matchedDateTime->translatedFormat('j F Y') . ' pukul ' . $matchedDateTime->format('H:i');
+                    $matchedDateTime = $matchedApprovedJadwal->scheduledAt();
+                    $matchedTanggalWaktu = $matchedApprovedJadwal->scheduledStartLabel();
                     $notif->pesan = 'Konseling online pada ' . $matchedTanggalWaktu . ' telah disetujui oleh konselor.';
                   } elseif (preg_match('/Konseling\s+online\s+pada\s+(.+?)\s+telah\s+disetujui\s+oleh\s+konselor\./iu', $pesan, $matches)) {
                     $matchedTanggalWaktu = trim($matches[1]);
                   }
 
-                  $isLockedBySpecificSchedule = $matchedDateTime ? now()->lt($matchedDateTime) : $chatGuardBlocked;
-                  $notif->cta_target = route('mahasiswa.chat.start');
+                  $isLockedBySpecificSchedule = $matchedApprovedJadwal ? ! $matchedApprovedJadwal->hasScheduledTimeStarted() : $chatGuardBlocked;
+                  $notif->cta_target = route('mahasiswa.chat.start', ['jadwal_id' => $matchedApprovedJadwal?->id]);
                   $notif->is_letter_prompt = true;
                   $notif->prompt_locked = $isLockedBySpecificSchedule;
                   $notif->prompt_title = $isLockedBySpecificSchedule ? 'Sesi Belum Dimulai' : 'Undangan Sesi Konseling';
@@ -2326,9 +2391,20 @@ const formatEnvelopePaperMessage = (message, isLocked) => {
 const resetLetterSpeechState = () => {
   envelopeStage?.classList.remove('has-speech');
   envelopeStage?.classList.remove('is-revealed');
+  envelopeStage?.classList.remove('animate-copy');
   if (letterSpeechActions) {
     letterSpeechActions.hidden = true;
   }
+};
+
+const playLetterCopyAnimation = () => {
+  if (!envelopeStage) {
+    return;
+  }
+
+  envelopeStage.classList.remove('animate-copy');
+  void envelopeStage.offsetWidth;
+  envelopeStage.classList.add('animate-copy');
 };
 
 const configureLetterEnvelope = (isLocked) => {
@@ -2563,45 +2639,39 @@ const closeScheduleGuardModal = () => {
 };
 
 if (letterEnvelope) {
-  const revealLetterSpeech = () => {
-    envelopeStage?.classList.add('has-speech');
-    triggerEnvelopeGreeting();
-    if (letterSpeechMessage) {
-      letterSpeechMessage.textContent = letterModal?.dataset.finalMessage || '';
-    }
-    if (envelopeHelper) {
-      envelopeHelper.textContent = 'Klik sekali lagi untuk membuka suratnya.';
-    }
-  };
-
   const revealLetter = () => {
-    if (letterEnvelope.classList.contains('is-open')) {
+    if (!envelopeStage || !letterModal) {
+      return;
+    }
+
+    const alreadyRevealed = envelopeStage.classList.contains('is-revealed');
+    const isLocked = letterModal.dataset.locked === '1';
+
+    if (alreadyRevealed) {
       triggerEnvelopeSurprise();
       playLetterReveal();
+      playLetterCopyAnimation();
       return;
     }
 
-    if (!envelopeStage?.classList.contains('has-speech')) {
-      revealLetterSpeech();
-      return;
-    }
-
-    const isLocked = letterModal?.dataset.locked === '1';
+    envelopeStage.classList.add('has-speech');
+    envelopeStage.classList.add('is-revealed');
     letterEnvelope.classList.add('is-open');
+    triggerEnvelopeGreeting();
     triggerEnvelopeSurprise();
     playLetterReveal();
-    envelopeStage?.classList.add('is-revealed');
     if (letterSpeechActions) {
       letterSpeechActions.hidden = false;
     }
     if (letterSpeechMessage) {
-      letterSpeechMessage.textContent = letterModal?.dataset.finalMessage || '';
+      letterSpeechMessage.textContent = letterModal.dataset.finalMessage || '';
     }
     if (envelopeHelper) {
       envelopeHelper.textContent = isLocked
-        ? 'Pesanmu sudah terbuka.'
-        : 'Pesanmu sudah terbuka.';
+        ? 'Jadwal sesi sudah terbuka. Tombol akan aktif saat waktunya tiba.'
+        : 'Undangan sudah terbuka. Kamu bisa langsung lanjut ke ruang chat.';
     }
+    playLetterCopyAnimation();
   };
 
   const handleSpeechClick = (event) => {
