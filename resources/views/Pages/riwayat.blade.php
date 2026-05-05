@@ -223,8 +223,8 @@
     </div>
 </div>
 
-
 @endsection
+
 <style>
 .riwayat-page {
     padding: 70px 80px;

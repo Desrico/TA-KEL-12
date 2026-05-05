@@ -722,6 +722,7 @@
               </p>
               <form action="{{ route('mahasiswa.chat.start') }}" method="POST">
                 @csrf
+                <input type="hidden" name="jadwal_id" value="{{ $jadwal->id }}">
                 <button type="submit" class="chat-start-btn" {{ $canStartNow ? '' : 'disabled' }}>
                   <i class="bi bi-chat-dots-fill"></i>
                   <span>Mulai Sesi</span>
