@@ -288,7 +288,7 @@
     </div>
 
     <form action="{{ isset($module) ? route('counselor.education.modules.update', $module->id) : route('counselor.education.modules.store') }}"
-          method="POST" enctype="multipart/form-data" id="moduleForm">
+          method="POST" enctype="multipart/form-data" id="moduleForm" novalidate>
         @csrf
         @if(isset($module)) @method('PUT') @endif
 
@@ -509,5 +509,44 @@
             }
         });
     }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('moduleForm');
+        
+        form.addEventListener('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Cari input pertama yang tidak valid
+                const invalidFields = this.querySelectorAll(':invalid');
+                if (invalidFields.length > 0) {
+                    const firstInvalid = invalidFields[0];
+                    let fieldName = 'Kolom ini';
+                    
+                    // Mencoba mencari label yang terkait dengan input tersebut
+                    if (firstInvalid.id) {
+                        const label = document.querySelector(`label[for="${firstInvalid.id}"]`);
+                        if (label) {
+                            fieldName = label.innerText;
+                        }
+                    }
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Belum Lengkap!',
+                        text: `Mohon isi atau perbaiki bagian: ${fieldName}`,
+                        confirmButtonColor: '#059669',
+                        confirmButtonText: 'Baik, lengkapi'
+                    });
+
+                    // Fokuskan kursor ke input yang salah
+                    firstInvalid.focus();
+                }
+            }
+        });
+    });
 </script>
 @endpush
