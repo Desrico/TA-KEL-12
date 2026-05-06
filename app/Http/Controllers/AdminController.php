@@ -348,7 +348,7 @@ class AdminController extends Controller
 
         $namaMahasiswa = optional(optional($jadwal->mahasiswa)->user)->nama ?? 'Mahasiswa';
         $jenis = ucfirst($jadwal->jenis ?? '-');
-        $topik = $jadwal->topik ?? '-';
+        $topik = $jadwal->topik ?: '-';
         $waktu = $jadwal->waktu ? substr($jadwal->waktu, 0, 5) : '-';
 
         return [

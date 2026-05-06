@@ -21,6 +21,7 @@ class JadwalKonseling extends Model
         'waktu',
         'status',
         'jenis',
+        'topik',
         'anonim',
         'catatan',
         'ringkasan_masalah',
@@ -130,6 +131,5 @@ class JadwalKonseling extends Model
     public function sesiKonseling(): HasOne
     {
         return $this->hasOne(SesiKonseling::class, 'jadwal_id');
-        return $this->hasOne(SesiKonseling::class, SesiKonseling::jadwalForeignKey());
     }
 }

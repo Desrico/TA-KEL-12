@@ -574,11 +574,6 @@
                 <h6 style="font-size: .75rem;">Detail Jadwal</h6>
                 @php
                     $topikDetail = $jadwal->topik ?? null;
-                    if (!$topikDetail && !empty($jadwal->catatan)) {
-                        if (preg_match('/Topik:\s*([^|]+)/i', $jadwal->catatan, $match)) {
-                            $topikDetail = trim($match[1]);
-                        }
-                    }
                 @endphp
                 <div class="info-group">
                     <span class="info-label">Tanggal</span>
@@ -794,7 +789,7 @@
                         <th>Tanggal</th>
                         <th>Waktu</th>
                         <th>Layanan</th>
-                        <th>Ringkasan</th>
+                        <th>Topik</th>
                         <th>Status</th>
                         <th style="text-align:center;">Aksi</th>
                     </tr>
@@ -805,12 +800,20 @@
                             $nama = optional(optional($l->mahasiswa)->user)->nama ?? 'Anonim';
                             $nim = optional($l->mahasiswa)->nim ?? '-';
 
-                            $ringkasan = trim($l->ringkasan_masalah ?? '');
+                            $ringkasan = trim((string) ($l->ringkasan_masalah ?? ''));
                             $topik = $l->topik ?? null;
-                            if (!$topik && !empty($l->catatan)) {
-                                if (preg_match('/Topik:\s*([^|]+)/i', $l->catatan, $match)) {
-                                    $topik = trim($match[1]);
-                                }
+
+                            if (!$topik && !empty($l->catatan) && preg_match('/Topik:\s*([^|]+)/i', $l->catatan, $match)) {
+                                $topik = trim($match[1]);
+                            }
+
+                            if (!$topik && $ringkasan !== '' && preg_match('/Topik:\s*([^|]+)/i', $ringkasan, $match)) {
+                                $topik = trim($match[1]);
+                            }
+
+                            if (!$topik && $ringkasan !== '') {
+                                // Fallback untuk data lama yang topiknya tidak lagi tersimpan terpisah.
+                                $topik = $ringkasan;
                             }
 
                             $sudahAdaLaporan = !empty($l->laporan) || strtolower($l->status ?? '') === 'selesai';
@@ -825,7 +828,7 @@
                             <td>{{ substr($l->waktu, 0, 5) }} WIB</td>
                             <td>{{ ucfirst($l->jenis ?? 'Online') }}</td>
                             <td>
-                                <div class="topic-text">{{ $ringkasan !== '' ? $ringkasan : ($topik ?? '-') }}</div>
+                                <div class="topic-text">{{ $topik ?? '-' }}</div>
                             </td>
                             <td>
                                 @if($sudahAdaLaporan)

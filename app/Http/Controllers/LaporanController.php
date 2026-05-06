@@ -61,7 +61,7 @@ class LaporanController extends Controller
     public function createLaporan($id)
     {
         $jadwal = JadwalKonseling::with(['mahasiswa.user', 'konselor.user', 'sesiKonseling.laporan'])->findOrFail($id);
-        $foreignKey = SesiKonseling::jadwalForeignKey();
+        $foreignKey = (new SesiKonseling())->jadwalKonseling()->getForeignKeyName();
         $statusSelesai = strtolower($jadwal->status ?? '') === 'selesai';
 
         $sudahAdaLaporan = Laporan::whereHas('sesi', function ($query) use ($id, $foreignKey) {
@@ -78,18 +78,29 @@ class LaporanController extends Controller
     {
         $request->validate([
             'catatan' => 'required|string',
+            'progress' => 'nullable|in:Membaik,Memburuk',
+            'tanggal_tindak_lanjut' => 'nullable|date',
         ]);
+
         $jadwal = JadwalKonseling::findOrFail($id);
-        $jadwal->update([
-            'catatan' => $request->catatan,
-            'status' => 'Selesai',
-        ]);
+
+        $ringkasanMasalah = trim((string) $request->catatan);
+        $catatanLama = (string) ($jadwal->catatan ?? '');
+        $perluLanjut = $request->boolean('tindak_lanjut');
+
         $updates = [
             'status' => 'selesai',
         ];
 
         if ($this->jadwalHasColumn('ringkasan_masalah')) {
-            $updates['ringkasan_masalah'] = $request->ringkasan_masalah;
+            $updates['ringkasan_masalah'] = $ringkasanMasalah;
+        } else {
+            // Fallback lama: simpan ringkasan tanpa menghilangkan bagian topik pada catatan.
+            if (preg_match('/Topik:\s*([^|]+)/i', $catatanLama, $match)) {
+                $updates['catatan'] = 'Topik: '.trim($match[1]).' | Laporan: '.$ringkasanMasalah;
+            } else {
+                $updates['catatan'] = $ringkasanMasalah;
+            }
         }
 
         if ($this->jadwalHasColumn('observasi_konselor')) {
@@ -101,19 +112,19 @@ class LaporanController extends Controller
         }
 
         if ($this->jadwalHasColumn('tindak_lanjut_tipe')) {
-            $updates['tindak_lanjut_tipe'] = $request->perlu_lanjut ? 'perlu_lanjut' : null;
+            $updates['tindak_lanjut_tipe'] = $perluLanjut ? 'perlu_lanjut' : null;
         }
 
         if ($this->jadwalHasColumn('tanggal_lanjut')) {
-            $updates['tanggal_lanjut'] = $request->perlu_lanjut ? $request->tanggal_lanjut : null;
+            $updates['tanggal_lanjut'] = $perluLanjut ? $request->tanggal_tindak_lanjut : null;
         }
 
         if ($this->jadwalHasColumn('tindak_lanjut')) {
-            $updates['tindak_lanjut'] = $request->perlu_lanjut ? 'perlu_lanjut' : null;
+            $updates['tindak_lanjut'] = $perluLanjut ? 'perlu_lanjut' : null;
         }
 
         if ($this->jadwalHasColumn('laporan')) {
-            $updates['laporan'] = ($request->ringkasan_masalah || $request->observasi_konselor) ? 'ada' : null;
+            $updates['laporan'] = ($ringkasanMasalah !== '' || (string) $request->observasi_konselor !== '') ? 'ada' : null;
         }
 
         $jadwal->update($updates);
