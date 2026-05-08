@@ -1,30 +1,12 @@
 @extends('layouts.admin')
 
 @php
-    $jadwal = $activeJadwal;
-    $mahasiswa = optional($jadwal)->mahasiswa;
-    $studentUser = optional($mahasiswa)->user;
-    $topik = null;
-    $isBlockedBySchedule = $isBlockedBySchedule ?? false;
-    $chatAccessGranted = $chatAccessGranted ?? false;
-
-    if (!empty($jadwal?->catatan) && preg_match('/Topik:\s*([^|]+)/i', $jadwal->catatan, $match)) {
-        $topik = trim($match[1]);
-    }
-
-    $statusLabel = match (true) {
-        $isBlockedBySchedule => 'Terjadwal',
-        $chatAccessGranted => 'Sedang Berlangsung',
-        $isReadyToStart => 'Siap Dimulai',
-        default => match ($jadwal->status ?? null) {
-            'berlangsung' => 'Sedang Berlangsung',
-            'disetujui' => 'Siap Dimulai',
-            default => 'Menunggu Persetujuan',
-        },
-    };
+    $groupList = $groupList ?? collect();
+    $activeRoom = $activeRoom ?? null;
+    $chatPayload = $chatPayload ?? null;
 @endphp
 
-@section('page-title', 'Chat Konseling')
+@section('page-title', 'Grup Chat')
 
 @push('styles')
 <style>
@@ -207,21 +189,8 @@
     text-transform: uppercase;
     letter-spacing: .04em;
     white-space: nowrap;
-  }
-
-  .admin-chat-session-status.disetujui {
     background: #e8fff1;
     color: #047857;
-  }
-
-  .admin-chat-session-status.berlangsung {
-    background: #def7ec;
-    color: #065f46;
-  }
-
-  .admin-chat-session-status.terjadwal {
-    background: #eff6ff;
-    color: #1d4ed8;
   }
 
   .admin-chat-card {
@@ -269,6 +238,23 @@
     line-height: 1.8;
   }
 
+  .admin-chat-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0);
+    min-height: 760px;
+    transition: grid-template-columns .28s ease;
+  }
+
+  .admin-chat-stage.is-profile-open {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+  }
+
+  .admin-chat-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   .admin-chat-head {
     display: flex;
     align-items: center;
@@ -291,17 +277,13 @@
     width: 56px;
     height: 56px;
     border-radius: 18px;
-    overflow: hidden;
-    background: #dff3e8;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #065f46, #10b981);
+    color: #fff;
+    font-size: 1.35rem;
     flex-shrink: 0;
     box-shadow: 0 10px 25px rgba(6, 95, 70, .12);
-  }
-
-  .admin-chat-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
   }
 
   .admin-chat-title {
@@ -315,7 +297,35 @@
     margin: 0;
     color: #64748b;
     font-size: .84rem;
-    line-height: 1.5;
+    line-height: 1.6;
+  }
+
+  .admin-chat-head-actions {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .admin-chat-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    border: 1px solid #d8eee2;
+    border-radius: 14px;
+    padding: .72rem .9rem;
+    background: #fff;
+    color: #065f46;
+    font-size: .8rem;
+    font-weight: 800;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+
+  .admin-chat-toggle:hover {
+    transform: translateY(-1px);
+    background: #f8fffb;
+    box-shadow: 0 12px 22px rgba(6, 78, 59, .08);
   }
 
   .admin-chat-badge {
@@ -337,34 +347,6 @@
     border-radius: 50%;
     background: #10b981;
     box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.13);
-  }
-
-  .admin-chat-head-actions {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .admin-chat-video-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: .5rem;
-    padding: .72rem 1rem;
-    border-radius: 999px;
-    border: 1px solid #d8eee2;
-    background: #fff;
-    color: #065f46;
-    text-decoration: none;
-    font-size: .84rem;
-    font-weight: 800;
-    box-shadow: 0 10px 20px rgba(6, 95, 70, .06);
-  }
-
-  .admin-chat-video-btn:hover {
-    color: #047857;
-    background: #f8fffb;
   }
 
   .admin-chat-thread {
@@ -490,11 +472,6 @@
     padding: .6rem .3rem;
   }
 
-  .admin-chat-input:disabled {
-    color: #94a3b8;
-    cursor: not-allowed;
-  }
-
   .admin-chat-send {
     width: 54px;
     height: 54px;
@@ -519,69 +496,134 @@
     padding: 0 .25rem;
   }
 
-  .admin-chat-gate {
-    min-height: 540px;
-    display: grid;
-    place-items: center;
-    padding: 2.2rem;
+  .admin-chat-profile {
+    width: 100%;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    border-left: 1px solid #edf7f1;
+    background: linear-gradient(180deg, #fbfffd, #f7fcf9);
+    transition: max-width .28s ease, opacity .2s ease;
   }
 
-  .admin-chat-gate-card {
-    width: min(100%, 620px);
-    border-radius: 28px;
-    padding: 2rem 1.7rem;
+  .admin-chat-stage.is-profile-open .admin-chat-profile {
+    max-width: 340px;
+    opacity: 1;
+  }
+
+  .admin-chat-profile-head {
+    padding: 1.2rem 1.2rem 1rem;
+    border-bottom: 1px solid #edf7f1;
     background:
-      radial-gradient(circle at top right, rgba(16, 185, 129, 0.2), transparent 30%),
-      linear-gradient(180deg, #f7fff9, #ffffff);
-    border: 1px solid #dceee4;
-    box-shadow: 0 22px 60px rgba(6, 78, 59, .08);
-    text-align: center;
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 28%),
+      linear-gradient(180deg, #f6fff9, #ffffff);
   }
 
-  .admin-chat-gate-icon {
-    width: 84px;
-    height: 84px;
-    margin: 0 auto 1rem;
-    border-radius: 28px;
-    display: grid;
-    place-items: center;
-    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-    color: #047857;
-    font-size: 2rem;
-    box-shadow: 0 18px 36px rgba(16,185,129,.16);
-  }
-
-  .admin-chat-gate-card h3 {
-    font-size: 1.3rem;
+  .admin-chat-profile-head h3 {
+    margin: 0 0 .28rem;
+    font-size: 1rem;
     font-weight: 800;
-    color: #064e3b;
-    margin-bottom: .55rem;
+    color: #0f172a;
   }
 
-  .admin-chat-gate-card p {
-    margin: 0 auto 1.15rem;
-    max-width: 460px;
-    color: #64748b;
-    line-height: 1.8;
+  .admin-chat-profile-head p {
+    margin: 0;
+    color: #4b7a68;
+    font-size: .84rem;
+    line-height: 1.6;
   }
 
-  .admin-chat-start {
+  .admin-chat-profile-topic {
     display: inline-flex;
     align-items: center;
-    gap: .55rem;
-    border: none;
-    border-radius: 16px;
-    padding: .92rem 1.25rem;
-    color: #fff;
+    gap: .38rem;
+    margin-top: .7rem;
+    padding: .42rem .8rem;
+    border-radius: 999px;
+    background: #e8fff1;
+    color: #047857;
+    font-size: .72rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #065f46, #10b981);
-    box-shadow: 0 16px 32px rgba(6,95,70,.2);
+    letter-spacing: .04em;
+    text-transform: uppercase;
   }
 
-  .admin-chat-start:disabled {
-    opacity: .55;
-    cursor: not-allowed;
-    box-shadow: none;
+  .admin-chat-profile-body {
+    padding: 1rem 1.15rem 1.2rem;
+    overflow-y: auto;
+    max-height: 760px;
+  }
+
+  .admin-chat-profile-section {
+    font-size: .74rem;
+    font-weight: 800;
+    color: #64748b;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: .85rem;
+  }
+
+  .admin-member-list {
+    display: grid;
+    gap: .72rem;
+  }
+
+  .admin-member-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .88rem .92rem;
+    border-radius: 18px;
+    border: 1px solid rgba(221, 239, 231, 0.95);
+    background: linear-gradient(180deg, #ffffff, #f8fffb);
+  }
+
+  .admin-member-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+  }
+
+  .admin-member-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .admin-member-copy {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .admin-member-name {
+    font-size: .92rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.35;
+    margin-bottom: .15rem;
+  }
+
+  .admin-member-meta {
+    color: #64748b;
+    font-size: .78rem;
+    line-height: 1.55;
+  }
+
+  .admin-member-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .34rem .62rem;
+    border-radius: 999px;
+    background: #e8fff1;
+    color: #047857;
+    font-size: .68rem;
+    font-weight: 800;
+    white-space: nowrap;
   }
 
   @media (max-width: 1199.98px) {
@@ -593,6 +635,22 @@
     .admin-chat-list {
       border-right: none;
       border-bottom: 1px solid #edf7f1;
+    }
+
+    .admin-chat-stage.is-profile-open {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .admin-chat-profile {
+      max-width: none;
+      max-height: 0;
+      border-left: none;
+      border-top: 1px solid #edf7f1;
+    }
+
+    .admin-chat-stage.is-profile-open .admin-chat-profile {
+      max-width: none;
+      max-height: 560px;
     }
   }
 
@@ -614,6 +672,16 @@
     .admin-message-content {
       max-width: 100%;
     }
+
+    .admin-chat-toggle,
+    .admin-chat-badge {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .admin-member-item {
+      align-items: flex-start;
+    }
   }
 </style>
 @endpush
@@ -623,11 +691,11 @@
   <aside class="admin-chat-list">
     <div class="admin-chat-list-head">
       <div class="admin-chat-tabs">
-        <a href="{{ route('admin.chat') }}" class="admin-chat-tab active">
+        <a href="{{ route('admin.chat') }}" class="admin-chat-tab">
           <i class="ti ti-message-heart admin-chat-tab-icon"></i>
           <span>Chat Konseling</span>
         </a>
-        <a href="{{ route('admin.group-chat') }}" class="admin-chat-tab">
+        <a href="{{ route('admin.group-chat') }}" class="admin-chat-tab active">
           <i class="ti ti-users-group admin-chat-tab-icon"></i>
           <span>Grup Chat</span>
         </a>
@@ -636,164 +704,153 @@
         <i class="ti ti-search"></i>
         <input
           type="search"
-          id="adminChatSearchInput"
-          placeholder="Cari mahasiswa, topik, atau tanggal sesi..."
+          id="adminGroupChatSearchInput"
+          placeholder="Cari topik, grup, atau nama anggota..."
           autocomplete="off"
         >
       </div>
     </div>
 
-    @forelse($jadwalList as $item)
+    @forelse($groupList as $room)
       @php
-        $itemUser = optional(optional($item)->mahasiswa)->user;
-        $isSelected = optional($activeJadwal)->id === $item->id;
-        $itemScheduledAt = \Carbon\Carbon::parse(trim($item->tanggal . ' ' . ($item->waktu ?? '00:00:00')), 'Asia/Jakarta');
-        $itemIsBlockedBySchedule = now('Asia/Jakarta')->lt($itemScheduledAt);
-        $itemStatusKey = $itemIsBlockedBySchedule ? 'terjadwal' : strtolower($item->status ?? '');
-        $itemStatusLabel = $itemIsBlockedBySchedule ? 'Terjadwal' : ucfirst($item->status ?? '-');
-        $itemTopik = $item->catatan && preg_match('/Topik:\s*([^|]+)/i', $item->catatan, $match) ? trim($match[1]) : 'Topik belum tersedia';
+        $isSelected = optional($activeRoom)->id === $room->id;
+        $memberNames = $room->members->map(fn ($member) => $member->user?->getNamaDisplay())->filter()->values();
+        $latestMessagePreview = optional($room->latestMessage)->pesan
+            ? \Illuminate\Support\Str::limit($room->latestMessage->pesan, 56)
+            : 'Belum ada pesan pada grup ini.';
         $sessionSearchText = strtolower(trim(implode(' ', [
-            $itemUser?->getNamaDisplay() ?? 'Mahasiswa',
-            \Carbon\Carbon::parse($item->tanggal)->translatedFormat('j F Y'),
-            substr($item->waktu, 0, 5),
-            $itemTopik,
-            $itemStatusLabel,
+            $room->title,
+            $room->topicLabel(),
+            $memberNames->implode(' '),
+            $latestMessagePreview,
         ])));
       @endphp
-      <a href="{{ route('admin.chat', ['jadwal' => $item->id]) }}" class="admin-chat-session {{ $isSelected ? 'active' : '' }}" data-session-search="{{ $sessionSearchText }}">
+      <a href="{{ route('admin.group-chat', ['group' => $room->id]) }}" class="admin-chat-session {{ $isSelected ? 'active' : '' }}" data-session-search="{{ $sessionSearchText }}">
         <div class="admin-chat-session-top">
-          <div class="admin-chat-session-name">{{ $itemUser?->getNamaDisplay() ?? 'Mahasiswa' }}</div>
-          <span class="admin-chat-session-status {{ $itemStatusKey }}">{{ $itemStatusLabel }}</span>
+          <div class="admin-chat-session-name">{{ $room->title }}</div>
+          <span class="admin-chat-session-status">{{ $room->topicLabel() }}</span>
         </div>
         <div class="admin-chat-session-meta">
-          {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('j M Y') }} &bull; {{ substr($item->waktu, 0, 5) }} WIB<br>
-          {{ $itemTopik }}
+          {{ $room->members_count }} anggota<br>
+          {{ $latestMessagePreview }}
         </div>
       </a>
     @empty
       <div style="padding:1.1rem 1rem;color:#64748b;font-size:.84rem;">
-        Belum ada sesi konseling online yang disetujui atau sedang berlangsung.
+        Belum ada grup chat yang dibuat mahasiswa.
       </div>
     @endforelse
-    @if($jadwalList->isNotEmpty())
-      <div class="admin-chat-search-empty" id="adminChatSearchEmpty">
-        Tidak ada percakapan yang cocok dengan kata kunci pencarian.
+
+    @if($groupList->isNotEmpty())
+      <div class="admin-chat-search-empty" id="adminGroupChatSearchEmpty">
+        Tidak ada grup chat yang cocok dengan kata kunci pencarian.
       </div>
     @endif
   </aside>
 
   <section class="admin-chat-card">
-    @if(session('success'))
-      <div style="margin:1rem 1rem 0;background:#e8fff1;border:1px solid #bbf7d0;color:#166534;padding:1rem 1.1rem;border-radius:18px;font-weight:700;">
-        {{ session('success') }}
-      </div>
-    @endif
-
-    @if(session('error'))
-      <div style="margin:1rem 1rem 0;background:#fff1f2;border:1px solid #fecdd3;color:#be123c;padding:1rem 1.1rem;border-radius:18px;font-weight:700;">
-        {{ session('error') }}
-      </div>
-    @endif
-
-    @if(!$activeSession || !$activeJadwal)
+    @if(!$activeRoom || !$chatPayload)
       <div class="admin-chat-empty">
         <div>
-          <div class="admin-chat-empty-icon"><i class="ti ti-message-heart"></i></div>
-          <h3>Belum Ada Ruang Chat Aktif</h3>
+          <div class="admin-chat-empty-icon"><i class="ti ti-users-group"></i></div>
+          <h3>Belum Ada Grup Chat Aktif</h3>
           <p>
-            Pilih salah satu sesi konseling online yang sudah disetujui dari daftar di samping untuk membuka ruang percakapan dengan mahasiswa.
+            Saat mahasiswa membuat grup konseling berdasarkan topik, daftar grup tersebut akan muncul di panel kiri dan bisa langsung Anda buka dari sini.
           </p>
-        </div>
-      </div>
-    @elseif($isBlockedBySchedule)
-      <div class="admin-chat-gate">
-        <div class="admin-chat-gate-card">
-          <div class="admin-chat-gate-icon">
-            <i class="ti ti-clock-hour-4"></i>
-          </div>
-          <h3>Sesi Akan Aktif Sesuai Jadwal</h3>
-          <p>
-            Jadwal konseling online dengan <strong>{{ $studentUser?->getNamaDisplay() ?? 'Mahasiswa' }}</strong>
-            sudah tercatat, tetapi ruang chat dan video call baru bisa diakses pada
-            <strong>{{ $scheduledStartLabel }}</strong>.
-          </p>
-          <button type="button" class="admin-chat-start" disabled>
-            <i class="ti ti-lock"></i>
-            <span>Menunggu Jadwal Sesi</span>
-          </button>
-        </div>
-      </div>
-    @elseif($isReadyToStart)
-      <div class="admin-chat-gate">
-        <div class="admin-chat-gate-card">
-          <div class="admin-chat-gate-icon">
-            <i class="ti {{ $canStartNow ? 'ti-message-chatbot' : 'ti-clock-hour-4' }}"></i>
-          </div>
-          <h3>{{ $canStartNow ? 'Sesi Siap Dimulai' : 'Sesi Belum Bisa Dimulai' }}</h3>
-          <p>
-            @if($canStartNow)
-              Jadwal konseling online dengan <strong>{{ $studentUser?->getNamaDisplay() ?? 'Mahasiswa' }}</strong> sudah siap.
-              Klik tombol di bawah untuk masuk ke ruang chat realtime.
-            @else
-              Jadwal sudah disetujui, tetapi sesi chat baru bisa dimulai pada
-              <strong>{{ $scheduledStartLabel }}</strong>.
-            @endif
-          </p>
-          <form action="{{ route('admin.chat.start') }}" method="POST">
-            @csrf
-            <input type="hidden" name="jadwal_id" value="{{ $activeJadwal->id }}">
-            <button type="submit" class="admin-chat-start" {{ $canStartNow ? '' : 'disabled' }}>
-              <i class="ti ti-player-play-filled"></i>
-              <span>Mulai Sesi</span>
-            </button>
-          </form>
         </div>
       </div>
     @else
-      <div class="admin-chat-head">
-        <div class="admin-chat-person">
-          <div class="admin-chat-avatar">
-            <img src="{{ $chatPayload['studentAvatar'] }}" alt="{{ $chatPayload['studentName'] }}">
+      <div class="admin-chat-stage" id="adminGroupChatStage">
+        <div class="admin-chat-main">
+          <div class="admin-chat-head">
+            <div class="admin-chat-person">
+              <div class="admin-chat-avatar">
+                <i class="ti ti-users-group"></i>
+              </div>
+              <div>
+                <div class="admin-chat-title">{{ $chatPayload['roomTitle'] }}</div>
+                <p class="admin-chat-subtitle">
+                  {{ $chatPayload['topicLabel'] }} &bull; {{ $chatPayload['memberCount'] }} anggota<br>
+                  {{ implode(', ', array_slice($chatPayload['memberNames'], 0, 5)) }}{{ count($chatPayload['memberNames']) > 5 ? ' dan lainnya' : '' }}
+                </p>
+              </div>
+            </div>
+            <div class="admin-chat-head-actions">
+              <button type="button" class="admin-chat-toggle" id="adminGroupMemberToggle" aria-expanded="false" aria-controls="adminGroupChatProfile">
+                <i class="ti ti-layout-sidebar-right-expand"></i>
+                <span>Lihat anggota grup</span>
+              </button>
+              <div class="admin-chat-badge">Grup Aktif</div>
+            </div>
           </div>
-          <div>
-            <div class="admin-chat-title">{{ $chatPayload['studentName'] }}</div>
-            <p class="admin-chat-subtitle">
-              {{ $topik ?: 'Konseling online aktif' }}<br>
-              {{ \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('j F Y') }} &bull; {{ substr($activeJadwal->waktu, 0, 5) }} WIB
-            </p>
+
+          <div class="admin-chat-thread" id="adminGroupChatThread">
+            <div class="admin-chat-date">
+              {{ now('Asia/Jakarta')->translatedFormat('l, j F Y') }}
+            </div>
+          </div>
+
+          <div class="admin-chat-compose">
+            <form id="adminGroupChatForm" class="admin-chat-form">
+              <textarea
+                id="adminGroupChatInput"
+                class="admin-chat-input"
+                rows="1"
+                maxlength="2000"
+                placeholder="Tulis pesan untuk grup konseling ini..."
+              ></textarea>
+              <button type="submit" class="admin-chat-send" id="adminGroupChatSendBtn">
+                <i class="ti ti-send"></i>
+              </button>
+            </form>
+            <div class="admin-chat-hint" id="adminGroupChatHint">
+              Pesan akan langsung tampil untuk seluruh anggota grup dan konselor lain yang membuka ruang ini.
+            </div>
           </div>
         </div>
-        <div class="admin-chat-head-actions">
-          <a href="{{ $chatPayload['videoCallUrl'] }}" target="_blank" rel="noopener noreferrer" class="admin-chat-video-btn">
-            <i class="ti ti-video"></i>
-            <span>Video Call</span>
-          </a>
-          <div class="admin-chat-badge">{{ $statusLabel }}</div>
-        </div>
-      </div>
 
-      <div class="admin-chat-thread" id="adminChatThread">
-        <div class="admin-chat-date">
-          {{ \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('l, j F Y') }}
-        </div>
-      </div>
+        <aside class="admin-chat-profile" id="adminGroupChatProfile">
+          {{-- Admin bisa melihat daftar anggota grup dari panel samping yang sama seperti sisi mahasiswa. --}}
+          <div class="admin-chat-profile-head">
+            <h3>{{ $chatPayload['roomTitle'] }}</h3>
+            <p>{{ $chatPayload['memberCount'] }} anggota dalam grup ini</p>
+            <div class="admin-chat-profile-topic">{{ $chatPayload['topicLabel'] }}</div>
+          </div>
 
-      <div class="admin-chat-compose">
-        <form id="adminChatForm" class="admin-chat-form">
-          <textarea
-            id="adminChatInput"
-            class="admin-chat-input"
-            rows="1"
-            maxlength="2000"
-            placeholder="Tulis respons konseling Anda di sini..."
-          ></textarea>
-          <button type="submit" class="admin-chat-send" id="adminChatSendBtn">
-            <i class="ti ti-send"></i>
-          </button>
-        </form>
-        <div class="admin-chat-hint" id="adminChatHint">
-          Pesan akan langsung terkirim ke ruang chat mahasiswa yang sesuai secara realtime.
-        </div>
+          <div class="admin-chat-profile-body">
+            <div class="admin-chat-profile-section">Anggota Grup</div>
+            <div class="admin-member-list">
+              @foreach($activeRoom->members->sortBy(fn ($member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX) as $member)
+                @php
+                  $memberUser = $member->user;
+                  $memberProfile = optional($memberUser)->profil;
+                  $memberJoinedAt = $member->joined_at ?? $member->created_at;
+                  $isCurrentUser = (int) optional($memberUser)->id === (int) auth()->id();
+                @endphp
+                <div class="admin-member-item">
+                  <div class="admin-member-avatar">
+                    <img
+                      src="{{ $memberProfile?->foto ? Storage::url($memberProfile->foto) : asset('img/default-avatar.png') }}"
+                      alt="{{ $memberUser?->getNamaDisplay() ?? 'Pengguna' }}"
+                    >
+                  </div>
+                  <div class="admin-member-copy">
+                    <div class="admin-member-name">{{ $memberUser?->getNamaDisplay() ?? 'Pengguna' }}</div>
+                    <div class="admin-member-meta">
+                      {{ $isCurrentUser ? 'Anda' : ($memberUser?->role === 'konselor' ? 'Konselor' : 'Mahasiswa') }}
+                      @if($memberJoinedAt)
+                        - Bergabung {{ \Carbon\Carbon::parse($memberJoinedAt)->timezone('Asia/Jakarta')->translatedFormat('j M Y, H:i') }}
+                      @endif
+                    </div>
+                  </div>
+                  @if($isCurrentUser)
+                    <div class="admin-member-pill">Anda</div>
+                  @endif
+                </div>
+              @endforeach
+            </div>
+          </div>
+        </aside>
       </div>
     @endif
   </section>
@@ -803,8 +860,8 @@
 @push('scripts')
 <script>
 (() => {
-  const searchInput = document.getElementById('adminChatSearchInput');
-  const searchEmpty = document.getElementById('adminChatSearchEmpty');
+  const searchInput = document.getElementById('adminGroupChatSearchInput');
+  const searchEmpty = document.getElementById('adminGroupChatSearchEmpty');
   const sessionItems = Array.from(document.querySelectorAll('[data-session-search]'));
 
   if (!searchInput || sessionItems.length === 0) {
@@ -834,17 +891,37 @@
 </script>
 @endpush
 
-@if($activeSession && $chatPayload && $chatAccessGranted)
+@if($activeRoom && $chatPayload)
+@push('scripts')
+<script>
+(() => {
+  const stage = document.getElementById('adminGroupChatStage');
+  const toggle = document.getElementById('adminGroupMemberToggle');
+
+  if (!stage || !toggle) {
+    return;
+  }
+
+  toggle.addEventListener('click', () => {
+    // Toggle panel anggota grup secara inline agar admin tetap berada di ruang chat yang sama.
+    const isOpen = stage.classList.toggle('is-profile-open');
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    toggle.querySelector('span').textContent = isOpen ? 'Sembunyikan anggota grup' : 'Lihat anggota grup';
+  });
+})();
+</script>
+@endpush
+
 @push('scripts')
 <script>
 (() => {
   const payload = @json($chatPayload);
   const currentUserId = {{ auth()->id() }};
-  const thread = document.getElementById('adminChatThread');
-  const form = document.getElementById('adminChatForm');
-  const input = document.getElementById('adminChatInput');
-  const sendBtn = document.getElementById('adminChatSendBtn');
-  const hint = document.getElementById('adminChatHint');
+  const thread = document.getElementById('adminGroupChatThread');
+  const form = document.getElementById('adminGroupChatForm');
+  const input = document.getElementById('adminGroupChatInput');
+  const sendBtn = document.getElementById('adminGroupChatSendBtn');
+  const hint = document.getElementById('adminGroupChatHint');
 
   if (!thread || !form || !input || !sendBtn) {
     return;
@@ -898,7 +975,7 @@
 
   const syncMessages = async () => {
     try {
-      const response = await fetch(`${payload.messagesUrl}?sesi_id=${payload.sessionId}`, {
+      const response = await fetch(`${payload.messagesUrl}?group_id=${payload.roomId}`, {
         headers: {
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
@@ -935,7 +1012,7 @@
 
   if (window.Echo) {
     window.Echo.private(payload.channel)
-      .listen('.chat.message.sent', (event) => {
+      .listen('.group.chat.message.sent', (event) => {
         if (!event?.message) {
           return;
         }
@@ -974,7 +1051,7 @@
     }
 
     sendBtn.disabled = true;
-    hint.textContent = 'Mengirim pesan ke mahasiswa...';
+    hint.textContent = 'Mengirim pesan ke grup...';
 
     try {
       const response = await fetch(payload.sendUrl, {
@@ -987,7 +1064,7 @@
           'X-Socket-ID': window.Echo?.socketId?.() ?? '',
         },
         body: JSON.stringify({
-          sesi_id: payload.sessionId,
+          group_id: payload.roomId,
           pesan,
         }),
       });
@@ -1004,7 +1081,7 @@
       scrollToBottom();
       input.value = '';
       autoResize();
-      hint.textContent = 'Pesan terkirim dan langsung masuk ke ruang chat mahasiswa.';
+      hint.textContent = 'Pesan terkirim ke seluruh anggota grup.';
     } catch (error) {
       console.error(error);
       hint.textContent = 'Terjadi kendala saat mengirim pesan.';

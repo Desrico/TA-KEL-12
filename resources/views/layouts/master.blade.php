@@ -518,11 +518,33 @@
     color: #2f6f9d;
   }
 
+<<<<<<< Updated upstream
   .envelope-speech p {
     margin: .5rem 0 0;
     color: #4b5563;
     font-size: .88rem;
     line-height: 1.65;
+=======
+  .envelope-speech-copy {
+    margin: .7rem 0 0;
+    min-height: 5.3rem;
+    overflow: hidden;
+  }
+
+  .envelope-speech-copy > span {
+    display: block;
+    width: 100%;
+  }
+
+  .letter-speech-line {
+    display: block;
+    color: #475569;
+    font-size: .94rem;
+    line-height: 1.78;
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    will-change: clip-path, opacity;
+>>>>>>> Stashed changes
   }
 
   .envelope-speech-actions {
@@ -689,8 +711,13 @@
     border-radius: 22px;
     background: linear-gradient(180deg, #fffefd, #fff6ec);
     box-shadow: 0 22px 38px rgba(15, 23, 42, 0.08);
+<<<<<<< Updated upstream
     padding: 1rem 1rem 1.15rem;
     transition: transform .62s cubic-bezier(.2,.9,.2,1), box-shadow .3s ease;
+=======
+    padding: 1rem 1rem 1.25rem;
+    transition: transform 1.08s cubic-bezier(.18,.86,.18,1), box-shadow .44s ease;
+>>>>>>> Stashed changes
     z-index: 2;
     display: flex;
     flex-direction: column;
@@ -717,11 +744,16 @@
       transparent 10px
     );
     opacity: 0;
-    transition: opacity .24s ease .26s;
+    transition: opacity .34s ease .78s;
   }
 
   .envelope.is-open .envelope-letter::before {
     opacity: .75;
+  }
+
+  .envelope.is-opening .envelope-letter {
+    transform: translateX(-50%) translateY(12px);
+    box-shadow: 0 24px 40px rgba(15, 23, 42, 0.1);
   }
 
   .envelope.is-open .envelope-letter {
@@ -738,7 +770,7 @@
     margin: 0;
     opacity: 0;
     transform: translateY(10px);
-    transition: opacity .24s ease .16s, transform .24s ease .16s;
+    transition: opacity .34s ease .68s, transform .42s ease .68s;
   }
 
   .letter-modal[data-tone="waiting"] .envelope-letter h4 {
@@ -754,7 +786,7 @@
     line-height: 1.6;
     opacity: 0;
     transform: translateY(10px);
-    transition: opacity .24s ease .22s, transform .24s ease .22s;
+    transition: opacity .34s ease .8s, transform .42s ease .8s;
   }
 
   .envelope.is-open .envelope-letter h4,
@@ -770,7 +802,7 @@
     top: 28px;
     height: 102px;
     transform-origin: top center;
-    transition: transform .72s cubic-bezier(.18,.9,.18,1), filter .24s ease;
+    transition: transform 1.12s cubic-bezier(.18,.82,.2,1), filter .3s ease;
     z-index: 5;
     transform-style: preserve-3d;
     backface-visibility: hidden;
@@ -797,8 +829,10 @@
     opacity: .75;
   }
 
+  .envelope.is-opening .envelope-flap,
   .envelope.is-open .envelope-flap {
     transform: rotateX(176deg) translateY(-3px);
+    filter: drop-shadow(0 -8px 18px rgba(6, 78, 59, 0.12));
   }
 
   .envelope-front {
@@ -1146,6 +1180,22 @@
     animation: badgeGreeting 1.08s cubic-bezier(.18,.9,.22,1) 1;
   }
 
+  .envelope.is-attentive .envelope-character {
+    animation: envelopeAttentiveFloat 1.9s ease-in-out infinite;
+  }
+
+  .envelope.is-attentive .envelope-badge {
+    animation: badgeBeacon 1.25s ease-in-out infinite;
+  }
+
+  .envelope.is-attentive .envelope-eye {
+    animation: eyeBlinkQuick 1.7s ease-in-out infinite;
+  }
+
+  .envelope.is-attentive .envelope-spark {
+    animation: sparkleBeacon 1.5s ease-in-out infinite;
+  }
+
   .envelope-helper {
     margin-top: .2rem;
     color: #64748b;
@@ -1315,6 +1365,22 @@
     50% { transform: translate3d(0, -6px, 0); }
   }
 
+<<<<<<< Updated upstream
+=======
+  @keyframes speechTextSweep {
+    0% { opacity: 0; clip-path: inset(0 100% 0 0); }
+    30% { opacity: .85; clip-path: inset(0 68% 0 0); }
+    100% { opacity: 1; clip-path: inset(0 0 0 0); }
+  }
+
+  @keyframes speechLineReveal {
+    0% { opacity: 0; clip-path: inset(0 100% 0 0); }
+    35% { opacity: .72; clip-path: inset(0 76% 0 0); }
+    70% { opacity: .92; clip-path: inset(0 28% 0 0); }
+    100% { opacity: 1; clip-path: inset(0 0 0 0); }
+  }
+
+>>>>>>> Stashed changes
   @keyframes sparkleOrbit {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: .8; }
     50% { transform: translate3d(0, -10px, 0) scale(1.12); opacity: 1; }
@@ -1361,6 +1427,12 @@
     32% { transform: translate3d(0, -12px, 0) scale(1.03); }
     68% { transform: translate3d(0, -5px, 0) scale(1.01); }
     100% { transform: translate3d(0, 0, 0) scale(1); }
+  }
+
+  @keyframes envelopeAttentiveFloat {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    35% { transform: translate3d(0, -7px, 0) scale(1.015); }
+    70% { transform: translate3d(0, -3px, 0) scale(1.008); }
   }
 
   @keyframes armCelebrateLeft {
@@ -1431,10 +1503,26 @@
     100% { transform: rotate(8deg) scale(1); }
   }
 
+  @keyframes badgeBeacon {
+    0%, 100% { transform: rotate(8deg) scale(1); opacity: 1; }
+    45% { transform: rotate(11deg) scale(1.12); opacity: .72; }
+    70% { transform: rotate(6deg) scale(1.04); opacity: 1; }
+  }
+
+  @keyframes eyeBlinkQuick {
+    0%, 36%, 42%, 100% { transform: scaleY(1); }
+    39% { transform: scaleY(0.08); }
+  }
+
   @keyframes sparkleBurst {
     0% { transform: translate3d(0, 0, 0) scale(1); opacity: .9; }
     50% { transform: translate3d(0, -16px, 0) scale(1.24); opacity: 1; }
     100% { transform: translate3d(0, -6px, 0) scale(1); opacity: .9; }
+  }
+
+  @keyframes sparkleBeacon {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: .76; }
+    50% { transform: translate3d(0, -8px, 0) scale(1.15); opacity: 1; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1448,7 +1536,8 @@
     .envelope-character,
     .envelope-arm,
     .envelope-leg,
-    .envelope-eye {
+    .envelope-eye,
+    .envelope-badge {
       animation: none !important;
     }
 
@@ -1462,6 +1551,32 @@
     .letter-modal-close {
       transition-duration: .01ms !important;
     }
+<<<<<<< Updated upstream
+=======
+
+    .envelope-stage.animate-copy #letterSpeechKickerText,
+    .envelope-stage.animate-copy .letter-speech-line {
+      animation: none !important;
+      opacity: 1 !important;
+      clip-path: inset(0 0 0 0) !important;
+    }
+  }
+
+  .envelope-stage.animate-copy #letterSpeechKickerText,
+  .envelope-stage.animate-copy .letter-speech-line {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    will-change: clip-path, opacity;
+  }
+
+  .envelope-stage.animate-copy #letterSpeechKickerText {
+    animation: speechTextSweep 1.45s cubic-bezier(.2,.82,.22,1) forwards;
+  }
+
+  .envelope-stage.animate-copy .letter-speech-line {
+    animation: speechLineReveal 2.4s cubic-bezier(.22,.61,.36,1) forwards;
+    animation-delay: calc(.12s + (var(--line-index, 0) * 2.4s));
+>>>>>>> Stashed changes
   }
 
   .profile-wrap { position: relative; }
@@ -1833,6 +1948,7 @@ footer a:hover {
                 $notif->prompt_cta = null;
                 $notif->prompt_note = null;
                 $notif->prompt_locked = false;
+                $notif->prompt_jadwal_id = null;
                 $notifText = strtolower((string) $pesan);
                 $matchedApprovedJadwal = $jadwalByApprovedMessage->get($pesan);
 
@@ -1848,10 +1964,16 @@ footer a:hover {
                       $notif->pesan = 'Konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.';
 
                       if ($jenisKonseling === 'online') {
+<<<<<<< Updated upstream
                         $isLockedBySchedule = now()->lt($dateTime);
                         $notif->cta_target = route('mahasiswa.chat.start');
+=======
+                        $isLockedBySchedule = $dateTime ? ! $jadwal->hasScheduledTimeStarted() : true;
+                        $notif->cta_target = route('mahasiswa.chat');
+>>>>>>> Stashed changes
                         $notif->is_letter_prompt = true;
                         $notif->prompt_locked = $isLockedBySchedule;
+                        $notif->prompt_jadwal_id = $jadwal->id;
                         $notif->prompt_title = $isLockedBySchedule ? 'Sesi Belum Dimulai' : 'Undangan Sesi Konseling';
                         $notif->prompt_message = $isLockedBySchedule
                           ? 'Sesi konseling online Anda sudah disetujui. Ruang chat baru bisa diakses pada ' . $tanggalWaktu . '.'
@@ -1883,10 +2005,16 @@ footer a:hover {
                     $matchedTanggalWaktu = trim($matches[1]);
                   }
 
+<<<<<<< Updated upstream
                   $isLockedBySpecificSchedule = $matchedDateTime ? now()->lt($matchedDateTime) : $chatGuardBlocked;
                   $notif->cta_target = route('mahasiswa.chat.start');
+=======
+                  $isLockedBySpecificSchedule = $matchedApprovedJadwal ? ! $matchedApprovedJadwal->hasScheduledTimeStarted() : $chatGuardBlocked;
+                  $notif->cta_target = route('mahasiswa.chat');
+>>>>>>> Stashed changes
                   $notif->is_letter_prompt = true;
                   $notif->prompt_locked = $isLockedBySpecificSchedule;
+                  $notif->prompt_jadwal_id = $matchedApprovedJadwal?->id;
                   $notif->prompt_title = $isLockedBySpecificSchedule ? 'Sesi Belum Dimulai' : 'Undangan Sesi Konseling';
                   $notif->prompt_message = $isLockedBySpecificSchedule && $matchedTanggalWaktu
                     ? 'Sesi konseling online Anda sudah disetujui. Ruang chat baru bisa diakses pada ' . $matchedTanggalWaktu . '.'
@@ -1943,13 +2071,17 @@ footer a:hover {
           <a
             class="nav-link nav-link-custom {{ request()->routeIs('mahasiswa.chat*') ? 'active' : '' }}"
             href="{{ route('mahasiswa.chat') }}"
-            @if($chatGuardBlocked)
-              data-chat-guard="true"
-              data-chat-guard-title="{{ $chatGuardTitle }}"
-              data-chat-guard-message="{{ $chatGuardMessage }}"
-            @endif
           >
+            {{-- Link chat tetap boleh dibuka langsung agar navigasi menu tidak tertahan di klik pertama. --}}
             Chat
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link nav-link-custom {{ request()->routeIs('mahasiswa.group-chat*') ? 'active' : '' }}"
+            href="{{ route('mahasiswa.group-chat') }}"
+          >
+            Grup Chat
           </a>
         </li>
         @endif
@@ -1972,6 +2104,7 @@ footer a:hover {
                 data-letter-message="{{ $notif->prompt_message }}"
                 data-letter-cta="{{ $notif->prompt_cta }}"
                 data-letter-action="{{ $notif->cta_target }}"
+                data-letter-jadwal-id="{{ $notif->prompt_jadwal_id }}"
                 data-letter-note="{{ $notif->prompt_note }}"
                 data-letter-locked="{{ !empty($notif->prompt_locked) ? '1' : '0' }}"
               >
@@ -2099,10 +2232,11 @@ footer a:hover {
             <i class="bi bi-stars" id="letterSpeechIcon"></i>
             <span id="letterSpeechKickerText">Salam dari undanganmu</span>
           </span>
-          <p id="letterSpeechMessage">Aku sudah siap membawakan kabar baik. Klik aku untuk membuka pesanmu.</p>
+          <p class="envelope-speech-copy"><span id="letterSpeechMessage">Aku sudah siap membawakan kabar baik. Klik aku untuk membuka pesanmu.</span></p>
           <div class="envelope-speech-actions" id="letterSpeechActions" hidden>
             <form id="letterActionForm" method="POST">
               @csrf
+              <input type="hidden" name="jadwal_id" id="letterActionJadwalId" value="">
               <button type="submit" class="letter-start-btn" id="letterActionButton">
                 <i class="bi bi-chat-dots-fill"></i>
                 <span>Mulai Sesi Konseling</span>
@@ -2227,6 +2361,7 @@ const letterEnvelope = document.getElementById('letterEnvelope');
 const envelopeStage = letterModal?.querySelector('.envelope-stage');
 const letterSpeechActions = document.getElementById('letterSpeechActions');
 const letterActionForm = document.getElementById('letterActionForm');
+const letterActionJadwalId = document.getElementById('letterActionJadwalId');
 const letterActionButton = document.getElementById('letterActionButton');
 const letterActionIcon = letterActionButton?.querySelector('i');
 const letterModalTitle = document.getElementById('letterModalTitle');
@@ -2246,6 +2381,8 @@ const scheduleGuardTitle = document.getElementById('scheduleGuardTitle');
 const scheduleGuardMessage = document.getElementById('scheduleGuardMessage');
 let envelopeSurpriseTimer = null;
 let envelopeGreetingTimer = null;
+let envelopeOpenTimer = null;
+let envelopeAttentiveTimer = null;
 
 const syncBodyScrollLock = () => {
   const hasOpenModal = letterModal?.classList.contains('show') || scheduleGuardModal?.classList.contains('show');
@@ -2278,6 +2415,94 @@ const setEnvelopeInteractionState = ({
 
 const resetEnvelopeInteractionState = () => {
   setEnvelopeInteractionState();
+};
+
+const clearEnvelopeOpenTimer = () => {
+  window.clearTimeout(envelopeOpenTimer);
+  envelopeOpenTimer = null;
+};
+
+const clearEnvelopeAttentiveState = () => {
+  window.clearTimeout(envelopeAttentiveTimer);
+  envelopeAttentiveTimer = null;
+  letterEnvelope?.classList.remove('is-attentive');
+};
+
+const splitLetterSpeechVisualLines = (message) => {
+  const normalizedMessage = String(message || '').replace(/\s+/g, ' ').trim();
+
+  if (!normalizedMessage) {
+    return [];
+  }
+
+  const availableWidth = Math.max(
+    letterSpeechMessage?.parentElement?.clientWidth || 0,
+    letterSpeechMessage?.clientWidth || 0
+  );
+
+  if (!availableWidth || typeof document === 'undefined') {
+    return [normalizedMessage];
+  }
+  const computedStyle = window.getComputedStyle(letterSpeechMessage);
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    return [normalizedMessage];
+  }
+
+  context.font = computedStyle.font;
+
+  const words = normalizedMessage.split(' ').filter(Boolean);
+  const lines = [];
+  let currentLine = '';
+  const letterSpacing = Number.parseFloat(computedStyle.letterSpacing) || 0;
+  const measureTextWidth = (text) => {
+    if (!text) {
+      return 0;
+    }
+
+    return context.measureText(text).width + Math.max(0, text.length - 1) * letterSpacing;
+  };
+
+  words.forEach((word) => {
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+
+    if (measureTextWidth(candidate) > availableWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+      return;
+    }
+
+    currentLine = candidate;
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines.length ? lines : [normalizedMessage];
+};
+
+const renderLetterSpeechMessage = (message) => {
+  if (!letterSpeechMessage) {
+    return;
+  }
+
+  const lines = splitLetterSpeechVisualLines(message);
+  letterSpeechMessage.replaceChildren();
+
+  if (!lines.length) {
+    return;
+  }
+
+  lines.forEach((line, index) => {
+    const lineElement = document.createElement('span');
+    lineElement.className = 'letter-speech-line';
+    lineElement.style.setProperty('--line-index', String(index));
+    lineElement.textContent = line;
+    letterSpeechMessage.appendChild(lineElement);
+  });
 };
 
 const formatLetterFinalMessage = (message, isLocked) => {
@@ -2331,6 +2556,40 @@ const resetLetterSpeechState = () => {
   }
 };
 
+<<<<<<< Updated upstream
+=======
+const resetEnvelopeRevealState = () => {
+  clearEnvelopeOpenTimer();
+  clearEnvelopeAttentiveState();
+  letterEnvelope?.classList.remove('is-opening');
+  letterEnvelope?.classList.remove('is-open');
+  letterEnvelope?.classList.remove('is-surprised');
+  letterEnvelope?.classList.remove('is-greeting');
+};
+
+const playLetterCopyAnimation = () => {
+  if (!envelopeStage) {
+    return;
+  }
+
+  clearEnvelopeAttentiveState();
+  envelopeStage.classList.remove('animate-copy');
+  void envelopeStage.offsetWidth;
+  envelopeStage.classList.add('animate-copy');
+
+  if (isReducedMotion()) {
+    return;
+  }
+
+  const animatedLinesCount = letterSpeechMessage?.querySelectorAll('.letter-speech-line').length || 0;
+  const textAnimationDuration = Math.max(1450, 120 + (animatedLinesCount * 2400));
+
+  envelopeAttentiveTimer = window.setTimeout(() => {
+    letterEnvelope?.classList.add('is-attentive');
+  }, textAnimationDuration + 120);
+};
+
+>>>>>>> Stashed changes
 const configureLetterEnvelope = (isLocked) => {
   if (!letterModal) {
     return;
@@ -2346,11 +2605,11 @@ const configureLetterEnvelope = (isLocked) => {
     letterSpeechKickerText.textContent = isLocked ? 'Aku menjaga jadwalmu' : 'Salam dari undanganmu';
   }
 
-  if (letterSpeechMessage) {
-    letterSpeechMessage.textContent = isLocked
+  renderLetterSpeechMessage(
+    isLocked
       ? 'Aku bawa kabar baik. Klik aku untuk lihat kapan chat-mu bisa dibuka.'
-      : 'Undangan sesi-mu sudah siap. Klik aku, nanti aku antarkan ke ruang chat.';
-  }
+      : 'Undangan sesi-mu sudah siap. Klik aku, nanti aku antarkan ke ruang chat.'
+  );
 
   if (envelopeLetterPreview) {
     envelopeLetterPreview.textContent = isLocked
@@ -2489,7 +2748,7 @@ const playLetterReveal = () => {
   );
 };
 
-const openLetterModal = ({ title, message, cta, action, note, locked }) => {
+const openLetterModal = ({ title, message, cta, action, jadwalId, note, locked }) => {
   if (!letterModal || !letterEnvelope || !letterActionForm) {
     return;
   }
@@ -2497,9 +2756,7 @@ const openLetterModal = ({ title, message, cta, action, note, locked }) => {
   const isLocked = Boolean(Number(locked));
   cancelElementAnimations(envelopeCharacter, letterSpeech, envelopeBadge);
   resetEnvelopeInteractionState();
-  letterEnvelope.classList.remove('is-open');
-  letterEnvelope.classList.remove('is-surprised');
-  letterEnvelope.classList.remove('is-greeting');
+  resetEnvelopeRevealState();
   letterModal.dataset.locked = isLocked ? '1' : '0';
   letterModal.dataset.finalMessage = formatLetterFinalMessage(message, isLocked);
   configureLetterEnvelope(isLocked);
@@ -2507,8 +2764,11 @@ const openLetterModal = ({ title, message, cta, action, note, locked }) => {
   letterModalTitle.textContent = isLocked ? 'Jadwal Sesi Online' : title;
   envelopeLetterPreview.textContent = formatEnvelopePaperMessage(message, isLocked);
   letterActionForm.setAttribute('action', action);
+  if (letterActionJadwalId) {
+    letterActionJadwalId.value = jadwalId || '';
+  }
   letterActionButton.querySelector('span').textContent = cta;
-  letterActionButton.disabled = isLocked;
+  letterActionButton.disabled = isLocked || !(jadwalId || '').trim();
   letterModal.classList.add('show');
   letterModal.setAttribute('aria-hidden', 'false');
   closeScheduleGuardModal();
@@ -2525,15 +2785,14 @@ const closeLetterModal = () => {
     return;
   }
 
+  clearEnvelopeOpenTimer();
   window.clearTimeout(envelopeSurpriseTimer);
   window.clearTimeout(envelopeGreetingTimer);
   letterModal.classList.remove('show');
   letterModal.setAttribute('aria-hidden', 'true');
   letterModal.removeAttribute('data-tone');
   letterModal.removeAttribute('data-final-message');
-  letterEnvelope?.classList.remove('is-open');
-  letterEnvelope?.classList.remove('is-surprised');
-  letterEnvelope?.classList.remove('is-greeting');
+  resetEnvelopeRevealState();
   resetLetterSpeechState();
   resetEnvelopeInteractionState();
   syncBodyScrollLock();
@@ -2563,24 +2822,62 @@ const closeScheduleGuardModal = () => {
 };
 
 if (letterEnvelope) {
+<<<<<<< Updated upstream
   const revealLetterSpeech = () => {
     envelopeStage?.classList.add('has-speech');
     triggerEnvelopeGreeting();
     if (letterSpeechMessage) {
       letterSpeechMessage.textContent = letterModal?.dataset.finalMessage || '';
+=======
+  const finishLetterReveal = () => {
+    if (!envelopeStage || !letterModal) {
+      return;
+    }
+
+    const isLocked = letterModal.dataset.locked === '1';
+
+    clearEnvelopeOpenTimer();
+    envelopeStage.classList.add('is-revealed');
+    letterEnvelope.classList.remove('is-opening');
+    letterEnvelope.classList.add('is-open');
+    triggerEnvelopeSurprise();
+    playLetterReveal();
+    if (letterSpeechActions) {
+      letterSpeechActions.hidden = false;
+    }
+    renderLetterSpeechMessage(letterModal.dataset.finalMessage || '');
+    if (envelopeHelper) {
+      envelopeHelper.textContent = isLocked
+        ? 'Jadwal sesi sudah terbuka. Tombol akan aktif saat waktunya tiba.'
+        : 'Undangan sudah terbuka. Kamu bisa langsung lanjut ke ruang chat.';
+    }
+    playLetterCopyAnimation();
+  };
+
+  const revealLetter = () => {
+    if (!envelopeStage || !letterModal) {
+      return;
+>>>>>>> Stashed changes
     }
     if (envelopeHelper) {
       envelopeHelper.textContent = 'Klik sekali lagi untuk membuka suratnya.';
     }
   };
 
+<<<<<<< Updated upstream
   const revealLetter = () => {
     if (letterEnvelope.classList.contains('is-open')) {
+=======
+    const alreadyRevealed = envelopeStage.classList.contains('is-revealed');
+
+    if (alreadyRevealed) {
+>>>>>>> Stashed changes
       triggerEnvelopeSurprise();
       playLetterReveal();
       return;
     }
 
+<<<<<<< Updated upstream
     if (!envelopeStage?.classList.contains('has-speech')) {
       revealLetterSpeech();
       return;
@@ -2602,6 +2899,27 @@ if (letterEnvelope) {
         ? 'Pesanmu sudah terbuka.'
         : 'Pesanmu sudah terbuka.';
     }
+=======
+    if (letterEnvelope.classList.contains('is-opening')) {
+      return;
+    }
+
+    envelopeStage.classList.add('has-speech');
+    letterEnvelope.classList.add('is-opening');
+    triggerEnvelopeGreeting();
+
+    if (envelopeHelper) {
+      envelopeHelper.textContent = 'Amplop sedang terbuka...';
+    }
+
+    if (isReducedMotion()) {
+      finishLetterReveal();
+      return;
+    }
+
+    clearEnvelopeOpenTimer();
+    envelopeOpenTimer = window.setTimeout(finishLetterReveal, 760);
+>>>>>>> Stashed changes
   };
 
   const handleSpeechClick = (event) => {
@@ -2671,7 +2989,20 @@ if (letterActionForm) {
   letterActionForm.addEventListener('submit', (event) => {
     if (letterActionButton?.disabled) {
       event.preventDefault();
+      return;
     }
+
+    event.preventDefault();
+
+    const action = letterActionForm.getAttribute('action') || "{{ route('mahasiswa.chat') }}";
+    const jadwalId = letterActionJadwalId?.value?.trim();
+    const url = new URL(action, window.location.origin);
+
+    if (jadwalId) {
+      url.searchParams.set('jadwal', jadwalId);
+    }
+
+    window.location.assign(url.toString());
   });
 }
 
@@ -2685,19 +3016,10 @@ document.querySelectorAll('.notif-item-trigger').forEach((button) => {
       title: button.dataset.letterTitle || 'Undangan Sesi Konseling',
       message: button.dataset.letterMessage || 'Saat Anda siap, mari mulai sesi konseling.',
       cta: button.dataset.letterCta || 'Mulai Sesi Konseling',
-      action: button.dataset.letterAction || "{{ route('mahasiswa.chat.start') }}",
+      action: button.dataset.letterAction || "{{ route('mahasiswa.chat') }}",
+      jadwalId: button.dataset.letterJadwalId || '',
       note: button.dataset.letterNote || 'Saat siap, Anda bisa langsung masuk ke ruang chat konseling.',
       locked: button.dataset.letterLocked || '0',
-    });
-  });
-});
-
-document.querySelectorAll('[data-chat-guard="true"]').forEach((link) => {
-  link.addEventListener('click', (event) => {
-    event.preventDefault();
-    openScheduleGuardModal({
-      title: link.dataset.chatGuardTitle || 'Sesi Belum Dimulai',
-      message: link.dataset.chatGuardMessage || 'Sesi konseling online Anda belum dapat diakses saat ini.',
     });
   });
 });

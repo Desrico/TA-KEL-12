@@ -535,7 +535,7 @@
                     </a>
                 </li>
 
-                <li class="pc-item {{ request()->routeIs('admin.chat*') ? 'active' : '' }}">
+                <li class="pc-item {{ request()->routeIs('admin.chat*') || request()->routeIs('admin.group-chat*') ? 'active' : '' }}">
                     <a href="{{ route('admin.chat') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-message-circle"></i></span>
                         <span class="pc-mtext">Chat</span>

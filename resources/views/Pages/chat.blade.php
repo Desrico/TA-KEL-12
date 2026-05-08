@@ -943,11 +943,13 @@
 
   const syncMessages = async () => {
     try {
-      const response = await fetch(payload.messagesUrl, {
+      const response = await fetch(`${payload.messagesUrl}?sesi_id=${payload.sessionId}&jadwal_id=${payload.jadwalId ?? ''}`, {
+        method: 'GET',
         headers: {
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
         },
+        credentials: 'same-origin',
       });
 
       if (!response.ok) {
@@ -1031,7 +1033,11 @@
           'X-Requested-With': 'XMLHttpRequest',
           'X-Socket-ID': window.Echo?.socketId?.() ?? '',
         },
-        body: JSON.stringify({ pesan }),
+        body: JSON.stringify({
+          sesi_id: payload.sessionId,
+          jadwal_id: payload.jadwalId,
+          pesan,
+        }),
       });
 
       const data = await response.json();

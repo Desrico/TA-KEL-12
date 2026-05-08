@@ -499,6 +499,7 @@
     line-height: 1.55;
   }
 
+<<<<<<< Updated upstream
   .confirmation-wrap {
     margin-top: 1.3rem;
   }
@@ -545,6 +546,35 @@
   }
 
   .confirmation-feedback.is-visible {
+=======
+  .confirmation-check {
+    margin-top: .25rem;
+  }
+
+  .confirmation-check .form-check-input {
+    border-color: #cbd5e1;
+    box-shadow: none;
+  }
+
+  .confirmation-check.is-invalid .form-check-input {
+    border-color: #dc2626;
+  }
+
+  .confirmation-check.is-invalid .form-check-label span {
+    color: #dc2626 !important;
+  }
+
+  .confirmation-error {
+    display: none;
+    margin-top: .45rem;
+    color: #dc2626;
+    font-size: .82rem;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  .confirmation-error.show {
+>>>>>>> Stashed changes
     display: block;
   }
 
@@ -1160,6 +1190,7 @@
               <input type="text" class="schedule-input" id="jenis-display" value="Online" disabled>
             </div>
 
+<<<<<<< Updated upstream
             <div class="col-12 confirmation-wrap">
               <div class="confirmation-box" id="confirmation-box">
                 <input type="checkbox" class="form-check-input" id="confirmation-checkbox">
@@ -1169,6 +1200,16 @@
               </div>
               <div class="confirmation-feedback" id="confirmation-feedback">
                 Centang pernyataan konfirmasi sebelum menjadwalkan konseling.
+=======
+            {{-- Validasi konfirmasi dibuat inline merah agar tidak memakai alert browser bawaan. --}}
+            <div class="form-check confirmation-check" id="confirmation-check-wrap">
+              <input type="checkbox" class="form-check-input" id="confirmation-checkbox">
+              <label class="form-check-label" for="confirmation-checkbox">
+                  <span style="font-size: 0.9rem; color: #555;">Saya sudah memeriksa dan memastikan data penjadwalan sudah benar.</span>
+              </label>
+              <div class="confirmation-error" id="confirmation-checkbox-error">
+                Centang konfirmasi bahwa data penjadwalan sudah benar.
+>>>>>>> Stashed changes
               </div>
             </div>
             <div class="col-12 submit-wrap">
@@ -1288,6 +1329,7 @@ const serviceConfig = {
   }
 };
 
+<<<<<<< Updated upstream
 const tanggalEl = document.getElementById('tanggal');
 const waktuEl = document.getElementById('waktu');
 const topikEl = document.getElementById('topik');
@@ -1304,6 +1346,20 @@ const successInfoModalEl = document.getElementById('success-info-modal');
 const successInfoCloseBtn = document.getElementById('success-info-close');
 const successInfoDoneBtn = document.getElementById('success-info-done');
 let isSubmittingSchedule = false;
+=======
+  // Elements
+  const bookingEl = document.getElementById('booking');
+  const tanggalEl = document.getElementById('tanggal');
+  const waktuEl = document.getElementById('waktu');
+  const topikEl = document.getElementById('topik');
+  const topikLainnyaEl = document.getElementById('topik-lainnya');
+  const submitBtn = document.getElementById('submit-booking');
+  const tanggalNote = document.getElementById('tanggal-note');
+  const waktuNote = document.getElementById('waktu-note');
+  const confirmationCheckbox = document.getElementById('confirmation-checkbox');
+  const confirmationCheckboxWrap = document.getElementById('confirmation-check-wrap');
+  const confirmationCheckboxError = document.getElementById('confirmation-checkbox-error');
+>>>>>>> Stashed changes
 
 function todayYmd() {
   const d = new Date();
@@ -1361,6 +1417,7 @@ function getResponseMessage(data, fallback) {
     }
   }
 
+<<<<<<< Updated upstream
   return fallback;
 }
 
@@ -1373,6 +1430,24 @@ function ensureScheduleModalsMounted() {
   [successCreatedModalEl, successInfoModalEl].forEach(modalEl => {
     if (modalEl && modalEl.parentElement !== document.body) {
       document.body.appendChild(modalEl);
+=======
+  function validateConfirmationCheckbox() {
+    // Menampilkan error merah di bawah checkbox jika konfirmasi belum dicentang.
+    const isChecked = Boolean(confirmationCheckbox?.checked);
+
+    confirmationCheckboxWrap?.classList.toggle('is-invalid', !isChecked);
+    confirmationCheckboxError?.classList.toggle('show', !isChecked);
+
+    return isChecked;
+  }
+
+  // Helper: Validasi tanggal
+  function validateDate() {
+    const ymd = tanggalEl.value;
+    if (!ymd) {
+      tanggalNote.textContent = 'Pilih hari layanan Senin sampai Jumat.';
+      return false;
+>>>>>>> Stashed changes
     }
   });
 }
@@ -1643,7 +1718,34 @@ async function submitJadwal() {
     if (confirm('Anda harus login terlebih dahulu untuk membuat jadwal. Login sekarang?')) {
       window.location.href = '/login';
     }
+<<<<<<< Updated upstream
     return;
+=======
+
+    if (!validateConfirmationCheckbox()) {
+      return;
+    }
+
+    if (!validateDate()) {
+      alert('Pilih tanggal layanan yang valid.');
+      return;
+    }
+
+    if (!waktuEl.value) {
+      alert('Pilih waktu konseling terlebih dahulu.');
+      return;
+    }
+
+    const topikValue = getTopikValue();
+    if (!topikValue) {
+      alert('Pilih topik konseling terlebih dahulu.');
+      return;
+    }
+
+    const modal = document.getElementById('confirmModal');
+    document.body.appendChild(modal);
+    modal.classList.add('show');
+>>>>>>> Stashed changes
   }
 
   if (!ensureConfirmationChecked()) {
@@ -1660,9 +1762,100 @@ async function submitJadwal() {
     return;
   }
 
+<<<<<<< Updated upstream
   const topikValue = getTopikValue();
   if (!topikValue) {
     return;
+=======
+  // Submit jadwal
+  async function submitJadwal() {
+    if (!isLoggedIn) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (!validateConfirmationCheckbox()) {
+      return;
+    }
+
+    if (!validateDate()) {
+      alert('Pilih tanggal layanan yang valid.');
+      return;
+    }
+
+    if (!waktuEl.value) {
+      alert('Pilih waktu konseling terlebih dahulu.');
+      return;
+    }
+
+    const topikValue = getTopikValue();
+    if (!topikValue) {
+      alert('Pilih topik konseling terlebih dahulu.');
+      return;
+    }
+
+    const payload = {
+      tanggal: tanggalEl.value,
+      waktu: waktuEl.value,
+      jenis: selectedService,
+      topik: topikValue,
+      konfirmasi: confirmationCheckbox.checked,
+    };
+
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Memproses...';
+
+    try {
+      const checkRes = await fetch('{{ route("jadwal.check") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const checkData = await checkRes.json();
+
+      if (!checkData.success || !checkData.is_available) {
+        alert(checkData.message || 'Jadwal ini sudah tidak tersedia. Silakan pilih waktu lain.');
+        await fetchBookedSlots();
+        renderTimeOptions();
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        return;
+      }
+
+      const res = await fetch('{{ route("jadwal.store") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        closeConfirmModal();
+        openSuccessModal();
+      } else {
+        alert(data.message || 'Jadwal gagal dibuat.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert('Terjadi kesalahan. Coba lagi.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+>>>>>>> Stashed changes
   }
 
   const payload = {
@@ -1775,10 +1968,22 @@ if (tanggalEl) {
   });
 }
 
+<<<<<<< Updated upstream
 if (successCreatedContinueBtn) {
   successCreatedContinueBtn.addEventListener('click', () => {
     closeScheduleModal(successCreatedModalEl);
     openScheduleModal(successInfoModalEl);
+=======
+  topikEl.addEventListener('change', handleTopikChange);
+  confirmationCheckbox?.addEventListener('change', validateConfirmationCheckbox);
+
+  // Mode action buttons
+  document.querySelectorAll('[data-mode-action]').forEach(el => {
+    el.addEventListener('click', function (event) {
+      event.preventDefault();
+      setServiceMode(this.dataset.modeAction, true);
+    });
+>>>>>>> Stashed changes
   });
 }
 

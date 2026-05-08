@@ -59,6 +59,16 @@ class User extends Authenticatable
         return $this->hasMany(Chat::class, 'pengirim_id');
     }
 
+    public function groupChatMemberships(): HasMany
+    {
+        return $this->hasMany(GroupChatMember::class, 'user_id');
+    }
+
+    public function groupChatMessages(): HasMany
+    {
+        return $this->hasMany(GroupChatMessage::class, 'user_id');
+    }
+
     public function isAnonim(): bool
     {
         return optional($this->profil)->anonim ?? false;

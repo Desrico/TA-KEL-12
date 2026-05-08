@@ -223,16 +223,9 @@ class ChatAdminController extends Controller
             ->where('konselor_id', $konselorId)
             ->where('jenis', 'online')
             ->whereIn('status', ['disetujui', 'berlangsung'])
-            ->orderByRaw("
-                CASE
-                    WHEN status = 'berlangsung' THEN 1
-                    WHEN status = 'disetujui' THEN 2
-                    ELSE 3
-                END
-            ")
-            ->orderBy('tanggal')
-            ->orderBy('waktu')
-            ->get();
+            ->get()
+            ->sort(fn (JadwalKonseling $left, JadwalKonseling $right) => $left->compareSessionPriority($right))
+            ->values();
     }
 
     private function resolveSelectedSchedule(Collection $jadwalList, ?int $jadwalId): ?JadwalKonseling
@@ -270,7 +263,7 @@ class ChatAdminController extends Controller
     private function resolveSessionFromSchedule(JadwalKonseling $jadwal): SesiKonseling
     {
         $sesi = SesiKonseling::firstOrCreate(
-            ['jadwal_id' => $jadwal->id],
+            [SesiKonseling::jadwalForeignKey() => $jadwal->id],
             [
                 'status' => $jadwal->status === 'berlangsung' ? 'berlangsung' : 'disetujui',
             ]
@@ -278,7 +271,7 @@ class ChatAdminController extends Controller
 
         $sesi->setRelation('jadwalKonseling', $jadwal);
 
-        return $sesi;
+        return $this->synchronizeSessionState($sesi);
     }
 
     private function resolveSessionByIdForCounselor(User $user, ?int $sesiId): ?SesiKonseling
@@ -289,7 +282,7 @@ class ChatAdminController extends Controller
 
         $konselorId = optional($user->konselor)->id;
 
-        return SesiKonseling::query()
+        $sesi = SesiKonseling::query()
             ->with([
                 'jadwalKonseling.mahasiswa.user.profil',
                 'jadwalKonseling.konselor.user.profil',
@@ -300,6 +293,52 @@ class ChatAdminController extends Controller
                 $query->where('konselor_id', $konselorId);
             })
             ->find($sesiId);
+
+        if (! $sesi) {
+            return null;
+        }
+
+        return $this->synchronizeSessionState($sesi);
+    }
+
+    private function synchronizeSessionState(SesiKonseling $sesi): SesiKonseling
+    {
+        $jadwal = $sesi->jadwalKonseling;
+
+        if (! $jadwal) {
+            $jadwal = $sesi->jadwalKonseling()->with([
+                'mahasiswa.user.profil',
+                'konselor.user.profil',
+            ])->first();
+
+            if ($jadwal) {
+                $sesi->setRelation('jadwalKonseling', $jadwal);
+            }
+        }
+
+        if (! $jadwal) {
+            return $sesi;
+        }
+
+        $updates = [];
+
+        if (($jadwal->status ?? null) === 'berlangsung' && $sesi->status !== 'berlangsung') {
+            $updates['status'] = 'berlangsung';
+        }
+
+        if ($updates) {
+            $sesi->forceFill($updates)->save();
+            $sesi->refresh();
+            $sesi->setRelation('jadwalKonseling', $jadwal);
+        }
+
+        if ($sesi->status === 'berlangsung' && $jadwal->status !== 'berlangsung') {
+            $jadwal->forceFill(['status' => 'berlangsung'])->save();
+            $jadwal->refresh();
+            $sesi->setRelation('jadwalKonseling', $jadwal);
+        }
+
+        return $sesi;
     }
 
     private function activateSessionIfNeeded(SesiKonseling $sesi): void
@@ -391,7 +430,8 @@ class ChatAdminController extends Controller
 
     private function isSessionActive(SesiKonseling $sesi): bool
     {
-        return $sesi->status === 'berlangsung';
+        return $sesi->status === 'berlangsung'
+            || ($sesi->jadwalKonseling?->status === 'berlangsung');
     }
 
     private function getScheduleBlockedMessage(SesiKonseling $sesi): string
@@ -406,13 +446,7 @@ class ChatAdminController extends Controller
 
     private function getScheduledAt(SesiKonseling $sesi): ?Carbon
     {
-        $jadwal = $sesi->jadwalKonseling;
-
-        if (! $jadwal || ! $jadwal->tanggal || ! $jadwal->waktu) {
-            return null;
-        }
-
-        return Carbon::parse(trim($jadwal->tanggal.' '.$jadwal->waktu), $this->displayTimezone());
+        return $sesi->jadwalKonseling?->scheduledAt();
     }
 
     private function toDisplayDateTime($value): ?Carbon
