@@ -206,7 +206,7 @@
             <i class="bi bi-plus-circle-fill"></i>
             <span>Tambah Grup</span>
           </div>
-          <h1>Buat atau buka grup baru</h1>
+          <h1>Berbagung dengan grup baru</h1>
           <p>
             Pilih topik konseling yang sesuai. Jika grup dengan topik ini sudah ada, sistem akan langsung membukanya untukmu.
             Jika belum ada, grup baru akan dibuat otomatis.
@@ -240,7 +240,7 @@
             <div class="group-create-actions">
               <button type="submit" class="group-create-submit">
                 <i class="bi bi-plus-circle-fill"></i>
-                <span>Lanjut ke grup</span>
+                <span>Lanjut Bergabung</span>
               </button>
               <a href="{{ route('mahasiswa.group-chat') }}" class="group-create-cancel">
                 <i class="bi bi-x-circle"></i>

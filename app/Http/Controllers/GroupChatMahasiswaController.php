@@ -218,6 +218,59 @@ class GroupChatMahasiswaController extends Controller
         ]);
     }
 
+    public function update(Request $request, GroupChatMessage $message): JsonResponse
+    {
+        $validated = $request->validate([
+            'pesan' => 'required|string|max:2000',
+        ]);
+
+        $user = $request->user();
+        $room = $this->resolveRoomByOwnedMessage($user, $message);
+
+        if (! $room || (int) $message->user_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan tidak ditemukan atau tidak bisa diedit.',
+            ], 404);
+        }
+
+        // Edit grup juga dibatasi ke pengirim pesan itu sendiri.
+        $message->update([
+            'pesan' => trim($validated['pesan']),
+        ]);
+
+        $message->refresh()->loadMissing([
+            'sender.profil',
+            'sender.mahasiswa',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $this->transformMessage($message, $user),
+        ]);
+    }
+
+    public function destroy(Request $request, GroupChatMessage $message): JsonResponse
+    {
+        $user = $request->user();
+        $room = $this->resolveRoomByOwnedMessage($user, $message);
+
+        if (! $room || (int) $message->user_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan tidak ditemukan atau tidak bisa dihapus.',
+            ], 404);
+        }
+
+        // Hapus permanen berlaku untuk pesan milik sendiri agar konsisten di semua ruang chat.
+        $message->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted_id' => $message->id,
+        ]);
+    }
+
     private function resolveJoinedRooms(User $user)
     {
         return GroupChatRoom::query()
@@ -269,6 +322,8 @@ class GroupChatMahasiswaController extends Controller
             'channel' => 'chat.group.' . $room->id,
             'sendUrl' => route('mahasiswa.group-chat.store'),
             'messagesUrl' => route('mahasiswa.group-chat.messages'),
+            'updateUrlTemplate' => route('mahasiswa.group-chat.update', ['message' => '__MESSAGE_ID__']),
+            'deleteUrlTemplate' => route('mahasiswa.group-chat.destroy', ['message' => '__MESSAGE_ID__']),
             'roomTitle' => $room->title,
             'topicLabel' => $room->topicLabel(),
             'memberCount' => (int) ($room->members_count ?? $room->members->count()),
@@ -301,6 +356,8 @@ class GroupChatMahasiswaController extends Controller
             'text' => $message->pesan,
             'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
+            'updated_at' => $this->toDisplayDateTime($message->updated_at)?->toIso8601String(),
+            'is_edited' => (bool) ($message->updated_at && $message->created_at && $message->updated_at->ne($message->created_at)),
             'is_mine' => $message->user_id === $viewer->id,
         ];
     }
@@ -324,5 +381,22 @@ class GroupChatMahasiswaController extends Controller
     private function displayTimezone(): string
     {
         return 'Asia/Jakarta';
+    }
+
+    private function resolveRoomByOwnedMessage(User $user, GroupChatMessage $message): ?GroupChatRoom
+    {
+        $message->loadMissing([
+            'room.members',
+        ]);
+
+        $room = $message->room;
+
+        if (! $room || ! $room->is_active) {
+            return null;
+        }
+
+        $isMember = $room->members->contains(fn (GroupChatMember $member) => (int) $member->user_id === (int) $user->id);
+
+        return $isMember ? $room : null;
     }
 }

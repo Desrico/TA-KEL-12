@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\ChatMessageSent;
+use App\Http\Controllers\Concerns\HandlesOnlineChatSessions;
 use App\Models\Chat;
 use App\Models\JadwalKonseling;
 use App\Models\Mahasiswa;
@@ -15,9 +16,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class ChatMahasiswaController extends Controller
 {
+    use HandlesOnlineChatSessions;
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -34,8 +38,6 @@ class ChatMahasiswaController extends Controller
         $sesi->loadMissing([
             'jadwalKonseling.konselor.user.profil',
             'jadwalKonseling.mahasiswa.user.profil',
-            'chats.pengirim.profil',
-            'chats.pengirim.mahasiswa',
         ]);
 
         if (
@@ -58,11 +60,7 @@ class ChatMahasiswaController extends Controller
             && ($sesi->jadwalKonseling->status ?? null) === 'disetujui'
             && $sesi->status !== 'berlangsung';
         $chatAccessGranted = ! $isBlockedBySchedule && $this->isSessionActive($sesi);
-        $messages = $sesi->chats
-            ->sortBy('created_at')
-            ->values()
-            ->map(fn (Chat $chat) => $this->transformMessage($chat, $user))
-            ->all();
+        $messages = $this->resolveConversationMessages($sesi, $user)->all();
 
         return view('Pages.chat', [
             'activeSession' => $sesi,
@@ -137,18 +135,11 @@ class ChatMahasiswaController extends Controller
             ], 403);
         }
 
-        $sesi->loadMissing([
-            'chats.pengirim.profil',
-            'chats.pengirim.mahasiswa',
-        ]);
-
         return response()->json([
             'success' => true,
-            'messages' => $sesi->chats
-                ->sortBy('created_at')
-                ->values()
-                ->map(fn (Chat $chat) => $this->transformMessage($chat, $user))
-                ->all(),
+            'messages' => $this->resolveConversationMessages($sesi, $user)->all(),
+            'thread_date_key' => $this->resolveThreadDateKey($sesi),
+            'thread_date_label' => $this->resolveThreadDateLabel($sesi),
         ]);
     }
 
@@ -214,6 +205,73 @@ class ChatMahasiswaController extends Controller
         ]);
     }
 
+    public function update(Request $request, Chat $chat): JsonResponse
+    {
+        $validated = $request->validate([
+            'pesan' => 'required|string|max:2000',
+        ]);
+
+        $user = $request->user();
+        $sesi = $this->resolveSessionByOwnedChat($user, $chat);
+
+        if (! $sesi || (int) $chat->pengirim_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan tidak ditemukan atau tidak bisa diedit.',
+            ], 404);
+        }
+
+        if (! $this->canStartSessionNow($sesi) || $sesi->status !== 'berlangsung') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan tidak bisa diedit karena sesi sudah tidak aktif.',
+            ], 403);
+        }
+
+        // Edit dibatasi pada pesan milik sendiri agar riwayat percakapan tetap aman.
+        $chat->update([
+            'pesan' => trim($validated['pesan']),
+        ]);
+
+        $chat->refresh()->loadMissing([
+            'pengirim.profil',
+            'pengirim.mahasiswa',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $this->transformMessage($chat, $user),
+        ]);
+    }
+
+    public function destroy(Request $request, Chat $chat): JsonResponse
+    {
+        $user = $request->user();
+        $sesi = $this->resolveSessionByOwnedChat($user, $chat);
+
+        if (! $sesi || (int) $chat->pengirim_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan tidak ditemukan atau tidak bisa dihapus.',
+            ], 404);
+        }
+
+        if (! $this->canStartSessionNow($sesi) || $sesi->status !== 'berlangsung') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan tidak bisa dihapus karena sesi sudah tidak aktif.',
+            ], 403);
+        }
+
+        // Hapus permanen hanya diizinkan untuk pesan milik sendiri.
+        $chat->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted_id' => $chat->id,
+        ]);
+    }
+
     private function resolveActiveSession(?User $user, ?int $jadwalId = null): ?SesiKonseling
     {
         if (! $user) {
@@ -228,19 +286,7 @@ class ChatMahasiswaController extends Controller
             return null;
         }
 
-        $jadwal = $jadwalId
-            ? $this->resolveScheduleForStudent($user, $jadwalId)
-            : JadwalKonseling::query()
-                ->with([
-                    'konselor.user.profil',
-                    'mahasiswa.user.profil',
-                ])
-                ->where('mahasiswa_id', $mahasiswaId)
-                ->where('jenis', 'online')
-                ->whereIn('status', ['disetujui', 'berlangsung'])
-                ->get()
-                ->sort(fn (JadwalKonseling $left, JadwalKonseling $right) => $left->compareSessionPriority($right))
-                ->first();
+        $jadwal = $this->resolvePreferredScheduleForStudent($user, $mahasiswaId, $jadwalId);
 
         if (! $jadwal) {
             return null;
@@ -276,7 +322,7 @@ class ChatMahasiswaController extends Controller
             ])
             ->where('mahasiswa_id', $mahasiswaId)
             ->where('jenis', 'online')
-            ->whereIn('status', ['disetujui', 'berlangsung'])
+            ->whereIn('status', ['disetujui', 'berlangsung', 'selesai'])
             ->find($jadwalId);
     }
 
@@ -298,8 +344,6 @@ class ChatMahasiswaController extends Controller
             ->with([
                 'jadwalKonseling.konselor.user.profil',
                 'jadwalKonseling.mahasiswa.user.profil',
-                'chats.pengirim.profil',
-                'chats.pengirim.mahasiswa',
             ])
             ->whereHas('jadwalKonseling', function ($query) use ($user) {
                 $query->where('mahasiswa_id', optional($user->mahasiswa)->id);
@@ -313,75 +357,30 @@ class ChatMahasiswaController extends Controller
         return $this->synchronizeSessionState($sesi);
     }
 
-    private function resolveSessionFromSchedule(JadwalKonseling $jadwal): SesiKonseling
+    private function resolvePreferredScheduleForStudent(User $user, int $mahasiswaId, ?int $requestedJadwalId = null): ?JadwalKonseling
     {
-        $sesi = SesiKonseling::firstOrCreate(
-            [SesiKonseling::jadwalForeignKey() => $jadwal->id],
-            [
-                'status' => $jadwal->status === 'berlangsung' ? 'berlangsung' : 'disetujui',
-            ]
-        );
+        $requestedSchedule = $requestedJadwalId
+            ? $this->resolveScheduleForStudent($user, $requestedJadwalId)
+            : null;
 
-        $sesi->setRelation('jadwalKonseling', $jadwal);
-
-        return $this->synchronizeSessionState($sesi);
-    }
-
-    private function synchronizeSessionState(SesiKonseling $sesi): SesiKonseling
-    {
-        $jadwal = $sesi->jadwalKonseling;
-
-        if (! $jadwal) {
-            $jadwal = $sesi->jadwalKonseling()->with([
+        $query = JadwalKonseling::query()
+            ->with([
                 'konselor.user.profil',
                 'mahasiswa.user.profil',
-            ])->first();
+                'sesiKonseling',
+            ])
+            ->where('mahasiswa_id', $mahasiswaId)
+            ->where('jenis', 'online')
+            ->whereIn('status', ['disetujui', 'berlangsung', 'selesai']);
 
-            if ($jadwal) {
-                $sesi->setRelation('jadwalKonseling', $jadwal);
-            }
+        if ($requestedSchedule?->konselor_id) {
+            $query->where('konselor_id', $requestedSchedule->konselor_id);
         }
 
-        if (! $jadwal) {
-            return $sesi;
-        }
-
-        $updates = [];
-
-        if (($jadwal->status ?? null) === 'berlangsung' && $sesi->status !== 'berlangsung') {
-            $updates['status'] = 'berlangsung';
-        }
-
-        if ($updates) {
-            $sesi->forceFill($updates)->save();
-            $sesi->refresh();
-            $sesi->setRelation('jadwalKonseling', $jadwal);
-        }
-
-        if ($sesi->status === 'berlangsung' && $jadwal->status !== 'berlangsung') {
-            $jadwal->forceFill(['status' => 'berlangsung'])->save();
-            $jadwal->refresh();
-            $sesi->setRelation('jadwalKonseling', $jadwal);
-        }
-
-        return $sesi;
-    }
-
-    private function activateSessionIfNeeded(SesiKonseling $sesi): void
-    {
-        if (! $this->isSessionActive($sesi)) {
-            $sesi->forceFill([
-                'status' => 'berlangsung',
-            ])->save();
-        }
-
-        $jadwal = $sesi->jadwalKonseling;
-
-        if ($jadwal && $jadwal->status !== 'berlangsung') {
-            $jadwal->forceFill([
-                'status' => 'berlangsung',
-            ])->save();
-        }
+        return $this->synchronizeCandidateSchedules($query->get())
+            ->reject(fn (JadwalKonseling $jadwal) => $jadwal->status === 'selesai')
+            ->sort(fn (JadwalKonseling $left, JadwalKonseling $right) => $left->compareSessionPriority($right))
+            ->first();
     }
 
     private function buildChatPayload(SesiKonseling $sesi, array $messages, bool $isReadyToStart): array
@@ -397,46 +396,16 @@ class ChatMahasiswaController extends Controller
             'startUrl' => route('mahasiswa.chat.start'),
             'sendUrl' => route('mahasiswa.chat.store'),
             'messagesUrl' => route('mahasiswa.chat.messages'),
+            'updateUrlTemplate' => route('mahasiswa.chat.update', ['chat' => '__CHAT_ID__']),
+            'deleteUrlTemplate' => route('mahasiswa.chat.destroy', ['chat' => '__CHAT_ID__']),
             'status' => $jadwal->status ?? 'disetujui',
             'counselorName' => $konselorUser?->nama ?? 'Konselor Kampus Care',
             'counselorAvatar' => $konselorProfil?->foto ? Storage::url($konselorProfil->foto) : asset('img/default-avatar.png'),
             'canStart' => $isReadyToStart,
+            'threadDateKey' => $this->resolveThreadDateKey($sesi),
+            'threadDateLabel' => $this->resolveThreadDateLabel($sesi),
             'messages' => $messages,
         ];
-    }
-
-    private function canStartSessionNow(SesiKonseling $sesi): bool
-    {
-        $scheduledAt = $this->getScheduledAt($sesi);
-
-        if (! $scheduledAt) {
-            return false;
-        }
-
-        return $this->nowInDisplayTimezone()->greaterThanOrEqualTo($scheduledAt);
-    }
-
-    private function isSessionActive(SesiKonseling $sesi): bool
-    {
-        return $sesi->status === 'berlangsung'
-            || ($sesi->jadwalKonseling?->status === 'berlangsung');
-    }
-
-    private function getScheduledStartLabel(SesiKonseling $sesi): string
-    {
-        $scheduledAt = $this->getScheduledAt($sesi);
-
-        if (! $scheduledAt) {
-            return 'jadwal yang ditentukan';
-        }
-
-        return $scheduledAt
-            ->translatedFormat('j F Y \\p\\u\\k\\u\\l H:i');
-    }
-
-    private function getScheduleBlockedMessage(SesiKonseling $sesi): string
-    {
-        return 'Sesi konseling online ini akan dimulai pada '.$this->getScheduledStartLabel($sesi).'. Sebelum itu, ruang chat belum bisa diakses.';
     }
 
     private function transformMessage(Chat $chat, User $viewer): array
@@ -459,33 +428,102 @@ class ChatMahasiswaController extends Controller
             'text' => $chat->pesan,
             'time' => $this->toDisplayDateTime($chat->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($chat->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
+            'updated_at' => $this->toDisplayDateTime($chat->updated_at)?->toIso8601String(),
+            'is_edited' => (bool) ($chat->updated_at && $chat->created_at && $chat->updated_at->ne($chat->created_at)),
             'is_mine' => $chat->pengirim_id === $viewer->id,
         ];
     }
 
-    private function getScheduledAt(SesiKonseling $sesi): ?Carbon
+    private function resolveConversationMessages(SesiKonseling $activeSession, User $viewer): Collection
     {
-        return $sesi->jadwalKonseling?->scheduledAt();
+        $jadwal = $activeSession->jadwalKonseling;
+
+        if (! $jadwal) {
+            return collect();
+        }
+
+        $schedules = JadwalKonseling::query()
+            ->with([
+                'sesiKonseling.chats.pengirim.profil',
+                'sesiKonseling.chats.pengirim.mahasiswa',
+            ])
+            ->where('mahasiswa_id', $jadwal->mahasiswa_id)
+            ->where('konselor_id', $jadwal->konselor_id)
+            ->where('jenis', 'online')
+            ->whereIn('status', ['disetujui', 'berlangsung', 'selesai'])
+            ->orderBy('tanggal')
+            ->orderBy('waktu')
+            ->get();
+
+        $messages = collect();
+
+        foreach ($schedules as $schedule) {
+            $session = null;
+
+            if ((int) $schedule->id === (int) $jadwal->id) {
+                $session = $activeSession;
+            } elseif ($schedule->sesiKonseling) {
+                $session = $schedule->sesiKonseling;
+                $session->setRelation('jadwalKonseling', $schedule);
+                $session = $this->synchronizeSessionState($session);
+            }
+
+            if (! $session) {
+                continue;
+            }
+
+            $session->loadMissing([
+                'chats.pengirim.profil',
+                'chats.pengirim.mahasiswa',
+            ]);
+
+            $messages = $messages->merge($session->chats);
+        }
+
+        return $messages
+            ->sortBy('created_at')
+            ->values()
+            ->map(fn (Chat $chat) => $this->transformMessage($chat, $viewer));
     }
 
-    private function toDisplayDateTime($value): ?Carbon
+    private function synchronizeCandidateSchedules(Collection $jadwalCollection): Collection
     {
-        if (! $value) {
+        return $jadwalCollection
+            ->map(function (JadwalKonseling $jadwal) {
+                return $this->resolveSessionFromSchedule($jadwal)->jadwalKonseling;
+            })
+            ->filter();
+    }
+
+    private function resolveThreadDateKey(SesiKonseling $sesi): string
+    {
+        return $this->getScheduledAt($sesi)?->format('Y-m-d')
+            ?? $this->nowInDisplayTimezone()->format('Y-m-d');
+    }
+
+    private function resolveThreadDateLabel(SesiKonseling $sesi): string
+    {
+        return ($this->getScheduledAt($sesi) ?? $this->nowInDisplayTimezone())
+            ->translatedFormat('l, j F Y');
+    }
+
+    private function resolveSessionByOwnedChat(User $user, Chat $chat): ?SesiKonseling
+    {
+        $chat->loadMissing([
+            'sesi.jadwalKonseling.konselor.user.profil',
+            'sesi.jadwalKonseling.mahasiswa.user.profil',
+        ]);
+
+        $sesi = $chat->sesi;
+
+        if (! $sesi) {
             return null;
         }
 
-        return $value instanceof Carbon
-            ? $value->copy()->timezone($this->displayTimezone())
-            : Carbon::parse($value)->timezone($this->displayTimezone());
-    }
+        if ((int) optional(optional($sesi->jadwalKonseling)->mahasiswa)->user_id !== (int) $user->id) {
+            return null;
+        }
 
-    private function nowInDisplayTimezone(): Carbon
-    {
-        return Carbon::now($this->displayTimezone());
-    }
-
-    private function displayTimezone(): string
-    {
-        return 'Asia/Jakarta';
+        return $this->synchronizeSessionState($sesi);
     }
 }

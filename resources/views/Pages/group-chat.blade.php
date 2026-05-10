@@ -368,7 +368,7 @@
             <div class="group-card-badge">{{ $joinedRooms->count() }} grup</div>
             <a href="{{ route('mahasiswa.group-chat.create') }}" class="group-card-action-link">
               <i class="bi bi-plus-circle-fill"></i>
-              <span>Tambah Grup</span>
+              <span>Gabung Grup</span>
             </a>
           </div>
         </div>

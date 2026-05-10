@@ -55,6 +55,8 @@ class ChatMessageSent implements ShouldBroadcastNow
                 'text' => $this->chat->pesan,
                 'time' => $createdAt?->format('H:i') ?? Carbon::now($this->displayTimezone())->format('H:i'),
                 'sent_at' => $createdAt?->toIso8601String() ?? Carbon::now($this->displayTimezone())->toIso8601String(),
+                'updated_at' => $this->toDisplayDateTime($this->chat->updated_at)?->toIso8601String(),
+                'is_edited' => (bool) ($this->chat->updated_at && $this->chat->created_at && $this->chat->updated_at->ne($this->chat->created_at)),
             ],
         ];
     }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Schema;
 
 class SesiKonseling extends Model
@@ -19,13 +20,16 @@ class SesiKonseling extends Model
         'jadwal_konseling_id',
         'status',
         'catatan',
+        'catatan_sesi',
+        'waktu_mulai',
+        'waktu_selesai',
     ];
 
     public static function jadwalForeignKey(): string
     {
         static $foreignKey = null;
 
-        if ($foreignKey !== null) {
+        if ($foreignKey) {
             return $foreignKey;
         }
 
@@ -42,7 +46,7 @@ class SesiKonseling extends Model
 
     public function jadwalKonseling(): BelongsTo
     {
-        return $this->belongsTo(JadwalKonseling::class, self::jadwalForeignKey());
+        return $this->belongsTo(JadwalKonseling::class, static::jadwalForeignKey());
     }
 
     public function jadwal(): BelongsTo
@@ -54,12 +58,9 @@ class SesiKonseling extends Model
     {
         return $this->hasMany(Chat::class, 'sesi_id');
     }
-<<<<<<< Updated upstream
-=======
 
-    public function chats(): HasMany
+    public function laporan(): HasOne
     {
-        return $this->chatMessages();
+        return $this->hasOne(Laporan::class, 'sesi_id');
     }
->>>>>>> Stashed changes
 }

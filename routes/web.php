@@ -55,23 +55,20 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
 
     Route::get('/riwayat', [RiwayatController::class, 'riwayatMahasiswa'])->name('riwayat');
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
-<<<<<<< Updated upstream
-=======
-
-    // Chat - Mahasiswa dapat melakukan chat dengan konselor
->>>>>>> Stashed changes
     Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
     Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
     Route::get('/chat/pesan', [ChatMahasiswaController::class, 'messages'])->name('mahasiswa.chat.messages');
     Route::post('/chat/pesan', [ChatMahasiswaController::class, 'store'])->name('mahasiswa.chat.store');
-    Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->whereNumber('jadwalId')->name('chat.student');
-    Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->whereNumber('jadwalId')->name('chat.student.store');
-    Route::get('/grup-chat', [GroupChatMahasiswaController::class, 'index'])->name('mahasiswa.group-chat');
-    Route::get('/grup-chat/tambah', [GroupChatMahasiswaController::class, 'create'])->name('mahasiswa.group-chat.create');
-    Route::get('/grup-chat/ruang/{group}', [GroupChatMahasiswaController::class, 'room'])->whereNumber('group')->name('mahasiswa.group-chat.room');
-    Route::post('/grup-chat/join', [GroupChatMahasiswaController::class, 'join'])->name('mahasiswa.group-chat.join');
-    Route::get('/grup-chat/pesan', [GroupChatMahasiswaController::class, 'messages'])->name('mahasiswa.group-chat.messages');
-    Route::post('/grup-chat/pesan', [GroupChatMahasiswaController::class, 'store'])->name('mahasiswa.group-chat.store');
+    Route::patch('/chat/pesan/{chat}', [ChatMahasiswaController::class, 'update'])->name('mahasiswa.chat.update');
+    Route::delete('/chat/pesan/{chat}', [ChatMahasiswaController::class, 'destroy'])->name('mahasiswa.chat.destroy');
+    Route::get('/group-chat', [GroupChatMahasiswaController::class, 'index'])->name('mahasiswa.group-chat');
+    Route::get('/group-chat/buat', [GroupChatMahasiswaController::class, 'create'])->name('mahasiswa.group-chat.create');
+    Route::post('/group-chat/gabung', [GroupChatMahasiswaController::class, 'join'])->name('mahasiswa.group-chat.join');
+    Route::get('/group-chat/room/{group}', [GroupChatMahasiswaController::class, 'room'])->name('mahasiswa.group-chat.room');
+    Route::get('/group-chat/pesan', [GroupChatMahasiswaController::class, 'messages'])->name('mahasiswa.group-chat.messages');
+    Route::post('/group-chat/pesan', [GroupChatMahasiswaController::class, 'store'])->name('mahasiswa.group-chat.store');
+    Route::patch('/group-chat/pesan/{message}', [GroupChatMahasiswaController::class, 'update'])->name('mahasiswa.group-chat.update');
+    Route::delete('/group-chat/pesan/{message}', [GroupChatMahasiswaController::class, 'destroy'])->name('mahasiswa.group-chat.destroy');
 
     // flow penjadwalan
     Route::get('/detail-penjadwalan', [JadwalController::class, 'detail'])->name('jadwal.detail');
@@ -100,25 +97,19 @@ Route::prefix('admin')
         Route::post('/chat/mulai', [ChatAdminController::class, 'start'])->name('chat.start');
         Route::get('/chat/pesan', [ChatAdminController::class, 'messages'])->name('chat.messages');
         Route::post('/chat/pesan', [ChatAdminController::class, 'store'])->name('chat.store');
-<<<<<<< Updated upstream
+        Route::patch('/chat/pesan/{chat}', [ChatAdminController::class, 'update'])->name('chat.update');
+        Route::delete('/chat/pesan/{chat}', [ChatAdminController::class, 'destroy'])->name('chat.destroy');
+        Route::get('/group-chat', [GroupChatAdminController::class, 'index'])->name('group-chat');
+        Route::get('/group-chat/pesan', [GroupChatAdminController::class, 'messages'])->name('group-chat.messages');
+        Route::post('/group-chat/pesan', [GroupChatAdminController::class, 'store'])->name('group-chat.store');
+        Route::patch('/group-chat/pesan/{message}', [GroupChatAdminController::class, 'update'])->name('group-chat.update');
+        Route::delete('/group-chat/pesan/{message}', [GroupChatAdminController::class, 'destroy'])->name('group-chat.destroy');
 
         Route::get('/sesi', [AdminController::class, 'sesi'])->name('sesi');
         Route::get('/sesi/{id}', [AdminController::class, 'detailSesi'])->name('sesi.detail');
         Route::post('/sesi/{id}/terima', [AdminController::class, 'terimaSesi'])->name('sesi.terima');
         Route::get('/sesi/{id}/tolak', [AdminController::class, 'tolakSesi'])->name('sesi.tolak');
         Route::post('/sesi/{id}/tolak', [AdminController::class, 'kirimTolakSesi'])->name('sesi.tolak.kirim');
-=======
-        Route::get('/group-chat', [GroupChatAdminController::class, 'index'])->name('group-chat');
-        Route::get('/group-chat/pesan', [GroupChatAdminController::class, 'messages'])->name('group-chat.messages');
-        Route::post('/group-chat/pesan', [GroupChatAdminController::class, 'store'])->name('group-chat.store');
-
-        Route::get('/sesi', [SesiKonselingController::class, 'index'])->name('sesi');
-        Route::get('/sesi/{id}', [SesiKonselingController::class, 'detail'])->name('sesi.detail');
-        Route::post('/sesi/{id}/terima', [SesiKonselingController::class, 'terima'])->name('sesi.terima');
-        Route::get('/sesi/{id}/tolak', [SesiKonselingController::class, 'tolak'])->name('sesi.tolak');
-        Route::post('/sesi/{id}/tolak', [SesiKonselingController::class, 'kirimTolak'])->name('sesi.tolak.kirim');
-        Route::post('/sesi/{id}/selesai', [SesiKonselingController::class, 'selesai'])->name('sesi.selesai');
->>>>>>> Stashed changes
 
         Route::get('/laporan', [LaporanController::class, 'laporanAdmin'])->name('laporan');
         Route::get('/laporan/{id}/laporan', [LaporanController::class, 'createLaporan'])->name('laporan.laporan');

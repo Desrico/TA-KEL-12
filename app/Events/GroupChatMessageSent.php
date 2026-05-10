@@ -55,6 +55,8 @@ class GroupChatMessageSent implements ShouldBroadcastNow
                 'text' => $this->message->pesan,
                 'time' => $createdAt?->format('H:i') ?? Carbon::now($this->displayTimezone())->format('H:i'),
                 'sent_at' => $createdAt?->toIso8601String() ?? Carbon::now($this->displayTimezone())->toIso8601String(),
+                'updated_at' => $this->toDisplayDateTime($this->message->updated_at)?->toIso8601String(),
+                'is_edited' => (bool) ($this->message->updated_at && $this->message->created_at && $this->message->updated_at->ne($this->message->created_at)),
             ],
         ];
     }

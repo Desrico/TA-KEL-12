@@ -119,6 +119,9 @@ class LoginController extends Controller
         $validated = $request->validate([
             'username' => ['required', 'string'],
             'password' => ['required', 'string'],
+        ], [
+            'username.required' => 'Username dan password harus diisi.',
+            'password.required' => 'Username dan password harus diisi.',
         ]);
 
         // Login lokal tetap didukung, tetapi role user diselaraskan ulang sebelum redirect.
@@ -187,7 +190,7 @@ class LoginController extends Controller
             DB::rollBack();
 
             return back()->withErrors([
-                'username' => 'Login gagal. Gunakan akun lokal admin atau akun CIS yang valid.',
+                'username' => 'Username atau password salah.',
             ])->withInput();
         }
     }

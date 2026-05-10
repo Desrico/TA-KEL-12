@@ -133,10 +133,12 @@
 
   .group-room-actions {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: .75rem;
     flex-wrap: wrap;
     justify-content: flex-end;
+    flex-direction: column;
+    min-width: min(100%, 220px);
   }
 
   .group-room-active {
@@ -150,6 +152,8 @@
     font-size: .8rem;
     font-weight: 700;
     white-space: nowrap;
+    justify-content: center;
+    width: 100%;
   }
 
   .group-room-active::before {
@@ -173,6 +177,8 @@
     font-size: .84rem;
     font-weight: 800;
     transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    justify-content: center;
+    width: 100%;
   }
 
   .group-room-toggle:hover {
@@ -183,7 +189,7 @@
 
   .group-room-thread {
     flex: 1;
-    padding: 1.4rem 1.4rem 0;
+    padding: 1.4rem 1.4rem 4.75rem;
     overflow-y: auto;
     background:
       linear-gradient(180deg, rgba(248, 255, 251, 0.72), rgba(255, 255, 255, 0.98)),
@@ -251,6 +257,7 @@
 
   .group-message-content {
     max-width: min(78%, 640px);
+    position: relative;
   }
 
   .group-message-meta {
@@ -273,6 +280,172 @@
     font-size: .95rem;
     line-height: 1.72;
     word-break: break-word;
+  }
+
+  .group-message-bubble-shell {
+    position: relative;
+  }
+
+  .group-message-edited {
+    font-size: .68rem;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  .group-message-actions {
+    position: absolute;
+    top: .55rem;
+    right: .7rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease;
+  }
+
+  .group-message-row.mine:hover .group-message-actions,
+  .group-message-row.mine.is-menu-open .group-message-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .group-message-action-toggle {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .group-message-action-menu {
+    position: absolute;
+    top: calc(100% + .3rem);
+    right: 0;
+    min-width: 150px;
+    padding: .4rem;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid rgba(221, 239, 231, 0.96);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+    display: none;
+    z-index: 4;
+  }
+
+  .group-message-row:last-child .group-message-action-menu {
+    top: calc(100% + .45rem);
+  }
+
+  .group-message-row.is-menu-open .group-message-action-menu {
+    display: block;
+  }
+
+  .group-message-action-item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    padding: .55rem .7rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    color: #0f172a;
+    font-size: .8rem;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .group-message-action-item:hover {
+    background: #f8fffb;
+  }
+
+  .group-message-action-item.delete {
+    color: #b91c1c;
+  }
+
+  .group-message-row.is-editing .group-message-actions {
+    display: none;
+  }
+
+  .group-message-editor-shell {
+    display: grid;
+    gap: .7rem;
+  }
+
+  .group-message-editor-input {
+    width: 100%;
+    min-height: 92px;
+    border: 1px solid rgba(209, 250, 229, 0.96);
+    border-radius: 18px;
+    padding: .8rem .9rem;
+    resize: vertical;
+    outline: none;
+    font-size: .92rem;
+    line-height: 1.65;
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.98);
+  }
+
+  .group-message-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .55rem;
+    flex-wrap: wrap;
+  }
+
+  .group-message-editor-btn {
+    border: none;
+    border-radius: 999px;
+    padding: .5rem .9rem;
+    font-size: .76rem;
+    font-weight: 700;
+  }
+
+  .group-message-editor-btn.cancel {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .group-message-editor-btn.save {
+    background: #065f46;
+    color: #fff;
+  }
+
+  .group-message-delete-confirm {
+    display: grid;
+    gap: .75rem;
+  }
+
+  .group-message-delete-confirm-text {
+    font-size: .83rem;
+    line-height: 1.6;
+    color: #334155;
+  }
+
+  .group-message-delete-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .55rem;
+    flex-wrap: wrap;
+  }
+
+  .group-message-delete-confirm-btn {
+    border: none;
+    border-radius: 999px;
+    padding: .5rem .9rem;
+    font-size: .76rem;
+    font-weight: 700;
+  }
+
+  .group-message-delete-confirm-btn.cancel {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .group-message-delete-confirm-btn.delete {
+    background: #b91c1c;
+    color: #fff;
   }
 
   .group-room-compose {
@@ -679,6 +852,78 @@
     input.style.height = 'auto';
     input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
   };
+  const messageUpdateUrl = (messageId) => payload.updateUrlTemplate.replace('__MESSAGE_ID__', String(messageId));
+  const messageDeleteUrl = (messageId) => payload.deleteUrlTemplate.replace('__MESSAGE_ID__', String(messageId));
+
+  const closeAllMenus = () => {
+    thread.querySelectorAll('.group-message-row.is-menu-open').forEach((element) => {
+      element.classList.remove('is-menu-open');
+    });
+  };
+
+  // Editor inline disimpan di bubble supaya pengalaman edit tetap menyatu dengan alur chat.
+  const buildMessageBubbleMarkup = (message, isMine) => `
+    <div class="group-message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
+    ${isMine ? `
+      <div class="group-message-actions">
+        <button type="button" class="group-message-action-toggle" data-action="toggle-menu" aria-label="Opsi pesan">
+          <i class="bi bi-three-dots"></i>
+        </button>
+        <div class="group-message-action-menu">
+          <button type="button" class="group-message-action-item" data-action="edit-message" data-message-id="${message.id}">
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit pesan</span>
+          </button>
+          <button type="button" class="group-message-action-item delete" data-action="delete-message" data-message-id="${message.id}">
+            <i class="bi bi-trash3"></i>
+            <span>Hapus pesan</span>
+          </button>
+        </div>
+      </div>
+    ` : ''}
+  `;
+
+  const buildInlineEditorMarkup = (text, messageId) => `
+    <div class="group-message-editor-shell" data-editing-message-id="${messageId}">
+      <textarea class="group-message-editor-input" maxlength="2000">${escapeHtml(text)}</textarea>
+      <div class="group-message-editor-actions">
+        <button type="button" class="group-message-editor-btn cancel" data-action="cancel-edit" data-message-id="${messageId}">Batal</button>
+        <button type="button" class="group-message-editor-btn save" data-action="save-edit" data-message-id="${messageId}">Simpan</button>
+      </div>
+    </div>
+  `;
+
+  const buildDeleteConfirmMarkup = (messageId) => `
+    <div class="group-message-delete-confirm" data-delete-message-id="${messageId}">
+      <div class="group-message-delete-confirm-text">Hapus pesan ini secara permanen?</div>
+      <div class="group-message-delete-confirm-actions">
+        <button type="button" class="group-message-delete-confirm-btn cancel" data-action="cancel-delete" data-message-id="${messageId}">Batal</button>
+        <button type="button" class="group-message-delete-confirm-btn delete" data-action="confirm-delete" data-message-id="${messageId}">Hapus</button>
+      </div>
+    </div>
+  `;
+
+  // Sinkronisasi grup ditahan saat ada editor atau konfirmasi hapus yang masih aktif.
+  const hasActiveInlineState = () => Boolean(
+    thread.querySelector('.group-message-row.is-editing, [data-delete-message-id]')
+  );
+
+  // Bubble pesan grup dipulihkan lagi jika user membatalkan aksi inline.
+  const restoreMessageBubble = (row) => {
+    const bubbleShell = row.querySelector('.group-message-bubble-shell');
+    const isMine = row.classList.contains('mine');
+
+    if (!bubbleShell) {
+      return;
+    }
+
+    bubbleShell.innerHTML = buildMessageBubbleMarkup({
+      id: Number(row.dataset.messageId),
+      text: row.dataset.messageText ?? '',
+    }, isMine);
+    row.classList.remove('is-editing');
+    row.classList.remove('is-menu-open');
+  };
 
   const renderMessage = (message) => {
     const row = document.createElement('div');
@@ -686,6 +931,8 @@
 
     row.className = `group-message-row ${isMine ? 'mine' : 'other'}`;
     row.dataset.messageId = message.id;
+    row.dataset.messageText = message.text ?? '';
+    row.dataset.messageEdited = message.is_edited ? '1' : '0';
 
     row.innerHTML = `
       ${isMine ? '' : `
@@ -697,8 +944,9 @@
         <div class="group-message-meta">
           <span class="group-message-name">${escapeHtml(message.sender_name)}</span>
           <span>${escapeHtml(message.time)}</span>
+          ${message.is_edited ? '<span class="group-message-edited">telah diedit</span>' : ''}
         </div>
-        <div class="group-message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
+        <div class="group-message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
       </div>
       ${isMine ? `
         <div class="group-message-avatar">
@@ -710,7 +958,20 @@
     thread.appendChild(row);
   };
 
-  const syncMessages = async () => {
+  const renderMessages = (messages, force = false) => {
+    // Render ulang penuh agar hasil edit dan delete langsung konsisten.
+    if (!force && hasActiveInlineState()) {
+      return;
+    }
+
+    thread.innerHTML = '';
+    messages.forEach((message) => renderMessage(message));
+    closeAllMenus();
+    scrollToBottom();
+  };
+
+  // Force dipakai setelah edit/hapus sukses supaya isi grup langsung mengikuti data terbaru.
+  const syncMessages = async (force = false) => {
     try {
       const response = await fetch(`${payload.messagesUrl}?group_id=${payload.roomId}`, {
         method: 'GET',
@@ -731,22 +992,13 @@
         return;
       }
 
-      const knownIds = new Set(Array.from(thread.querySelectorAll('[data-message-id]')).map((element) => Number(element.dataset.messageId)));
-
-      data.messages.forEach((message) => {
-        if (!knownIds.has(Number(message.id))) {
-          renderMessage(message);
-        }
-      });
-
-      scrollToBottom();
+      renderMessages(data.messages, force);
     } catch (error) {
       console.error(error);
     }
   };
 
-  (payload.messages || []).forEach((message) => renderMessage(message));
-  scrollToBottom();
+  renderMessages(payload.messages || []);
   autoResize();
 
   if (window.Echo) {
@@ -778,6 +1030,161 @@
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       form.requestSubmit();
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!thread.contains(event.target)) {
+      closeAllMenus();
+    }
+  });
+
+  thread.addEventListener('click', async (event) => {
+    const toggleButton = event.target.closest('[data-action="toggle-menu"]');
+    const editButton = event.target.closest('[data-action="edit-message"]');
+    const deleteButton = event.target.closest('[data-action="delete-message"]');
+    const saveButton = event.target.closest('[data-action="save-edit"]');
+    const cancelButton = event.target.closest('[data-action="cancel-edit"]');
+    const cancelDeleteButton = event.target.closest('[data-action="cancel-delete"]');
+    const confirmDeleteButton = event.target.closest('[data-action="confirm-delete"]');
+
+    if (toggleButton) {
+      const row = toggleButton.closest('.group-message-row');
+      const willOpen = !row.classList.contains('is-menu-open');
+      closeAllMenus();
+      row.classList.toggle('is-menu-open', willOpen);
+      return;
+    }
+
+    if (editButton) {
+      const messageId = Number(editButton.dataset.messageId);
+      const row = editButton.closest('.group-message-row');
+      const bubbleShell = row?.querySelector('.group-message-bubble-shell');
+      const currentText = row?.dataset.messageText ?? '';
+
+      closeAllMenus();
+
+      if (!row || !bubbleShell) {
+        return;
+      }
+
+      row.classList.add('is-editing');
+      bubbleShell.innerHTML = buildInlineEditorMarkup(currentText, messageId);
+      const textarea = bubbleShell.querySelector('.group-message-editor-input');
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      }
+      return;
+    }
+
+    if (cancelButton) {
+      const row = cancelButton.closest('.group-message-row');
+      if (row) {
+        restoreMessageBubble(row);
+      }
+      return;
+    }
+
+    if (cancelDeleteButton) {
+      const row = cancelDeleteButton.closest('.group-message-row');
+      if (row) {
+        restoreMessageBubble(row);
+      }
+      return;
+    }
+
+    if (saveButton) {
+      const messageId = Number(saveButton.dataset.messageId);
+      const row = saveButton.closest('.group-message-row');
+      const textarea = row?.querySelector('.group-message-editor-input');
+      const currentText = row?.dataset.messageText ?? '';
+      const pesan = textarea?.value?.trim() ?? '';
+
+      if (!row || !textarea) {
+        return;
+      }
+
+      if (!pesan) {
+        hint.textContent = 'Pesan tidak boleh kosong.';
+        textarea.focus();
+        return;
+      }
+
+      if (pesan === currentText.trim()) {
+        restoreMessageBubble(row);
+        return;
+      }
+
+      try {
+        const response = await fetch(messageUpdateUrl(messageId), {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ pesan }),
+        });
+
+        const data = await response.json();
+        hint.textContent = response.ok && data.success
+          ? 'Pesan berhasil diedit.'
+          : (data.message ?? 'Pesan gagal diedit.');
+
+        if (response.ok && data.success) {
+          syncMessages(true);
+        }
+      } catch (error) {
+        console.error(error);
+        hint.textContent = 'Terjadi kendala saat mengedit pesan.';
+      }
+
+      return;
+    }
+
+    if (deleteButton) {
+      const messageId = Number(deleteButton.dataset.messageId);
+      const row = deleteButton.closest('.group-message-row');
+      const bubbleShell = row?.querySelector('.group-message-bubble-shell');
+      closeAllMenus();
+
+      if (!row || !bubbleShell) {
+        return;
+      }
+
+      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId);
+      return;
+    }
+
+    if (confirmDeleteButton) {
+      const messageId = Number(confirmDeleteButton.dataset.messageId);
+
+      try {
+        const response = await fetch(messageDeleteUrl(messageId), {
+          method: 'DELETE',
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+
+        const data = await response.json();
+        hint.textContent = response.ok && data.success
+          ? 'Pesan berhasil dihapus.'
+          : (data.message ?? 'Pesan gagal dihapus.');
+
+        if (response.ok && data.success) {
+          syncMessages(true);
+        }
+      } catch (error) {
+        console.error(error);
+        hint.textContent = 'Terjadi kendala saat menghapus pesan.';
+      }
+
+      return;
     }
   });
 
