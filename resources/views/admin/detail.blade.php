@@ -331,7 +331,7 @@
                 </div>
             </div>
 
-            @if($student->journalTexts->count() === 0)
+            @if($sortedLogs->isEmpty())
                 <div class="no-journals">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -340,7 +340,7 @@
                         <line x1="16" y1="17" x2="8" y2="17"/>
                         <polyline points="10 9 9 9 8 9"/>
                     </svg>
-                    <p>Mahasiswa ini belum mengisi jurnal.</p>
+                    <p>Mahasiswa ini belum memiliki riwayat aktivitas.</p>
                 </div>
             @else
                 <table class="premium-table">
@@ -354,33 +354,33 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($student->journalTexts as $i => $journal)
+                        @foreach($sortedLogs as $log)
                         @php
-                            $checkin = $student->dailyCheckins->filter(function($c) use ($journal) {
-                                return $c->created_at->format('Y-m-d') === $journal->created_at->format('Y-m-d');
-                            })->first();
+                            $journal = $log['journal'];
+                            $checkin = $log['checkin'];
+                            $createdAt = $log['created_at'];
                         @endphp
                         <tr>
                             <td style="text-align: center; vertical-align: top; padding-top: 20px;">{{ $loop->iteration }}</td>
-                            <td data-timestamp="{{ $journal->created_at->timestamp }}" style="vertical-align: top; padding-top: 20px;">
-                                <div style="font-weight: 700; color: #1e293b;">{{ $journal->created_at->isoFormat('DD MMM YYYY') }}</div>
-                                <div style="font-size: 0.75rem; color: #94a3b8;">{{ $journal->created_at->format('H:i') }} WIB</div>
+                            <td data-timestamp="{{ $createdAt->timestamp }}" style="vertical-align: top; padding-top: 20px;">
+                                <div style="font-weight: 700; color: #1e293b;">{{ $createdAt->isoFormat('DD MMM YYYY') }}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8;">{{ $createdAt->format('H:i') }} WIB</div>
                             </td>
                             <td style="vertical-align: top; padding-top: 20px;">
-                                @if($checkin)
-                                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                                        Mood: {{ $checkin->mood?->mood_name ?? 'Netral' }}
-                                    </div>
-                                    <div style="font-size: 0.75rem; color: #94a3b8;">
-                                        Feeling: {{ $checkin->feeling?->feeling_name ?? 'Tidak Ada' }}
-                                    </div>
-                                @else
-                                    <span style="color:#94a3b8; font-style:italic;">—</span>
-                                @endif
+                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                                    Mood: {{ $checkin?->mood?->mood_name ?? 'Tidak ada' }}
+                                </div>
+                                <div style="font-size: 0.75rem; color: #94a3b8;">
+                                    Feeling: {{ $checkin?->feeling?->feeling_name ?? 'Tidak ada' }}
+                                </div>
                             </td>
                             <td style="vertical-align: top; padding-top: 20px; padding-right: 32px;">
                                 <div style="line-height: 1.6; color: #475569; font-size: 0.85rem; margin-bottom: 12px;">
-                                    {{ $journal->description }}
+                                    @if($journal && $journal->description)
+                                        {{ $journal->description }}
+                                    @else
+                                        <span style="color:#94a3b8; font-style:italic;">Tidak ada</span>
+                                    @endif
                                 </div>
                                 @if($checkin && $checkin->aiAnalysis)
                                     <div style="background: #f8fafc; border-left: 3px solid #059669; padding: 10px 14px; border-radius: 0 8px 8px 0; margin-top: 12px;">

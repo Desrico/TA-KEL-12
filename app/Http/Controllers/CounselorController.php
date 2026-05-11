@@ -378,7 +378,46 @@ class CounselorController extends Controller
             $query->with(['mood', 'feeling'])->orderBy('created_at', 'desc');
         }])->where('nim', $nim)->firstOrFail();
 
-        return view('admin.detail', compact('student'));
+        // Merge journals and checkins by date to show unified history
+        $logs = collect();
+        
+        foreach ($student->journalTexts as $journal) {
+            $date = $journal->created_at->format('Y-m-d');
+            if (!$logs->has($date)) {
+                $logs->put($date, [
+                    'created_at' => $journal->created_at,
+                    'journal' => $journal,
+                    'checkin' => null
+                ]);
+            } else {
+                $item = $logs->get($date);
+                if (!$item['journal']) {
+                    $item['journal'] = $journal;
+                    $logs->put($date, $item);
+                }
+            }
+        }
+
+        foreach ($student->dailyCheckins as $checkin) {
+            $date = $checkin->created_at->format('Y-m-d');
+            if (!$logs->has($date)) {
+                $logs->put($date, [
+                    'created_at' => $checkin->created_at,
+                    'journal' => null,
+                    'checkin' => $checkin
+                ]);
+            } else {
+                $item = $logs->get($date);
+                if (!$item['checkin']) {
+                    $item['checkin'] = $checkin;
+                    $logs->put($date, $item);
+                }
+            }
+        }
+
+        $sortedLogs = $logs->sortByDesc('created_at');
+
+        return view('admin.detail', compact('student', 'sortedLogs'));
     }
 
     public function updateStatus(Request $request, string $nim)
