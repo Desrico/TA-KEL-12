@@ -122,7 +122,81 @@ class AdminController extends Controller
         ]);
     }
 
+ public function dashboard()
+{
+    $user = Auth::user();
+    
+    if ($user->role !== 'konselor') {
+        return redirect('/')->with('error', 'Akses ditolak.');
+    }
 
+    $konselor = Konselor::where('user_id', $user->id)->first();
+
+    $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
+
+    $totalPenjadwalan   = (clone $baseQuery)->count();
+    $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
+    $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
+    $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
+    $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
+    $approvalRate   = $totalPenjadwalan > 0 ? round(($disetujui / $totalPenjadwalan) * 100) : 0;
+
+    $monthlyLabels = [];
+    $monthlyCounts = [];
+    for ($i = 5; $i >= 0; $i--) {
+        $month = Carbon::now()->subMonths($i);
+        $monthlyLabels[] = $month->translatedFormat('M');
+        $monthlyCounts[] = (clone $baseQuery)
+            ->whereYear('tanggal', $month->year)
+            ->whereMonth('tanggal', $month->month)
+            ->count();
+    }
+
+    $topikStats = collect();
+
+        if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
+            $topikStats = (clone $baseQuery)
+                ->whereNotNull('catatan')
+                ->pluck('catatan')
+                ->map(function ($catatan) {
+                    if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
+                        return trim($match[1]);
+                    }
+
+                    return trim((string) $catatan);
+                })
+                ->filter()
+                ->countBy()
+                ->sortDesc()
+                ->take(5);
+        }
+
+        $topikLabels = $topikStats->keys()->values();
+        $topikCounts = $topikStats->values()->values();
+        $totalTopik = $topikCounts->sum();
+
+    $JadwalTerbaru = (clone $baseQuery)
+        ->with('mahasiswa.user')
+        ->orderBy('created_at', 'desc')
+        ->take(5)
+        ->get();
+
+    return view('admin.dashboard', compact(
+        'konselor',
+        'totalPenjadwalan',
+        'menunggu',
+        'disetujui',
+        'ditolak',
+        'mahasiswaAktif',
+        'approvalRate',
+        'monthlyLabels',
+        'monthlyCounts',
+        'topikStats',
+        'topikLabels',
+        'topikCounts',
+        'totalTopik',
+    ));
+}
     public function jadwal()
     {
         return view('admin.jadwal');
@@ -189,6 +263,8 @@ class AdminController extends Controller
             'status' => 'disetujui',
         ]);
 
+        $this->createApprovalNotificationIfMissing($jadwal->fresh(['mahasiswa.user']));
+
         return redirect()
             ->route('admin.sesi.detail', $jadwal->id)
             ->with('success', 'Jadwal berhasil diterima.');
@@ -223,6 +299,7 @@ class AdminController extends Controller
         return redirect()->route('admin.sesi.detail', $jadwal->id)
             ->with('success', 'Jadwal berhasil ditolak.');
     }
+
     private function getKonselor()
     {
         $user = auth()->user();
@@ -271,7 +348,7 @@ class AdminController extends Controller
 
         $namaMahasiswa = optional(optional($jadwal->mahasiswa)->user)->nama ?? 'Mahasiswa';
         $jenis = ucfirst($jadwal->jenis ?? '-');
-        $topik = $jadwal->topik ?? '-';
+        $topik = $jadwal->topik ?: '-';
         $waktu = $jadwal->waktu ? substr($jadwal->waktu, 0, 5) : '-';
 
         return [
@@ -299,7 +376,6 @@ class AdminController extends Controller
     {
         return view('admin.pengaturan');
     }
-
     public function chat()
     {
         return view('admin.chat');
@@ -307,3 +383,4 @@ class AdminController extends Controller
 
 
 }
+

@@ -57,6 +57,10 @@
                         </div>
                     @endif
 
+                    <p class="text-sm text-gray-500 text-center">
+                        Gunakan akun CIS Anda untuk login
+                    </p>
+
                     <div>
                         <label class="text-sm text-gray-600">Username CIS</label>
                         <input type="text" name="username"
@@ -70,10 +74,6 @@
                         <input type="password" name="password"
                             class="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#5FAF9F]">
                     </div>
-
-                    <p class="text-sm text-gray-500 text-center">
-                        Gunakan akun CIS Anda untuk login
-                    </p>
 
                     <button type="submit"
                         class="w-full bg-[#5FAF9F] hover:bg-[#4e9c8d] text-white py-2 rounded-lg text-sm">

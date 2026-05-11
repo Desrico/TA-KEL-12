@@ -4,50 +4,121 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use App\Models\Student;
 use App\Models\JournalText;
 use App\Models\DailyCheckin;
 use App\Models\Mood;
 use App\Models\Feeling;
+use App\Models\JadwalKonseling;
+use App\Models\Konselor;
 
 class CounselorController extends Controller
 {
     public function index()
     {
         // OPTIMASI PERFORMA MongoDB:
-        // MongoDB tidak mendukung withCount() secara langsung.
-        // Sebagai gantinya, kita memuat relasi tetapi HANYA mengambil kolom ID.
-        // Ini mencegah ribuan teks ditarik ke RAM, sehingga query menjadi sangat ringan.
-        $students = Student::with(['journalTexts' => function ($q) {
-                $q->select('_id', 'nim');
-            }])
-            ->orderBy('mental_level', 'desc')
-            ->orderBy('name')
-            ->get()
-            ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts ? $student->journalTexts->count() : 0;
-                unset($student->journalTexts); // Bebaskan memori
-                return $student;
-            });
+        if (!Schema::hasTable('students')) {
+            \Log::warning('CounselorController@index: table "students" not found. Returning empty collection.');
+            $students = collect();
+            $lastScan = null;
+        } else {
+            $students = Student::with('journalTexts')
+                ->orderBy('mental_level', 'desc')
+                ->orderBy('name')
+                ->get()
+                ->map(function ($student) {
+                    $student->journal_texts_count = $student->journalTexts->count();
+                    return $student;
+                });
 
-        $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
+            $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
+        }
 
-        return view('admin.dashboard', [
-            'students' => $students,
-            'lastScan' => $lastScan,
-        ]);
+        // Get current konselor
+        $user = Auth::user();
+        $konselor = Konselor::where('user_id', $user->id)->first();
+
+        // Get jadwal statistics
+        $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
+
+        $totalPenjadwalan   = (clone $baseQuery)->count();
+        $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
+        $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
+        $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
+        $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
+        $approvalRate   = $totalPenjadwalan > 0 ? round(($disetujui / $totalPenjadwalan) * 100) : 0;
+
+        // Monthly statistics
+        $monthlyLabels = [];
+        $monthlyCounts = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = Carbon::now()->subMonths($i);
+            $monthlyLabels[] = $month->translatedFormat('M');
+            $monthlyCounts[] = (clone $baseQuery)
+                ->whereYear('tanggal', $month->year)
+                ->whereMonth('tanggal', $month->month)
+                ->count();
+        }
+
+        // Topic statistics
+        $topikStats = collect();
+        if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
+            $topikStats = (clone $baseQuery)
+                ->whereNotNull('catatan')
+                ->pluck('catatan')
+                ->map(function ($catatan) {
+                    if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
+                        return trim($match[1]);
+                    }
+                    return trim((string) $catatan);
+                })
+                ->filter()
+                ->countBy()
+                ->sortDesc()
+                ->take(5);
+        }
+
+        $topikLabels = $topikStats->keys()->values();
+        $topikCounts = $topikStats->values()->values();
+        $totalTopik = $topikCounts->sum();
+
+        return view('admin.dashboard', compact(
+            'students',
+            'lastScan',
+            'konselor',
+            'totalPenjadwalan',
+            'menunggu',
+            'disetujui',
+            'ditolak',
+            'mahasiswaAktif',
+            'approvalRate',
+            'monthlyLabels',
+            'monthlyCounts',
+            'topikStats',
+            'topikLabels',
+            'topikCounts',
+            'totalTopik',
+        ));
     }
 
     public function prioritas()
     {
-        $students = Student::with('journalTexts')
-            ->where('mental_level', 3)
-            ->orderBy('name')
-            ->get()
-            ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts->count();
-                return $student;
-            });
+        if (!Schema::hasTable('students')) {
+            \Log::warning('CounselorController@prioritas: table "students" not found. Returning empty collection.');
+            $students = collect();
+        } else {
+            $students = Student::with('journalTexts')
+                ->where('mental_level', 3)
+                ->orderBy('name')
+                ->get()
+                ->map(function ($student) {
+                    $student->journal_texts_count = $student->journalTexts->count();
+                    return $student;
+                });
+        }
 
         return view('admin.prioritas', compact('students'));
     }
@@ -56,19 +127,24 @@ class CounselorController extends Controller
     {
         $search = $request->query('search');
 
-        $students = Student::with('journalTexts')
-            ->whereNotNull('mental_level')
-            ->when($search, function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nim', 'like', "%{$search}%");
-            })
-            ->orderBy('mental_level', 'desc')
-            ->orderBy('mental_confidence', 'desc')
-            ->get()
-            ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts->count();
-                return $student;
-            });
+        if (!Schema::hasTable('students')) {
+            \Log::warning('CounselorController@semuaMahasiswa: table "students" not found. Returning empty collection.');
+            $students = collect();
+        } else {
+            $students = Student::with('journalTexts')
+                ->whereNotNull('mental_level')
+                ->when($search, function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('nim', 'like', "%{$search}%");
+                })
+                ->orderBy('mental_level', 'desc')
+                ->orderBy('mental_confidence', 'desc')
+                ->get()
+                ->map(function ($student) {
+                    $student->journal_texts_count = $student->journalTexts->count();
+                    return $student;
+                });
+        }
 
         return view('admin.semua_mahasiswa', compact('students', 'search'));
     }
@@ -179,17 +255,208 @@ class CounselorController extends Controller
             }
         }
 
+        // Get JadwalKonseling statistics
+        $konselor_id = auth()->guard('konselor')->id();
+        $jadwalQuery = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id);
+        
+        // Apply date range filter
+        if ($range === '14d') {
+            $jadwalQuery->where('created_at', '>=', now()->subDays(14));
+        } elseif ($range === '1m') {
+            $jadwalQuery->where('created_at', '>=', now()->subMonths(1));
+        } elseif ($range === '4m') {
+            $jadwalQuery->where('created_at', '>=', now()->subMonths(4));
+        } elseif ($range === '1y') {
+            $jadwalQuery->where('created_at', '>=', now()->subYears(1));
+        }
+        
+        $totalPenjadwalan = $jadwalQuery->count();
+        $selesaiCount = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id)
+            ->whereNotNull('laporan')
+            ->orWhere('status', 'selesai')
+            ->count();
+        $diterimaPenjadwalan = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('status', 'diterima')
+            ->count();
+        $ditolakPenjadwalan = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('status', 'ditolak')
+            ->count();
+
+        // Get problem distribution from JadwalKonseling (ringkasan_masalah field)
+        $problemDist = [];
+        $problemCategories = [
+            'Akademik' => ['nilai', 'ujian', 'mata kuliah', 'beasiswa', 'akademik', 'tugas'],
+            'Finansial' => ['uang', 'biaya', 'tuition', 'finansial', 'utang', 'duit'],
+            'Relasi' => ['hubungan', 'pacar', 'teman', 'keluarga', 'orang tua', 'relasi'],
+            'Keluarga' => ['keluarga', 'orang tua', 'saudara', 'ayah', 'ibu', 'keluarga'],
+            'Pribadi' => ['diri sendiri', 'kepribadian', 'identitas', 'harga diri', 'percaya diri'],
+            'Karir' => ['karir', 'pekerjaan', 'magang', 'lowongan', 'profesi'],
+            'Kesehatan' => ['kesehatan', 'sakit', 'medis', 'fisik', 'kesehatan']
+        ];
+        
+        $allJadwal = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id)
+            ->whereNotNull('ringkasan_masalah')
+            ->get();
+        
+        foreach ($problemCategories as $category => $keywords) {
+            $count = 0;
+            foreach ($allJadwal as $jadwal) {
+                $summary = strtolower($jadwal->ringkasan_masalah ?? '');
+                foreach ($keywords as $keyword) {
+                    if (strpos($summary, strtolower($keyword)) !== false) {
+                        $count++;
+                        break;
+                    }
+                }
+            }
+            if ($count > 0) {
+                $problemDist[$category] = $count;
+            }
+        }
+
+        // Calculate trend data (konsultasi per period)
+        $trendData = [];
+        $jadwalGrouped = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id);
+        
+        if ($range === '1y' || $range === '4m') {
+            $jadwalGrouped = $jadwalGrouped->where('created_at', '>=', now()->subtract($range === '4m' ? 4 : 12, 'months'))->get()
+                ->groupBy(function ($d) {
+                    return $d->created_at->format('Y-m');
+                });
+        } else {
+            $daysBack = $range === '14d' ? 14 : 30;
+            $jadwalGrouped = $jadwalGrouped->where('created_at', '>=', now()->subDays($daysBack))->get()
+                ->groupBy(function ($d) {
+                    return $d->created_at->format('Y-m-d');
+                });
+        }
+        
+        foreach ($jadwalGrouped as $period => $jadwals) {
+            $trendData[] = $jadwals->count();
+        }
+
         return response()->json([
             'labels'           => $labels,
             'data'             => $data,
+            'trend_data'       => $trendData,
             'distribution'     => $distribution,
             'feelingsTrend'    => $feelingsTrend,
-            'mood_distribution' => $moodDist
+            'mood_distribution' => $moodDist,
+            'problem_distribution' => $problemDist,
+            'total_penjadwalan' => $totalPenjadwalan,
+            'selesai_count'    => $selesaiCount,
+            'diterima_count'   => $diterimaPenjadwalan,
+            'ditolak_count'    => $ditolakPenjadwalan
         ]);
     }
 
 
 
+
+    public function getJadwalData(Request $request)
+    {
+        $konselor = auth()->user()->konselor;
+        $konselor_id = optional($konselor)->id;
+        $range = $request->query('range', '14d');
+
+        // Get stat counters
+        $totalPenjadwalan = JadwalKonseling::where('konselor_id', $konselor_id)->count();
+        $selesaiCount = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where(function($q) {
+                $q->where('status', 'berlangsung')
+                  ->orWhere('status', 'selesai');
+            })
+            ->count();
+        $diterimaPenjadwalan = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('status', 'disetujui')
+            ->count();
+        $ditolakPenjadwalan = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('status', 'ditolak')
+            ->count();
+
+        // Get trend data (jumlah konseling per period)
+        $daysBack = 14;
+        if ($range === '1m') {
+            $daysBack = 30;
+        } elseif ($range === '4m') {
+            $daysBack = 120;
+        } elseif ($range === '1y') {
+            $daysBack = 365;
+        }
+
+        $jadwalRaw = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->where('created_at', '>=', now()->subDays($daysBack))
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $labels = [];
+        $data = [];
+        
+        if ($range === '1y' || $range === '4m') {
+            $grouped = $jadwalRaw->groupBy(function ($d) {
+                return $d->created_at->format('Y-m');
+            });
+            foreach ($grouped as $month => $items) {
+                $labels[] = \Carbon\Carbon::createFromFormat('Y-m', $month)->isoFormat('MMM YYYY');
+                $data[] = $items->count();
+            }
+        } else {
+            $grouped = $jadwalRaw->groupBy(function ($d) {
+                return $d->created_at->format('Y-m-d');
+            });
+            foreach ($grouped as $day => $items) {
+                $labels[] = \Carbon\Carbon::parse($day)->isoFormat('D MMM');
+                $data[] = $items->count();
+            }
+        }
+
+        // Get problem distribution
+        $problemDist = [];
+        $problemCategories = [
+            'Akademik' => ['nilai', 'ujian', 'mata kuliah', 'beasiswa', 'akademik', 'tugas'],
+            'Finansial' => ['uang', 'biaya', 'tuition', 'finansial', 'utang', 'duit'],
+            'Relasi' => ['hubungan', 'pacar', 'teman', 'keluarga', 'orang tua', 'relasi'],
+            'Keluarga' => ['keluarga', 'orang tua', 'saudara', 'ayah', 'ibu'],
+            'Pribadi' => ['diri sendiri', 'kepribadian', 'identitas', 'harga diri', 'percaya diri'],
+            'Karir' => ['karir', 'pekerjaan', 'magang', 'lowongan', 'profesi'],
+            'Kesehatan' => ['kesehatan', 'sakit', 'medis', 'fisik']
+        ];
+        
+        $allJadwal = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->whereNotNull('ringkasan_masalah')
+            ->get();
+        
+        foreach ($problemCategories as $category => $keywords) {
+            $count = 0;
+            foreach ($allJadwal as $jadwal) {
+                $summary = strtolower($jadwal->ringkasan_masalah ?? '');
+                foreach ($keywords as $keyword) {
+                    if (strpos($summary, strtolower($keyword)) !== false) {
+                        $count++;
+                        break;
+                    }
+                }
+            }
+            if ($count > 0) {
+                $problemDist[$category] = $count;
+            }
+        }
+
+        return response()->json([
+            'total_count' => $totalPenjadwalan,
+            'status_counts' => [
+                'selesai' => $selesaiCount,
+                'diterima' => $diterimaPenjadwalan,
+                'ditolak' => $ditolakPenjadwalan,
+                'menunggu' => $totalPenjadwalan - $selesaiCount - $diterimaPenjadwalan - $ditolakPenjadwalan
+            ],
+            'trend_data' => [
+                'labels' => $labels,
+                'data' => $data
+            ],
+            'problem_distribution' => $problemDist
+        ]);
+    }
 
     public function getFeelingDistribution(Request $request)
     {

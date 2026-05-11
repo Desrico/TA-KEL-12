@@ -400,155 +400,690 @@
         color:var(--text-light);
     }
 
-    .trust-section{
+    .relax-player{
+        max-width:920px;
+        margin:0 auto;
+    }
+
+    .relax-player-shell{
         position:relative;
-        background:#06130f;
-        color:#fff;
+        min-height:460px;
+        border-radius:34px;
         overflow:hidden;
-        padding:5.5rem 0;
+        background:linear-gradient(180deg,#dfeef2 0%, #9ab8c8 34%, #19374d 76%, #102739 100%);
+        box-shadow:0 30px 60px rgba(12,31,43,.18);
+        isolation:isolate;
     }
 
-    .trust-radar{
-        position:relative;
-        width:320px;
-        height:320px;
-        margin:auto;
-    }
-    .trust-ring,
-    .trust-center{
+    .relax-player-shell::before{
+        content:'';
         position:absolute;
-        top:50%;
+        inset:0;
+        background:
+            radial-gradient(circle at 18% 16%, rgba(255,255,255,.72) 0, rgba(255,255,255,0) 26%),
+            radial-gradient(circle at 70% 10%, rgba(255,255,255,.34) 0, rgba(255,255,255,0) 24%);
+        opacity:.8;
+        z-index:0;
+    }
+
+    .relax-scene{
+        position:absolute;
+        inset:0;
+        overflow:hidden;
+    }
+
+    .relax-scene-frame{
+        position:absolute;
+        inset:0;
+        opacity:0;
+        transition:opacity 1.2s ease;
+    }
+
+    .relax-scene-frame.is-active{
+        opacity:1;
+    }
+
+    .relax-scene-frame::before{
+        content:'';
+        position:absolute;
+        inset:0;
+    }
+
+    .relax-scene-frame.frame-dawn::before{
+        background:
+            linear-gradient(180deg, rgba(247,224,203,.92) 0%, rgba(235,205,181,.52) 18%, rgba(87,129,159,.18) 54%, rgba(14,39,57,0) 100%);
+    }
+
+    .relax-scene-frame.frame-noon::before{
+        background:
+            linear-gradient(180deg, rgba(218,243,249,.9) 0%, rgba(149,198,223,.34) 26%, rgba(58,99,127,.12) 60%, rgba(14,39,57,0) 100%);
+    }
+
+    .relax-scene-frame.frame-night::before{
+        background:
+            linear-gradient(180deg, rgba(15,32,55,.92) 0%, rgba(26,59,88,.38) 28%, rgba(16,39,57,.16) 58%, rgba(14,39,57,0) 100%);
+    }
+
+    .relax-stars{
+        position:absolute;
+        inset:0;
+        opacity:0;
+        transition:opacity 1s ease;
+        pointer-events:none;
+        background-image:
+            radial-gradient(circle at 18% 22%, rgba(255,255,255,.7) 0 1px, transparent 2px),
+            radial-gradient(circle at 62% 18%, rgba(255,255,255,.62) 0 1px, transparent 2px),
+            radial-gradient(circle at 78% 28%, rgba(255,255,255,.75) 0 1.2px, transparent 2px),
+            radial-gradient(circle at 38% 16%, rgba(255,255,255,.58) 0 1px, transparent 2px),
+            radial-gradient(circle at 86% 15%, rgba(255,255,255,.72) 0 1px, transparent 2px);
+        animation:twinkleStars 6s ease-in-out infinite;
+    }
+
+    .relax-player[data-scene="night"] .relax-stars{
+        opacity:1;
+    }
+
+    .relax-orb,
+    .relax-ripple,
+    .relax-ripple::before,
+    .relax-ripple::after,
+    .relax-cloud,
+    .relax-bird,
+    .relax-firefly{
+        animation-play-state:paused;
+    }
+
+    .relax-player.is-playing .relax-orb,
+    .relax-player.is-playing .relax-ripple,
+    .relax-player.is-playing .relax-ripple::before,
+    .relax-player.is-playing .relax-ripple::after,
+    .relax-player.is-playing .relax-cloud,
+    .relax-player.is-playing .relax-bird,
+    .relax-player.is-playing .relax-firefly{
+        animation-play-state:running;
+    }
+
+    .relax-orb{
+        position:absolute;
+        top:14%;
         left:50%;
-        transform:translate(-50%,-50%);
+        width:170px;
+        height:170px;
+        transform:translateX(-50%);
         border-radius:50%;
-    }
-    .trust-ring.r1{width:80px;height:80px;border:1px solid rgba(15,184,122,.55);}
-    .trust-ring.r2{width:150px;height:150px;border:1px solid rgba(15,184,122,.35);}
-    .trust-ring.r3{width:220px;height:220px;border:1px solid rgba(15,184,122,.18);}
-    .trust-center{
-        width:86px;height:86px;
-        background:linear-gradient(135deg,#0b7a4f,#0fb87a);
-        display:flex;align-items:center;justify-content:center;
-        box-shadow:0 0 30px rgba(15,184,122,.25);
-        font-size:2rem;
+        background:radial-gradient(circle, rgba(255,255,255,.92) 0%, rgba(215,241,245,.92) 52%, rgba(215,241,245,0) 74%);
+        filter:blur(.2px);
+        animation:breatheOrb 8s ease-in-out infinite;
+        transition:background 1.2s ease, box-shadow 1.2s ease, opacity 1.2s ease;
     }
 
-    .trust-wave{
+    .relax-player[data-scene="dawn"] .relax-orb{
+        background:radial-gradient(circle, rgba(255,242,226,.96) 0%, rgba(255,212,173,.88) 52%, rgba(255,213,179,0) 76%);
+    }
+
+    .relax-player[data-scene="noon"] .relax-orb{
+        background:radial-gradient(circle, rgba(255,255,255,.94) 0%, rgba(215,241,245,.9) 52%, rgba(215,241,245,0) 74%);
+    }
+
+    .relax-player[data-scene="night"] .relax-orb{
+        background:radial-gradient(circle, rgba(248,248,255,.92) 0%, rgba(200,215,255,.8) 48%, rgba(200,215,255,0) 72%);
+    }
+
+    .relax-cloud{
         position:absolute;
-        left:0;right:0;
-        border-top:2px dashed rgba(255,255,255,.18);
+        height:26px;
+        border-radius:999px;
+        background:rgba(255,255,255,.22);
+        filter:blur(1px);
+        animation:driftCloud 14s linear infinite;
     }
-    .trust-wave.wave1{top:58%;}
-    .trust-wave.wave2{top:65%;}
+    .relax-cloud.c1{top:19%;left:16%;width:140px;}
+    .relax-cloud.c2{top:24%;right:14%;width:110px;animation-duration:18s;}
 
-    .trust-title{
-        font-size:clamp(2rem,4vw,4rem);
-        font-weight:800;
-        line-height:1.06;
-        letter-spacing:0;
+    .relax-bird{
+        position:absolute;
+        width:26px;
+        height:12px;
+        border-top:2px solid rgba(255,255,255,.52);
+        border-radius:50% 50% 0 0;
+        animation:birdDrift 16s linear infinite;
+        opacity:.75;
+    }
+
+    .relax-bird::after{
+        content:'';
+        position:absolute;
+        right:-16px;
+        top:-2px;
+        width:26px;
+        height:12px;
+        border-top:2px solid rgba(255,255,255,.52);
+        border-radius:50% 50% 0 0;
+    }
+
+    .relax-bird.b1{top:28%;left:18%;}
+    .relax-bird.b2{top:21%;left:64%;transform:scale(.8);animation-duration:19s;}
+
+    .relax-mountain{
+        position:absolute;
+        bottom:36%;
+        width:58%;
+        height:40%;
+        background:linear-gradient(180deg, rgba(17,41,55,.78) 0%, rgba(10,24,33,.98) 100%);
+        clip-path:polygon(0 100%, 17% 60%, 28% 66%, 49% 20%, 63% 45%, 79% 31%, 100% 100%);
+    }
+    .relax-mountain.left{left:-3%;}
+    .relax-mountain.right{
+        right:-6%;
+        height:37%;
+        width:56%;
+        opacity:.92;
+        clip-path:polygon(0 100%, 16% 54%, 33% 69%, 51% 33%, 69% 48%, 82% 25%, 100% 100%);
+    }
+
+    .relax-waterline{
+        position:absolute;
+        left:0;
+        right:0;
+        bottom:33%;
+        height:2px;
+        background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.58) 18%, rgba(255,255,255,.78) 50%, rgba(255,255,255,.58) 82%, transparent 100%);
+        box-shadow:0 0 24px rgba(255,255,255,.24);
+    }
+
+    .relax-reflection{
+        position:absolute;
+        left:0;
+        right:0;
+        bottom:0;
+        height:41%;
+        background:
+            linear-gradient(180deg, rgba(169,202,217,.28) 0%, rgba(20,47,66,.72) 24%, rgba(10,28,40,.96) 100%);
+        transform:scaleY(-1);
+        opacity:.9;
+    }
+
+    .relax-firefly{
+        position:absolute;
+        width:8px;
+        height:8px;
+        border-radius:50%;
+        background:rgba(189,255,229,.85);
+        box-shadow:0 0 14px rgba(189,255,229,.72);
+        opacity:0;
+        animation:fireflyFloat 8s ease-in-out infinite;
+    }
+
+    .relax-firefly.f1{left:18%;bottom:20%;}
+    .relax-firefly.f2{left:72%;bottom:23%;animation-duration:10s;}
+    .relax-firefly.f3{left:58%;bottom:16%;animation-duration:7s;}
+
+    .relax-player[data-scene="night"] .relax-firefly{
+        opacity:1;
+    }
+
+    .relax-ripple{
+        position:absolute;
+        left:50%;
+        bottom:16%;
+        width:220px;
+        height:220px;
+        transform:translateX(-50%);
+        border-radius:50%;
+        border:1px solid rgba(255,255,255,.18);
+        animation:ripplePulse 7s ease-out infinite;
+    }
+
+    .relax-ripple::before,
+    .relax-ripple::after{
+        content:'';
+        position:absolute;
+        inset:22px;
+        border-radius:50%;
+        border:1px solid rgba(255,255,255,.14);
+        animation:ripplePulse 7s ease-out infinite;
+    }
+
+    .relax-ripple::after{
+        inset:50px;
+        animation-duration:9s;
+    }
+
+    .relax-overlay{
+        position:relative;
+        z-index:2;
+        height:100%;
+        min-height:460px;
+        padding:1.4rem 1.5rem 2.2rem;
+        display:grid;
+        grid-template-rows:auto 1fr auto;
+    }
+
+    .relax-topbar{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:1rem;
+    }
+
+    .relax-pill{
+        display:inline-flex;
+        align-items:center;
+        gap:.45rem;
+        padding:.55rem 1rem;
+        border-radius:999px;
+        background:rgba(255,255,255,.18);
+        color:#fff;
+        font-size:.78rem;
+        font-weight:700;
+        letter-spacing:.08em;
+        text-transform:uppercase;
+        backdrop-filter:blur(12px);
+    }
+
+    .relax-status{
+        display:inline-flex;
+        align-items:center;
+        gap:.45rem;
+        padding:.55rem .9rem;
+        border-radius:999px;
+        background:rgba(7,28,40,.24);
+        color:rgba(255,255,255,.9);
+        font-size:.78rem;
+        font-weight:700;
+        backdrop-filter:blur(12px);
+    }
+
+    .relax-status i{
+        color:#b4f4df;
+    }
+
+    .relax-center{
+        position:absolute;
+        inset:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        z-index:3;
+    }
+
+    .relax-toggle{
+        width:108px;
+        height:108px;
+        border:0;
+        border-radius:50%;
+        background:rgba(255,255,255,.18);
+        color:#fff;
+        backdrop-filter:blur(16px);
+        box-shadow:0 20px 34px rgba(4,19,30,.24);
+        transition:transform .25s ease, background .25s ease, box-shadow .25s ease;
+        position:relative;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .relax-toggle i{
+        font-size:2.45rem;
+        line-height:1;
+        transform:translateX(2px);
+    }
+
+    .relax-toggle::before{
+        content:'';
+        position:absolute;
+        inset:10px;
+        border-radius:50%;
+        border:1px solid rgba(255,255,255,.22);
+    }
+
+    .relax-toggle:hover{
+        transform:scale(1.05);
+        background:rgba(255,255,255,.28);
+        box-shadow:0 26px 42px rgba(4,19,30,.28);
+    }
+
+    .relax-player.is-playing .relax-toggle{
+        background:rgba(14,64,54,.54);
+    }
+
+    .relax-footer{
+        position:relative;
+        z-index:2;
+        display:flex;
+        flex-direction:column;
+        gap:.95rem;
+        margin-top:auto;
+    }
+
+    .relax-meta{
+        display:flex;
+        align-items:flex-end;
+        justify-content:space-between;
+        gap:1rem;
         color:#fff;
     }
-    .trust-title .accent{
-        color:#66f0cc;
+
+    .relax-kicker{
+        font-size:.78rem;
+        text-transform:uppercase;
+        letter-spacing:.08em;
+        color:rgba(255,255,255,.74);
+        margin-bottom:.45rem;
     }
 
-    .trust-desc{
-        color:rgba(255,255,255,.72);
-        line-height:1.9;
-        margin-top:1.4rem;
-        max-width:650px;
+    .relax-meta h3{
+        margin:0;
+        font-size:1.9rem;
+        font-weight:700;
+        max-width:500px;
+        text-wrap:balance;
     }
 
-    .trust-card{
-        background:rgba(255,255,255,.05);
-        border:1px solid rgba(255,255,255,.08);
-        border-radius:20px;
-        padding:1.2rem;
-        backdrop-filter:blur(8px);
+    .relax-time{
+        padding:.4rem .75rem;
+        border-radius:999px;
+        background:rgba(255,255,255,.14);
+        color:#fff;
+        font-size:.85rem;
+        font-weight:700;
+        white-space:nowrap;
+        backdrop-filter:blur(10px);
+    }
+
+    .relax-progress{
+        position:absolute;
+        left:1.5rem;
+        right:1.5rem;
+        bottom:1.3rem;
+        height:6px;
+        border-radius:999px;
+        background:rgba(255,255,255,.18);
+        overflow:hidden;
+        z-index:3;
+    }
+
+    .relax-progress span{
+        display:block;
+        height:100%;
+        width:0;
+        border-radius:inherit;
+        background:linear-gradient(90deg,#a8f0d6 0%, #ffffff 100%);
+        transition:width .35s ease;
+    }
+
+    .relax-sound-note{
+        font-size:.82rem;
+        color:rgba(255,255,255,.78);
+        line-height:1.6;
+        max-width:460px;
+    }
+
+    .article-section-head{
+        max-width:720px;
+        margin-bottom:2.4rem;
+    }
+
+    .article-title,
+    .trend-title{
+        font-size:clamp(1.9rem,3vw,2.9rem);
+        font-weight:800;
+        line-height:1.12;
+        color:var(--text-dark);
+        margin-bottom:.8rem;
+    }
+
+    .article-desc,
+    .trend-desc{
+        color:var(--text-mid);
+        line-height:1.85;
+        margin:0;
+    }
+
+    .article-card{
+        height:100%;
+        background:#fff;
+        border:1px solid rgba(26,58,92,.08);
+        border-radius:22px;
+        overflow:hidden;
+        box-shadow:0 18px 38px rgba(13,27,42,.07);
+        transition:transform .25s ease, box-shadow .25s ease;
+    }
+
+    .article-card:hover{
+        transform:translateY(-6px);
+        box-shadow:0 24px 46px rgba(13,27,42,.11);
+    }
+
+    .article-media{
+        aspect-ratio:16 / 10;
+        overflow:hidden;
+        background:#dcebe0;
+    }
+
+    .article-media img{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+        display:block;
+    }
+
+    .article-body{
+        padding:1.4rem 1.35rem 1.5rem;
+    }
+
+    .article-meta{
+        display:flex;
+        flex-wrap:wrap;
+        gap:.55rem;
+        margin-bottom:.9rem;
+        font-size:.72rem;
+        font-weight:800;
+        text-transform:uppercase;
+        letter-spacing:.08em;
+        color:#0a523a;
+    }
+
+    .article-body h3{
+        font-size:1.35rem;
+        font-weight:700;
+        line-height:1.35;
+        color:var(--text-dark);
+        margin-bottom:.75rem;
+    }
+
+    .article-body p{
+        color:var(--text-mid);
+        line-height:1.8;
+        margin:0;
+    }
+
+    .trend-header{
+        display:flex;
+        align-items:flex-end;
+        justify-content:space-between;
+        gap:1rem;
+        margin-bottom:2rem;
+    }
+
+    .trend-live{
+        display:inline-flex;
+        align-items:center;
+        gap:.55rem;
+        color:#315743;
+        font-size:.78rem;
+        font-weight:800;
+        text-transform:uppercase;
+        letter-spacing:.08em;
+        white-space:nowrap;
+    }
+
+    .trend-live::before{
+        content:'';
+        width:8px;
+        height:8px;
+        border-radius:50%;
+        background:#0fb87a;
+        box-shadow:0 0 0 6px rgba(15,184,122,.14);
+    }
+
+    .trend-feature-card,
+    .trend-hashtag-card{
+        background:#fff;
+        border:1px solid rgba(26,58,92,.08);
+        border-radius:26px;
+        box-shadow:0 20px 38px rgba(13,27,42,.08);
         height:100%;
     }
 
-    .trust-card h5{
-        color:#fff;
-        font-size:1rem;
-        font-weight:700;
-        margin-bottom:.65rem;
+    .trend-feature-card{
+        padding:1.8rem;
+        background:
+            radial-gradient(circle at top right, rgba(15,184,122,.08), transparent 28%),
+            linear-gradient(180deg,#ffffff 0%, #f7fbf8 100%);
     }
 
-    .trust-card p{
-        margin:0;
-        color:rgba(255,255,255,.68);
-        line-height:1.8;
-        font-size:.92rem;
-    }
-
-    .flow-eyebrow{
-        color:#c9972c;
-        text-transform:uppercase;
-        letter-spacing:.18em;
-        font-size:.7rem;
+    .trend-badge{
+        display:inline-flex;
+        align-items:center;
+        padding:.45rem .9rem;
+        border-radius:999px;
+        background:#edf7f1;
+        color:#0a523a;
+        font-size:.72rem;
         font-weight:800;
+        text-transform:uppercase;
+        letter-spacing:.08em;
         margin-bottom:1rem;
     }
 
-    .flow-card{
-        text-align:center;
-        padding:1rem 1rem 0;
-    }
-
-    .flow-icon{
-        width:82px;
-        height:82px;
-        border-radius:50%;
-        background:#fff;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        margin:0 auto;
-        position:relative;
-        box-shadow:var(--shadow-sm);
-        font-size:1.7rem;
-    }
-    .flow-icon.green{border:2px solid #0fb87a;}
-    .flow-icon.gold{border:2px solid #b8860b;}
-    .flow-icon.teal{border:2px solid #0f8d7f;}
-
-    .flow-step{
-        position:absolute;
-        top:-4px;
-        right:-4px;
-        width:28px;
-        height:28px;
-        border-radius:50%;
-        color:#fff;
-        font-size:.75rem;
+    .trend-feature-card h3{
+        font-size:1.8rem;
         font-weight:800;
+        line-height:1.2;
+        color:var(--text-dark);
+        margin-bottom:.85rem;
+        max-width:560px;
+    }
+
+    .trend-summary{
+        color:var(--text-mid);
+        line-height:1.85;
+        margin-bottom:1.5rem;
+        max-width:600px;
+    }
+
+    .trend-rank-list{
+        display:grid;
+        gap:1rem;
+    }
+
+    .trend-rank-item{
+        display:grid;
+        grid-template-columns:58px 1fr;
+        gap:1rem;
+        align-items:flex-start;
+        padding:1rem 1.1rem;
+        border-radius:18px;
+        background:#fff;
+        border:1px solid rgba(10,82,58,.08);
+    }
+
+    .trend-rank-number{
+        width:58px;
+        height:58px;
+        border-radius:18px;
+        background:#eff8f2;
+        color:#0a523a;
         display:flex;
         align-items:center;
         justify-content:center;
-    }
-    .flow-step.green{background:#0A523A;}
-    .flow-step.gold{background:#b8860b;}
-    .flow-step.teal{background:#0f8d7f;}
-
-    .flow-body{
-        border-top:1px solid rgba(26,58,92,.12);
-        margin-top:1.2rem;
-        padding-top:1.2rem;
+        font-size:1.15rem;
+        font-weight:800;
     }
 
-    .flow-body h4{
-        font-size:1.2rem;
+    .trend-rank-item h4{
+        margin:0 0 .35rem;
+        font-size:1.15rem;
         font-weight:800;
         color:var(--text-dark);
-        margin-bottom:.6rem;
     }
 
-    .flow-body p{
+    .trend-rank-item p{
         margin:0;
         color:var(--text-mid);
-        line-height:1.8;
-        font-size:.94rem;
+        line-height:1.75;
+        font-size:.95rem;
+    }
+
+    .trend-hashtag-card{
+        padding:1.6rem;
+        background:linear-gradient(180deg,#f4f9f5 0%, #edf6ef 100%);
+    }
+
+    .trend-hashtag-card h3{
+        font-size:1.1rem;
+        font-weight:800;
+        color:var(--text-dark);
+        margin-bottom:.85rem;
+    }
+
+    .trend-hashtag-card p{
+        color:var(--text-mid);
+        line-height:1.75;
+        margin-bottom:1.2rem;
+    }
+
+    .trend-chip-wrap{
+        display:flex;
+        flex-wrap:wrap;
+        gap:.7rem;
+    }
+
+    .trend-chip{
+        display:inline-flex;
+        align-items:center;
+        padding:.65rem .95rem;
+        border-radius:999px;
+        background:#fff;
+        border:1px solid rgba(10,82,58,.08);
+        color:#315743;
+        font-size:.88rem;
+        font-weight:700;
+    }
+
+    @keyframes breatheOrb{
+        0%, 100%{transform:translateX(-50%) scale(1);}
+        50%{transform:translateX(-50%) scale(1.08);}
+    }
+
+    @keyframes driftCloud{
+        0%{transform:translateX(0);}
+        50%{transform:translateX(16px);}
+        100%{transform:translateX(0);}
+    }
+
+    @keyframes ripplePulse{
+        0%{transform:translateX(-50%) scale(.92); opacity:.48;}
+        70%{transform:translateX(-50%) scale(1.08); opacity:.14;}
+        100%{transform:translateX(-50%) scale(1.14); opacity:0;}
+    }
+
+    @keyframes twinkleStars{
+        0%, 100%{opacity:.35;}
+        50%{opacity:.8;}
+    }
+
+    @keyframes birdDrift{
+        0%{transform:translateX(0) translateY(0);}
+        50%{transform:translateX(24px) translateY(-6px);}
+        100%{transform:translateX(48px) translateY(0);}
+    }
+
+    @keyframes fireflyFloat{
+        0%, 100%{transform:translate3d(0, 0, 0); opacity:.25;}
+        40%{transform:translate3d(10px, -16px, 0); opacity:.9;}
+        70%{transform:translate3d(-6px, -24px, 0); opacity:.55;}
     }
 
     .cta-title{
@@ -643,10 +1178,17 @@
         .hero-visual{
             margin-top:2rem;
         }
-        .trust-radar{
-            width:260px;
-            height:260px;
-            margin-bottom:2rem;
+        .relax-player-shell,
+        .relax-overlay{
+            min-height:420px;
+        }
+        .trend-header,
+        .relax-meta{
+            align-items:flex-start;
+            flex-direction:column;
+        }
+        .relax-topbar{
+            align-items:flex-start;
         }
     }
 
@@ -693,11 +1235,47 @@
         .testi-text{
             min-height:auto;
         }
-        .emergency-title{
-            font-size:1.45rem;
+        .relax-player-shell,
+        .relax-overlay{
+            min-height:360px;
         }
-        .emergency-btn{
-            width:100%;
+        .relax-overlay{
+            padding:1rem 1rem 1.6rem;
+        }
+        .relax-toggle{
+            width:82px;
+            height:82px;
+        }
+        .relax-toggle i{
+            font-size:1.95rem;
+        }
+        .relax-meta h3{
+            font-size:1.35rem;
+        }
+        .relax-progress{
+            left:1rem;
+            right:1rem;
+            bottom:1rem;
+        }
+        .relax-topbar{
+            flex-direction:column;
+        }
+        .relax-status{
+            align-self:flex-start;
+        }
+        .trend-feature-card,
+        .trend-hashtag-card{
+            border-radius:22px;
+        }
+        .trend-rank-item{
+            grid-template-columns:46px 1fr;
+            padding:.95rem;
+        }
+        .trend-rank-number{
+            width:46px;
+            height:46px;
+            border-radius:14px;
+            font-size:1rem;
         }
     }
 </style>
@@ -902,125 +1480,178 @@
         </div>
     </section>
 
-    {{-- TRUST / SECURITY --}}
-    <section class="trust-section">
-        <div class="trust-wave wave1 d-none d-lg-block"></div>
-        <div class="trust-wave wave2 d-none d-lg-block"></div>
+    @php
+        $pageContent = $pageContent ?? [];
+        $articleCards = collect(data_get($pageContent, 'articles', []))->take(3);
+        $trendingTopics = collect(data_get($pageContent, 'trending_topics', []))->take(3);
+        $weeklyHashtags = collect(data_get($pageContent, 'weekly_hashtags', []))->take(8);
+        $resolveMediaUrl = function ($path) {
+            if (blank($path)) {
+                return null;
+            }
 
+            if (\Illuminate\Support\Str::startsWith($path, ['http://', 'https://', '//'])) {
+                return $path;
+            }
+
+            if (\Illuminate\Support\Str::startsWith($path, 'about/')) {
+                return \Illuminate\Support\Facades\Storage::url($path);
+            }
+
+            return asset(ltrim($path, '/'));
+        };
+    @endphp
+
+    <section class="section-block pt-0">
         <div class="container">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-5 text-center">
-                    <div class="trust-radar">
-                        <div class="trust-ring r1"></div>
-                        <div class="trust-ring r2"></div>
-                        <div class="trust-ring r3"></div>
-                        <div class="trust-center"><i class="bi bi-shield-check"></i></div>
+            <div class="text-center mb-5">
+                <h2 class="section-title">{{ data_get($pageContent, 'video_title') }}</h2>
+                <p class="section-desc">
+                    {{ data_get($pageContent, 'video_description') }}
+                </p>
+            </div>
+
+            <div class="relax-player" data-relax-player data-duration="300" data-speed="1" data-scene="dawn">
+                <div class="relax-player-shell">
+                    <div class="relax-scene" aria-hidden="true">
+                        <div class="relax-scene-frame frame-dawn is-active" data-scene-frame="dawn"></div>
+                        <div class="relax-scene-frame frame-noon" data-scene-frame="noon"></div>
+                        <div class="relax-scene-frame frame-night" data-scene-frame="night"></div>
+                        <div class="relax-stars"></div>
+                        <div class="relax-orb"></div>
+                        <div class="relax-cloud c1"></div>
+                        <div class="relax-cloud c2"></div>
+                        <div class="relax-bird b1"></div>
+                        <div class="relax-bird b2"></div>
+                        <div class="relax-mountain left"></div>
+                        <div class="relax-mountain right"></div>
+                        <div class="relax-waterline"></div>
+                        <div class="relax-reflection"></div>
+                        <div class="relax-ripple"></div>
+                        <div class="relax-firefly f1"></div>
+                        <div class="relax-firefly f2"></div>
+                        <div class="relax-firefly f3"></div>
                     </div>
-                </div>
 
-                <div class="col-lg-7">
-                    <h2 class="trust-title">
-                        Tempat <span class="accent">Perlindungan</span><br>
-                        <span class="accent">Digital</span> Anda.
-                    </h2>
-
-                    <p class="trust-desc">
-                        Keamanan data bukan sekadar fitur, melainkan janji. Di DelCare,
-                        setiap kata yang Anda bagikan disimpan dengan pendekatan privasi yang serius
-                        agar Anda dapat bercerita dengan lebih tenang.
-                    </p>
-
-                    <div class="row g-3 mt-2">
-                        <div class="col-md-6">
-                            <div class="trust-card">
-                                <h5><i class="bi bi-lock me-2"></i>Perlindungan Data</h5>
-                                <p>
-                                    Data dan komunikasi dilindungi untuk menjaga privasi sesi konseling
-                                    dan catatan personal pengguna.
-                                </p>
-                            </div>
+                    <div class="relax-overlay">
+                        <div class="relax-topbar">
+                            <span class="relax-pill">{{ data_get($pageContent, 'video_badge') }}</span>
+                            <span class="relax-status" data-relax-status>
+                                <i class="bi bi-volume-mute-fill"></i>
+                                <span>Ambient off</span>
+                            </span>
                         </div>
 
-                        <div class="col-md-6">
-                            <div class="trust-card">
-                                <h5><i class="bi bi-folder-check me-2"></i>Kontrol Riwayat</h5>
-                                <p>
-                                    Riwayat pendampingan disusun secara terbatas dan terkontrol
-                                    agar akses tetap aman dan relevan.
-                                </p>
-                            </div>
+                        <div class="relax-center">
+                            <button type="button" class="relax-toggle" data-relax-toggle aria-label="Putar visual relaksasi">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
                         </div>
 
-                        <div class="col-12">
-                            <div class="trust-card">
-                                <h5><i class="bi bi-check-circle me-2"></i>Alur yang Aman</h5>
-                                <p>
-                                    Setiap alur dirancang untuk mendukung kenyamanan emosional pengguna,
-                                    mulai dari akses layanan hingga pengelolaan data.
-                                </p>
+                        <div class="relax-footer">
+                            <div class="relax-meta">
+                                <div>
+                                    <div class="relax-kicker">Visual Relaksasi</div>
+                                    <h3>{{ data_get($pageContent, 'video_caption') }}</h3>
+                                </div>
+                                <span class="relax-time" data-relax-time>00:00 / {{ data_get($pageContent, 'video_duration') }}</span>
+                            </div>
+                            <div class="relax-sound-note">
+                                Putar untuk menikmati visual yang berganti suasana secara halus dengan ambient ringan yang dibuat langsung di browser.
                             </div>
                         </div>
+                    </div>
+
+                    <div class="relax-progress">
+                        <span data-relax-progress></span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    {{-- FLOW --}}
-    <section class="section-block">
+    <section class="section-block pt-0">
         <div class="container">
-            <div class="text-center mb-5">
-                <div class="flow-eyebrow">Alur Layanan</div>
-                <h2 class="section-title">Alur Pendampingan Terintegrasi</h2>
+            <div class="article-section-head">
+                <h2 class="article-title">{{ data_get($pageContent, 'article_section_title') }}</h2>
+                <p class="article-desc">
+                    {{ data_get($pageContent, 'article_section_description') }}
+                </p>
             </div>
 
             <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="flow-card">
-                        <div class="flow-icon green">
-                            <i class="bi bi-person"></i>
-                            <div class="flow-step green">1</div>
-                        </div>
-                        <div class="flow-body">
-                            <h4>Mahasiswa</h4>
-                            <p>
-                                Mulai perjalanan dengan mood tracker, refleksi mandiri,
-                                dan pengajuan sesi sesuai kebutuhan.
-                            </p>
-                        </div>
+                @foreach($articleCards as $article)
+                    @php $articleImage = $resolveMediaUrl(data_get($article, 'image')); @endphp
+                    <div class="col-md-6 col-lg-4">
+                        <article class="article-card">
+                            <div class="article-media">
+                                @if($articleImage)
+                                    <img src="{{ $articleImage }}" alt="{{ data_get($article, 'title') }}">
+                                @endif
+                            </div>
+                            <div class="article-body">
+                                <div class="article-meta">
+                                    <span>{{ data_get($article, 'category') }}</span>
+                                    <span>{{ data_get($article, 'read_time') }}</span>
+                                </div>
+                                <h3>{{ data_get($article, 'title') }}</h3>
+                                <p>{{ data_get($article, 'excerpt') }}</p>
+                            </div>
+                        </article>
                     </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    <section class="section-block pt-0">
+        <div class="container">
+            <div class="trend-header">
+                <div>
+                    <h2 class="trend-title">{{ data_get($pageContent, 'trending_section_title') }}</h2>
+                    <p class="trend-desc">
+                        {{ data_get($pageContent, 'trending_section_description') }}
+                    </p>
+                </div>
+                <div class="trend-live">Live Dashboard</div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <article class="trend-feature-card">
+                        <span class="trend-badge">Top 3 Pekan Ini</span>
+                        <h3>Topik yang paling sering dibahas mahasiswa akhir-akhir ini</h3>
+                        <p class="trend-summary">
+                            {{ data_get($pageContent, 'trending_summary') }}
+                        </p>
+
+                        <div class="trend-rank-list">
+                            @foreach($trendingTopics as $topic)
+                                <div class="trend-rank-item">
+                                    <div class="trend-rank-number">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</div>
+                                    <div>
+                                        <h4>{{ data_get($topic, 'title') }}</h4>
+                                        <p>{{ data_get($topic, 'insight') }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </article>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="flow-card">
-                        <div class="flow-icon gold">
-                            <i class="bi bi-briefcase"></i>
-                            <div class="flow-step gold">2</div>
-                        </div>
-                        <div class="flow-body">
-                            <h4>Sistem &amp; Konselor</h4>
-                            <p>
-                                Sistem membantu membaca tren emosional agar konselor
-                                dapat memberikan respons yang lebih tepat sasaran.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                <div class="col-lg-4">
+                    <aside class="trend-hashtag-card">
+                        <h3>Hashtag Populer Minggu Ini</h3>
+                        <p>
+                            Konselor dapat memperbarui daftar ini dari panel admin untuk mengikuti isu yang sedang ramai dibicarakan mahasiswa.
+                        </p>
 
-                <div class="col-md-4">
-                    <div class="flow-card">
-                        <div class="flow-icon teal">
-                            <i class="bi bi-bank"></i>
-                            <div class="flow-step teal">3</div>
+                        <div class="trend-chip-wrap">
+                            @foreach($weeklyHashtags as $hashtag)
+                                <span class="trend-chip">{{ $hashtag }}</span>
+                            @endforeach
                         </div>
-                        <div class="flow-body">
-                            <h4>Dukungan Kampus</h4>
-                            <p>
-                                Kolaborasi aktif dengan pihak kampus untuk menciptakan
-                                lingkungan akademik yang lebih suportif.
-                            </p>
-                        </div>
-                    </div>
+                    </aside>
                 </div>
             </div>
         </div>
@@ -1043,3 +1674,223 @@
     </section>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const player = document.querySelector('[data-relax-player]');
+
+        if (!player) {
+            return;
+        }
+
+        const toggle = player.querySelector('[data-relax-toggle]');
+        const icon = toggle?.querySelector('i');
+        const timeLabel = player.querySelector('[data-relax-time]');
+        const progressBar = player.querySelector('[data-relax-progress]');
+        const status = player.querySelector('[data-relax-status]');
+        const sceneFrames = Array.from(player.querySelectorAll('[data-scene-frame]'));
+        const totalDuration = Number(player.dataset.duration || 300);
+        const speed = Number(player.dataset.speed || 1);
+        const scenes = ['dawn', 'noon', 'night'];
+        let elapsed = 0;
+        let timer = null;
+        let sceneTimer = null;
+        let currentSceneIndex = 0;
+        let audioEngine = null;
+
+        const updateStatus = (isPlaying) => {
+            if (!status) {
+                return;
+            }
+
+            const iconNode = status.querySelector('i');
+            const textNode = status.querySelector('span');
+
+            if (iconNode) {
+                iconNode.className = isPlaying ? 'bi bi-volume-up-fill' : 'bi bi-volume-mute-fill';
+            }
+
+            if (textNode) {
+                textNode.textContent = isPlaying ? 'Ambient on' : 'Ambient off';
+            }
+        };
+
+        const setScene = (sceneName) => {
+            player.dataset.scene = sceneName;
+            sceneFrames.forEach((frame) => {
+                frame.classList.toggle('is-active', frame.dataset.sceneFrame === sceneName);
+            });
+        };
+
+        const advanceScene = () => {
+            currentSceneIndex = (currentSceneIndex + 1) % scenes.length;
+            setScene(scenes[currentSceneIndex]);
+        };
+
+        const formatTime = (value) => {
+            const safeValue = Math.max(0, Math.floor(value));
+            const minutes = String(Math.floor(safeValue / 60)).padStart(2, '0');
+            const seconds = String(safeValue % 60).padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const render = () => {
+            const progress = Math.min((elapsed / totalDuration) * 100, 100);
+
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+
+            if (timeLabel) {
+                timeLabel.textContent = `${formatTime(elapsed)} / ${formatTime(totalDuration)}`;
+            }
+        };
+
+        const createAmbientAudio = () => {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+
+            if (!AudioContextClass) {
+                return null;
+            }
+
+            const context = new AudioContextClass();
+            const masterGain = context.createGain();
+            masterGain.gain.value = 0.045;
+            masterGain.connect(context.destination);
+
+            const padOscillator = context.createOscillator();
+            const padGain = context.createGain();
+            padOscillator.type = 'sine';
+            padOscillator.frequency.value = 196;
+            padGain.gain.value = 0.018;
+            padOscillator.connect(padGain);
+            padGain.connect(masterGain);
+
+            const shimmerOscillator = context.createOscillator();
+            const shimmerGain = context.createGain();
+            shimmerOscillator.type = 'triangle';
+            shimmerOscillator.frequency.value = 294;
+            shimmerGain.gain.value = 0.008;
+            shimmerOscillator.connect(shimmerGain);
+            shimmerGain.connect(masterGain);
+
+            const lfo = context.createOscillator();
+            const lfoGain = context.createGain();
+            lfo.type = 'sine';
+            lfo.frequency.value = 0.08;
+            lfoGain.gain.value = 0.01;
+            lfo.connect(lfoGain);
+            lfoGain.connect(padGain.gain);
+
+            const noiseBuffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
+            const noiseData = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < noiseData.length; i += 1) {
+                noiseData[i] = (Math.random() * 2 - 1) * 0.22;
+            }
+
+            const noiseSource = context.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            noiseSource.loop = true;
+
+            const noiseFilter = context.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.value = 480;
+
+            const noiseGain = context.createGain();
+            noiseGain.gain.value = 0.012;
+
+            noiseSource.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(masterGain);
+
+            padOscillator.start();
+            shimmerOscillator.start();
+            lfo.start();
+            noiseSource.start();
+
+            return { context };
+        };
+
+        const startAudio = async () => {
+            try {
+                if (!audioEngine) {
+                    audioEngine = createAmbientAudio();
+                }
+
+                if (audioEngine?.context?.state === 'suspended') {
+                    await audioEngine.context.resume();
+                }
+            } catch (error) {
+                audioEngine = null;
+            }
+        };
+
+        const stopAudio = async () => {
+            try {
+                if (audioEngine?.context?.state === 'running') {
+                    await audioEngine.context.suspend();
+                }
+            } catch (error) {
+                // Keep player functional even when audio state changes fail.
+            }
+        };
+
+        const stopPlayback = async () => {
+            window.clearInterval(timer);
+            window.clearInterval(sceneTimer);
+            timer = null;
+            sceneTimer = null;
+            player.classList.remove('is-playing');
+
+            if (icon) {
+                icon.className = 'bi bi-play-fill';
+            }
+
+            updateStatus(false);
+            await stopAudio();
+        };
+
+        const startPlayback = async () => {
+            if (elapsed >= totalDuration) {
+                elapsed = 0;
+            }
+
+            player.classList.add('is-playing');
+
+            if (icon) {
+                icon.className = 'bi bi-pause-fill';
+            }
+
+            updateStatus(true);
+            await startAudio();
+
+            timer = window.setInterval(() => {
+                elapsed = Math.min(elapsed + speed, totalDuration);
+                render();
+
+                if (elapsed >= totalDuration) {
+                    stopPlayback();
+                }
+            }, 1000);
+
+            sceneTimer = window.setInterval(() => {
+                advanceScene();
+            }, 8000);
+        };
+
+        toggle?.addEventListener('click', () => {
+            if (timer) {
+                stopPlayback();
+                return;
+            }
+
+            startPlayback();
+        });
+
+        setScene(scenes[currentSceneIndex]);
+        updateStatus(false);
+        render();
+    });
+</script>
+@endpush

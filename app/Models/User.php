@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use NotificationChannels\WebPush\HasPushSubscriptions;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -25,12 +26,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function mahasiswa()
+    public function mahasiswa(): HasOne
     {
         return $this->hasOne(Mahasiswa::class);
     }
 
-    public function konselor()
+    public function konselor(): HasOne
     {
         return $this->hasOne(Konselor::class);
     }
@@ -51,6 +52,11 @@ class User extends Authenticatable
     public function profil()
     {
         return $this->hasOne(Profil::class);
+    }
+
+    public function chats(): HasMany
+    {
+        return $this->hasMany(Chat::class, 'pengirim_id');
     }
 
     public function isAnonim(): bool

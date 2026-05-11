@@ -7,6 +7,9 @@ use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\RiwayatController;
+use App\Http\Controllers\ChatMahasiswaController;
+use App\Http\Controllers\ChatAdminController;
 use App\Http\Controllers\KampusApiController;
 use App\Http\Controllers\CounselorController;
 use App\Http\Controllers\EducationController;
@@ -24,9 +27,7 @@ Route::get('/', function () {
     return view('Pages.beranda');
 })->name('beranda');
 
-Route::get('/tentang', function () {    
-    return view('Pages.tentang');
-})->name('tentang');
+Route::get('/tentang', [AboutPageController::class, 'show'])->name('tentang');
 
 // halaman konseling
 Route::get('/konseling', [JadwalController::class, 'create'])->name('konseling');
@@ -53,8 +54,18 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
 
+    // Riwayat - Mahasiswa dapat melihat riwayat sesi konseling mereka
     Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
+    Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('riwayat.detail');
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
+
+    // Chat - Mahasiswa dapat melakukan chat dengan konselor
+    Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->name('chat.student');
+    Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->name('chat.student.store');
+    Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
+    Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
+    Route::get('/chat/pesan', [ChatMahasiswaController::class, 'messages'])->name('mahasiswa.chat.messages');
+    Route::post('/chat/pesan', [ChatMahasiswaController::class, 'store'])->name('mahasiswa.chat.store');
 
     // flow penjadwalan
     Route::get('/detail-penjadwalan', [JadwalController::class, 'detail'])->name('jadwal.detail');
@@ -70,7 +81,7 @@ Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'role:konselor'])
     ->group(function () {
-        Route::get('/', fn () => redirect()->route('admin.dashboard'));
+        Route::get('/', fn() => redirect()->route('admin.dashboard'));
         Route::get('/dashboard', [CounselorController::class, 'index'])->name('dashboard');
         Route::get('/notifikasi', [AdminController::class, 'notifications'])->name('notifikasi.list');
         Route::post('/notifikasi/baca', [AdminController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
@@ -79,13 +90,21 @@ Route::prefix('admin')
         Route::post('/jadwal/{id}/setujui', [AdminController::class, 'setujui'])->name('jadwal.setujui');
         Route::post('/jadwal/{id}/tolak', [AdminController::class, 'tolak'])->name('jadwal.tolak');
 
-        Route::get('/chat', [AdminController::class, 'chat'])->name('chat');
+        Route::get('/chat', [ChatAdminController::class, 'index'])->name('chat');
+        Route::post('/chat/mulai', [ChatAdminController::class, 'start'])->name('chat.start');
+        Route::get('/chat/pesan', [ChatAdminController::class, 'messages'])->name('chat.messages');
+        Route::post('/chat/pesan', [ChatAdminController::class, 'store'])->name('chat.store');
 
-        Route::get('/sesi', [AdminController::class, 'sesi'])->name('sesi');
-        Route::get('/sesi/{id}', [AdminController::class, 'detailSesi'])->name('sesi.detail');
-        Route::post('/sesi/{id}/terima', [AdminController::class, 'terimaSesi'])->name('sesi.terima');
-        Route::get('/sesi/{id}/tolak', [AdminController::class, 'tolakSesi'])->name('sesi.tolak');
-        Route::post('/sesi/{id}/tolak', [AdminController::class, 'kirimTolakSesi'])->name('sesi.tolak.kirim');
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+        Route::get('/chat/{sessionId}', [ChatController::class, 'session'])->name('chat.session');
+        Route::post('/chat/{sessionId}', [ChatController::class, 'store'])->name('chat.store');
+
+        Route::get('/sesi', [SesiKonselingController::class, 'index'])->name('sesi');
+        Route::get('/sesi/{id}', [SesiKonselingController::class, 'detail'])->name('sesi.detail');
+        Route::post('/sesi/{id}/terima', [SesiKonselingController::class, 'terima'])->name('sesi.terima');
+        Route::get('/sesi/{id}/tolak', [SesiKonselingController::class, 'tolak'])->name('sesi.tolak');
+        Route::post('/sesi/{id}/tolak', [SesiKonselingController::class, 'kirimTolak'])->name('sesi.tolak.kirim');
+        Route::post('/sesi/{id}/selesai', [SesiKonselingController::class, 'selesai'])->name('sesi.selesai');
 
         Route::get('/laporan', [LaporanController::class, 'laporanAdmin'])->name('laporan');
         Route::get('/laporan/{id}/laporan', [LaporanController::class, 'createLaporan'])->name('laporan.laporan');
@@ -93,7 +112,7 @@ Route::prefix('admin')
 
         Route::get('/mahasiswa', [AdminController::class, 'mahasiswa'])->name('mahasiswa');
         Route::get('/jadwal/events', [AdminController::class, 'jadwalEvents'])->name('jadwal.events');
-
+        Route::get('/jadwal/data', [CounselorController::class, 'getJadwalData'])->name('jadwal.data');
 
         Route::get('/kampus-api/mahasiswa', [KampusApiController::class, 'mahasiswa']);
         Route::get('/kampus-api/mahasiswa/{nim}', [KampusApiController::class, 'mahasiswaByNim']);
@@ -105,12 +124,12 @@ Route::get('/test-mongodb', function () {
         $client = new MongoDB\Client(env('MONGODB_URI'));
         $database = $client->{env('MONGODB_DATABASE', 'monitoring')};
         $collections = $database->listCollections();
-        
+
         $collectionList = [];
         foreach ($collections as $collection) {
             $collectionList[] = $collection->getName();
         }
-        
+
         return response()->json([
             'status' => 'success',
             'message' => 'Connected to MongoDB successfully',
@@ -135,6 +154,7 @@ Route::get('/konselor/prioritas', [CounselorController::class, 'prioritas'])->na
 Route::get('/konselor/semua-mahasiswa', [CounselorController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
 Route::post('/konselor/update-status/{nim}', [CounselorController::class, 'updateStatus'])->name('counselor.update-status');
 Route::get('/konselor/chart-data', [CounselorController::class, 'getChartData'])->name('counselor.chart-data');
+Route::get('/konselor/jadwal-data', [CounselorController::class, 'getJadwalData'])->name('counselor.jadwal-data');
 Route::get('/konselor/top-students', [CounselorController::class, 'getStudentPreview'])->name('counselor.top-students');
 Route::get('/konselor/notifications', [CounselorController::class, 'getUrgentNotifications'])->name('counselor.notifications');
 Route::post('/konselor/notifications/{nim}/read', [CounselorController::class, 'markUrgentRead'])->name('counselor.notifications.read');
@@ -146,7 +166,11 @@ Route::post('/konselor/summary', [CounselorController::class, 'getSummary'])->na
 // --- FITUR EDUKASI ---
 Route::prefix('konselor/edukasi')->name('counselor.education.')->group(function () {
     Route::get('/', [EducationController::class, 'index'])->name('index');
-    
+
+    // About page content
+    Route::get('/about-page', [AboutPageController::class, 'edit'])->name('about-page.edit');
+    Route::put('/about-page', [AboutPageController::class, 'update'])->name('about-page.update');
+
     // Modules
     Route::get('/modules', [EducationController::class, 'moduleIndex'])->name('modules.index');
     Route::get('/modules/create', [EducationController::class, 'moduleCreate'])->name('modules.create');
@@ -167,14 +191,14 @@ Route::prefix('konselor/edukasi')->name('counselor.education.')->group(function 
 // --- DEBUG ROUTE UNTUK PENGETESAN (HAPUS SETELAH DIGUNAKAN) ---
 Route::get('/debug/seed-if001', function () {
     $nim = 'IF-001';
-    
+
     // 1. Buat/Update Mahasiswa
     \App\Models\Student::updateOrCreate(['nim' => $nim], [
         'name' => 'Mahasiswa Test Predictive',
         'gender' => 'Laki-laki',
         'prodi' => 'IF',
         'password' => \Illuminate\Support\Facades\Hash::make('password'),
-        'mental_level' => null, 
+        'mental_level' => null,
     ]);
 
     // 2. Buat Check-in Negatif SEBANYAK 14 HARI (Untuk memicu Predictive Level 3)

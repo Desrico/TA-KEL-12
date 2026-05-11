@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SesiKonseling extends Model
 {
@@ -14,18 +16,21 @@ class SesiKonseling extends Model
     protected $fillable = [
         'jadwal_id',
         'status',
-        'catatan_sesi',
-        'waktu_mulai',
-        'waktu_selesai',
+        'catatan',
     ];
 
-    protected $casts = [
-        'waktu_mulai' => 'datetime',
-        'waktu_selesai' => 'datetime',
-    ];
-
-    public function jadwal()
+    public function jadwalKonseling(): BelongsTo
     {
         return $this->belongsTo(JadwalKonseling::class, 'jadwal_id');
+    }
+
+    public function jadwal(): BelongsTo
+    {
+        return $this->jadwalKonseling();
+    }
+
+    public function chatMessages(): HasMany
+    {
+        return $this->hasMany(Chat::class, 'sesi_id');
     }
 }

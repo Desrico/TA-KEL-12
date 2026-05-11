@@ -174,6 +174,45 @@
         .f-wrap { padding: 0 12px 60px; }
     }
 </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        .pc-container {
+            background: var(--admin-bg) !important;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; width: 100%; padding: 32px; }
+
+        .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .form-title { font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-bottom: 40px; text-align: center; }
+
+        .form-group { margin-bottom: 24px; }
+        .label { display: block; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 12px; }
+        
+        input[type="text"], input[type="number"], textarea, select {
+            width: 100%; background: #fcfcfc; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 16px 20px; color: #1e293b; font-family: inherit; font-size: 1.05rem; outline: none; transition: all 0.2s;
+        }
+        input:focus, textarea:focus, select:focus { border-color: #059669; background: #fff; box-shadow: 0 0 0 4px #d1fae5; }
+
+        textarea { min-height: 140px; resize: vertical; }
+
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 14px 28px; border-radius: 10px;
+            background: #059669; color: white;
+            font-weight: 800; font-size: 1.15rem; text-decoration: none;
+            transition: all 0.2s; border: none; cursor: pointer; width: 100%;
+            margin-top: 20px;
+        }
+        .btn-primary:hover { background: #047857; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); color: white;}
+
+        .error-msg { color: #dc2626; font-size: 0.9rem; margin-top: 8px; font-weight: 600; }
+        
+        .btn-back-link { display: inline-flex; align-items: center; gap: 6px; color: #475569; text-decoration: none; font-size: 0.95rem; font-weight: 600; transition: color 0.2s; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px;}
+        .btn-back-link:hover { background: #ffffff; color: #059669; }
+    </style>
 @endpush
 
 @section('konten')

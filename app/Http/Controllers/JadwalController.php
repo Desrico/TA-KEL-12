@@ -62,13 +62,31 @@ class JadwalController extends Controller
         ]);
     }
 
-    private function validateSchedulingPayload(Request $request): array
+    private function validateSchedulingPayload(Request $request, bool $requireConfirmation = false): array
     {
-        return $request->validate([
+        $rules = [
             'tanggal' => 'required|date|after_or_equal:today',
             'waktu'   => 'required|date_format:H:i',
             'jenis'   => 'required|in:online,offline',
             'topik'   => 'required|string|min:3|max:255',
+        ];
+
+        if ($requireConfirmation) {
+            $rules['konfirmasi'] = 'accepted';
+        }
+
+        return $request->validate($rules, [
+            'tanggal.required'         => 'Tanggal konseling wajib diisi.',
+            'tanggal.date'             => 'Format tanggal konseling tidak valid.',
+            'tanggal.after_or_equal'   => 'Tanggal konseling tidak boleh sebelum hari ini.',
+            'waktu.required'           => 'Waktu konseling wajib dipilih.',
+            'waktu.date_format'        => 'Format waktu konseling tidak valid.',
+            'jenis.required'           => 'Jenis layanan konseling wajib dipilih.',
+            'jenis.in'                 => 'Jenis layanan konseling tidak valid.',
+            'topik.required'           => 'Topik konseling wajib diisi.',
+            'topik.min'                => 'Topik konseling minimal 3 karakter.',
+            'topik.max'                => 'Topik konseling maksimal 255 karakter.',
+            'konfirmasi.accepted'      => 'Centang pernyataan konfirmasi sebelum menjadwalkan konseling.',
         ]);
     }
 
@@ -141,7 +159,7 @@ class JadwalController extends Controller
             ], 401);
         }
 
-        $validated = $this->validateSchedulingPayload($request);
+        $validated = $this->validateSchedulingPayload($request, true);
 
         $user      = Auth::user();
         $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
@@ -190,8 +208,9 @@ class JadwalController extends Controller
                 'waktu'        => $normalizedWaktu,
                 'status'       => 'menunggu',
                 'jenis'        => $validated['jenis'],
+                'topik'        => $validated['topik'],
                 'anonim'       => $isAnonim,
-                'catatan'      => ($isAnonim ? '[ANONIM] ' : '') . 'Topik: ' . $validated['topik'] . ' | Jenis: ' . $validated['jenis'],
+                'catatan'      => null,
             ]);
 
             Notifikasi::create([
