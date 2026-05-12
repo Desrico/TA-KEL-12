@@ -1,20 +1,12 @@
 @extends('layouts.admin')
 
 @php
-    $jadwal = $activeJadwal;
-    $mahasiswa = optional($jadwal)->mahasiswa;
-    $studentUser = optional($mahasiswa)->user;
-    $topik = null;
-    $isBlockedBySchedule = $isBlockedBySchedule ?? false;
-    $chatAccessGranted = $chatAccessGranted ?? false;
-
-    if (!empty($jadwal?->catatan) && preg_match('/Topik:\s*([^|]+)/i', $jadwal->catatan, $match)) {
-        $topik = trim($match[1]);
-    }
-
+    $groupList = $groupList ?? collect();
+    $activeRoom = $activeRoom ?? null;
+    $chatPayload = $chatPayload ?? null;
 @endphp
 
-@section('page-title', 'Chat Konseling')
+@section('page-title', 'Grup Chat')
 
 @push('styles')
 <style>
@@ -197,21 +189,8 @@
     text-transform: uppercase;
     letter-spacing: .04em;
     white-space: nowrap;
-  }
-
-  .admin-chat-session-status.disetujui {
     background: #e8fff1;
     color: #047857;
-  }
-
-  .admin-chat-session-status.berlangsung {
-    background: #def7ec;
-    color: #065f46;
-  }
-
-  .admin-chat-session-status.terjadwal {
-    background: #eff6ff;
-    color: #1d4ed8;
   }
 
   .admin-chat-card {
@@ -259,6 +238,19 @@
     line-height: 1.8;
   }
 
+  /* Panel anggota dibuat dropdown agar ruang chat tidak menyusut ke samping. */
+  .admin-chat-stage {
+    position: relative;
+    min-height: 760px;
+  }
+
+  .admin-chat-main {
+    min-width: 0;
+    min-height: 760px;
+    display: flex;
+    flex-direction: column;
+  }
+
   .admin-chat-head {
     display: flex;
     align-items: center;
@@ -268,6 +260,8 @@
     border-bottom: 1px solid #edf7f1;
     background: rgba(255,255,255,.88);
     backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 6;
   }
 
   .admin-chat-person {
@@ -281,17 +275,13 @@
     width: 56px;
     height: 56px;
     border-radius: 18px;
-    overflow: hidden;
-    background: #dff3e8;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #065f46, #10b981);
+    color: #fff;
+    font-size: 1.35rem;
     flex-shrink: 0;
     box-shadow: 0 10px 25px rgba(6, 95, 70, .12);
-  }
-
-  .admin-chat-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
   }
 
   .admin-chat-title {
@@ -305,58 +295,61 @@
     margin: 0;
     color: #64748b;
     font-size: .84rem;
-    line-height: 1.5;
-  }
-
-  .admin-chat-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    padding: .65rem .95rem;
-    border-radius: 999px;
-    background: #e8fff1;
-    color: #047857;
-    font-size: .78rem;
-    font-weight: 800;
-  }
-
-  .admin-chat-badge::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #10b981;
-    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.13);
+    line-height: 1.6;
   }
 
   .admin-chat-head-actions {
     display: flex;
     align-items: center;
     gap: .75rem;
-    flex-wrap: wrap;
     justify-content: flex-end;
+    position: relative;
+    min-width: 0;
   }
 
-  .admin-chat-video-btn {
+  .admin-chat-toggle {
     display: inline-flex;
     align-items: center;
-    gap: .5rem;
-    padding: .72rem 1rem;
-    border-radius: 999px;
+    justify-content: center;
+    gap: .22rem;
+    width: 52px;
+    height: 44px;
     border: 1px solid #d8eee2;
+    border-radius: 14px;
+    padding: 0;
     background: #fff;
     color: #065f46;
-    text-decoration: none;
-    font-size: .84rem;
+    font-size: 1.16rem;
     font-weight: 800;
-    box-shadow: 0 10px 20px rgba(6, 95, 70, .06);
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
   }
 
-  .admin-chat-video-btn:hover {
-    color: #047857;
+  .admin-chat-toggle:hover {
+    transform: translateY(-1px);
     background: #f8fffb;
+    box-shadow: 0 12px 22px rgba(6, 78, 59, .08);
   }
 
+  .admin-chat-toggle-chevron {
+    font-size: .78rem;
+    transition: transform .18s ease;
+  }
+
+  .admin-chat-stage.is-profile-open .admin-chat-toggle-chevron {
+    transform: rotate(180deg);
+  }
+
+  .admin-chat-toggle-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .admin-chat-thread {
     flex: 1;
     overflow-y: auto;
@@ -643,11 +636,6 @@
     padding: .6rem .3rem;
   }
 
-  .admin-chat-input:disabled {
-    color: #94a3b8;
-    cursor: not-allowed;
-  }
-
   .admin-chat-send {
     width: 54px;
     height: 54px;
@@ -672,69 +660,134 @@
     padding: 0 .25rem;
   }
 
-  .admin-chat-gate {
-    min-height: 540px;
-    display: grid;
-    place-items: center;
-    padding: 2.2rem;
-  }
-
-  .admin-chat-gate-card {
-    width: min(100%, 620px);
-    border-radius: 28px;
-    padding: 2rem 1.7rem;
-    background:
-      radial-gradient(circle at top right, rgba(16, 185, 129, 0.2), transparent 30%),
-      linear-gradient(180deg, #f7fff9, #ffffff);
+  /* Dropdown anggota berada di bawah ikon header dan tidak ikut mengambil kolom chat. */
+  .admin-chat-profile {
+    position: absolute;
+    top: calc(100% + .65rem);
+    right: 0;
+    width: 320px;
+    max-width: calc(100vw - 2rem);
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px);
+    overflow: hidden;
     border: 1px solid #dceee4;
-    box-shadow: 0 22px 60px rgba(6, 78, 59, .08);
-    text-align: center;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fbfffd, #f7fcf9);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, .12);
+    transition: max-height .24s ease, opacity .18s ease, transform .18s ease;
+    z-index: 30;
   }
 
-  .admin-chat-gate-icon {
-    width: 84px;
-    height: 84px;
-    margin: 0 auto 1rem;
-    border-radius: 28px;
+  .admin-chat-stage.is-profile-open .admin-chat-profile {
+    max-height: min(540px, 70vh);
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .admin-chat-profile-head {
+    padding: 1rem 1.1rem .85rem;
+    border-bottom: 1px solid #edf7f1;
+    background:
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 28%),
+      linear-gradient(180deg, #f6fff9, #ffffff);
+  }
+
+  .admin-chat-profile-head h3 {
+    margin: 0 0 .28rem;
+    font-size: .98rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .admin-chat-profile-head p {
+    margin: 0;
+    color: #4b7a68;
+    font-size: .84rem;
+    line-height: 1.6;
+  }
+
+  .admin-chat-profile-body {
+    padding: .95rem 1.1rem 1.05rem;
+    overflow-y: auto;
+    max-height: min(430px, 58vh);
+  }
+
+  .admin-member-search {
+    position: relative;
+    margin-bottom: .9rem;
+  }
+
+  .admin-member-search i {
+    position: absolute;
+    left: .82rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: .95rem;
+    pointer-events: none;
+  }
+
+  .admin-member-search input {
+    width: 100%;
+    border: 1px solid #dbece3;
+    border-radius: 13px;
+    padding: .68rem .85rem .68rem 2.35rem;
+    background: #fff;
+    color: #0f172a;
+    font-size: .84rem;
+    outline: none;
+  }
+
+  .admin-member-search input:focus {
+    border-color: #8fd1b0;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, .08);
+  }
+
+  .admin-member-list {
     display: grid;
-    place-items: center;
-    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-    color: #047857;
-    font-size: 2rem;
-    box-shadow: 0 18px 36px rgba(16,185,129,.16);
+    gap: .58rem;
   }
 
-  .admin-chat-gate-card h3 {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #064e3b;
-    margin-bottom: .55rem;
-  }
-
-  .admin-chat-gate-card p {
-    margin: 0 auto 1.15rem;
-    max-width: 460px;
-    color: #64748b;
-    line-height: 1.8;
-  }
-
-  .admin-chat-start {
-    display: inline-flex;
+  /* Item anggota menampilkan foto kecil dan nama tanpa metadata tambahan. */
+  .admin-member-item {
+    display: flex;
     align-items: center;
-    gap: .55rem;
-    border: none;
-    border-radius: 16px;
-    padding: .92rem 1.25rem;
-    color: #fff;
-    font-weight: 800;
-    background: linear-gradient(135deg, #065f46, #10b981);
-    box-shadow: 0 16px 32px rgba(6,95,70,.2);
+    gap: .72rem;
+    padding: .3rem 0;
   }
 
-  .admin-chat-start:disabled {
-    opacity: .55;
-    cursor: not-allowed;
-    box-shadow: none;
+  .admin-member-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #e8fff1;
+  }
+
+  .admin-member-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .admin-member-name {
+    font-size: .92rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.35;
+  }
+
+  .admin-member-empty {
+    display: none;
+    padding: .25rem 0;
+    color: #64748b;
+    font-size: .84rem;
+    line-height: 1.6;
   }
 
   @media (max-width: 1199.98px) {
@@ -754,6 +807,10 @@
       min-height: 680px;
     }
 
+    .admin-chat-main {
+      min-height: 680px;
+    }
+
     .admin-chat-head {
       flex-direction: column;
       align-items: flex-start;
@@ -762,6 +819,13 @@
     .admin-chat-head-actions {
       width: 100%;
       justify-content: flex-start;
+    }
+
+    .admin-chat-profile {
+      left: 0;
+      right: auto;
+      width: 100%;
+      max-width: 100%;
     }
 
     .admin-message-content {
@@ -776,11 +840,11 @@
   <aside class="admin-chat-list">
     <div class="admin-chat-list-head">
       <div class="admin-chat-tabs">
-        <a href="{{ route('admin.chat') }}" class="admin-chat-tab active">
+        <a href="{{ route('admin.chat') }}" class="admin-chat-tab">
           <i class="ti ti-message-heart admin-chat-tab-icon"></i>
           <span>Chat Konseling</span>
         </a>
-        <a href="{{ route('admin.group-chat') }}" class="admin-chat-tab">
+        <a href="{{ route('admin.group-chat') }}" class="admin-chat-tab active">
           <i class="ti ti-users-group admin-chat-tab-icon"></i>
           <span>Grup Chat</span>
         </a>
@@ -789,158 +853,136 @@
         <i class="ti ti-search"></i>
         <input
           type="search"
-          id="adminChatSearchInput"
-          placeholder="Cari mahasiswa, topik, atau tanggal sesi..."
+          id="adminGroupChatSearchInput"
+          placeholder="Cari topik, grup, atau nama anggota..."
           autocomplete="off"
         >
       </div>
     </div>
 
-    @forelse($jadwalList as $item)
+    @forelse($groupList as $room)
       @php
-        $itemUser = optional(optional($item)->mahasiswa)->user;
-        $isSelected = optional($activeJadwal)->id === $item->id;
-        $itemScheduledAt = $item->scheduledAt('Asia/Jakarta');
-        $itemIsBlockedBySchedule = $itemScheduledAt ? now('Asia/Jakarta')->lt($itemScheduledAt) : false;
-        $itemStatusKey = $itemIsBlockedBySchedule ? 'terjadwal' : strtolower($item->status ?? '');
-        $itemStatusLabel = $itemIsBlockedBySchedule ? 'Terjadwal' : ucfirst($item->status ?? '-');
-        $itemTopik = $item->catatan && preg_match('/Topik:\s*([^|]+)/i', $item->catatan, $match) ? trim($match[1]) : 'Topik belum tersedia';
+        $isSelected = optional($activeRoom)->id === $room->id;
+        $memberNames = $room->members->map(fn ($member) => $member->user?->getNamaDisplay())->filter()->values();
+        $latestMessagePreview = optional($room->latestMessage)->pesan
+            ? \Illuminate\Support\Str::limit($room->latestMessage->pesan, 56)
+            : 'Belum ada pesan pada grup ini.';
         $sessionSearchText = strtolower(trim(implode(' ', [
-            $itemUser?->getNamaDisplay() ?? 'Mahasiswa',
-            \Carbon\Carbon::parse($item->tanggal)->translatedFormat('j F Y'),
-            substr($item->waktu, 0, 5),
-            $itemTopik,
-            $itemStatusLabel,
+            $room->title,
+            $room->topicLabel(),
+            $memberNames->implode(' '),
+            $latestMessagePreview,
         ])));
       @endphp
-      <a href="{{ route('admin.chat', ['jadwal' => $item->id]) }}" class="admin-chat-session {{ $isSelected ? 'active' : '' }}" data-session-search="{{ $sessionSearchText }}">
+      <a href="{{ route('admin.group-chat', ['group' => $room->id]) }}" class="admin-chat-session {{ $isSelected ? 'active' : '' }}" data-session-search="{{ $sessionSearchText }}">
         <div class="admin-chat-session-top">
-          <div class="admin-chat-session-name">{{ $itemUser?->getNamaDisplay() ?? 'Mahasiswa' }}</div>
-          <span class="admin-chat-session-status {{ $itemStatusKey }}">{{ $itemStatusLabel }}</span>
+          <div class="admin-chat-session-name">{{ $room->title }}</div>
+          <span class="admin-chat-session-status">{{ $room->topicLabel() }}</span>
         </div>
         <div class="admin-chat-session-meta">
-          {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('j M Y') }} &bull; {{ substr($item->waktu, 0, 5) }} WIB<br>
-          {{ $itemTopik }}
+          {{ $room->members_count }} anggota<br>
+          {{ $latestMessagePreview }}
         </div>
       </a>
     @empty
       <div style="padding:1.1rem 1rem;color:#64748b;font-size:.84rem;">
-        Belum ada sesi konseling online yang disetujui atau sedang berlangsung.
+        Belum ada grup chat yang dibuat mahasiswa.
       </div>
     @endforelse
-    @if($jadwalList->isNotEmpty())
-      <div class="admin-chat-search-empty" id="adminChatSearchEmpty">
-        Tidak ada percakapan yang cocok dengan kata kunci pencarian.
+
+    @if($groupList->isNotEmpty())
+      <div class="admin-chat-search-empty" id="adminGroupChatSearchEmpty">
+        Tidak ada grup chat yang cocok dengan kata kunci pencarian.
       </div>
     @endif
   </aside>
 
   <section class="admin-chat-card">
-    @if(session('success'))
-      <div style="margin:1rem 1rem 0;background:#e8fff1;border:1px solid #bbf7d0;color:#166534;padding:1rem 1.1rem;border-radius:18px;font-weight:700;">
-        {{ session('success') }}
-      </div>
-    @endif
-
-    @if(session('error'))
-      <div style="margin:1rem 1rem 0;background:#fff1f2;border:1px solid #fecdd3;color:#be123c;padding:1rem 1.1rem;border-radius:18px;font-weight:700;">
-        {{ session('error') }}
-      </div>
-    @endif
-
-    @if(!$activeSession || !$activeJadwal)
+    @if(!$activeRoom || !$chatPayload)
       <div class="admin-chat-empty">
         <div>
-          <div class="admin-chat-empty-icon"><i class="ti ti-message-heart"></i></div>
-          <h3>Belum Ada Ruang Chat Aktif</h3>
+          <div class="admin-chat-empty-icon"><i class="ti ti-users-group"></i></div>
+          <h3>Belum Ada Grup Chat Aktif</h3>
           <p>
-            Pilih salah satu sesi konseling online yang sudah disetujui dari daftar di samping untuk membuka ruang percakapan dengan mahasiswa.
+            Saat mahasiswa membuat grup konseling berdasarkan topik, daftar grup tersebut akan muncul di panel kiri dan bisa langsung Anda buka dari sini.
           </p>
-        </div>
-      </div>
-    @elseif($isBlockedBySchedule)
-      <div class="admin-chat-gate">
-        <div class="admin-chat-gate-card">
-          <div class="admin-chat-gate-icon">
-            <i class="ti ti-clock-hour-4"></i>
-          </div>
-          <h3>Sesi Akan Aktif Sesuai Jadwal</h3>
-          <p>
-            Jadwal konseling online dengan <strong>{{ $studentUser?->getNamaDisplay() ?? 'Mahasiswa' }}</strong>
-            sudah tercatat, tetapi ruang chat dan video call baru bisa diakses pada
-            <strong>{{ $scheduledStartLabel }}</strong>.
-          </p>
-          <button type="button" class="admin-chat-start" disabled>
-            <i class="ti ti-lock"></i>
-            <span>Menunggu Jadwal Sesi</span>
-          </button>
-        </div>
-      </div>
-    @elseif($isReadyToStart)
-      <div class="admin-chat-gate">
-        <div class="admin-chat-gate-card">
-          <div class="admin-chat-gate-icon">
-            <i class="ti {{ $canStartNow ? 'ti-message-chatbot' : 'ti-clock-hour-4' }}"></i>
-          </div>
-          <h3>{{ $canStartNow ? 'Sesi Siap Dimulai' : 'Sesi Belum Bisa Dimulai' }}</h3>
-          <p>
-            @if($canStartNow)
-              Jadwal konseling online dengan <strong>{{ $studentUser?->getNamaDisplay() ?? 'Mahasiswa' }}</strong> sudah siap.
-              Klik tombol di bawah untuk masuk ke ruang chat realtime.
-            @else
-              Jadwal sudah disetujui, tetapi sesi chat baru bisa dimulai pada
-              <strong>{{ $scheduledStartLabel }}</strong>.
-            @endif
-          </p>
-          <form action="{{ route('admin.chat.start') }}" method="POST">
-            @csrf
-            <input type="hidden" name="jadwal_id" value="{{ $activeJadwal->id }}">
-            <button type="submit" class="admin-chat-start" {{ $canStartNow ? '' : 'disabled' }}>
-              <i class="ti ti-player-play-filled"></i>
-              <span>Mulai Sesi</span>
-            </button>
-          </form>
         </div>
       </div>
     @else
-      <div class="admin-chat-head">
-        <div class="admin-chat-person">
-          <div class="admin-chat-avatar">
-            <img src="{{ $chatPayload['studentAvatar'] }}" alt="{{ $chatPayload['studentName'] }}">
-          </div>
-          <div>
-            <div class="admin-chat-title">{{ $chatPayload['studentName'] }}</div>
-            <p class="admin-chat-subtitle">
-              {{ $topik ?: 'Konseling online aktif' }}<br>
-              {{ \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('j F Y') }} &bull; {{ substr($activeJadwal->waktu, 0, 5) }} WIB
-            </p>
-          </div>
-        </div>
-        <div class="admin-chat-head-actions">
-          <a href="{{ $chatPayload['videoCallUrl'] }}" target="_blank" rel="noopener noreferrer" class="admin-chat-video-btn">
-            <i class="ti ti-video"></i>
-            <span>Video Call</span>
-          </a>
-        </div>
-      </div>
+      <div class="admin-chat-stage" id="adminGroupChatStage">
+        <div class="admin-chat-main">
+          <div class="admin-chat-head">
+            <div class="admin-chat-person">
+              <div class="admin-chat-avatar">
+                <i class="ti ti-users-group"></i>
+              </div>
+              <div>
+                <div class="admin-chat-title">{{ $chatPayload['roomTitle'] }}</div>
+                <p class="admin-chat-subtitle">
+                  {{ $chatPayload['topicLabel'] }} &bull; {{ $chatPayload['memberCount'] }} anggota<br>
+                  {{ implode(', ', array_slice($chatPayload['memberNames'], 0, 5)) }}{{ count($chatPayload['memberNames']) > 5 ? ' dan lainnya' : '' }}
+                </p>
+              </div>
+            </div>
+            <div class="admin-chat-head-actions">
+              <button type="button" class="admin-chat-toggle" id="adminGroupMemberToggle" aria-expanded="false" aria-controls="adminGroupChatProfile" aria-label="Lihat anggota grup" title="Lihat anggota grup">
+                <i class="ti ti-users"></i>
+                <i class="ti ti-chevron-down admin-chat-toggle-chevron"></i>
+                <span class="admin-chat-toggle-text">Lihat anggota grup</span>
+              </button>
 
-      <div class="admin-chat-thread" id="adminChatThread"></div>
+              {{-- Dropdown anggota dibuka dari ikon agar ruang chat tetap penuh. --}}
+              <aside class="admin-chat-profile" id="adminGroupChatProfile">
+                <div class="admin-chat-profile-head">
+                  <h3>Anggota Grup</h3>
+                </div>
 
-      <div class="admin-chat-compose">
-        <form id="adminChatForm" class="admin-chat-form">
-          <textarea
-            id="adminChatInput"
-            class="admin-chat-input"
-            rows="1"
-            maxlength="2000"
-            placeholder="Tulis respons konseling Anda di sini..."
-          ></textarea>
-          <button type="submit" class="admin-chat-send" id="adminChatSendBtn">
-            <i class="ti ti-send"></i>
-          </button>
-        </form>
-        <div class="admin-chat-hint" id="adminChatHint">
-          Pesan akan langsung terkirim ke ruang chat mahasiswa yang sesuai secara realtime.
+                <div class="admin-chat-profile-body">
+                  {{-- Search lokal membantu admin menemukan anggota tanpa menunggu request baru. --}}
+                  <div class="admin-member-search">
+                    <i class="ti ti-search"></i>
+                    <input
+                      type="search"
+                      id="adminGroupMemberSearchInput"
+                      placeholder="Cari anggota..."
+                      autocomplete="off"
+                    >
+                  </div>
+                  <div class="admin-member-list" id="adminGroupMemberList">
+                    @foreach($chatPayload['memberProfiles'] as $memberProfile)
+                      <div class="admin-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberProfile['name']) }}">
+                        <div class="admin-member-avatar">
+                          <img src="{{ $memberProfile['avatar_url'] }}" alt="{{ $memberProfile['name'] }}">
+                        </div>
+                        <div class="admin-member-name">{{ $memberProfile['name'] }}</div>
+                      </div>
+                    @endforeach
+                  </div>
+                  <div class="admin-member-empty" id="adminGroupMemberEmpty">Anggota tidak ditemukan.</div>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <div class="admin-chat-thread" id="adminGroupChatThread"></div>
+
+          <div class="admin-chat-compose">
+            <form id="adminGroupChatForm" class="admin-chat-form">
+              <textarea
+                id="adminGroupChatInput"
+                class="admin-chat-input"
+                rows="1"
+                maxlength="2000"
+                placeholder="Tulis pesan untuk grup konseling ini..."
+              ></textarea>
+              <button type="submit" class="admin-chat-send" id="adminGroupChatSendBtn">
+                <i class="ti ti-send"></i>
+              </button>
+            </form>
+            <div class="admin-chat-hint" id="adminGroupChatHint">
+              Pesan akan langsung tampil untuk seluruh anggota grup dan konselor lain yang membuka ruang ini.
+            </div>
+          </div>
         </div>
       </div>
     @endif
@@ -951,8 +993,8 @@
 @push('scripts')
 <script>
 (() => {
-  const searchInput = document.getElementById('adminChatSearchInput');
-  const searchEmpty = document.getElementById('adminChatSearchEmpty');
+  const searchInput = document.getElementById('adminGroupChatSearchInput');
+  const searchEmpty = document.getElementById('adminGroupChatSearchEmpty');
   const sessionItems = Array.from(document.querySelectorAll('[data-session-search]'));
 
   if (!searchInput || sessionItems.length === 0) {
@@ -982,17 +1024,116 @@
 </script>
 @endpush
 
-@if($activeSession && $chatPayload && $chatAccessGranted)
+@if($activeRoom && $chatPayload)
+@push('scripts')
+<script>
+(() => {
+  const stage = document.getElementById('adminGroupChatStage');
+  const toggle = document.getElementById('adminGroupMemberToggle');
+  const profile = document.getElementById('adminGroupChatProfile');
+  const memberSearch = document.getElementById('adminGroupMemberSearchInput');
+  const memberList = document.getElementById('adminGroupMemberList');
+  const memberEmpty = document.getElementById('adminGroupMemberEmpty');
+  const memberProfiles = @json($chatPayload['memberProfiles']);
+
+  if (!stage || !toggle || !profile || !memberList) {
+    return;
+  }
+
+  const renderMembers = () => {
+    // Daftar anggota dirender dari payload yang sama dengan header agar tidak kosong saat relasi Blade belum stabil.
+    memberList.innerHTML = '';
+
+    memberProfiles.forEach((member) => {
+      const item = document.createElement('div');
+      const avatar = document.createElement('div');
+      const image = document.createElement('img');
+      const label = document.createElement('div');
+      const name = member?.name || 'Pengguna';
+      item.className = 'admin-member-item';
+      item.dataset.memberName = String(name).toLowerCase();
+      avatar.className = 'admin-member-avatar';
+      image.src = member?.avatar_url || '{{ asset('img/default-avatar.png') }}';
+      image.alt = name;
+      label.className = 'admin-member-name';
+      label.textContent = name;
+      avatar.appendChild(image);
+      item.appendChild(avatar);
+      item.appendChild(label);
+      memberList.appendChild(item);
+    });
+  };
+
+  const syncMemberSearch = () => {
+    const keyword = (memberSearch?.value || '').trim().toLowerCase();
+    const items = Array.from(memberList.querySelectorAll('.admin-member-item'));
+    let visibleCount = 0;
+
+    items.forEach((item) => {
+      const isMatch = !keyword || (item.dataset.memberName || '').includes(keyword);
+      item.style.display = isMatch ? '' : 'none';
+
+      if (isMatch) {
+        visibleCount += 1;
+      }
+    });
+
+    if (memberEmpty) {
+      memberEmpty.textContent = keyword ? 'Anggota tidak ditemukan.' : 'Belum ada anggota dalam grup ini.';
+      memberEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  };
+
+  const syncDropdownState = (isOpen) => {
+    // Sinkronkan label aksesibilitas saat dropdown anggota dibuka atau ditutup.
+    const label = isOpen ? 'Sembunyikan anggota grup' : 'Lihat anggota grup';
+    stage.classList.toggle('is-profile-open', isOpen);
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    toggle.setAttribute('aria-label', label);
+    toggle.setAttribute('title', label);
+    toggle.querySelector('.admin-chat-toggle-text').textContent = label;
+  };
+
+  toggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    renderMembers();
+    syncMemberSearch();
+    syncDropdownState(!stage.classList.contains('is-profile-open'));
+  });
+
+  memberSearch?.addEventListener('input', syncMemberSearch);
+
+  document.addEventListener('click', (event) => {
+    if (!stage.classList.contains('is-profile-open')) {
+      return;
+    }
+
+    if (toggle.contains(event.target) || profile.contains(event.target)) {
+      return;
+    }
+
+    syncDropdownState(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      syncDropdownState(false);
+    }
+  });
+})();
+</script>
+@endpush
+
 @push('scripts')
 <script>
 (() => {
   const payload = @json($chatPayload);
   const currentUserId = {{ auth()->id() }};
-  const thread = document.getElementById('adminChatThread');
-  const form = document.getElementById('adminChatForm');
-  const input = document.getElementById('adminChatInput');
-  const sendBtn = document.getElementById('adminChatSendBtn');
-  const hint = document.getElementById('adminChatHint');
+  const thread = document.getElementById('adminGroupChatThread');
+  const form = document.getElementById('adminGroupChatForm');
+  const input = document.getElementById('adminGroupChatInput');
+  const sendBtn = document.getElementById('adminGroupChatSendBtn');
+  const hint = document.getElementById('adminGroupChatHint');
 
   if (!thread || !form || !input || !sendBtn) {
     return;
@@ -1036,8 +1177,23 @@
     input.style.height = 'auto';
     input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
   };
-  const messageUpdateUrl = (messageId) => payload.updateUrlTemplate.replace('__CHAT_ID__', String(messageId));
-  const messageDeleteUrl = (messageId) => payload.deleteUrlTemplate.replace('__CHAT_ID__', String(messageId));
+  const lastRenderedDateKey = () => Array.from(thread.querySelectorAll('[data-date-key]')).pop()?.dataset.dateKey || null;
+  const renderDateSeparator = (label, key) => {
+    const separator = document.createElement('div');
+    separator.className = 'admin-chat-date';
+    separator.dataset.dateKey = key;
+    separator.textContent = label;
+    thread.appendChild(separator);
+  };
+  const ensureDateSeparator = (key, label) => {
+    if (!key || lastRenderedDateKey() === key) {
+      return;
+    }
+
+    renderDateSeparator(label, key);
+  };
+  const messageUpdateUrl = (messageId) => payload.updateUrlTemplate.replace('__MESSAGE_ID__', String(messageId));
+  const messageDeleteUrl = (messageId) => payload.deleteUrlTemplate.replace('__MESSAGE_ID__', String(messageId));
 
   const closeAllMenus = () => {
     thread.querySelectorAll('.admin-message-row.is-menu-open').forEach((element) => {
@@ -1045,7 +1201,7 @@
     });
   };
 
-  // Renderer bubble dipisah dari editor inline supaya edit terasa natural di dalam chat.
+  // Bubble dan editor inline dipisah agar edit tetap terasa menyatu di percakapan grup.
   const buildMessageBubbleMarkup = (message, isMine) => `
     <div class="admin-message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
     ${isMine ? `
@@ -1087,12 +1243,12 @@
     </div>
   `;
 
-  // Polling ditahan saat admin sedang edit atau konfirmasi hapus agar bubble tidak reset sendiri.
+  // Sinkronisasi grup admin ditahan saat ada state inline aktif agar isi tidak kembali sendiri.
   const hasActiveInlineState = () => Boolean(
     thread.querySelector('.admin-message-row.is-editing, [data-delete-message-id]')
   );
 
-  // Bubble asli dikembalikan jika admin membatalkan edit atau hapus.
+  // Bubble asli dikembalikan jika admin batal edit atau batal hapus pesan grup.
   const restoreMessageBubble = (row) => {
     const bubbleShell = row.querySelector('.admin-message-bubble-shell');
     const isMine = row.classList.contains('mine');
@@ -1107,24 +1263,6 @@
     }, isMine);
     row.classList.remove('is-editing');
     row.classList.remove('is-menu-open');
-  };
-
-  const lastRenderedDateKey = () => Array.from(thread.querySelectorAll('[data-date-key]')).pop()?.dataset.dateKey || null;
-
-  const renderDateSeparator = (label, key) => {
-    const separator = document.createElement('div');
-    separator.className = 'admin-chat-date';
-    separator.dataset.dateKey = key;
-    separator.textContent = label;
-    thread.appendChild(separator);
-  };
-
-  const ensureDateSeparator = (key, label) => {
-    if (!key || lastRenderedDateKey() === key) {
-      return;
-    }
-
-    renderDateSeparator(label, key);
   };
 
   const renderMessage = (message) => {
@@ -1163,12 +1301,8 @@
     thread.appendChild(row);
   };
 
-  const renderInitialMessages = () => {
-    renderMessages(payload.messages || []);
-  };
-
   const renderMessages = (messages, force = false) => {
-    // Render ulang penuh agar edit dan delete ikut tersinkron ke sisi admin.
+    // Render ulang penuh agar edit dan delete cepat sinkron di ruang grup admin.
     if (!force && hasActiveInlineState()) {
       return;
     }
@@ -1179,10 +1313,10 @@
     scrollToBottom();
   };
 
-  // Force dipakai setelah aksi sukses supaya daftar pesan tetap sinkron dengan server.
+  // Force dipakai setelah aksi sukses agar daftar pesan grup langsung diperbarui dari server.
   const syncMessages = async (force = false) => {
     try {
-      const response = await fetch(`${payload.messagesUrl}?sesi_id=${payload.sessionId}&jadwal_id=${payload.jadwalId ?? ''}`, {
+      const response = await fetch(`${payload.messagesUrl}?group_id=${payload.roomId}`, {
         headers: {
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
@@ -1205,12 +1339,12 @@
     }
   };
 
-  renderInitialMessages();
+  renderMessages(payload.messages || []);
   autoResize();
 
   if (window.Echo) {
     window.Echo.private(payload.channel)
-      .listen('.chat.message.sent', (event) => {
+      .listen('.group.chat.message.sent', (event) => {
         if (!event?.message) {
           return;
         }
@@ -1404,7 +1538,7 @@
     }
 
     sendBtn.disabled = true;
-    hint.textContent = 'Mengirim pesan ke mahasiswa...';
+    hint.textContent = 'Mengirim pesan ke grup...';
 
     try {
       const response = await fetch(payload.sendUrl, {
@@ -1417,7 +1551,7 @@
           'X-Socket-ID': window.Echo?.socketId?.() ?? '',
         },
         body: JSON.stringify({
-          sesi_id: payload.sessionId,
+          group_id: payload.roomId,
           pesan,
         }),
       });
@@ -1434,7 +1568,7 @@
       scrollToBottom();
       input.value = '';
       autoResize();
-      hint.textContent = 'Pesan terkirim dan langsung masuk ke ruang chat mahasiswa.';
+      hint.textContent = 'Pesan terkirim ke seluruh anggota grup.';
     } catch (error) {
       console.error(error);
       hint.textContent = 'Terjadi kendala saat mengirim pesan.';

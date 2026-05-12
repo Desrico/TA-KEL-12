@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use NotificationChannels\WebPush\HasPushSubscriptions;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
@@ -57,6 +56,16 @@ class User extends Authenticatable
     public function chats(): HasMany
     {
         return $this->hasMany(Chat::class, 'pengirim_id');
+    }
+
+    public function groupChatMemberships(): HasMany
+    {
+        return $this->hasMany(GroupChatMember::class, 'user_id');
+    }
+
+    public function groupChatMessages(): HasMany
+    {
+        return $this->hasMany(GroupChatMessage::class, 'user_id');
     }
 
     public function isAnonim(): bool

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\GroupChatRoom;
 use App\Models\SesiKonseling;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -27,4 +28,21 @@ Broadcast::channel('chat.sesi.{sesiId}', function ($user, $sesiId) {
     }
 
     return false;
+});
+
+Broadcast::channel('chat.group.{roomId}', function ($user, $roomId) {
+    if ($user->role === 'konselor') {
+        return true;
+    }
+
+    if ($user->role !== 'mahasiswa') {
+        return false;
+    }
+
+    return GroupChatRoom::query()
+        ->whereKey($roomId)
+        ->whereHas('members', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+        ->exists();
 });

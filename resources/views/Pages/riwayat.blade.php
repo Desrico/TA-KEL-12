@@ -1,5 +1,5 @@
 @extends('layouts.master')
-
+@section('page-title', 'Riwayat Konseling')
 @section('konten')
 <div class="riwayat-page">
 
@@ -11,73 +11,72 @@
             Privasi dan data Anda tersimpan dengan aman dalam sistem kami.
         </p>
     </div>
-
-    <div class="riwayat-content">
-
-        <!-- LEFT: LIST -->
-        <div class="riwayat-list">
-
-           @foreach($riwayat as $item)
-    @php
-        $status = strtolower($item->status ?? '');
-
-        $statusLabel = match($status) {
-            'selesai' => 'Selesai',
-            'ditolak' => 'Ditolak',
-            'dibatalkan' => 'Dibatalkan',
-            'disetujui', 'diterima' => 'Diterima',
-            'menunggu', 'menunggu konfirmasi' => 'Menunggu Konfirmasi',
-            'berlangsung', 'sedang berlangsung' => 'Sedang Berlangsung',
-            default => ucfirst($item->status ?? '-')
-        };
-
-        $statusClass = match($status) {
-            'selesai' => 'status-selesai',
-            'ditolak' => 'status-ditolak',
-            'dibatalkan' => 'status-dibatalkan',
-            'disetujui', 'diterima' => 'status-diterima',
-            'menunggu', 'menunggu konfirmasi' => 'status-menunggu',
-            'berlangsung', 'sedang berlangsung' => 'status-berlangsung',
-            default => 'status-default'
-        };
-
-        $topikText = '-';
-
-        if (!empty($item->topik)) {
-            $topikText = $item->topik;
-        } elseif (!empty($item->catatan) && str_contains($item->catatan, 'Topik:')) {
-            $parts = explode('|', $item->catatan);
-            $topikText = trim(str_replace('Topik:', '', $parts[0]));
-        }
-
-        $jenis = strtolower($item->jenis ?? '');
-        $metodeText = $jenis == 'offline' ? 'Tatap Muka' : 'Video Call';
-    @endphp
-
-    <div class="riwayat-card">
-        <div class="card-left">
-            <div class="avatar">
-                {{ strtoupper(substr($item->mahasiswa->nama ?? 'M', 0, 1)) }}
-            </div>
-            <div class="info">
-                <h3>{{ $item->mahasiswa->nama ?? 'Mahasiswa' }}</h3>
-                <p>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }} • {{ substr($item->waktu ?? '00:00', 0, 5) }} WIB</p>
-            </div>
-        </div>
-
-        <div class="card-middle">
-            <div class="meta-col">
-                <small>DURASI</small>
-                <strong>{{ $item->durasi ?? '60 Menit' }}</strong>
-            </div>
-            <div class="meta-col">
-                <small>METODE</small>
-                <strong>{{ $metodeText }}</strong>
-            </div>
-            <div class="meta-col meta-topic">
-                <small>TOPIK</small>
-                <strong>{{ Str::limit($topikText, 45, '...') }}</strong>
-            </div>
+    <div class="kons-card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="font-size:.85rem">
+                <thead style="background:#f8fafb">
+                    <tr style="color:#8898aa;font-size:.73rem;text-transform:uppercase">
+                        <th class="px-4 py-3">Mahasiswa</th>
+                        <th class="py-3">Jenis</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3">Tanggal</th>
+                        <th class="py-3">Waktu</th>
+                        <th class="py-3">Catatan</th>
+                        <th class="py-3 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($riwayat as $l)
+                    @php
+                        $status = strtolower($l->status ?? 'menunggu');
+                        $jenis = strtolower($l->jenis ?? 'offline');
+                        $scheduledAt = $jenis === 'online' ? $l->scheduledAt('Asia/Jakarta') : null;
+                        $isBeforeSchedule = $scheduledAt && now('Asia/Jakarta')->lt($scheduledAt);
+                        $canStartChat = $jenis === 'online'
+                            && in_array($status, ['disetujui', 'berlangsung'], true)
+                            && ! $isBeforeSchedule;
+                        $displayDate = $scheduledAt
+                            ? $scheduledAt->translatedFormat('d M Y')
+                            : \Carbon\Carbon::parse($l->tanggal)->translatedFormat('d M Y');
+                        $displayTime = $scheduledAt
+                            ? $scheduledAt->format('H:i') . ' WIB'
+                            : (($l->waktu ? substr((string) $l->waktu, 0, 5) . ' WIB' : '-'));
+                    @endphp
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div style="font-weight:600">{{ optional(optional($l->mahasiswa)->user)->nama ?? 'Anonim' }}</div>
+                            <div style="font-size:.75rem;color:#8898aa">{{ optional($l->mahasiswa)->nim ?? '-' }}</div>
+                        </td>
+                        <td class="py-3">{{ ucfirst($l->jenis ?? '-') }}</td>
+                        <td class="py-3">{{ ucfirst($l->status ?? '-') }}</td>
+                        <td class="py-3">{{ $displayDate }}</td>
+                        <td class="py-3">{{ $displayTime }}</td>
+                        <td class="py-3" style="font-size:.78rem">{{ $l->catatan ?? '-' }}</td>
+                        <td class="py-3 text-center">
+                            @if($canStartChat)
+                                <a href="{{ route('mahasiswa.chat') }}" class="btn btn-sm" style="background:#065F46;color:#fff;border-radius:10px;padding:.45rem .85rem;font-weight:600;">
+                                    {{ $status === 'berlangsung' ? 'Lanjutkan Chat' : 'Mulai Sesi' }}
+                                </a>
+                            @elseif($jenis === 'online' && in_array($status, ['disetujui', 'berlangsung'], true) && $isBeforeSchedule)
+                                <button
+                                    type="button"
+                                    class="btn btn-sm"
+                                    style="background:#cbd5e1;color:#475569;border-radius:10px;padding:.45rem .85rem;font-weight:600;border:none;"
+                                    title="Sesi dimulai {{ $scheduledAt->translatedFormat('j F Y') }} pukul {{ $scheduledAt->format('H:i') }} WIB"
+                                    disabled
+                                >
+                                    Mulai {{ $scheduledAt->format('H:i') }} WIB
+                                </button>
+                            @else
+                                <span style="font-size:.75rem;color:#94a3b8;">-</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="7" class="text-center py-5" style="color:#8898aa">Belum ada laporan</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
         <div class="card-right">
@@ -147,6 +146,10 @@
     </div>
 </div>
 
+@endsection
+
+<!-- Uncomment jika dibutuhkan atau ada terjadi error di halaman ini -->
+<!-- 
 <style>
 .riwayat-page {
     padding: 60px 60px;
@@ -593,4 +596,4 @@
     }
 }
 </style>
-@endsection
+@endsection -->

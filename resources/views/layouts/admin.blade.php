@@ -23,7 +23,7 @@
         --admin-primary-500: #10B981;
         --admin-soft: #D1FAE5;
         --admin-soft-2: #EFFCF5;
-        --admin-bg: #FFFAF4;
+        --admin-bg: #F7FCF9;
         --admin-border: #DDEFE7;
         --admin-text: #0F172A;
         --admin-text-mid: #475569;
@@ -41,118 +41,54 @@
 
     /* SIDEBAR */
     .pc-sidebar .navbar-wrapper {
-        background: var(--admin-soft);
-        border-right: 1px solid var(--admin-border);
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        height: 100vh;
-        position: relative;
-    }
+          background: var(--admin-white);
+          border-right: 1px solid var(--admin-border);
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+          height: 100vh;
+          position: relative;
+      }
 
-    .pc-sidebar .m-header {
-        padding: 20px 22px 18px;
-        border-bottom: 2px solid var(--admin-border);
-        flex-shrink: 0;
-        background: var(--admin-soft);
-    }
-
+      .pc-sidebar .m-header {
+          padding: 20px 22px 18px;
+          border-bottom: 1px solid var(--admin-border);
+          flex-shrink: 0;
+          background: var(--admin-soft-2);
+      }
     .pc-sidebar .navbar-content {
-        padding: 16px 12px 120px;
-        flex: 1;
-        overflow-y: auto;
-    }
-
-    /* Stronger overrides to ensure the sidebar uses the requested color */
-    .pc-sidebar .navbar-wrapper,
-    .pc-sidebar .m-header,
-    .pc-sidebar .navbar-content,
-    .admin-sidebar-profile,
-    .admin-sidebar-menu {
-        background-color: var(--admin-soft) !important;
-        border-color: var(--admin-border) !important;
+      padding: 16px 12px 120px;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .pc-navbar .pc-caption label {
-        font-size: .67rem;
-        font-weight: 700;
-        color: #9AA8B5;
-        text-transform: uppercase;
-        letter-spacing: .07em;
-        padding: 10px 13px 6px;
-        display: block;
-    }
-
-    .pc-navbar .pc-item {
-        outline: none !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-
-    .pc-navbar .pc-item * {
-        outline: none !important;
-        border: none !important;
+      font-size: .67rem;
+      font-weight: 700;
+      color: #9AA8B5;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      padding: 10px 13px 6px;
+      display: block;
     }
 
     .pc-navbar .pc-item .pc-link {
-        border-radius: 12px;
-        font-size: .88rem;
-        font-weight: 600;
-        color: var(--admin-text-mid);
-        padding: 10px 14px;
-        margin-bottom: 4px;
-        transition: all .18s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        outline: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        -webkit-box-shadow: none !important;
-    }
-
-    .pc-navbar .pc-item .pc-link:focus,
-    .pc-navbar .pc-item .pc-link:focus-visible,
-    .pc-navbar .pc-item.active > .pc-link {
-        outline: none !important;
-        box-shadow: none !important;
-        border-right: none !important;
-    }
-
-    .pc-navbar .pc-item .pc-link::before,
-    .pc-navbar .pc-item .pc-link::after {
-        outline: none !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-
-    .pc-navbar .pc-item .pc-link:focus {
-        outline: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        -webkit-box-shadow: none !important;
-        -webkit-appearance: none !important;
-    }
-      box-shadow: none !important;
-      -webkit-box-shadow: none !important;
-      -webkit-appearance: none !important;
-    }
-
-    .pc-navbar .pc-item .pc-link:active {
-      outline: none !important;
-      border: none !important;
-      box-shadow: none !important;
-    }
+      border-radius: 12px;
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--admin-text-mid);
+      padding: 10px 14px;
+      margin-bottom: 4px;
+      transition: all .18s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+  }
 
     .pc-navbar .pc-item .pc-link:hover {
       background: var(--admin-soft-2);
       color: var(--admin-primary);
-      outline: none !important;
-      border: none !important;
-      box-shadow: none !important;
     }
 
     .pc-navbar .pc-item .pc-link:hover .pc-micon i {
@@ -162,31 +98,7 @@
     .pc-navbar .pc-item.active > .pc-link {
       background: var(--admin-primary);
       color: white !important;
-      outline: none !important;
-      border: none !important;
-      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3) !important;
-      -webkit-box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3) !important;
-    }
-
-    .pc-navbar .pc-item.active {
-      outline: none !important;
-      border: none !important;
-      box-shadow: none !important;
-    }
-
-    /* Override template's ::after pseudo-element that creates the blue line */
-    .pc-sidebar .pc-navbar > .pc-item.active:not(.pc-hasmenu) > .pc-link::after {
-      display: none !important;
-      content: none !important;
-      width: 0 !important;
-      height: 0 !important;
-      background: none !important;
-    }
-
-    /* Override template's ::before pseudo-element */
-    .pc-sidebar .pc-navbar > .pc-item.active > .pc-link:before {
-      opacity: 0 !important;
-      background: none !important;
+      box-shadow: var(--admin-shadow-sm);
     }
 
     .pc-navbar .pc-item.active > .pc-link .pc-micon i {
@@ -208,14 +120,14 @@
     }
 
     /* SIDEBAR PROFILE BOTTOM */
-  .admin-sidebar-profile {
+   .admin-sidebar-profile {
       position: absolute;
       left: 0;
       right: 0;
       bottom: 0;
       padding: 16px 12px 18px;
-      border-top: 2px solid var(--admin-border);
-    background: transparent;
+      border-top: 1px solid var(--admin-border);
+      background: var(--admin-white);
       z-index: 5;
     }
 
@@ -290,7 +202,7 @@
       min-width: unset;
       margin: 8px 2px 0;
       border-radius: 14px;
-      border: 2px solid var(--admin-border);
+      border: 1px solid var(--admin-border);
       box-shadow: var(--admin-shadow-md);
       overflow: hidden;
       padding: 6px 0;
@@ -316,15 +228,13 @@
     /* HEADER */
     .pc-header {
       background: rgba(255,255,255,.96);
-      border-bottom: 2px solid var(--admin-border);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--admin-border);
       box-shadow: 0 1px 8px rgba(0,0,0,.03);
     }
 
-    /* top navbar visible (notifications are in header) */
-
     .pc-head-link {
       color: var(--admin-text-mid);
-        
     }
 
     .pc-header .header-wrapper {
@@ -343,7 +253,7 @@
       width: 42px;
       height: 42px;
       border-radius: 12px;
-      border: 2px solid var(--admin-border);
+      border: 1px solid var(--admin-border);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -383,7 +293,7 @@
     .admin-notif-menu {
       min-width: 300px;
       border-radius: 16px;
-      border: 2px solid var(--admin-border);
+      border: 1px solid var(--admin-border);
       box-shadow: var(--admin-shadow-md);
       overflow: hidden;
       padding: 0;
@@ -403,21 +313,10 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    .page-header {
-      margin-bottom: 1rem;
-      padding: 0 1.5rem;
-    }
-
     .page-header .page-header-title h5 {
-      font-size: 2rem;
+      font-size: 1.6rem;
       font-weight: 800;
       color: var(--admin-primary);
-      letter-spacing: -0.5px;
-      margin-bottom: 0 !important;
-    }
-
-    .page-block {
-      padding: 0;
     }
 
     .alert {
@@ -491,7 +390,7 @@
 
     .kons-card-header {
       padding: 1.1rem 1.4rem;
-      border-bottom: 2px solid var(--admin-border);
+      border-bottom: 1px solid var(--admin-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -538,19 +437,13 @@
     }
 
     .pc-footer {
-      border-top: 2px solid var(--admin-border);
+      border-top: 1px solid var(--admin-border);
       background: transparent;
     }
 
     .pc-footer p {
       font-size: .78rem;
       color: var(--admin-text-light);
-    }
-
-    /* Ensure main content area uses admin background color */
-    .pc-container,
-    .pc-content {
-      background: var(--admin-bg) !important;
     }
 
     @media (max-width: 768px) {
@@ -562,75 +455,6 @@
         min-width: 280px;
       }
     }
-
-    /* Modal confirm override (use on modals with class .modal-confirm) */
-    .modal-backdrop.show {
-      background: rgba(0,0,0,0.55) !important;
-    }
-
-    .modal.modal-confirm .modal-dialog {
-      max-width: 460px;
-      margin: 0 auto;
-    }
-
-    .modal.modal-confirm .modal-content {
-      background: var(--admin-primary);
-      color: #fff;
-      border-radius: 12px;
-      padding: 1.6rem;
-      box-shadow: 0 18px 40px rgba(6,78,59,0.25);
-      border: none;
-      text-align: center;
-    }
-
-    .modal.modal-confirm .modal-body { padding: 0; }
-
-    .modal.modal-confirm .modal-icon {
-      width: 76px;
-      height: 76px;
-      border-radius: 50%;
-      border: 4px solid rgba(255,255,255,0.15);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-      background: rgba(255,255,255,0.04);
-      margin: 0 auto;
-      color: #fff;
-    }
-
-    .modal.modal-confirm .modal-title {
-      font-size: 1.05rem;
-      font-weight: 800;
-      margin-top: .85rem;
-      color: #fff;
-    }
-
-    .modal.modal-confirm .modal-text {
-      color: rgba(255,255,255,0.9);
-      margin-top: .45rem;
-      font-size: .95rem;
-    }
-
-    .modal.modal-confirm .btn-confirm {
-      background: #FDE68A;
-      color: var(--admin-primary);
-      border: 0;
-      padding: .5rem 1.05rem;
-      border-radius: 10px;
-      font-weight: 700;
-    }
-
-    .modal.modal-confirm .btn-confirm:hover { background: #FCD34D; }
-
-    .modal.modal-confirm .btn-cancel {
-      background: transparent;
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 10px;
-      padding: .45rem .9rem;
-    }
-
   </style>
 
   @vite(['resources/js/app.js'])
@@ -681,6 +505,7 @@
                     style="width:36px;height:36px;object-fit:contain;border-radius:8px;">
                 <div>
                     <div style="font-weight:800;font-size:1rem;color:var(--admin-primary);line-height:1.1;">Campus Care</div>
+                    <div style="font-size:.7rem;color:var(--admin-text-light);margin-top:2px;">Admin Panel</div>
                 </div>
             </a>
         </div>
@@ -703,7 +528,7 @@
                     </a>
                 </li>
 
-                <li class="pc-item {{ request()->routeIs('admin.chat*') ? 'active' : '' }}">
+                <li class="pc-item {{ request()->routeIs('admin.chat*') || request()->routeIs('admin.group-chat*') ? 'active' : '' }}">
                     <a href="{{ route('admin.chat') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-message-circle"></i></span>
                         <span class="pc-mtext">Chat</span>
@@ -731,6 +556,8 @@
                     </a>
                 </li>
             </ul>
+        </div>
+
         <div class="admin-sidebar-profile">
             <div class="dropdown">
                 <a href="#" class="admin-sidebar-profile-trigger" data-bs-toggle="dropdown" aria-expanded="false">
@@ -814,29 +641,11 @@
 
             <div style="max-height:260px;overflow-y:auto;" id="adminNotifList">
               @forelse($adminNotifItems as $notif)
-                @php
-                  $payload = null;
-                  try {
-                    $decoded = json_decode($notif->pesan, true);
-                    $payload = is_array($decoded) ? $decoded : null;
-                  } catch (\Exception $e) {
-                    $payload = null;
-                  }
-
-                  $link = route('admin.jadwal');
-                  $label = $notif->pesan;
-                  if ($payload && ($payload['type'] ?? null) === 'penjadwalan') {
-                    // student riwayat route with selected jadwal id
-                    $link = route('riwayat', ['jadwal' => $payload['jadwal_id']]);
-                    $label = $payload['text'] ?? $label;
-                  }
-                @endphp
-
-                <a class="dropdown-item admin-notif-item" href="{{ $link }}">
+                <a class="dropdown-item admin-notif-item" href="{{ route('admin.jadwal') }}">
                   <div class="d-flex gap-2 align-items-start">
                     <div style="width:8px;height:8px;border-radius:50%;background:{{ $notif->status === 'belum' ? 'var(--admin-primary-500)' : '#d0dce4' }};margin-top:5px;flex-shrink:0;"></div>
                     <div style="min-width:0;">
-                      <p class="mb-0" style="font-size:.8rem;color:var(--admin-text);font-weight:600;line-height:1.4;">{{ $label }}</p>
+                      <p class="mb-0" style="font-size:.8rem;color:var(--admin-text);font-weight:600;line-height:1.4;">{{ $notif->pesan }}</p>
                       <span style="font-size:.72rem;color:#aab5bc;">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
                     </div>
                   </div>
@@ -852,23 +661,20 @@
   </div>
 </header>
 
-    <div class="pc-container">
+<div class="pc-container">
   <div class="pc-content">
-    @hasSection('page-hero')
-      @yield('page-hero')
-    @else
-      <div class="page-header">
-        <div class="page-block">
-          <div class="row align-items-center">
-            <div class="col-md-12">
-              <div class="page-header-title">
-                <h5 class="m-b-10">@yield('page-title', 'Dashboard')</h5>
-              </div>
+    <div class="page-header">
+      <div class="page-block">
+        <div class="row align-items-center">
+          <div class="col-md-12">
+            <div class="page-header-title">
+              <h5 class="m-b-10">@yield('page-title', 'Dashboard')</h5>
             </div>
+            {{-- Breadcrumb template dihapus agar judul halaman tidak tampil dobel. --}}
           </div>
         </div>
       </div>
-    @endif
+    </div>
 
     @if(session('success'))
       <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
@@ -888,53 +694,12 @@
   </div>
 </div>
 
-@include('components.modal_confirm')
-
 <script src="{{ asset('template/dist') }}/assets/js/plugins/popper.min.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/plugins/simplebar.min.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/plugins/bootstrap.min.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/fonts/custom-font.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/pcoded.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/plugins/feather.min.js"></script>
-
-<script>
-  // Global confirm modal handler: elements can use data-confirm, data-confirm-title, data-confirm-text, data-confirm-ok, data-confirm-url
-  document.addEventListener('click', function (e) {
-    const trigger = e.target.closest('[data-confirm]');
-    if (!trigger) return;
-    e.preventDefault();
-
-    const title = trigger.getAttribute('data-confirm-title') || 'Konfirmasi Penjadwalan';
-    const text = trigger.getAttribute('data-confirm-text') || 'Apakah kamu yakin ingin melanjutkan aksi ini?';
-    const okText = trigger.getAttribute('data-confirm-ok') || 'Jadwalkan';
-    const url = trigger.getAttribute('data-confirm-url') || null;
-
-    const modalEl = document.getElementById('globalConfirmModal');
-    if (!modalEl) return;
-
-    document.getElementById('globalConfirmTitle').textContent = title;
-    document.getElementById('globalConfirmText').textContent = text;
-    const okBtn = document.getElementById('globalConfirmYes');
-    okBtn.textContent = okText;
-
-    // clear previous handler
-    okBtn.onclick = function () {
-      if (url) {
-        window.location.href = url;
-        return;
-      }
-      // if inside a form, submit it
-      const form = trigger.closest('form');
-      if (form) {
-        form.submit();
-      }
-      bootstrap.Modal.getInstance(modalEl)?.hide();
-    };
-
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
-  });
-</script>
 
 <script>layout_change('light');</script>
 <script>change_box_container('false');</script>
@@ -1028,7 +793,6 @@
         // 3. Gabungkan mahasiswa urgent ke daftar teratas jika ada
         const urgentItems = urgentStudents.map(student => ({
           id: 'urgent-' + student.nim,
-          nim: student.nim,
           pesan: `⚠️ KRITIS: ${student.name} (${student.nim}) berada di Level ${student.mental_level}!`,
           created_at_human: 'Sekarang',
           status: 'urgent',
@@ -1053,13 +817,8 @@
             textColor = '#B91C1C';
           }
 
-          let onClickAttr = '';
-          if (notif.status === 'urgent' && notif.nim) {
-            onClickAttr = `onclick="event.preventDefault(); window.markUrgentRead('${notif.nim}', '${link}')"`;
-          }
-
           return `
-            <a class="dropdown-item admin-notif-item" href="${link}" style="background-color: ${bgColor}" ${onClickAttr}>
+            <a class="dropdown-item admin-notif-item" href="${link}" style="background-color: ${bgColor}">
               <div class="d-flex gap-2 align-items-start">
                 <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};margin-top:5px;flex-shrink:0;"></div>
                 <div style="min-width:0;">
@@ -1089,21 +848,6 @@
         console.error('Gagal menandai notifikasi dibaca:', err);
       }
     }
-
-    window.markUrgentRead = async function(nim, targetUrl) {
-      try {
-        await fetch(`{{ url('/konselor/notifications') }}/${nim}/read`, {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-      } catch (err) {
-        console.error(err);
-      }
-      window.location.href = targetUrl;
-    };
 
     notifTrigger.addEventListener('click', function () {
       setTimeout(async function () {

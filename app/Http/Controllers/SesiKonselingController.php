@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Konselor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use App\Models\JadwalKonseling;
@@ -9,9 +10,20 @@ use App\Models\SesiKonseling;
 
 class SesiKonselingController extends Controller
 {
+    private function resolveAuthenticatedKonselor(): Konselor
+    {
+        $user = auth()->user();
+
+        if (! $user || ! $user->konselor) {
+            abort(403, 'Data konselor tidak ditemukan.');
+        }
+
+        return $user->konselor;
+    }
+
     public function index()
     {
-        $konselor = auth()->user()->konselor;
+        $konselor = $this->resolveAuthenticatedKonselor();
 
         $jadwal = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil'])
             ->where('konselor_id', $konselor->id)
@@ -34,7 +46,7 @@ class SesiKonselingController extends Controller
 
     public function detail($id)
     {
-        $konselor = auth()->user()->konselor;
+        $konselor = $this->resolveAuthenticatedKonselor();
 
         $jadwal = JadwalKonseling::with(['mahasiswa.user'])
             ->where('konselor_id', $konselor->id)
@@ -45,7 +57,7 @@ class SesiKonselingController extends Controller
 
     public function terima($id)
     {
-        $konselor = auth()->user()->konselor;
+        $konselor = $this->resolveAuthenticatedKonselor();
 
         $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
             ->findOrFail($id);
@@ -61,7 +73,7 @@ class SesiKonselingController extends Controller
 
     public function tolak($id)
     {
-        $konselor = auth()->user()->konselor;
+        $konselor = $this->resolveAuthenticatedKonselor();
 
         $jadwal = JadwalKonseling::with(['mahasiswa.user'])
             ->where('konselor_id', $konselor->id)
@@ -76,10 +88,13 @@ class SesiKonselingController extends Controller
             'alasan_penolakan' => 'required|string'
         ]);
 
-        $jadwal = Jadwal::findOrFail($id);
+        $konselor = $this->resolveAuthenticatedKonselor();
+
+        $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
+            ->findOrFail($id);
 
         $jadwal->status = 'ditolak';
-        $jadwal->alasan_penolakan = $request->alasan_penolakan; 
+        $jadwal->alasan_penolakan = $request->alasan_penolakan;
         $jadwal->save();
 
         return redirect()
@@ -89,7 +104,7 @@ class SesiKonselingController extends Controller
 
     public function selesai($id)
     {
-        $konselor = auth()->user()->konselor;
+        $konselor = $this->resolveAuthenticatedKonselor();
 
         $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
             ->findOrFail($id);
