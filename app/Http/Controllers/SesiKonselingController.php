@@ -13,7 +13,7 @@ class SesiKonselingController extends Controller
     {
         $konselor = auth()->user()->konselor;
 
-        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil'])
+        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil', 'sesiKonseling'])
             ->where('konselor_id', $konselor->id)
             ->orderByRaw("
                 CASE
@@ -28,6 +28,15 @@ class SesiKonselingController extends Controller
             ->orderBy('tanggal', 'asc')
             ->orderBy('waktu', 'asc')
             ->paginate(10);
+
+        $jadwal->getCollection()->each(function (JadwalKonseling $item) {
+            $item->syncExpiredSessionStatus();
+
+            // If a sesi exists and is active, ensure the jadwal status reflects it.
+            if ($item->relationLoaded('sesiKonseling') && $item->sesiKonseling?->status === 'berlangsung' && ($item->status ?? '') !== 'berlangsung') {
+                $item->forceFill(['status' => 'berlangsung'])->save();
+            }
+        });
 
         return view('admin.sesi', compact('jadwal'));
     }

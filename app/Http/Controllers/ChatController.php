@@ -164,7 +164,7 @@ class ChatController extends Controller
         $sessionData = [
             'id' => $jadwal->id,
             'sesi_id' => $sesi->id,
-            'nama' => $jadwal->mahasiswa?->user->nama ?? 'Anda',
+            'nama' => $jadwal->mahasiswa?->user->getNamaDisplay() ?? 'Mahasiswa',
         ];
 
         return view('chat.student', compact('sessionData', 'messages'));

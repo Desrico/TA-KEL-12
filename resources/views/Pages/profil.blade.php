@@ -459,12 +459,16 @@
                 </div>
 
             <div class="profil-user-name" id="nama-header">
-              {{ $user->isAnonim() ? 'Mahasiswa Anonim' : $user->nama }}
+              {{ $user->getNamaDisplay() }}
             </div>
 
             <div class="profil-user-meta">
-              {{ $mahasiswa->nim ?? '-' }}<br>
-              {{ $mahasiswa->jurusan ?? '-' }} · Angkatan {{ $mahasiswa->angkatan ?? '-' }}
+              @if($user->isAnonim())
+                {{ $mahasiswa->jurusan ?? '-' }} · Angkatan {{ $mahasiswa->angkatan ?? '-' }}
+              @else
+                {{ $mahasiswa->nim ?? '-' }}<br>
+                {{ $mahasiswa->jurusan ?? '-' }} · Angkatan {{ $mahasiswa->angkatan ?? '-' }}
+              @endif
             </div>
           </div>
 
@@ -536,7 +540,7 @@
               <div class="profil-field full">
                 <label class="profil-label">Nama Lengkap</label>
                 <div class="profil-value-box" id="view-nama">
-                  {{ $user->isAnonim() ? 'Mahasiswa Anonim' : $user->nama }}
+                  {{ $user->getNamaDisplay() }}
                 </div>
                 <input type="text" name="nama" id="edit-nama" class="edit-field" style="display:none" value="{{ $user->nama }}">
               </div>
@@ -544,7 +548,7 @@
               <div class="profil-field">
                 <label class="profil-label">NIM</label>
                 <div class="profil-value-box" id="view-nim">
-                  {{ $user->isAnonim() ? '••••••••' : ($mahasiswa->nim ?? '-') }}
+                  {{ $user->isAnonim() ? '-' : ($mahasiswa->nim ?? '-') }}
                 </div>
                 <input type="text" name="nim" id="edit-nim" class="edit-field" style="display:none" value="{{ $mahasiswa->nim ?? '' }}">
               </div>
@@ -580,7 +584,7 @@
 
               <div class="profil-field full">
                 <label class="profil-label">Email</label>
-                <div class="profil-value-box">{{ $user->email }}</div>
+                <div class="profil-value-box">{{ $user->isAnonim() ? '********' : $user->email }}</div>
               </div>
 
               <div class="profil-field full">
@@ -692,6 +696,35 @@ function previewFoto(input) {
     };
 
     reader.readAsDataURL(file);
+}
+
+async function toggleAnonim(checkbox) {
+  const previousState = !checkbox.checked;
+
+  try {
+    const response = await fetch('{{ route('profil.anonim') }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ anonim: checkbox.checked }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      checkbox.checked = previousState;
+      alert(data.message || 'Gagal memperbarui mode anonim.');
+      return;
+    }
+
+    window.location.reload();
+  } catch (error) {
+    checkbox.checked = previousState;
+    alert('Gagal memperbarui mode anonim.');
+  }
 }
 </script>
 @endpush

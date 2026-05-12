@@ -94,10 +94,12 @@ class ProfilController extends Controller
 
         $isAnonim = (bool) $validated['anonim'];
 
-        $profil = Profil::updateOrCreate(
+        $profil = Profil::firstOrCreate(
             ['user_id' => Auth::id()],
-            ['anonim' => $isAnonim]
+            ['bio' => null, 'anonim' => false]
         );
+
+        $profil->anonim = $isAnonim;
 
         if ($isAnonim) {
             $konselorUsers = User::where('role', 'konselor')->get(['id']);
@@ -110,6 +112,8 @@ class ProfilController extends Controller
                 ]);
             }
         }
+
+        $profil->save();
 
         return response()->json([
             'success' => true,

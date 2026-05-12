@@ -43,19 +43,13 @@
 
                 <!-- ERROR GLOBAL -->
                 @if ($errors->any())
-                    <div class="mb-3 text-sm text-red-500">
+                    <div class="mb-3 text-sm text-red-500 text-center">
                         {{ $errors->first() }}
                     </div>
                 @endif
 
                 <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
                     @csrf
-
-                    @if ($errors->any())
-                        <div class="mb-3 text-sm text-red-500">
-                            {{ $errors->first() }}
-                        </div>
-                    @endif
 
                     <p class="text-sm text-gray-500 text-center">
                         Gunakan akun CIS Anda untuk login
@@ -65,7 +59,6 @@
                         <label class="text-sm text-gray-600">Username CIS</label>
                         <input type="text" name="username"
                             value="{{ old('username') }}"
-                            placeholder="Contoh: johannes / if420086"
                             class="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#5FAF9F]">
                     </div>
 

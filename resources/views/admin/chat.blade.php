@@ -4,9 +4,6 @@
     $jadwalList = $jadwalList ?? collect();
     $activeJadwal = $activeJadwal ?? null;
     $activeSession = $activeSession ?? null;
-    $chatPayload = $chatPayload ?? null;
-    $isReadyToStart = $isReadyToStart ?? false;
-    $canStartNow = $canStartNow ?? false;
     $scheduledStartLabel = $scheduledStartLabel ?? '-';
 
     $jadwal = $activeJadwal;
@@ -312,6 +309,25 @@
     background:
       radial-gradient(circle at center, rgba(209, 250, 229, 0.28), transparent 42%),
       linear-gradient(180deg, rgba(246,255,249,.7), rgba(255,255,255,.98));
+    min-height: 0;
+  }
+
+  .admin-chat-thread-sticky-date {
+    position: sticky;
+    top: .75rem;
+    z-index: 2;
+    width: fit-content;
+    margin: 0 auto 1rem;
+    padding: .5rem .95rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .92);
+    border: 1px solid #e4f3eb;
+    color: #64748b;
+    font-size: .74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    box-shadow: 0 10px 24px rgba(6, 78, 59, .06);
   }
 
   .admin-chat-date {
@@ -403,6 +419,8 @@
     padding: 1rem 1.2rem 1.2rem;
     border-top: 1px solid #edf7f1;
     background: rgba(255,255,255,.95);
+    margin-top: auto;
+    flex-shrink: 0;
   }
 
   .admin-chat-form {
@@ -555,7 +573,6 @@
   <aside class="admin-chat-list">
     <div class="admin-chat-list-head">
       <h4>Daftar Sesi Online</h4>
-      <p>Pilih mahasiswa untuk membuka ruang chat konseling yang sesuai.</p>
       <div class="admin-chat-search">
         <i class="ti ti-search"></i>
         <input
@@ -573,8 +590,8 @@
         $isSelected = optional($activeJadwal)->id === $item->id;
         $itemScheduledAt = \Carbon\Carbon::parse(trim($item->tanggal . ' ' . ($item->waktu ?? '00:00:00')), 'Asia/Jakarta');
         $itemIsBlockedBySchedule = now('Asia/Jakarta')->lt($itemScheduledAt);
-        $itemStatusKey = $itemIsBlockedBySchedule ? 'terjadwal' : strtolower($item->status ?? '');
-        $itemStatusLabel = $itemIsBlockedBySchedule ? 'Terjadwal' : ucfirst($item->status ?? '-');
+        $itemStatusKey = $item->display_status_key ?? ($itemIsBlockedBySchedule ? 'terjadwal' : strtolower($item->status ?? ''));
+        $itemStatusLabel = $item->display_status_label ?? ($itemIsBlockedBySchedule ? 'Terjadwal' : ucfirst($item->status ?? '-'));
         $itemTopik = $item->catatan && preg_match('/Topik:\s*([^|]+)/i', $item->catatan, $match) ? trim($match[1]) : 'Topik belum tersedia';
         $sessionSearchText = strtolower(trim(implode(' ', [
             $itemUser?->getNamaDisplay() ?? 'Mahasiswa',
@@ -592,6 +609,9 @@
         <div class="admin-chat-session-meta">
           {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('j M Y') }} • {{ substr($item->waktu, 0, 5) }} WIB<br>
           {{ $itemTopik }}
+          @if(!empty($item->conversation_dates_label))
+            <br>{{ $item->conversation_dates_label }}
+          @endif
         </div>
       </a>
     @empty
@@ -619,7 +639,7 @@
       </div>
     @endif
 
-    @if(!$activeSession || !$activeJadwal)
+    @if(!$activeJadwal)
       <div class="admin-chat-empty">
         <div>
           <div class="admin-chat-empty-icon"><i class="ti ti-message-heart"></i></div>
@@ -674,6 +694,7 @@
         </div>
       </div>
     @else
+      @if($chatPayload)
       <div class="admin-chat-head">
         <div class="admin-chat-person">
           <div class="admin-chat-avatar">
@@ -683,7 +704,7 @@
             <div class="admin-chat-title">{{ $chatPayload['studentName'] }}</div>
             <p class="admin-chat-subtitle">
               {{ $topik ?: 'Konseling online aktif' }}<br>
-              {{ \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('j F Y') }} • {{ substr($activeJadwal->waktu, 0, 5) }} WIB
+              {{ \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('l, j F Y') }} • {{ substr($activeJadwal->waktu, 0, 5) }} WIB
             </p>
           </div>
         </div>
@@ -692,15 +713,19 @@
             <i class="ti ti-video"></i>
             <span>Video Call</span>
           </a>
-          <div class="admin-chat-badge">{{ $statusLabel }}</div>
         </div>
       </div>
 
-      <div class="admin-chat-thread" id="adminChatThread">
-        <div class="admin-chat-date">
-          {{ \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('l, j F Y') }}
+      <div
+        class="admin-chat-thread"
+        id="adminChatThread"
+        data-last-date-key=""
+      >
+        <div class="admin-chat-thread-sticky-date" id="adminChatStickyDate">
+          {{ $activeJadwal ? \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('l, j F Y') : '' }}
         </div>
       </div>
+      @endif
 
       <div class="admin-chat-compose">
         <form id="adminChatForm" class="admin-chat-form">
@@ -709,14 +734,15 @@
             class="admin-chat-input"
             rows="1"
             maxlength="2000"
-            placeholder="Tulis respons konseling Anda di sini..."
+            placeholder="{{ $chatAccessGranted ? 'Tulis respons konseling Anda di sini...' : 'Ruang chat belum aktif.' }}"
+            {{ $chatAccessGranted ? '' : 'disabled' }}
           ></textarea>
-          <button type="submit" class="admin-chat-send" id="adminChatSendBtn">
+          <button type="submit" class="admin-chat-send" id="adminChatSendBtn" {{ $chatAccessGranted ? '' : 'disabled' }}>
             <i class="ti ti-send"></i>
           </button>
         </form>
-        <div class="admin-chat-hint" id="adminChatHint">
-          Pesan akan langsung terkirim ke ruang chat mahasiswa yang sesuai secara realtime.
+        <div id="adminChatHint" class="admin-chat-hint">
+          {{ $chatAccessGranted ? 'Pesan akan langsung terkirim ke mahasiswa.' : 'Klik tombol "Mulai Sesi" di atas untuk mengaktifkan ruang chat.' }}
         </div>
       </div>
     @endif
@@ -758,13 +784,17 @@
 </script>
 @endpush
 
-@if($activeSession && $chatPayload && $chatAccessGranted)
+@if($activeSession && $chatPayload)
 @push('scripts')
 <script>
 (() => {
   const payload = @json($chatPayload);
+  const chatAccessGranted = {{ $chatAccessGranted ? 'true' : 'false' }};
   const currentUserId = {{ auth()->id() }};
+  const fallbackAvatar = @json(asset('img/default-avatar.png'));
+  const currentUserName = @json(auth()->user()->getNamaDisplay());
   const thread = document.getElementById('adminChatThread');
+  const stickyDate = document.getElementById('adminChatStickyDate');
   const form = document.getElementById('adminChatForm');
   const input = document.getElementById('adminChatInput');
   const sendBtn = document.getElementById('adminChatSendBtn');
@@ -785,12 +815,37 @@
     thread.scrollTop = thread.scrollHeight;
   };
 
+  const setStickyDate = (label) => {
+    if (!stickyDate || !label) {
+      return;
+    }
+
+    stickyDate.textContent = label;
+    stickyDate.style.display = 'block';
+  };
+
   const autoResize = () => {
     input.style.height = 'auto';
     input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
   };
 
   const renderMessage = (message) => {
+    const dateKey = String(message.date_key ?? '').trim();
+    const dateLabel = String(message.date_label ?? '').trim();
+
+    if (dateKey) {
+      const lastDateKey = thread.dataset.lastDateKey || '';
+
+      if (lastDateKey !== dateKey) {
+        const dateDivider = document.createElement('div');
+        dateDivider.className = 'admin-chat-date';
+        dateDivider.dataset.dateKey = dateKey;
+        dateDivider.textContent = dateLabel || dateKey;
+        thread.appendChild(dateDivider);
+        thread.dataset.lastDateKey = dateKey;
+      }
+    }
+
     const row = document.createElement('div');
     const isMine = Boolean(message.is_mine ?? (message.sender_id === currentUserId));
 
@@ -818,6 +873,30 @@
     `;
 
     thread.appendChild(row);
+    if (dateLabel) {
+      setStickyDate(dateLabel);
+    }
+  };
+
+  const getVisibleDateLabel = () => {
+    const threadRect = thread.getBoundingClientRect();
+    const dateNodes = Array.from(thread.querySelectorAll('.admin-chat-date'));
+
+    for (const node of dateNodes) {
+      const rect = node.getBoundingClientRect();
+      if (rect.bottom >= threadRect.top + 80) {
+        return node.textContent?.trim() || '';
+      }
+    }
+
+    return dateNodes.at(-1)?.textContent?.trim() || '';
+  };
+
+  const refreshStickyDate = () => {
+    const label = getVisibleDateLabel();
+    if (label) {
+      setStickyDate(label);
+    }
   };
 
   const syncMessages = async () => {
@@ -855,7 +934,10 @@
 
   (payload.messages || []).forEach((message) => renderMessage(message));
   scrollToBottom();
+  refreshStickyDate();
   autoResize();
+
+  let pendingMessageNode = null;
 
   if (window.Echo) {
     window.Echo.private(payload.channel)
@@ -880,6 +962,7 @@
 
   syncMessages();
   window.setInterval(syncMessages, 10000);
+  thread.addEventListener('scroll', refreshStickyDate, { passive: true });
 
   input.addEventListener('input', autoResize);
   input.addEventListener('keydown', (event) => {
@@ -892,6 +975,11 @@
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
+    if (!chatAccessGranted) {
+      hint.textContent = 'Ruang chat belum aktif. Klik "Mulai Sesi" untuk memulai.';
+      return;
+    }
+
     const pesan = input.value.trim();
     if (!pesan) {
       return;
@@ -899,6 +987,27 @@
 
     sendBtn.disabled = true;
     hint.textContent = 'Mengirim pesan ke mahasiswa...';
+
+    const tempId = `pending-${Date.now()}`;
+    const pendingRow = document.createElement('div');
+    pendingRow.className = 'admin-message-row mine';
+    pendingRow.dataset.messageId = tempId;
+    pendingRow.innerHTML = `
+      <div class="admin-message-content">
+        <div class="admin-message-meta">
+          <span class="admin-message-name">${escapeHtml(currentUserName)}</span>
+          <span>Sedang mengirim...</span>
+        </div>
+        <div class="admin-message-bubble">${escapeHtml(pesan).replace(/\n/g, '<br>')}</div>
+      </div>
+      <div class="admin-message-avatar">
+        <img src="${escapeHtml(fallbackAvatar)}" alt="Anda">
+      </div>
+    `;
+
+    thread.appendChild(pendingRow);
+    pendingMessageNode = pendingRow;
+    scrollToBottom();
 
     try {
       const response = await fetch(payload.sendUrl, {
@@ -916,21 +1025,53 @@
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        hint.textContent = data.message ?? 'Pesan gagal dikirim.';
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        const txt = await response.text().catch(() => '(no body)');
+        console.error('Failed to parse JSON response', parseError, txt);
+        hint.textContent = `Server error: ${response.status} ${response.statusText}`;
         sendBtn.disabled = false;
         return;
       }
 
-      renderMessage(data.message);
+      if (!response.ok || !data?.success) {
+        console.warn('Send failed', response.status, data);
+        hint.textContent = data?.message ?? `Pesan gagal dikirim (status ${response.status}).`;
+        pendingMessageNode?.remove();
+        pendingMessageNode = null;
+        sendBtn.disabled = false;
+        return;
+      }
+
+      if (pendingMessageNode) {
+        pendingMessageNode.dataset.messageId = String(data.message.id);
+        pendingMessageNode.innerHTML = `
+          <div class="admin-message-content">
+            <div class="admin-message-meta">
+              <span class="admin-message-name">${escapeHtml(data.message.sender_name)}</span>
+              <span>${escapeHtml(data.message.time)}</span>
+            </div>
+            <div class="admin-message-bubble">${escapeHtml(data.message.text).replace(/\n/g, '<br>')}</div>
+          </div>
+          <div class="admin-message-avatar">
+            <img src="${escapeHtml(data.message.avatar_url)}" alt="${escapeHtml(data.message.sender_name)}">
+          </div>
+        `;
+        pendingMessageNode = null;
+      } else {
+        renderMessage(data.message);
+      }
+
       scrollToBottom();
       input.value = '';
       autoResize();
       hint.textContent = 'Pesan terkirim dan langsung masuk ke ruang chat mahasiswa.';
     } catch (error) {
       console.error(error);
+      pendingMessageNode?.remove();
+      pendingMessageNode = null;
       hint.textContent = 'Terjadi kendala saat mengirim pesan.';
     } finally {
       sendBtn.disabled = false;

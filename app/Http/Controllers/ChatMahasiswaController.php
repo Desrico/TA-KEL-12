@@ -63,6 +63,40 @@ class ChatMahasiswaController extends Controller
 
     public function start(Request $request): RedirectResponse
     {
+        $jadwalId = $request->integer('jadwal_id');
+
+        if ($jadwalId) {
+            $jadwal = JadwalKonseling::query()
+                ->with([
+                    'konselor.user.profil',
+                    'mahasiswa.user.profil',
+                ])
+                ->find($jadwalId);
+
+            if (! $jadwal || $jadwal->mahasiswa?->user?->id !== $request->user()->id) {
+                return redirect()
+                    ->route('mahasiswa.chat')
+                    ->with('error', 'Undangan sesi tidak ditemukan.');
+            }
+
+            $sesi = SesiKonseling::firstOrCreate(
+                ['jadwal_id' => $jadwal->id],
+                ['status' => $jadwal->status === 'berlangsung' ? 'berlangsung' : 'disetujui']
+            );
+
+            if (! $this->canStartSessionNow($sesi)) {
+                return redirect()
+                    ->route('mahasiswa.chat')
+                    ->with('error', $this->getScheduleBlockedMessage($sesi));
+            }
+
+            if (! $this->isSessionActive($sesi)) {
+                $this->activateSessionIfNeeded($sesi);
+            }
+
+            return redirect()->route('mahasiswa.chat');
+        }
+
         $sesi = $this->resolveActiveSession($request->user());
 
         if (! $sesi) {
@@ -91,9 +125,7 @@ class ChatMahasiswaController extends Controller
 
         $this->activateSessionIfNeeded($sesi);
 
-        return redirect()
-            ->route('mahasiswa.chat')
-            ->with('success', 'Sesi konseling berhasil dimulai.');
+        return redirect()->route('mahasiswa.chat');
     }
 
     public function messages(Request $request): JsonResponse
@@ -263,6 +295,8 @@ class ChatMahasiswaController extends Controller
         if ($jadwal && $jadwal->status !== 'berlangsung') {
             $jadwal->forceFill([
                 'status' => 'berlangsung',
+                'started_at' => Carbon::now($this->displayTimezone()),
+                'expires_at' => Carbon::now($this->displayTimezone())->addDay(),
             ])->save();
         }
     }
@@ -334,7 +368,7 @@ class ChatMahasiswaController extends Controller
             'id' => $chat->id,
             'sesi_id' => $chat->sesi_id,
             'sender_id' => $chat->pengirim_id,
-            'sender_name' => $chat->pengirim_id === $viewer->id ? 'Anda' : ($sender?->getNamaDisplay() ?? 'Pengguna'),
+            'sender_name' => $sender?->getNamaDisplay() ?? 'Pengguna',
             'sender_role' => $sender?->role ?? 'pengguna',
             'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
             'text' => $chat->pesan,

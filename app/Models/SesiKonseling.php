@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SesiKonseling extends Model
 {
@@ -32,5 +33,20 @@ class SesiKonseling extends Model
     public function chatMessages(): HasMany
     {
         return $this->hasMany(Chat::class, 'sesi_id');
+    }
+
+    public function laporan(): HasOne
+    {
+        return $this->hasOne(Laporan::class, 'sesi_id');
+    }
+
+    public function chats(): HasMany
+    {
+        return $this->chatMessages();
+    }
+
+    public static function jadwalForeignKey(): string
+    {
+        return 'jadwal_id';
     }
 }

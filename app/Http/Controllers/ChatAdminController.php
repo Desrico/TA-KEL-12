@@ -21,7 +21,8 @@ class ChatAdminController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $jadwalList = $this->resolveAvailableSchedules($user);
+        $availableSchedules = $this->resolveAvailableSchedules($user);
+        $jadwalList = $this->collapseSchedulesByStudent($availableSchedules);
         $selectedJadwal = $this->resolveSelectedSchedule($jadwalList, $request->integer('jadwal'));
 
         if (! $selectedJadwal) {
@@ -46,8 +47,22 @@ class ChatAdminController extends Controller
             'chats.pengirim.mahasiswa',
         ]);
 
-        $messages = $sesi->chats
-            ->sortBy('created_at')
+        $conversationSchedules = $this->resolveConversationSchedules($user, $selectedJadwal);
+        $conversationSessionIds = SesiKonseling::query()
+            ->whereIn('jadwal_id', $conversationSchedules->pluck('id')->filter()->values())
+            ->pluck('id')
+            ->push($sesi->id)
+            ->unique()
+            ->values();
+
+        $messages = Chat::query()
+            ->with([
+                'pengirim.profil',
+                'pengirim.mahasiswa',
+            ])
+            ->whereIn('sesi_id', $conversationSessionIds)
+            ->orderBy('created_at')
+            ->get()
             ->values()
             ->map(fn (Chat $chat) => $this->transformMessage($chat, $user))
             ->all();
@@ -56,7 +71,8 @@ class ChatAdminController extends Controller
         $isReadyToStart = ! $isBlockedBySchedule
             && ($selectedJadwal->status ?? null) === 'disetujui'
             && ! $this->isSessionActive($sesi);
-        $chatAccessGranted = ! $isBlockedBySchedule && $this->isSessionActive($sesi);
+        // Grant chat access only when session is active and still within 24h window
+        $chatAccessGranted = $this->isSessionActive($sesi) && $this->isChatWindowOpen($sesi);
         $canStartNow = $this->canStartSessionNow($sesi);
 
         return view('admin.chat', [
@@ -118,17 +134,10 @@ class ChatAdminController extends Controller
             ], 404);
         }
 
-        if (! $this->canStartSessionNow($sesi)) {
+        if (! $this->isChatWindowOpen($sesi) || $sesi->status !== 'berlangsung') {
             return response()->json([
                 'success' => false,
-                'message' => $this->getScheduleBlockedMessage($sesi),
-            ], 403);
-        }
-
-        if ($sesi->status !== 'berlangsung') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Sesi belum dimulai.',
+                'message' => 'Ruang chat tidak tersedia (sudah kadaluarsa atau belum dimulai).',
             ], 403);
         }
 
@@ -163,17 +172,10 @@ class ChatAdminController extends Controller
             ], 404);
         }
 
-        if (! $this->canStartSessionNow($sesi)) {
+        if (! $this->isChatWindowOpen($sesi) || $sesi->status !== 'berlangsung') {
             return response()->json([
                 'success' => false,
-                'message' => $this->getScheduleBlockedMessage($sesi),
-            ], 403);
-        }
-
-        if ($sesi->status !== 'berlangsung') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Mulai sesi terlebih dahulu sebelum mengirim pesan.',
+                'message' => 'Ruang chat tidak tersedia (sudah kadaluarsa atau belum dimulai).',
             ], 403);
         }
 
@@ -219,20 +221,121 @@ class ChatAdminController extends Controller
             ->with([
                 'mahasiswa.user.profil',
                 'konselor.user.profil',
+                'sesiKonseling',
             ])
             ->where('konselor_id', $konselorId)
-            ->where('jenis', 'online')
-            ->whereIn('status', ['disetujui', 'berlangsung'])
+                ->whereIn('status', ['disetujui', 'berlangsung', 'selesai'])
             ->orderByRaw("
                 CASE
                     WHEN status = 'berlangsung' THEN 1
                     WHEN status = 'disetujui' THEN 2
-                    ELSE 3
+                        WHEN status = 'selesai' THEN 3
+                        ELSE 4
                 END
             ")
             ->orderBy('tanggal')
             ->orderBy('waktu')
+                ->get()
+                ->each(function (JadwalKonseling $jadwal) {
+                    $jadwal->syncExpiredSessionStatus();
+                });
+    }
+
+    private function collapseSchedulesByStudent(Collection $schedules): Collection
+    {
+        return $schedules
+            ->groupBy('mahasiswa_id')
+            ->map(function (Collection $group) {
+                $sorted = $group->sort(function (JadwalKonseling $left, JadwalKonseling $right) {
+                    $leftRank = $this->schedulePriorityRank($left);
+                    $rightRank = $this->schedulePriorityRank($right);
+
+                    if ($leftRank !== $rightRank) {
+                        return $leftRank <=> $rightRank;
+                    }
+
+                    $leftAt = $left->scheduledAt();
+                    $rightAt = $right->scheduledAt();
+
+                    if ($leftAt && $rightAt) {
+                        return $leftAt->getTimestamp() <=> $rightAt->getTimestamp();
+                    }
+
+                    if ($leftAt) {
+                        return -1;
+                    }
+
+                    if ($rightAt) {
+                        return 1;
+                    }
+
+                    return $left->id <=> $right->id;
+                })->values();
+
+                $selected = $sorted->first();
+
+                if (! $selected) {
+                    return null;
+                }
+
+                $historyLabels = $sorted
+                    ->map(function (JadwalKonseling $item) {
+                        $scheduledAt = $item->scheduledAt();
+
+                        if (! $scheduledAt) {
+                            return null;
+                        }
+
+                        return $scheduledAt->translatedFormat('j M Y');
+                    })
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                $selected->conversation_dates_label = $historyLabels->isNotEmpty()
+                    ? 'Riwayat: '.$historyLabels->take(2)->implode(', ').($historyLabels->count() > 2 ? ' +'.($historyLabels->count() - 2).' lagi' : '')
+                    : null;
+
+                $displayState = $this->getScheduleDisplayState($selected);
+                $selected->display_status_key = $displayState['key'];
+                $selected->display_status_label = $displayState['label'];
+
+                return $selected;
+            })
+            ->filter()
+            ->values();
+    }
+
+    private function resolveConversationSchedules(User $user, JadwalKonseling $selectedJadwal): Collection
+    {
+        $konselorId = optional($user->konselor)->id;
+
+        if (! $konselorId || ! $selectedJadwal->mahasiswa_id) {
+            return collect([$selectedJadwal]);
+        }
+
+        $conversationSchedules = JadwalKonseling::query()
+            ->with([
+                'mahasiswa.user.profil',
+                'konselor.user.profil',
+                'sesiKonseling',
+            ])
+            ->where('konselor_id', $konselorId)
+            ->where('mahasiswa_id', $selectedJadwal->mahasiswa_id)
+            ->where(function ($query) {
+                $query->where('jenis', 'online')
+                    ->orWhereNull('jenis');
+            })
+            ->whereIn('status', ['disetujui', 'berlangsung', 'selesai'])
+            ->orderBy('tanggal')
+            ->orderBy('waktu')
             ->get();
+
+        if ($conversationSchedules->isEmpty()) {
+            return collect([$selectedJadwal]);
+        }
+
+        return $conversationSchedules;
     }
 
     private function resolveSelectedSchedule(Collection $jadwalList, ?int $jadwalId): ?JadwalKonseling
@@ -262,7 +365,6 @@ class ChatAdminController extends Controller
                 'konselor.user.profil',
             ])
             ->where('konselor_id', $konselorId)
-            ->where('jenis', 'online')
             ->whereIn('status', ['disetujui', 'berlangsung'])
             ->find($jadwalId);
     }
@@ -315,8 +417,31 @@ class ChatAdminController extends Controller
         if ($jadwal && $jadwal->status !== 'berlangsung') {
             $jadwal->forceFill([
                 'status' => 'berlangsung',
+                'started_at' => Carbon::now($this->displayTimezone()),
+                'expires_at' => Carbon::now($this->displayTimezone())->addDay(),
             ])->save();
         }
+    }
+
+    private function isChatWindowOpen(SesiKonseling $sesi): bool
+    {
+        $jadwal = $sesi->jadwalKonseling;
+
+        if (! $jadwal) {
+            return false;
+        }
+
+        $now = $this->nowInDisplayTimezone();
+
+        $start = $jadwal->startedAt() ?? $this->getScheduledAt($sesi);
+
+        if (! $start) {
+            return false;
+        }
+
+        $expires = $jadwal->expiresAt() ?? $start->copy()->addDay();
+
+        return $now->greaterThanOrEqualTo($start) && $now->lessThanOrEqualTo($expires);
     }
 
     private function canStartSessionNow(SesiKonseling $sesi): bool
@@ -348,6 +473,12 @@ class ChatAdminController extends Controller
         $mahasiswaUser = optional(optional($jadwal)->mahasiswa)->user;
         $mahasiswaProfil = optional($mahasiswaUser)->profil;
 
+        $expiresAt = $jadwal?->expiresAt();
+        $remainingSeconds = null;
+        if ($expiresAt) {
+            $remainingSeconds = max(0, $expiresAt->diffInSeconds($this->nowInDisplayTimezone())) * 1;
+        }
+
         return [
             'sessionId' => $sesi->id,
             'jadwalId' => $jadwal?->id,
@@ -361,6 +492,8 @@ class ChatAdminController extends Controller
             'studentAvatar' => $mahasiswaProfil?->foto ? Storage::url($mahasiswaProfil->foto) : asset('img/default-avatar.png'),
             'canStart' => $isReadyToStart,
             'canStartNow' => $canStartNow,
+            'expiresAt' => $expiresAt?->toIso8601String(),
+            'remainingSeconds' => $remainingSeconds,
             'messages' => $messages,
         ];
     }
@@ -375,17 +508,96 @@ class ChatAdminController extends Controller
         $sender = $chat->pengirim;
         $profil = optional($sender)->profil;
 
+        $sentAt = $this->toDisplayDateTime($chat->created_at) ?? $this->nowInDisplayTimezone();
+
         return [
             'id' => $chat->id,
             'sesi_id' => $chat->sesi_id,
             'sender_id' => $chat->pengirim_id,
-            'sender_name' => $chat->pengirim_id === $viewer->id ? 'Anda' : ($sender?->getNamaDisplay() ?? 'Pengguna'),
+            'sender_name' => $sender?->getNamaDisplay() ?? 'Pengguna',
             'sender_role' => $sender?->role ?? 'pengguna',
             'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
             'text' => $chat->pesan,
-            'time' => $this->toDisplayDateTime($chat->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
-            'sent_at' => $this->toDisplayDateTime($chat->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
+            'time' => $sentAt->format('H:i'),
+            'sent_at' => $sentAt->toIso8601String(),
+            'date_key' => $sentAt->format('Y-m-d'),
+            'date_label' => $sentAt->translatedFormat('l, j F Y'),
             'is_mine' => $chat->pengirim_id === $viewer->id,
+        ];
+    }
+
+    private function schedulePriorityRank(JadwalKonseling $jadwal): int
+    {
+        $status = $this->getScheduleDisplayState($jadwal)['key'];
+
+        if ($status === 'berlangsung') {
+            return 0;
+        }
+
+        if ($status === 'disetujui') {
+            return $jadwal->hasScheduledTimeStarted() ? 1 : 2;
+        }
+
+        if ($status === 'selesai') {
+            return 3;
+        }
+
+        return 4;
+    }
+
+    private function getScheduleDisplayState(JadwalKonseling $jadwal): array
+    {
+        $now = $this->nowInDisplayTimezone();
+        $scheduledAt = $jadwal->scheduledAt();
+        $startedAt = $jadwal->startedAt();
+        $expiresAt = $jadwal->expiresAt();
+        $rawStatus = strtolower((string) ($jadwal->status ?? ''));
+
+        if ($jadwal->relationLoaded('sesiKonseling') && $jadwal->sesiKonseling?->status === 'berlangsung') {
+            return [
+                'key' => 'berlangsung',
+                'label' => 'Berlangsung',
+            ];
+        }
+
+        if ($rawStatus === 'selesai') {
+            return [
+                'key' => 'selesai',
+                'label' => 'Selesai',
+            ];
+        }
+
+        if ($rawStatus === 'ditolak' || $rawStatus === 'dibatalkan') {
+            return [
+                'key' => 'dibatalkan',
+                'label' => 'Dibatalkan',
+            ];
+        }
+
+        if ($expiresAt && $now->greaterThan($expiresAt)) {
+            return [
+                'key' => 'selesai',
+                'label' => 'Selesai',
+            ];
+        }
+
+        if ($rawStatus === 'berlangsung' || ($startedAt && $now->greaterThanOrEqualTo($startedAt))) {
+            return [
+                'key' => 'berlangsung',
+                'label' => 'Berlangsung',
+            ];
+        }
+
+        if ($rawStatus === 'disetujui' || ($scheduledAt && $now->lessThan($scheduledAt))) {
+            return [
+                'key' => 'disetujui',
+                'label' => 'Disetujui',
+            ];
+        }
+
+        return [
+            'key' => $rawStatus ?: 'disetujui',
+            'label' => ucfirst($rawStatus ?: 'disetujui'),
         ];
     }
 

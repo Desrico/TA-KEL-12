@@ -2084,22 +2084,19 @@ footer a:hover {
                       >
                   </div>
 
-                  <div>
-                      @if(Auth::user()->isAnonim())
-                          <div class="pd-name">Mahasiswa Anonim</div>
-                          <div class="pd-nim">
-                              {{ optional(Auth::user()->mahasiswa)->jurusan ?? '' }}
-                              {{ optional(Auth::user()->mahasiswa)->angkatan ?? '' }}
-                          </div>
-                      @else
-                          <div class="pd-name">{{ Auth::user()->nama }}</div>
-                          <div class="pd-nim">
-                              {{ optional(Auth::user()->mahasiswa)->nim ?? '' }}
-                              · {{ optional(Auth::user()->mahasiswa)->jurusan ?? '' }}
-                              {{ optional(Auth::user()->mahasiswa)->angkatan ?? '' }}
-                          </div>
-                      @endif
-                  </div>
+                    <div>
+                      <div class="pd-name">{{ Auth::user()->getNamaDisplay() }}</div>
+                      <div class="pd-nim">
+                        @if(Auth::user()->isAnonim())
+                          {{ optional(Auth::user()->mahasiswa)->jurusan ?? '' }}
+                          {{ optional(Auth::user()->mahasiswa)->angkatan ?? '' }}
+                        @else
+                          {{ optional(Auth::user()->mahasiswa)->nim ?? '' }}
+                          · {{ optional(Auth::user()->mahasiswa)->jurusan ?? '' }}
+                          {{ optional(Auth::user()->mahasiswa)->angkatan ?? '' }}
+                        @endif
+                      </div>
+                    </div>
               </div>
 
               <a href="{{ route('profil') }}" class="pd-item">
@@ -2739,9 +2736,37 @@ if (letterEnvelope) {
 
 if (letterActionForm) {
   letterActionForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
     if (letterActionButton?.disabled) {
-      event.preventDefault();
+      return;
     }
+
+    const redirectToChat = "{{ route('mahasiswa.chat') }}";
+    const formData = new FormData(letterActionForm);
+
+    letterActionButton.disabled = true;
+
+    fetch(letterActionForm.action, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html,application/xhtml+xml',
+      },
+      credentials: 'same-origin',
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        window.location.assign(redirectToChat);
+      })
+      .catch(() => {
+        letterActionButton.disabled = false;
+      });
   });
 }
 

@@ -126,6 +126,83 @@
             display: inline-flex; align-items: center; justify-content: center;
         }
 
+        /* ── Dashboard Tabs ── */
+       .dashboard-heading-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-page-title {
+            margin: 0;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #0f5132;
+            line-height: 1.1;
+        }
+
+        .dashboard-tabs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 8px;
+            width: fit-content;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dashboard-tab-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-2);
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 12px 22px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dashboard-tab-btn:hover {
+            background: #ecfdf5;
+            color: var(--accent);
+        }
+
+        .dashboard-tab-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
+        }
+
+        .dashboard-tab-content {
+            display: none;
+        }
+
+        .dashboard-tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-heading-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dashboard-page-title {
+                font-size: 2.2rem;
+            }
+
+            .dashboard-tabs {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
         /* ── Stats Right Column ── */
         .stats-section-title { font-size: 0.85rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 18px; margin-top: 8px;}
         
@@ -209,6 +286,138 @@
             .progress-bar-bg { background: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .progress-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
+
+        /* ── Tab 2 Statistik Konseling ── */
+        .konseling-analytics-wrap {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .konseling-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .konseling-stat-card {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 16px 18px;
+            min-height: 75px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        /* today list placeholder removed from CSS */
+        .today-card h3 {
+            font-size: 32px;
+            color: #0d6efd;
+            font-weight: 800;
+        }
+
+        .konseling-chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .konseling-chart-card {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 18px;
+            min-height: 300px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .konseling-chart-card h4 {
+            margin: 0 0 14px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .konseling-chart-box {
+            height: 220px;
+            position: relative;
+        }
+
+        @media (max-width: 1200px) {
+            .konseling-stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .today-stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .konseling-chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .konseling-stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .today-stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .konseling-chart-card {
+                min-height: 280px;
+                padding: 16px;
+            }
+
+            .konseling-chart-box {
+                height: 200px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .konseling-stat-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .today-stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .konseling-stat-card {
+                padding: 14px 12px;
+                min-height: 65px;
+            }
+
+            .konseling-stat-card h3 {
+                font-size: 24px;
+            }
+
+            .konseling-stat-card p {
+                font-size: 11px;
+                margin-top: 4px;
+            }
+
+            .konseling-chart-card {
+                min-height: 250px;
+                padding: 14px;
+            }
+
+            .konseling-chart-box {
+                height: 180px;
+            }
+
+            .konseling-chart-card h4 {
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+        }
     </style>
 @endpush
 
@@ -221,6 +430,24 @@
 
     <div class="container-fluid p-0">
         <!-- Alert Banner -->
+         <div class="dashboard-heading-row">
+
+            <div class="dashboard-tabs">
+                <button type="button"
+                    class="dashboard-tab-btn active"
+                    data-tab="tab-mobile">
+                    Data Mobile
+                </button>
+
+                <button type="button"
+                    class="dashboard-tab-btn"
+                    data-tab="tab-web">
+                    Statistik Konseling
+                </button>
+            </div>
+
+        </div>
+        <div id="tab-mobile" class="dashboard-tab-content active">
         <div class="alert-banner">
             <div class="alert-header">
                 <div class="alert-title-wrap">
@@ -429,8 +656,101 @@
             </table>
         </div>
     </div>
+    </div>
+
+    <div id="tab-web" class="dashboard-tab-content">
+    <div class="konseling-analytics-wrap">
+
+        <!-- Total Statistik Konseling - Paling Atas -->
+        <div class="today-section-header">
+            <h5>📊 Total Statistik Konseling</h5>
+        </div>
+
+        <div class="konseling-stat-grid">
+            <div class="konseling-stat-card">
+                <div class="stat-row">
+                    <i class="ti ti-calendar-event"></i>
+                    <h3>{{ $totalPenjadwalan ?? 0 }}</h3>
+                </div>
+                <p>Total Penjadwalan</p>
+            </div>
+
+            <div class="konseling-stat-card">
+                <div class="stat-row">
+                    <i class="ti ti-circle-check"></i>
+                    <h3>{{ $totalSesiSelesai ?? 0 }}</h3>
+                </div>
+                <p>Total Sesi Selesai</p>
+            </div>
+
+            <div class="konseling-stat-card">
+                <div class="stat-row">
+                    <i class="ti ti-checkup-list"></i>
+                    <h3>{{ $totalDiterima ?? 0 }}</h3>
+                </div>
+                <p>Penjadwalan Diterima</p>
+            </div>
+
+            <div class="konseling-stat-card">
+                <div class="stat-row">
+                    <i class="ti ti-square-x"></i>
+                    <h3>{{ $totalDitolak ?? 0 }}</h3>
+                </div>
+                <p>Penjadwalan Dibatalkan</p>
+            </div>
+        </div>
+
+        <!-- Daftar Penjadwalan Hari Ini - Di Tengah Atas Grafik -->
+        <div class="today-list" style="margin-bottom:24px;">
+            @if(isset($todayJadwals) && $todayJadwals->count())
+                @foreach($todayJadwals as $jadwal)
+                @php
+                    $namaMahasiswa = optional(optional($jadwal->mahasiswa)->user)->nama
+                        ?? optional($jadwal->mahasiswa)->nama
+                        ?? 'Mahasiswa';
+                @endphp
+                <div class="today-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:#fff; border:1px solid #e9ecef; border-radius:8px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:12px; min-width:120px;">
+                        <div class="avatar-circle" style="width:44px;height:44px;border-radius:50%;background:#e9f7ff;color:#0d6efd;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                            {{ $loop->iteration }}
+                        </div>
+                    </div>
+                    <div style="flex:1; text-align:center;">
+                        <div style="font-weight:700;color:#1f2937;font-size:15px;">{{ $namaMahasiswa }}</div>
+                        <div style="font-size:12px;color:#6c757d;">{{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('j F Y') }} · {{ \Carbon\Carbon::parse($jadwal->waktu)->format('H:i') }} WIB</div>
+                    </div>
+                    <div style="min-width:120px; display:flex; justify-content:flex-end;">
+                        <a href="{{ route('admin.sesi') }}" style="background:#065F46;color:#fff;border:none;border-radius:10px;padding:.5rem 1rem;font-size:.78rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-width:66px;">Lihat</a>
+                    </div>
+                </div>
+                @endforeach
+            @else
+                <div class="text-center" style="padding:18px; color:#6c757d;">Tidak ada penjadwalan hari ini.</div>
+            @endif
+        </div>
+
+        <!-- Charts - Di Bawah -->
+        <div class="konseling-chart-grid">
+            <div class="konseling-chart-card">
+                <h4>Grafik Jumlah Konseling</h4>
+                <div class="konseling-chart-box">
+                    <canvas id="konselingChart"></canvas>
+                </div>
+            </div>
+
+            <div class="konseling-chart-card">
+                <h4>Topik Masalah</h4>
+                <div class="konseling-chart-box">
+                    <canvas id="topikChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
 
     <div id="toast"></div>
+    
 @endsection
 
 @push('scripts')
@@ -718,8 +1038,231 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        initDashboardTabs();
         loadChartData('14d');
         loadTopStudents();
     });
+
+    let konselingChartInstance = null;
+    let topikChartInstance = null;
+
+    function initDashboardTabs() {
+        const buttons = document.querySelectorAll('.dashboard-tab-btn');
+        const contents = document.querySelectorAll('.dashboard-tab-content');
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                buttons.forEach(btn => btn.classList.remove('active'));
+                contents.forEach(content => content.classList.remove('active'));
+
+                button.classList.add('active');
+
+                const target = document.getElementById(button.dataset.tab);
+                if (target) target.classList.add('active');
+
+                if (button.dataset.tab === 'tab-web') {
+                    setTimeout(() => {
+                        renderKonselingChart();
+                        renderTopikChart();
+                    }, 100);
+                }
+            });
+        });
+    }
+
+    function renderKonselingChart() {
+        const ctx = document.getElementById('konselingChart');
+        if (!ctx) return;
+
+        const labels = @json($monthlyLabels ?? []);
+        const data = @json($monthlyCounts ?? []);
+
+        // Fallback empty data handling
+        if (!labels || !labels.length || !data || !data.length) {
+            ctx.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #94a3b8; font-size: 14px;">Belum ada data penjadwalan konseling</div>';
+            return;
+        }
+
+        if (konselingChartInstance) {
+            konselingChartInstance.destroy();
+        }
+
+        const maxValue = Math.max(...data, 1);
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 250);
+        gradient.addColorStop(0, 'rgba(5, 150, 105, 0.3)');
+        gradient.addColorStop(1, 'rgba(5, 150, 105, 0.01)');
+
+        konselingChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Jumlah Konseling',
+                    data: data,
+                    borderColor: '#059669',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#059669',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBorderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    segment: {
+                        borderColor: ctx => '#059669',
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: { 
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        cornerRadius: 8,
+                        displayColors: true,
+                        borderColor: '#059669',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Konseling: ' + context.parsed.y + ' sesi';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: Math.ceil(maxValue * 1.2),
+                        ticks: {
+                            precision: 0,
+                            font: { size: 11, family: 'Inter' },
+                            color: '#475569',
+                            padding: 12
+                        },
+                        grid: { 
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        border: { display: false }
+                    },
+                    x: {
+                        ticks: { 
+                            font: { size: 11, family: 'Inter' },
+                            color: '#475569',
+                            padding: 8
+                        },
+                        grid: { display: false },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderTopikChart() {
+        const ctx = document.getElementById('topikChart');
+        if (!ctx) return;
+
+        const labels = @json($topikLabels ?? []);
+        const data = @json($topikCounts ?? []);
+        const total = data.reduce((a, b) => a + b, 0);
+
+        // Fallback empty data handling
+        if (!labels || !labels.length || !data || !data.length) {
+            ctx.parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #6c757d; font-size: 13px;">Belum ada data topik penjadwalan</div>';
+            return;
+        }
+
+        if (topikChartInstance) {
+            topikChartInstance.destroy();
+        }
+
+        // Natural color palette (Bootstrap-like)
+        const colors = [
+            '#0d6efd', '#6f42c1', '#20c997', '#fd7e14',
+            '#dc3545', '#198754', '#0dcaf0', '#6c757d', '#212529'
+        ];
+
+        topikChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                layout: {
+                    padding: 0
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        align: 'center',
+                        labels: {
+                            font: { size: 12, weight: '500' },
+                            color: '#212529',
+                            padding: 12,
+                            boxWidth: 14,
+                            boxHeight: 14,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                return data.labels.map((label, i) => ({
+                                    text: label + ' (' + data.datasets[0].data[i] + ')',
+                                    fillStyle: colors[i % colors.length],
+                                    hidden: false,
+                                    index: i
+                                }));
+                            }
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(33, 37, 41, 0.9)',
+                        padding: 10,
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyFont: { size: 11 },
+                        cornerRadius: 4,
+                        borderColor: '#dee2e6',
+                        borderWidth: 1,
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                return tooltipItems[0].label;
+                            },
+                            label: function(context) {
+                                const value = context.parsed;
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return 'Total: ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 </script>
 @endpush

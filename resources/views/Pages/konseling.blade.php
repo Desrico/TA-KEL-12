@@ -971,7 +971,7 @@
             </div>
             <div class="col-md-6">
               <label class="field-label" for="profile-nama">Nama</label>
-              <input type="text" class="schedule-input" id="profile-nama" value="{{ $isAnonim ? 'Mahasiswa Anonim' : $namaMahasiswa }}" disabled>
+              <input type="text" class="schedule-input" id="profile-nama" value="{{ $isAnonim ? $user->getAnonimDisplayName() : $namaMahasiswa }}" disabled>
             </div>
             <div class="col-md-6">
               <label class="field-label" for="profile-angkatan">Angkatan</label>

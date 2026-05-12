@@ -18,6 +18,38 @@ class LaporanController extends Controller
         return $cache[$column] ??= Schema::hasColumn('jadwal_konseling', $column);
     }
 
+    private function extractTopik(?string $catatan, ?string $fallback = null): string
+    {
+        if (!empty($fallback)) {
+            return $fallback;
+        }
+
+        if (empty($catatan)) {
+            return '-';
+        }
+
+        if (preg_match('/Topik:\s*([^|]+)/i', $catatan, $match)) {
+            return trim($match[1]) ?: '-';
+        }
+
+        return '-';
+    }
+
+    private function formatRiwayatStatus(?string $status): array
+    {
+        $normalized = strtolower(trim((string) $status));
+
+        return match ($normalized) {
+            'selesai' => ['label' => 'Selesai', 'class' => 'status-selesai'],
+            'ditolak' => ['label' => 'Ditolak', 'class' => 'status-ditolak'],
+            'dibatalkan' => ['label' => 'Dibatalkan', 'class' => 'status-dibatalkan'],
+            'disetujui', 'diterima' => ['label' => 'Diterima', 'class' => 'status-diterima'],
+            'menunggu', 'menunggu konfirmasi' => ['label' => 'Menunggu Konfirmasi', 'class' => 'status-menunggu'],
+            'berlangsung', 'sedang berlangsung' => ['label' => 'Sedang Berlangsung', 'class' => 'status-berlangsung'],
+            default => ['label' => ucfirst($normalized ?: '-'), 'class' => 'status-default'],
+        };
+    }
+
     public function riwayat()
     {
         $mahasiswa = auth()->user()->mahasiswa;
@@ -39,6 +71,54 @@ class LaporanController extends Controller
 
         return view('Pages.riwayat', compact('riwayat', 'selectedJadwal'));
 
+    }
+
+    public function detailRiwayat($id)
+    {
+        $mahasiswa = auth()->user()->mahasiswa;
+
+        if (! $mahasiswa) {
+            abort(403, 'Data mahasiswa tidak ditemukan.');
+        }
+
+        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'konselor.user', 'sesiKonseling'])
+            ->where('id', $id)
+            ->where('mahasiswa_id', $mahasiswa->id)
+            ->firstOrFail();
+
+        $laporan = null;
+        if ($jadwal->sesiKonseling) {
+            $laporan = Laporan::where('sesi_id', $jadwal->sesiKonseling->id)->first();
+        }
+
+        $statusInfo = $this->formatRiwayatStatus($jadwal->status);
+        $topik = $this->extractTopik($jadwal->catatan, $jadwal->topik ?? null);
+        $metode = strtolower(trim((string) $jadwal->jenis)) === 'offline'
+            ? 'Tatap Muka'
+            : 'Video Call';
+
+        $catatanRingkasan = trim((string) ($jadwal->ringkasan_masalah ?? ''));
+        if ($catatanRingkasan === '') {
+            $catatanRingkasan = trim((string) ($laporan->isi_laporan ?? $jadwal->catatan ?? ''));
+        }
+
+        $observasi = trim((string) ($jadwal->observasi_konselor ?? ''));
+        $progress = trim((string) ($jadwal->progress ?? ''));
+        $tindakLanjut = trim((string) ($jadwal->tindak_lanjut ?? $jadwal->tindak_lanjut_tipe ?? ''));
+        $tanggalLanjut = trim((string) ($jadwal->tanggal_lanjut ?? ''));
+
+        return view('Pages.riwayat-detail', compact(
+            'jadwal',
+            'laporan',
+            'statusInfo',
+            'topik',
+            'metode',
+            'catatanRingkasan',
+            'observasi',
+            'progress',
+            'tindakLanjut',
+            'tanggalLanjut'
+        ));
     }
 
     public function laporanAdmin()

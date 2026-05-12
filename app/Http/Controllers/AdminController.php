@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Konselor;
 use App\Models\Notifikasi;
 use App\Models\SesiKonseling;
+use App\Models\Student;
 
 class AdminController extends Controller
 {
@@ -122,30 +123,73 @@ class AdminController extends Controller
         ]);
     }
 
- public function dashboard()
+public function dashboard()
 {
     $user = Auth::user();
-    
-    if ($user->role !== 'konselor') {
+
+    if (!$user || $user->role !== 'konselor') {
         return redirect('/')->with('error', 'Akses ditolak.');
     }
 
     $konselor = Konselor::where('user_id', $user->id)->first();
 
-    $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
+    // DATA TAB 1 - MOBILE
+    if (Schema::hasTable('students')) {
+        $students = Student::with('journalTexts')
+            ->orderBy('mental_level', 'desc')
+            ->orderBy('name')
+            ->get();
 
-    $totalPenjadwalan   = (clone $baseQuery)->count();
-    $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
-    $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
-    $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
-    $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
-    $approvalRate   = $totalPenjadwalan > 0 ? round(($disetujui / $totalPenjadwalan) * 100) : 0;
+        $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
+    } else {
+        $students = collect();
+        $lastScan = null;
+    }
+
+    // DATA TAB 2 - STATISTIK KONSELING
+    $baseQuery = JadwalKonseling::query();
+
+    if ($konselor) {
+        $baseQuery->where('konselor_id', $konselor->id);
+    }
+
+    $totalPenjadwalan = (clone $baseQuery)->count();
+
+    $totalSesiSelesai = (clone $baseQuery)
+        ->where('status', 'selesai')
+        ->count();
+
+    $totalDiterima = (clone $baseQuery)
+        ->whereIn('status', ['disetujui', 'diterima'])
+        ->count();
+
+    $totalDitolak = (clone $baseQuery)
+        ->where('status', 'ditolak')
+        ->count();
+
+    $menunggu = (clone $baseQuery)
+        ->where('status', 'menunggu')
+        ->count();
+
+    $disetujui = $totalDiterima;
+    $ditolak = $totalDitolak;
+
+    $mahasiswaAktif = (clone $baseQuery)
+        ->distinct('mahasiswa_id')
+        ->count('mahasiswa_id');
+
+    $approvalRate = $totalPenjadwalan > 0
+        ? round(($totalDiterima / $totalPenjadwalan) * 100)
+        : 0;
 
     $monthlyLabels = [];
     $monthlyCounts = [];
+
     for ($i = 5; $i >= 0; $i--) {
         $month = Carbon::now()->subMonths($i);
+
         $monthlyLabels[] = $month->translatedFormat('M');
+
         $monthlyCounts[] = (clone $baseQuery)
             ->whereYear('tanggal', $month->year)
             ->whereMonth('tanggal', $month->month)
@@ -154,26 +198,35 @@ class AdminController extends Controller
 
     $topikStats = collect();
 
-        if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
-            $topikStats = (clone $baseQuery)
-                ->whereNotNull('catatan')
-                ->pluck('catatan')
-                ->map(function ($catatan) {
-                    if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
-                        return trim($match[1]);
-                    }
+    if (Schema::hasColumn('jadwal_konseling', 'topik')) {
+        $topikStats = (clone $baseQuery)
+            ->whereNotNull('topik')
+            ->where('topik', '!=', '')
+            ->selectRaw('topik, COUNT(*) as total')
+            ->groupBy('topik')
+            ->orderByDesc('total')
+            ->take(5)
+            ->pluck('total', 'topik');
+    } elseif (Schema::hasColumn('jadwal_konseling', 'catatan')) {
+        $topikStats = (clone $baseQuery)
+            ->whereNotNull('catatan')
+            ->pluck('catatan')
+            ->map(function ($catatan) {
+                if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
+                    return trim($match[1]);
+                }
 
-                    return trim((string) $catatan);
-                })
-                ->filter()
-                ->countBy()
-                ->sortDesc()
-                ->take(5);
-        }
+                return trim((string) $catatan);
+            })
+            ->filter()
+            ->countBy()
+            ->sortDesc()
+            ->take(5);
+    }
 
-        $topikLabels = $topikStats->keys()->values();
-        $topikCounts = $topikStats->values()->values();
-        $totalTopik = $topikCounts->sum();
+    $topikLabels = $topikStats->keys()->values();
+    $topikCounts = $topikStats->values()->values();
+    $totalTopik = $topikCounts->sum();
 
     $JadwalTerbaru = (clone $baseQuery)
         ->with('mahasiswa.user')
@@ -182,8 +235,13 @@ class AdminController extends Controller
         ->get();
 
     return view('admin.dashboard', compact(
+        'students',
+        'lastScan',
         'konselor',
         'totalPenjadwalan',
+        'totalSesiSelesai',
+        'totalDiterima',
+        'totalDitolak',
         'menunggu',
         'disetujui',
         'ditolak',
@@ -195,6 +253,7 @@ class AdminController extends Controller
         'topikLabels',
         'topikCounts',
         'totalTopik',
+        'JadwalTerbaru'
     ));
 }
     public function jadwal()

@@ -58,12 +58,12 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
 
     // Chat - Mahasiswa dapat melakukan chat dengan konselor
-    Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->name('chat.student');
-    Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->name('chat.student.store');
     Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
     Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
     Route::get('/chat/pesan', [ChatMahasiswaController::class, 'messages'])->name('mahasiswa.chat.messages');
     Route::post('/chat/pesan', [ChatMahasiswaController::class, 'store'])->name('mahasiswa.chat.store');
+    Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->name('chat.student');
+    Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->name('chat.student.store');
 
     // flow penjadwalan
     Route::get('/detail-penjadwalan', [JadwalController::class, 'detail'])->name('jadwal.detail');
@@ -92,10 +92,6 @@ Route::prefix('admin')
         Route::post('/chat/mulai', [ChatAdminController::class, 'start'])->name('chat.start');
         Route::get('/chat/pesan', [ChatAdminController::class, 'messages'])->name('chat.messages');
         Route::post('/chat/pesan', [ChatAdminController::class, 'store'])->name('chat.store');
-
-        Route::get('/chat', [ChatController::class, 'index'])->name('chat');
-        Route::get('/chat/{sessionId}', [ChatController::class, 'session'])->name('chat.session');
-        Route::post('/chat/{sessionId}', [ChatController::class, 'store'])->name('chat.store');
 
         Route::get('/sesi', [SesiKonselingController::class, 'index'])->name('sesi');
         Route::get('/sesi/{id}', [SesiKonselingController::class, 'detail'])->name('sesi.detail');

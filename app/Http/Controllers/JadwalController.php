@@ -192,12 +192,12 @@ class JadwalController extends Controller
         }
 
         $isAnonim    = $user->isAnonim();
-        $namaDisplay = $isAnonim ? 'Mahasiswa Anonim' : $user->nama;
+        $namaDisplay = $user->getNamaDisplay();
         $prodi       = $mahasiswa->jurusan ?? '-';
         $angkatan    = $mahasiswa->angkatan ?? '-';
 
         $identitasUntukKonselor = $isAnonim
-            ? 'Mahasiswa Prodi ' . $prodi . ' Angkatan ' . $angkatan
+            ? trim($user->getAnonimDisplayName())
             : $user->nama;
 
         $jadwal = DB::transaction(function () use ($mahasiswa, $konselor, $validated, $normalizedWaktu, $isAnonim, $user, $identitasUntukKonselor) {

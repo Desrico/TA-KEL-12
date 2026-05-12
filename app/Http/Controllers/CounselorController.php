@@ -48,10 +48,13 @@ class CounselorController extends Controller
         $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
         $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
         $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
+        $totalSesiSelesai = (clone $baseQuery)->whereNotNull('laporan')->orWhere('status', 'selesai')->count();
+        $totalDiterima  = $disetujui;
+        $totalDitolak   = $ditolak;
         $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
         $approvalRate   = $totalPenjadwalan > 0 ? round(($disetujui / $totalPenjadwalan) * 100) : 0;
 
-        // Monthly statistics
+        // Monthly statistics (6 bulan terakhir)
         $monthlyLabels = [];
         $monthlyCounts = [];
         for ($i = 5; $i >= 0; $i--) {
@@ -63,28 +66,49 @@ class CounselorController extends Controller
                 ->count();
         }
 
-        // Topic statistics
-        $topikStats = collect();
-        if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
-            $topikStats = (clone $baseQuery)
-                ->whereNotNull('catatan')
-                ->pluck('catatan')
-                ->map(function ($catatan) {
-                    if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
-                        return trim($match[1]);
-                    }
-                    return trim((string) $catatan);
-                })
-                ->filter()
-                ->countBy()
-                ->sortDesc()
-                ->take(5);
-        }
+        // Topic statistics - Ambil langsung dari field topik di JadwalKonseling
+        // Ini adalah topik yang dipilih mahasiswa saat membuat penjadwalan
+        $topikStats = (clone $baseQuery)
+            ->whereNotNull('topik')
+            ->pluck('topik')
+            ->map(fn($topic) => trim((string)$topic))
+            ->filter(fn($topic) => !empty($topic))
+            ->countBy()
+            ->sortDesc()
+            ->take(8); // Ambil max 8 topik untuk doughnut chart
 
         $topikLabels = $topikStats->keys()->values();
         $topikCounts = $topikStats->values()->values();
         $totalTopik = $topikCounts->sum();
 
+        // Today's Counseling Statistics
+        $today = Carbon::today();
+        $todayQuery = (clone $baseQuery)->whereDate('tanggal', $today);
+        
+        $todayScheduled = (clone $todayQuery)
+            ->whereIn('status', ['disetujui', 'menunggu'])
+            ->count();
+        
+        $todayInProgress = (clone $todayQuery)
+            ->where('status', 'disetujui')
+            ->whereTime('waktu', '<=', now()->format('H:i:s'))
+            ->where('waktu', '>', now()->subHours(2)->format('H:i:s'))
+            ->count();
+        
+        $todayCompleted = (clone $todayQuery)
+            ->whereNotNull('laporan')
+            ->orWhere('status', 'selesai')
+            ->count();
+        
+        $todayWaiting = (clone $todayQuery)
+            ->where('status', 'menunggu')
+            ->count();
+
+        // Daftar jadwal untuk hari ini (untuk ditampilkan di dashboard)
+        $todayJadwals = (clone $todayQuery)
+            ->with('mahasiswa')
+            ->orderBy('waktu')
+            ->get();
         return view('admin.dashboard', compact(
             'students',
             'lastScan',
@@ -93,6 +117,9 @@ class CounselorController extends Controller
             'menunggu',
             'disetujui',
             'ditolak',
+            'totalSesiSelesai',
+            'totalDiterima',
+            'totalDitolak',
             'mahasiswaAktif',
             'approvalRate',
             'monthlyLabels',
@@ -101,6 +128,11 @@ class CounselorController extends Controller
             'topikLabels',
             'topikCounts',
             'totalTopik',
+            'todayScheduled',
+            'todayInProgress',
+            'todayCompleted',
+            'todayWaiting',
+            'todayJadwals',
         ));
     }
 

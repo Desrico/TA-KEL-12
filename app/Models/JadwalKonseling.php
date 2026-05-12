@@ -20,6 +20,8 @@ class JadwalKonseling extends Model
         'tanggal',
         'waktu',
         'status',
+        'started_at',
+        'expires_at',
         'jenis',
         'topik',
         'anonim',
@@ -131,5 +133,58 @@ class JadwalKonseling extends Model
     public function sesiKonseling(): HasOne
     {
         return $this->hasOne(SesiKonseling::class, 'jadwal_id');
+    }
+
+    public function startedAt(): ?\Carbon\Carbon
+    {
+        return $this->started_at ? Carbon::parse($this->started_at, self::sessionTimezone()) : null;
+    }
+
+    public function expiresAt(): ?\Carbon\Carbon
+    {
+        if ($this->expires_at) {
+            return Carbon::parse($this->expires_at, self::sessionTimezone());
+        }
+
+        $start = $this->startedAt() ?? $this->scheduledAt();
+
+        return $start ? $start->copy()->addDay() : null;
+    }
+
+    public function isExpired(?\Carbon\CarbonInterface $reference = null): bool
+    {
+        $now = $reference ? Carbon::instance($reference)->timezone(self::sessionTimezone()) : self::sessionNow();
+        $expires = $this->expiresAt();
+
+        if (! $expires) {
+            return false;
+        }
+
+        return $now->greaterThan($expires);
+    }
+
+    public function syncExpiredSessionStatus(?CarbonInterface $reference = null): bool
+    {
+        if (! in_array($this->status, ['disetujui', 'berlangsung'], true)) {
+            return false;
+        }
+
+        if (! $this->isExpired($reference)) {
+            return false;
+        }
+
+        $this->forceFill([
+            'status' => 'selesai',
+        ])->save();
+
+        $sesi = $this->sesiKonseling;
+
+        if ($sesi && $sesi->status !== 'selesai') {
+            $sesi->forceFill([
+                'status' => 'selesai',
+            ])->save();
+        }
+
+        return true;
     }
 }

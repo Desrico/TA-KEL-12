@@ -112,6 +112,9 @@ class LoginController extends Controller
     $validated = $request->validate([
         'username' => ['required', 'string'],
         'password' => ['required', 'string'],
+    ], [
+        'username.required' => 'Username dan password harus diisi',
+        'password.required' => 'Password harus diisi',
     ]);
 
     // 1. Fallback login lokal sementara
@@ -173,6 +176,7 @@ class LoginController extends Controller
         $nama = $mahasiswaData['nama'] ?? $validated['username'];
         $email = $mahasiswaData['email'] ?? ($validated['username'] . '@cis.local');
 
+
         // 5. Buat/update user lokal otomatis
         $user = User::updateOrCreate(
             ['username_cis' => $validated['username']],
@@ -207,7 +211,7 @@ class LoginController extends Controller
         DB::rollBack();
 
         return back()->withErrors([
-            'username' => 'Login gagal. Gunakan akun lokal admin atau akun CIS yang valid.',
+            'username' => 'username atau password salah',
         ])->withInput();
     }
 }
