@@ -6,6 +6,7 @@ use App\Events\GroupChatMessageSent;
 use App\Models\GroupChatMember;
 use App\Models\GroupChatMessage;
 use App\Models\GroupChatRoom;
+use App\Models\Student;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -236,13 +237,85 @@ class GroupChatAdminController extends Controller
             'roomTitle' => $room->title,
             'topicLabel' => $room->topicLabel(),
             'memberCount' => (int) ($room->members_count ?? $room->members->count()),
-            'memberNames' => $room->members
-                ->map(fn (GroupChatMember $member) => $member->user?->getNamaDisplay())
-                ->filter()
-                ->values()
-                ->all(),
+            'memberNames' => $this->resolveMemberNames($room),
+            'memberProfiles' => $this->resolveMemberProfiles($room),
             'messages' => $messages,
         ];
+    }
+
+    private function resolveUserDisplayName(?User $user): string
+    {
+        if (! $user) {
+            return 'Pengguna';
+        }
+
+        if ($user->isAnonim()) {
+            return 'Mahasiswa Anonim';
+        }
+
+        $nim = optional($user->mahasiswa)->nim;
+        static $studentNameCache = [];
+        $studentName = $nim
+            ? ($studentNameCache[$nim] ??= Student::query()->where('nim', $nim)->value('name'))
+            : null;
+
+        return $studentName ?: ($user->nama ?: 'Pengguna');
+    }
+
+    private function resolveUserAvatarUrl(?User $user): string
+    {
+        $profilePhoto = optional($user?->profil)->foto;
+
+        return $profilePhoto ? Storage::url($profilePhoto) : asset('img/default-avatar.png');
+    }
+
+    private function resolveMemberNames(GroupChatRoom $room): array
+    {
+        $members = $room->members;
+
+        $memberNames = $members
+            ->sortBy(fn (GroupChatMember $member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
+            ->map(fn (GroupChatMember $member) => $this->resolveUserDisplayName($member->user))
+            ->filter()
+            ->values();
+
+        if ($memberNames->isNotEmpty() || (int) ($room->members_count ?? 0) === 0) {
+            return $memberNames->all();
+        }
+
+        // Fallback langsung dari tabel anggota menjaga dropdown tetap terisi jika relasi belum stabil.
+        return GroupChatMember::query()
+            ->with('user.mahasiswa')
+            ->where('room_id', $room->id)
+            ->get()
+            ->sortBy(fn (GroupChatMember $member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
+            ->map(fn (GroupChatMember $member) => $this->resolveUserDisplayName($member->user))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function resolveMemberProfiles(GroupChatRoom $room): array
+    {
+        $members = $room->members;
+
+        if ($members->isEmpty() && (int) ($room->members_count ?? 0) > 0) {
+            // Fallback langsung dari tabel anggota menjaga foto dan nama tetap tersedia saat relasi belum stabil.
+            $members = GroupChatMember::query()
+                ->with(['user.mahasiswa', 'user.profil'])
+                ->where('room_id', $room->id)
+                ->get();
+        }
+
+        return $members
+            ->sortBy(fn (GroupChatMember $member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
+            ->map(fn (GroupChatMember $member) => [
+                'name' => $this->resolveUserDisplayName($member->user),
+                'avatar_url' => $this->resolveUserAvatarUrl($member->user),
+            ])
+            ->filter(fn (array $member) => filled($member['name']))
+            ->values()
+            ->all();
     }
 
     private function transformMessage(GroupChatMessage $message, User $viewer): array
@@ -259,7 +332,7 @@ class GroupChatAdminController extends Controller
             'id' => $message->id,
             'room_id' => $message->room_id,
             'sender_id' => $message->user_id,
-            'sender_name' => $message->user_id === $viewer->id ? 'Anda' : ($sender?->getNamaDisplay() ?? 'Pengguna'),
+            'sender_name' => $message->user_id === $viewer->id ? 'Anda' : $this->resolveUserDisplayName($sender),
             'sender_role' => $sender?->role ?? 'pengguna',
             'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
             'text' => $message->pesan,

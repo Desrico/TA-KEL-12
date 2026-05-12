@@ -1221,10 +1221,6 @@
 
   const renderInitialMessages = () => {
     renderMessages(payload.messages || []);
-
-    if (!payload.messages?.length || lastRenderedDateKey() !== payload.threadDateKey) {
-      ensureDateSeparator(payload.threadDateKey, payload.threadDateLabel);
-    }
   };
 
   const renderMessages = (messages, force = false) => {
@@ -1262,18 +1258,9 @@
       }
 
       renderMessages(data.messages, force);
-
-      if (data.thread_date_key && data.thread_date_label) {
-        ensureDateSeparator(data.thread_date_key, data.thread_date_label);
-      }
     } catch (error) {
       console.error(error);
     }
-  };
-
-  const syncMidnightThread = () => {
-    const currentDate = resolveDateParts();
-    ensureDateSeparator(currentDate.key, currentDate.label);
   };
 
   renderInitialMessages();
@@ -1302,7 +1289,6 @@
 
   syncMessages();
   window.setInterval(syncMessages, 10000);
-  window.setInterval(syncMidnightThread, 60000);
 
   input.addEventListener('input', autoResize);
 

@@ -67,18 +67,13 @@
   }
 
   .group-room-stage {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0);
-    transition: grid-template-columns .28s ease;
+    position: relative;
     min-height: 760px;
-  }
-
-  .group-room-stage.is-profile-open {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
   }
 
   .group-room-main {
     min-width: 0;
+    min-height: 760px;
     display: flex;
     flex-direction: column;
     background:
@@ -95,6 +90,8 @@
     border-bottom: 1px solid rgba(221, 239, 231, 0.95);
     background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 6;
   }
 
   .group-room-head-main {
@@ -133,12 +130,11 @@
 
   .group-room-actions {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     gap: .75rem;
-    flex-wrap: wrap;
     justify-content: flex-end;
-    flex-direction: column;
-    min-width: min(100%, 220px);
+    position: relative;
+    min-width: 0;
   }
 
   .group-room-active {
@@ -168,23 +164,45 @@
   .group-room-toggle {
     display: inline-flex;
     align-items: center;
-    gap: .5rem;
+    justify-content: center;
+    gap: .22rem;
+    width: 52px;
+    height: 44px;
     border: 1px solid rgba(209, 250, 229, 0.96);
     border-radius: 16px;
-    padding: .82rem 1rem;
+    padding: 0;
     background: #fff;
     color: #065f46;
-    font-size: .84rem;
+    font-size: 1.16rem;
     font-weight: 800;
     transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-    justify-content: center;
-    width: 100%;
   }
 
   .group-room-toggle:hover {
     transform: translateY(-1px);
     background: #f8fffb;
     box-shadow: 0 14px 24px rgba(6, 78, 59, 0.08);
+  }
+
+  .group-room-toggle-chevron {
+    font-size: .78rem;
+    transition: transform .18s ease;
+  }
+
+  .group-room-stage.is-profile-open .group-room-toggle-chevron {
+    transform: rotate(180deg);
+  }
+
+  .group-room-toggle-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .group-room-thread {
@@ -502,22 +520,33 @@
   }
 
   .group-room-profile {
-    width: 100%;
-    max-width: 0;
+    position: absolute;
+    top: calc(100% + .65rem);
+    right: 0;
+    width: 320px;
+    max-width: calc(100vw - 2rem);
+    max-height: 0;
     opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px);
     overflow: hidden;
-    border-left: 1px solid rgba(221, 239, 231, 0.95);
+    border: 1px solid rgba(221, 239, 231, 0.95);
+    border-radius: 18px;
     background: linear-gradient(180deg, #fbfffd, #f7fcf9);
-    transition: max-width .28s ease, opacity .2s ease;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, .12);
+    transition: max-height .24s ease, opacity .18s ease, transform .18s ease;
+    z-index: 30;
   }
 
   .group-room-stage.is-profile-open .group-room-profile {
-    max-width: 340px;
+    max-height: min(540px, 70vh);
     opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
   }
 
   .group-room-profile-head {
-    padding: 1.2rem 1.2rem 1rem;
+    padding: 1rem 1.1rem .85rem;
     border-bottom: 1px solid rgba(221, 239, 231, 0.95);
     background:
       radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 28%),
@@ -526,7 +555,7 @@
 
   .group-room-profile-head h3 {
     margin: 0 0 .28rem;
-    font-size: 1rem;
+    font-size: .98rem;
     font-weight: 800;
     color: #0f172a;
   }
@@ -539,57 +568,62 @@
   }
 
   .group-room-profile-body {
-    padding: 1rem 1.15rem 1.2rem;
+    padding: .95rem 1.1rem 1.05rem;
     overflow-y: auto;
-    max-height: 760px;
+    max-height: min(430px, 58vh);
   }
 
-  .group-room-profile-topic {
-    display: inline-flex;
-    align-items: center;
-    gap: .38rem;
-    margin-top: .7rem;
-    padding: .42rem .8rem;
-    border-radius: 999px;
-    background: #e8fff1;
-    color: #047857;
-    font-size: .72rem;
-    font-weight: 800;
-    letter-spacing: .04em;
-    text-transform: uppercase;
+  .group-member-search {
+    position: relative;
+    margin-bottom: .9rem;
   }
 
-  .group-room-profile-section {
-    font-size: .74rem;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    margin-bottom: .85rem;
+  .group-member-search i {
+    position: absolute;
+    left: .82rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: .95rem;
+    pointer-events: none;
+  }
+
+  .group-member-search input {
+    width: 100%;
+    border: 1px solid #dbece3;
+    border-radius: 13px;
+    padding: .68rem .85rem .68rem 2.35rem;
+    background: #fff;
+    color: #0f172a;
+    font-size: .84rem;
+    outline: none;
+  }
+
+  .group-member-search input:focus {
+    border-color: #8fd1b0;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, .08);
   }
 
   .group-member-list {
     display: grid;
-    gap: .72rem;
+    gap: .58rem;
   }
 
+  /* Item anggota menampilkan foto kecil dan nama tanpa metadata tambahan. */
   .group-member-item {
     display: flex;
     align-items: center;
-    gap: .85rem;
-    padding: .88rem .92rem;
-    border-radius: 18px;
-    border: 1px solid rgba(221, 239, 231, 0.95);
-    background: linear-gradient(180deg, #ffffff, #f8fffb);
+    gap: .72rem;
+    padding: .3rem 0;
   }
 
   .group-member-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
     overflow: hidden;
     flex-shrink: 0;
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+    background: #e8fff1;
   }
 
   .group-member-avatar img {
@@ -599,54 +633,19 @@
     display: block;
   }
 
-  .group-member-copy {
-    min-width: 0;
-    flex: 1;
-  }
-
   .group-member-name {
     font-size: .92rem;
     font-weight: 800;
     color: #0f172a;
     line-height: 1.35;
-    margin-bottom: .15rem;
   }
 
-  .group-member-meta {
+  .group-member-empty {
+    display: none;
+    padding: .25rem 0;
     color: #64748b;
-    font-size: .78rem;
-    line-height: 1.55;
-  }
-
-  .group-member-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: .34rem .62rem;
-    border-radius: 999px;
-    background: #e8fff1;
-    color: #047857;
-    font-size: .68rem;
-    font-weight: 800;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 1199.98px) {
-    .group-room-stage.is-profile-open {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .group-room-profile {
-      max-width: none;
-      max-height: 0;
-      border-left: none;
-      border-top: 1px solid rgba(221, 239, 231, 0.95);
-    }
-
-    .group-room-stage.is-profile-open .group-room-profile {
-      max-width: none;
-      max-height: 560px;
-    }
+    font-size: .84rem;
+    line-height: 1.6;
   }
 
   @media (max-width: 767.98px) {
@@ -658,24 +657,30 @@
       border-radius: 24px;
     }
 
+    .group-room-main {
+      min-height: 680px;
+    }
+
     .group-room-head {
       flex-direction: column;
       align-items: flex-start;
     }
 
     .group-room-actions,
-    .group-room-toggle,
     .group-room-active {
       width: 100%;
-      justify-content: center;
+      justify-content: flex-start;
+    }
+
+    .group-room-profile {
+      left: 0;
+      right: auto;
+      width: 100%;
+      max-width: 100%;
     }
 
     .group-message-content {
       max-width: 100%;
-    }
-
-    .group-member-item {
-      align-items: flex-start;
     }
   }
 </style>
@@ -721,19 +726,45 @@
             </div>
 
             <div class="group-room-actions">
-              <button type="button" class="group-room-toggle" id="groupRoomProfileToggle" aria-expanded="false" aria-controls="groupRoomProfile">
-                <i class="bi bi-layout-sidebar-inset"></i>
-                <span>Lihat anggota grup</span>
+              <button type="button" class="group-room-toggle" id="groupRoomProfileToggle" aria-expanded="false" aria-controls="groupRoomProfile" aria-label="Lihat anggota grup" title="Lihat anggota grup">
+                <i class="bi bi-people"></i>
+                <i class="bi bi-chevron-down group-room-toggle-chevron"></i>
+                <span class="group-room-toggle-text">Lihat anggota grup</span>
               </button>
-              <div class="group-room-active">Grup Aktif</div>
+
+              {{-- Dropdown anggota dibuat ringan: ikon, pencarian, dan nama saja. --}}
+              <aside class="group-room-profile" id="groupRoomProfile">
+                <div class="group-room-profile-head">
+                  <h3>Anggota Grup</h3>
+                </div>
+
+                <div class="group-room-profile-body">
+                  <div class="group-member-search">
+                    <i class="bi bi-search"></i>
+                    <input
+                      type="search"
+                      id="groupRoomMemberSearchInput"
+                      placeholder="Cari anggota..."
+                      autocomplete="off"
+                    >
+                  </div>
+                  <div class="group-member-list" id="groupRoomMemberList">
+                    @foreach($chatPayload['memberProfiles'] as $memberProfile)
+                      <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberProfile['name']) }}">
+                        <div class="group-member-avatar">
+                          <img src="{{ $memberProfile['avatar_url'] }}" alt="{{ $memberProfile['name'] }}">
+                        </div>
+                        <div class="group-member-name">{{ $memberProfile['name'] }}</div>
+                      </div>
+                    @endforeach
+                  </div>
+                  <div class="group-member-empty" id="groupRoomMemberEmpty">Anggota tidak ditemukan.</div>
+                </div>
+              </aside>
             </div>
           </div>
 
-          <div class="group-room-thread" id="groupChatThread">
-            <div class="group-room-date">
-              {{ now('Asia/Jakarta')->translatedFormat('l, j F Y') }}
-            </div>
-          </div>
+          <div class="group-room-thread" id="groupChatThread"></div>
 
           <div class="group-room-compose">
             <form id="groupChatForm" class="group-room-form">
@@ -754,48 +785,6 @@
           </div>
         </section>
 
-        <aside class="group-room-profile" id="groupRoomProfile">
-          {{-- Panel anggota grup dibuka dengan state inline, bukan modal. --}}
-          <div class="group-room-profile-head">
-            <h3>{{ $chatPayload['roomTitle'] }}</h3>
-            <p>{{ $chatPayload['memberCount'] }} anggota dalam grup ini</p>
-            <div class="group-room-profile-topic">{{ $chatPayload['topicLabel'] }}</div>
-          </div>
-
-          <div class="group-room-profile-body">
-            <div class="group-room-profile-section">Anggota Grup</div>
-            <div class="group-member-list">
-              @foreach($activeRoom->members->sortBy(fn ($member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX) as $member)
-                @php
-                  $memberUser = $member->user;
-                  $memberProfile = optional($memberUser)->profil;
-                  $memberJoinedAt = $member->joined_at ?? $member->created_at;
-                  $isCurrentUser = (int) optional($memberUser)->id === (int) auth()->id();
-                @endphp
-                <div class="group-member-item">
-                  <div class="group-member-avatar">
-                    <img
-                      src="{{ $memberProfile?->foto ? Storage::url($memberProfile->foto) : asset('img/default-avatar.png') }}"
-                      alt="{{ $memberUser?->getNamaDisplay() ?? 'Pengguna' }}"
-                    >
-                  </div>
-                  <div class="group-member-copy">
-                    <div class="group-member-name">{{ $memberUser?->getNamaDisplay() ?? 'Pengguna' }}</div>
-                    <div class="group-member-meta">
-                      {{ $isCurrentUser ? 'Anda' : ($memberUser?->role === 'konselor' ? 'Konselor' : 'Mahasiswa') }}
-                      @if($memberJoinedAt)
-                        - Bergabung {{ \Carbon\Carbon::parse($memberJoinedAt)->timezone('Asia/Jakarta')->translatedFormat('j M Y, H:i') }}
-                      @endif
-                    </div>
-                  </div>
-                  @if($isCurrentUser)
-                    <div class="group-member-pill">Anda</div>
-                  @endif
-                </div>
-              @endforeach
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   </div>
@@ -807,16 +796,95 @@
 (() => {
   const stage = document.getElementById('groupRoomStage');
   const toggle = document.getElementById('groupRoomProfileToggle');
+  const profile = document.getElementById('groupRoomProfile');
+  const memberSearch = document.getElementById('groupRoomMemberSearchInput');
+  const memberList = document.getElementById('groupRoomMemberList');
+  const memberEmpty = document.getElementById('groupRoomMemberEmpty');
+  const memberProfiles = @json($chatPayload['memberProfiles']);
 
-  if (!stage || !toggle) {
+  if (!stage || !toggle || !profile || !memberList) {
     return;
   }
 
-  toggle.addEventListener('click', () => {
-    // Toggle panel anggota tanpa pindah halaman atau membuka modal baru.
-    const isOpen = stage.classList.toggle('is-profile-open');
+  const renderMembers = () => {
+    // Daftar anggota dirender dari payload supaya isi dropdown konsisten dengan header.
+    memberList.innerHTML = '';
+
+    memberProfiles.forEach((member) => {
+      const item = document.createElement('div');
+      const avatar = document.createElement('div');
+      const image = document.createElement('img');
+      const label = document.createElement('div');
+      const name = member?.name || 'Pengguna';
+      item.className = 'group-member-item';
+      item.dataset.memberName = String(name).toLowerCase();
+      avatar.className = 'group-member-avatar';
+      image.src = member?.avatar_url || '{{ asset('img/default-avatar.png') }}';
+      image.alt = name;
+      label.className = 'group-member-name';
+      label.textContent = name;
+      avatar.appendChild(image);
+      item.appendChild(avatar);
+      item.appendChild(label);
+      memberList.appendChild(item);
+    });
+  };
+
+  const syncMemberSearch = () => {
+    const keyword = (memberSearch?.value || '').trim().toLowerCase();
+    const items = Array.from(memberList.querySelectorAll('.group-member-item'));
+    let visibleCount = 0;
+
+    items.forEach((item) => {
+      const isMatch = !keyword || (item.dataset.memberName || '').includes(keyword);
+      item.style.display = isMatch ? '' : 'none';
+
+      if (isMatch) {
+        visibleCount += 1;
+      }
+    });
+
+    if (memberEmpty) {
+      memberEmpty.textContent = keyword ? 'Anggota tidak ditemukan.' : 'Belum ada anggota dalam grup ini.';
+      memberEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  };
+
+  const syncDropdownState = (isOpen) => {
+    // Sinkronkan label aksesibilitas saat dropdown anggota dibuka atau ditutup.
+    const label = isOpen ? 'Sembunyikan anggota grup' : 'Lihat anggota grup';
+    stage.classList.toggle('is-profile-open', isOpen);
     toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    toggle.querySelector('span').textContent = isOpen ? 'Sembunyikan anggota grup' : 'Lihat anggota grup';
+    toggle.setAttribute('aria-label', label);
+    toggle.setAttribute('title', label);
+    toggle.querySelector('.group-room-toggle-text').textContent = label;
+  };
+
+  toggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    renderMembers();
+    syncMemberSearch();
+    syncDropdownState(!stage.classList.contains('is-profile-open'));
+  });
+
+  memberSearch?.addEventListener('input', syncMemberSearch);
+
+  document.addEventListener('click', (event) => {
+    if (!stage.classList.contains('is-profile-open')) {
+      return;
+    }
+
+    if (toggle.contains(event.target) || profile.contains(event.target)) {
+      return;
+    }
+
+    syncDropdownState(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      syncDropdownState(false);
+    }
   });
 })();
 </script>
@@ -843,6 +911,29 @@
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+  const dateFormatter = new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Asia/Jakarta',
+  });
+  const dateKeyFormatter = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'Asia/Jakarta',
+  });
+
+  const resolveDateParts = (value) => {
+    const date = value ? new Date(value) : new Date();
+    const keyParts = Object.fromEntries(dateKeyFormatter.formatToParts(date).map((part) => [part.type, part.value]));
+
+    return {
+      key: `${keyParts.year}-${keyParts.month}-${keyParts.day}`,
+      label: dateFormatter.format(date).toUpperCase(),
+    };
+  };
 
   const scrollToBottom = () => {
     thread.scrollTop = thread.scrollHeight;
@@ -851,6 +942,21 @@
   const autoResize = () => {
     input.style.height = 'auto';
     input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
+  };
+  const lastRenderedDateKey = () => Array.from(thread.querySelectorAll('[data-date-key]')).pop()?.dataset.dateKey || null;
+  const renderDateSeparator = (label, key) => {
+    const separator = document.createElement('div');
+    separator.className = 'group-room-date';
+    separator.dataset.dateKey = key;
+    separator.textContent = label;
+    thread.appendChild(separator);
+  };
+  const ensureDateSeparator = (key, label) => {
+    if (!key || lastRenderedDateKey() === key) {
+      return;
+    }
+
+    renderDateSeparator(label, key);
   };
   const messageUpdateUrl = (messageId) => payload.updateUrlTemplate.replace('__MESSAGE_ID__', String(messageId));
   const messageDeleteUrl = (messageId) => payload.deleteUrlTemplate.replace('__MESSAGE_ID__', String(messageId));
@@ -928,6 +1034,9 @@
   const renderMessage = (message) => {
     const row = document.createElement('div');
     const isMine = Boolean(message.is_mine ?? (message.sender_id === currentUserId));
+    const dateParts = resolveDateParts(message.sent_at);
+
+    ensureDateSeparator(dateParts.key, dateParts.label);
 
     row.className = `group-message-row ${isMine ? 'mine' : 'other'}`;
     row.dataset.messageId = message.id;

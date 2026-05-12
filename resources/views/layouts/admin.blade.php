@@ -319,13 +319,6 @@
       color: var(--admin-primary);
     }
 
-    .breadcrumb .breadcrumb-item,
-    .breadcrumb .breadcrumb-item a {
-      font-size: .8rem;
-      color: var(--admin-text-light);
-      text-decoration: none;
-    }
-
     .alert {
       border-radius: 14px;
       font-size: .86rem;
@@ -677,14 +670,7 @@
             <div class="page-header-title">
               <h5 class="m-b-10">@yield('page-title', 'Dashboard')</h5>
             </div>
-            <ul class="breadcrumb">
-              <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}"></a>
-              </li>
-              <li class="breadcrumb-item" aria-current="page">
-                @yield('page-title', 'Dashboard')
-              </li>
-            </ul>
+            {{-- Breadcrumb template dihapus agar judul halaman tidak tampil dobel. --}}
           </div>
         </div>
       </div>

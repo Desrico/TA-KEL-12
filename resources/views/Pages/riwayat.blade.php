@@ -1,4 +1,4 @@
-@extends('layouts.mantis')
+@extends('layouts.master')
 @section('page-title', 'Riwayat Konseling')
 @section('konten')
 
@@ -25,13 +25,17 @@
                     @php
                         $status = strtolower($l->status ?? 'menunggu');
                         $jenis = strtolower($l->jenis ?? 'offline');
-                        $scheduledAt = $jenis === 'online'
-                            ? \Carbon\Carbon::parse(trim($l->tanggal . ' ' . ($l->waktu ?? '00:00:00')))
-                            : null;
-                        $isBeforeSchedule = $scheduledAt && now()->lt($scheduledAt);
+                        $scheduledAt = $jenis === 'online' ? $l->scheduledAt('Asia/Jakarta') : null;
+                        $isBeforeSchedule = $scheduledAt && now('Asia/Jakarta')->lt($scheduledAt);
                         $canStartChat = $jenis === 'online'
                             && in_array($status, ['disetujui', 'berlangsung'], true)
                             && ! $isBeforeSchedule;
+                        $displayDate = $scheduledAt
+                            ? $scheduledAt->translatedFormat('d M Y')
+                            : \Carbon\Carbon::parse($l->tanggal)->translatedFormat('d M Y');
+                        $displayTime = $scheduledAt
+                            ? $scheduledAt->format('H:i') . ' WIB'
+                            : (($l->waktu ? substr((string) $l->waktu, 0, 5) . ' WIB' : '-'));
                     @endphp
                     <tr>
                         <td class="px-4 py-3">
@@ -40,8 +44,8 @@
                         </td>
                         <td class="py-3">{{ ucfirst($l->jenis ?? '-') }}</td>
                         <td class="py-3">{{ ucfirst($l->status ?? '-') }}</td>
-                        <td class="py-3">{{ \Carbon\Carbon::parse($l->tanggal)->format('d M Y') }}</td>
-                        <td class="py-3">{{ $l->waktu }} WIB</td>
+                        <td class="py-3">{{ $displayDate }}</td>
+                        <td class="py-3">{{ $displayTime }}</td>
                         <td class="py-3" style="font-size:.78rem">{{ $l->catatan ?? '-' }}</td>
                         <td class="py-3 text-center">
                             @if($canStartChat)

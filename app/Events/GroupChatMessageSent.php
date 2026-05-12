@@ -3,6 +3,8 @@
 namespace App\Events;
 
 use App\Models\GroupChatMessage;
+use App\Models\Student;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -49,7 +51,7 @@ class GroupChatMessageSent implements ShouldBroadcastNow
                 'id' => $this->message->id,
                 'room_id' => $this->message->room_id,
                 'sender_id' => $this->message->user_id,
-                'sender_name' => $sender?->getNamaDisplay() ?? 'Pengguna',
+                'sender_name' => $this->resolveUserDisplayName($sender),
                 'sender_role' => $sender?->role ?? 'pengguna',
                 'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
                 'text' => $this->message->pesan,
@@ -75,5 +77,24 @@ class GroupChatMessageSent implements ShouldBroadcastNow
     private function displayTimezone(): string
     {
         return 'Asia/Jakarta';
+    }
+
+    private function resolveUserDisplayName(?User $user): string
+    {
+        if (! $user) {
+            return 'Pengguna';
+        }
+
+        if ($user->isAnonim()) {
+            return 'Mahasiswa Anonim';
+        }
+
+        $nim = optional($user->mahasiswa)->nim;
+        static $studentNameCache = [];
+        $studentName = $nim
+            ? ($studentNameCache[$nim] ??= Student::query()->where('nim', $nim)->value('name'))
+            : null;
+
+        return $studentName ?: ($user->nama ?: 'Pengguna');
     }
 }

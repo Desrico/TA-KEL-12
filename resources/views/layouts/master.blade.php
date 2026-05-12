@@ -171,7 +171,12 @@
   }
 
   .notif-item {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: .25rem;
+    width: 100%;
     padding: .7rem 1rem;
     text-decoration: none;
     border-top: 1px solid #F1F5F9;
@@ -183,6 +188,7 @@
 
   .notif-item p {
     margin: 0;
+    width: 100%;
     font-size: .84rem;
     color: var(--text-dark);
     line-height: 1.45;
@@ -192,7 +198,7 @@
     display: block;
     font-size: .72rem;
     color: var(--text-light);
-    margin-top: .25rem;
+    margin-top: 0;
   }
 
   .notif-empty {
@@ -202,6 +208,10 @@
   }
 
   .notif-item-trigger {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
     width: 100%;
     text-align: left;
     background: transparent;
