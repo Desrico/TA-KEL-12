@@ -22,10 +22,25 @@ class EducationController extends Controller
 
     // --- MODULE CRUD ---
 
-    public function moduleIndex()
+    public function moduleIndex(\Illuminate\Http\Request $request)
     {
-        $modules = Module::latest()->get();
-        return view('admin.education.modules.index', compact('modules'));
+        $filter = $request->query('filter', 'semua'); // semua | aktif | draft
+        $sort   = $request->query('sort', 'terbaru'); // terbaru | terlama | az | za
+
+        $query = Module::query();
+
+        if ($filter === 'aktif')  $query->where('status', true);
+        if ($filter === 'draft')  $query->where('status', false);
+
+        match ($sort) {
+            'terlama' => $query->oldest(),
+            'az'      => $query->orderBy('title', 'asc'),
+            'za'      => $query->orderBy('title', 'desc'),
+            default   => $query->latest(),
+        };
+
+        $modules = $query->paginate(8)->withQueryString();
+        return view('admin.education.modules.index', compact('modules', 'filter', 'sort'));
     }
 
     public function moduleCreate()
@@ -40,10 +55,12 @@ class EducationController extends Controller
             'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'thumbnail_url'  => 'nullable|url',
             'description'    => 'required|string',
-            'content_file'   => 'nullable|file|mimes:pdf|max:10240',
+            'content_file'   => 'nullable|file|mimes:pdf,mp4,png,jpg,jpeg|max:51200',
             'content_url'    => 'nullable|url',
             'reward_point'   => 'required|integer|min:0',
             'status'         => 'required|boolean',
+            'kategori'       => 'nullable|string|max:100',
+            'target_audiens' => 'nullable|string|max:100',
         ]);
 
         $data = $validated;
@@ -80,10 +97,12 @@ class EducationController extends Controller
             'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'thumbnail_url'  => 'nullable|url',
             'description'    => 'required|string',
-            'content_file'   => 'nullable|file|mimes:pdf|max:10240',
+            'content_file'   => 'nullable|file|mimes:pdf,mp4,png,jpg,jpeg|max:51200',
             'content_url'    => 'nullable|url',
             'reward_point'   => 'required|integer|min:0',
             'status'         => 'required|boolean',
+            'kategori'       => 'nullable|string|max:100',
+            'target_audiens' => 'nullable|string|max:100',
         ]);
 
         $data = $validated;

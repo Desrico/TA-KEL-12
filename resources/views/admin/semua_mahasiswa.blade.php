@@ -5,7 +5,7 @@
 @push('styles')
     <style>
         .pc-container {
-            background: #f8fafc;
+            background: var(--admin-bg) !important;
         }
         .container-fluid { padding: 32px; }
 
@@ -100,6 +100,62 @@
         }
         #toast.show { display: flex; }
         @keyframes slideInUp { from { transform:translateY(16px);opacity:0 } to { transform:none;opacity:1 } }
+
+        .search-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 300px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            font-size: 0.85rem;
+            color: #1e293b;
+            transition: 0.2s;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+        }
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        .btn-clear-search {
+            position: absolute;
+            right: 12px;
+            color: #94a3b8;
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-clear-search:hover { background: #f1f5f9; color: #475569; }
+
+        .search-results-info {
+            padding: 8px 16px;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #059669;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
     </style>
 @endpush
 
@@ -114,10 +170,26 @@
                 <h2 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin: 0;">📑 Daftar Seluruh Mahasiswa</h2>
             </div>
             
-            <button class="btn-print" onclick="printElementToPDF('printLevel3Area', 'Daftar_Seluruh_Mahasiswa.pdf')">
-                <i class="ti ti-printer" style="font-size: 1.1rem;"></i>
-                Cetak Laporan PDF
-            </button>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="search-group">
+                    <i class="ti ti-search search-icon"></i>
+                    <input type="text" id="liveSearch" class="search-input" placeholder="Cari nama atau NIM..." oninput="liveFilterTable(this.value)" autocomplete="off">
+                    <button class="btn-clear-search" id="btnClearSearch" onclick="clearSearch()" style="display:none;">
+                        <i class="ti ti-x"></i>
+                    </button>
+                </div>
+
+                <button class="btn-print" onclick="printElementToPDF('printLevel3Area', 'Daftar_Seluruh_Mahasiswa.pdf')">
+                    <i class="ti ti-printer" style="font-size: 1.1rem;"></i>
+                    Cetak Laporan PDF
+                </button>
+            </div>
+        </div>
+
+        <div id="searchResultsInfo" class="search-results-info" style="display:none;">
+            <i class="ti ti-info-circle"></i>
+            <span id="searchResultsText"></span>
+            <span id="searchCount" style="margin-left: auto; font-weight: 700;"></span>
         </div>
 
         @if($students->isEmpty())
@@ -138,18 +210,18 @@
                             <th style="text-align: right;">AKSI</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="studentTableBody">
                         @foreach($students as $s)
                         @php
                             $lvlClass = $s->mental_level === 3 ? 'l3' : ($s->mental_level === 2 ? 'l2' : ($s->mental_level === 1 ? 'l1' : 'l0'));
                         @endphp
-                        <tr>
+                        <tr data-name="{{ strtolower($s->name) }}" data-nim="{{ strtolower($s->nim) }}">
                             <td>
                                 <div class="student-cell">
                                     <div class="avatar {{ $lvlClass }}">{{ substr($s->name, 0, 1) }}</div>
                                     <div class="name-wrapper">
                                         <span class="name">{{ $s->name }}</span>
-                                        @if($s->mental_red_flag)
+                                        @if($s->mental_red_flag && $s->mental_level === 3)
                                             <span class="red-flag">🚨 Red Flag Terdeteksi</span>
                                         @endif
                                     </div>
@@ -179,6 +251,12 @@
                             </td>
                         </tr>
                         @endforeach
+                        <tr id="emptySearchRow" style="display:none;">
+                            <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">
+                                <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+                                <div>Tidak ada mahasiswa yang cocok dengan pencarian Anda.</div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -191,6 +269,49 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
+    function liveFilterTable(query) {
+        const q = query.toLowerCase().trim();
+        const rows = document.querySelectorAll('#studentTableBody tr');
+        const clearBtn = document.getElementById('btnClearSearch');
+        const infoBox = document.getElementById('searchResultsInfo');
+        const infoText = document.getElementById('searchResultsText');
+        const countEl = document.getElementById('searchCount');
+        const emptyRow = document.getElementById('emptySearchRow');
+
+        clearBtn.style.display = q ? 'flex' : 'none';
+
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (row.id === 'emptySearchRow') return;
+            const name = row.dataset.name || '';
+            const nim  = row.dataset.nim  || '';
+            const matches = name.includes(q) || nim.includes(q);
+            row.style.display = matches ? '' : 'none';
+            if (matches) visibleCount++;
+        });
+
+        if (q) {
+            infoBox.style.display = 'flex';
+            infoText.innerHTML = `Hasil pencarian: <strong>"${query}"</strong>`;
+            countEl.textContent = `${visibleCount} mahasiswa ditemukan`;
+
+            if (emptyRow) {
+                emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+            }
+        } else {
+            infoBox.style.display = 'none';
+            if (emptyRow) emptyRow.style.display = 'none';
+        }
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('liveSearch');
+        input.value = '';
+        liveFilterTable('');
+        input.focus();
+    }
+
     function showToast(msg, color = '#059669') {
         const t = document.getElementById('toast');
         t.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0"></span> ${msg}`;

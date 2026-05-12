@@ -208,8 +208,9 @@ class JadwalController extends Controller
                 'waktu'        => $normalizedWaktu,
                 'status'       => 'menunggu',
                 'jenis'        => $validated['jenis'],
+                'topik'        => $validated['topik'],
                 'anonim'       => $isAnonim,
-                'catatan'      => ($isAnonim ? '[ANONIM] ' : '') . 'Topik: ' . $validated['topik'] . ' | Jenis: ' . $validated['jenis'],
+                'catatan'      => null,
             ]);
 
             Notifikasi::create([

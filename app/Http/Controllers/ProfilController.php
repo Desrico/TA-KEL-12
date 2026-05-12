@@ -15,6 +15,7 @@ class ProfilController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $user->load('profil');
         $mahasiswa = $user->mahasiswa;
         $totalKonseling = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)->count();
         $sesiBerlangsung = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)
@@ -33,13 +34,19 @@ class ProfilController extends Controller
             ['bio' => null, 'anonim' => false]
         );
 
+        \Log::info('Profil Update Request', [
+            'has_file' => $request->hasFile('foto'),
+            'file_info' => $request->hasFile('foto') ? $request->file('foto')->getClientOriginalName() : 'no file',
+            'all_files' => $request->allFiles(),
+        ]);
+
         $request->validate([
             'nama'     => 'required|string|max:100',
             'nim'      => 'required|string|max:20|unique:mahasiswa,nim,' . optional($mahasiswa)->id,
             'bio'      => 'nullable|string|max:500',
-            'jurusan'  => 'required|string|max:100',
-            'angkatan' => 'required|digits:4',
-            'foto'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+//             'jurusan'  => 'required|string|max:100',
+//             'angkatan' => 'required|digits:4',
+//             'foto'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // Update data user
@@ -61,6 +68,7 @@ class ProfilController extends Controller
 
         // Update foto profil jika ada file baru
         if ($request->hasFile('foto')) {
+            \Log::info('File foto diterima, menyimpan...');
             // hapus foto lama jika ada
             if ($profil->foto && Storage::disk('public')->exists($profil->foto)) {
                 Storage::disk('public')->delete($profil->foto);
@@ -68,6 +76,7 @@ class ProfilController extends Controller
 
             // simpan foto baru
             $path = $request->file('foto')->store('profil', 'public');
+            \Log::info('Foto tersimpan di: ' . $path);
             $profil->foto = $path;
         }
 

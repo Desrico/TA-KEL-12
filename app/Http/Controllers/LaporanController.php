@@ -9,6 +9,13 @@ use App\Models\SesiKonseling;
 
 class LaporanController extends Controller
 {
+//     private function jadwalHasColumn(string $column): bool
+//     {
+//         static $cache = [];
+
+//         return $cache[$column] ??= Schema::hasColumn('jadwal_konseling', $column);
+//     }
+
     public function riwayat()
     {
         $mahasiswa = auth()->user()->mahasiswa;

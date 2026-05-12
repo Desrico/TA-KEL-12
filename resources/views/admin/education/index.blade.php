@@ -21,7 +21,7 @@
         --edu-red: #ef4444;
     }
 
-    .pc-container { background: var(--edu-bg) !important; }
+    .pc-container { background: var(--admin-bg) !important; }
 
     .edu-page-wrap {
         max-width: 960px;

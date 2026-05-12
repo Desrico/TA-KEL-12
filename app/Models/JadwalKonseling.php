@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class JadwalKonseling extends Model
 {
+    public const SESSION_TIMEZONE = 'Asia/Jakarta';
+
     protected $table = 'jadwal_konseling';
 
     protected $fillable = [
@@ -18,8 +20,17 @@ class JadwalKonseling extends Model
         'waktu',
         'status',
         'jenis',
+        'topik',
         'anonim',
         'catatan',
+        'ringkasan_masalah',
+        'observasi_konselor',
+        'progress',
+        'tindak_lanjut',
+        'tindak_lanjut_tipe',
+        'tanggal_lanjut',
+        'laporan',
+        'alasan_penolakan',
     ];
 
     protected $casts = [

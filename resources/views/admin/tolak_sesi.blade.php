@@ -95,6 +95,93 @@
     .btn-batal {
         background: #ff2b2b;
     }
+    .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .35);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    }
+
+    .confirm-overlay.show {
+        display: flex;
+    }
+
+    .confirm-box {
+        width: 380px;
+        max-width: 90%;
+        background: #066847;
+        color: #fff;
+        border-radius: 16px;
+        padding: 1.8rem 1.5rem;
+        text-align: center;
+        animation: popFade .28s ease both;
+    }
+
+    .confirm-icon {
+        width: 60px;
+        height: 60px;
+        border: 4px solid #ff4d4d;
+        color: #ff4d4d;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 2rem;
+        font-weight: 800;
+        margin: 0 auto 1rem;
+    }
+
+    .confirm-box h3 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        margin-bottom: .75rem;
+    }
+
+    .confirm-box p {
+        font-size: .82rem;
+        line-height: 1.5;
+        margin-bottom: 1.3rem;
+    }
+
+    .confirm-actions {
+        display: flex;
+        justify-content: center;
+        gap: .8rem;
+    }
+
+    .btn-confirm-danger {
+        border: 0;
+        background: #ff4d4d;
+        color: #fff;
+        font-weight: 800;
+        font-size: .78rem;
+        border-radius: 7px;
+        padding: .5rem .9rem;
+    }
+
+    .btn-cancel {
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-weight: 700;
+        font-size: .78rem;
+        border-radius: 7px;
+        padding: .5rem .9rem;
+    }
+
+    @keyframes popFade {
+        from {
+            opacity: 0;
+            transform: translateY(18px) scale(.94);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
 </style>
 @endpush
 
@@ -171,22 +258,67 @@
         </tr>
     </table>
 
-    <form action="{{ route('admin.sesi.tolak.kirim', $jadwal->id) }}" method="POST">
+    <form id="formTolakSesi" action="{{ route('admin.sesi.tolak.kirim', $jadwal->id) }}" method="POST">
         @csrf
 
-        <div class="detail-section-title">
-            <i class="ti ti-clipboard-x"></i> Alasan Penolakan
-        </div>
-
         <textarea name="alasan_penolakan"
-                  class="alasan-textarea"
-                  required
-                  placeholder="Tuliskan alasan penolakan...">{{ old('alasan_penolakan') }}</textarea>
+                rows="6"
+                required
+                style="width:100%;border:1px solid #e5e7eb;border-radius:14px;padding:1rem;"
+                placeholder="Tuliskan alasan penolakan...">{{ old('alasan_penolakan') }}</textarea>
 
         <div class="detail-actions">
-            <button type="submit" class="btn-kirim">Kirim</button>
-            <a href="{{ route('admin.sesi.detail', $jadwal->id) }}" class="btn-batal">Batalkan</a>
+            <button type="button" class="btn-tolak" onclick="openTolakModal()">
+                Kirim Penolakan
+            </button>
+            <a href="{{ route('admin.sesi.detail', $jadwal->id) }}" class="btn-terima">
+                Batalkan
+            </a>
         </div>
     </form>
 </div>
+
+<div class="confirm-overlay" id="tolakModal">
+    <div class="confirm-box">
+        <div class="confirm-icon">?</div>
+
+        <h3>Penolakan Penjadwalan</h3>
+        <p>
+            Apakah Anda yakin ingin menolak permintaan penjadwalan ini?<br>
+            Mahasiswa akan diminta untuk memilih jadwal lain.
+        </p>
+
+        <div class="confirm-actions">
+            <button type="button" class="btn-confirm-danger" onclick="submitTolakSesi()">
+                Konfirmasi Penolakan
+            </button>
+            <button type="button" class="btn-cancel" onclick="closeTolakModal()">
+                Batalkan
+            </button>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function openTolakModal() {
+    const alasan = document.querySelector('textarea[name="alasan_penolakan"]').value.trim();
+
+    if (!alasan) {
+        alert('Isi alasan penolakan terlebih dahulu.');
+        return;
+    }
+
+    document.getElementById('tolakModal').classList.add('show');
+}
+
+function closeTolakModal() {
+    document.getElementById('tolakModal').classList.remove('show');
+}
+
+function submitTolakSesi() {
+    document.getElementById('formTolakSesi').submit();
+}
+</script>
+@endpush
 @endsection

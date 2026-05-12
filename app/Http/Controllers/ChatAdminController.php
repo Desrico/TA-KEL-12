@@ -299,7 +299,7 @@ class ChatAdminController extends Controller
             ->values();
     }
 
-    private function resolveSelectedSchedule(User $user, Collection $jadwalList, ?int $jadwalId): ?JadwalKonseling
+        private function resolveSelectedSchedule(User $user, Collection $jadwalList, ?int $jadwalId): ?JadwalKonseling
     {
         if ($jadwalId) {
             $selected = $jadwalList->firstWhere('id', $jadwalId);
