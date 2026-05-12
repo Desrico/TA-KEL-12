@@ -2,12 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LaporanController;
-use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\ChatMahasiswaController;
 use App\Http\Controllers\ChatAdminController;
 use App\Http\Controllers\KampusApiController;
@@ -16,6 +14,7 @@ use App\Http\Controllers\EducationController;
 use App\Http\Controllers\AboutPageController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SesiKonselingController;
+use App\Http\Controllers\KetidaktersediaanKonselorController;
 
 
 // ═══════════════════════════════
@@ -27,8 +26,8 @@ Route::get('/', function () {
 
 Route::get('/tentang', [AboutPageController::class, 'show'])->name('tentang');
 
-// halaman konseling
 Route::get('/konseling', [JadwalController::class, 'create'])->name('konseling');
+
 
 // ═══════════════════════════════
 // AUTH
@@ -39,6 +38,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
 
 // ═══════════════════════════════
 // MAHASISWA
@@ -52,25 +52,24 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
 
-    // Riwayat - Mahasiswa dapat melihat riwayat sesi konseling mereka
     Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
     Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('riwayat.detail');
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
 
-    // Chat - Mahasiswa dapat melakukan chat dengan konselor
     Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->name('chat.student');
     Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->name('chat.student.store');
+
     Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
     Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
     Route::get('/chat/pesan', [ChatMahasiswaController::class, 'messages'])->name('mahasiswa.chat.messages');
     Route::post('/chat/pesan', [ChatMahasiswaController::class, 'store'])->name('mahasiswa.chat.store');
 
-    // flow penjadwalan
     Route::get('/detail-penjadwalan', [JadwalController::class, 'detail'])->name('jadwal.detail');
     Route::post('/jadwal', [JadwalController::class, 'store'])->name('jadwal.store');
     Route::post('/jadwal/cek', [JadwalController::class, 'checkAvailability'])->name('jadwal.check');
     Route::get('/jadwal/terisi', [JadwalController::class, 'getBookedSlots'])->name('jadwal.terisi');
 });
+
 
 // ═══════════════════════════════
 // ADMIN / KONSELOR
@@ -80,7 +79,9 @@ Route::prefix('admin')
     ->middleware(['auth', 'role:konselor'])
     ->group(function () {
         Route::get('/', fn() => redirect()->route('admin.dashboard'));
+
         Route::get('/dashboard', [CounselorController::class, 'index'])->name('dashboard');
+
         Route::get('/notifikasi', [AdminController::class, 'notifications'])->name('notifikasi.list');
         Route::post('/notifikasi/baca', [AdminController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
 
@@ -93,9 +94,8 @@ Route::prefix('admin')
         Route::get('/chat/pesan', [ChatAdminController::class, 'messages'])->name('chat.messages');
         Route::post('/chat/pesan', [ChatAdminController::class, 'store'])->name('chat.store');
 
-        Route::get('/chat', [ChatController::class, 'index'])->name('chat');
         Route::get('/chat/{sessionId}', [ChatController::class, 'session'])->name('chat.session');
-        Route::post('/chat/{sessionId}', [ChatController::class, 'store'])->name('chat.store');
+        Route::post('/chat/{sessionId}', [ChatController::class, 'store'])->name('chat.session.store');
 
         Route::get('/sesi', [SesiKonselingController::class, 'index'])->name('sesi');
         Route::get('/sesi/{id}', [SesiKonselingController::class, 'detail'])->name('sesi.detail');
@@ -109,6 +109,7 @@ Route::prefix('admin')
         Route::post('/laporan/{id}/laporan', [LaporanController::class, 'storeLaporan'])->name('laporan.laporan.store');
 
         Route::get('/mahasiswa', [AdminController::class, 'mahasiswa'])->name('mahasiswa');
+
         Route::get('/jadwal/events', [AdminController::class, 'jadwalEvents'])->name('jadwal.events');
         Route::get('/jadwal/data', [CounselorController::class, 'getJadwalData'])->name('jadwal.data');
 
@@ -117,6 +118,22 @@ Route::prefix('admin')
     });
 
 
+
+Route::middleware(['auth', 'role:konselor'])->group(function () {
+    Route::post('/konselor/ketidaktersediaan', [KetidaktersediaanKonselorController::class, 'store'])
+        ->name('konselor.ketidaktersediaan.store');
+
+    Route::delete('/konselor/ketidaktersediaan/{id}', [KetidaktersediaanKonselorController::class, 'destroy'])
+        ->name('konselor.ketidaktersediaan.destroy');
+    
+    Route::put('/admin/ketidaktersediaan/{id}', [KetidaktersediaanKonselorController::class, 'update'])
+        ->name('admin.ketidaktersediaan.update');
+});
+
+
+// ═══════════════════════════════
+// TEST MONGODB
+// ═══════════════════════════════
 Route::get('/test-mongodb', function () {
     try {
         $client = new MongoDB\Client(env('MONGODB_URI'));
@@ -124,6 +141,7 @@ Route::get('/test-mongodb', function () {
         $collections = $database->listCollections();
 
         $collectionList = [];
+
         foreach ($collections as $collection) {
             $collectionList[] = $collection->getName();
         }
@@ -133,19 +151,20 @@ Route::get('/test-mongodb', function () {
             'message' => 'Connected to MongoDB successfully',
             'database' => env('MONGODB_DATABASE', 'monitoring'),
             'collections' => $collectionList,
-            'connection_uri' => preg_replace('/([a-zA-Z0-9]+):([^@]+)@/', '$1:****@', env('MONGODB_URI'))
+            'connection_uri' => preg_replace('/([a-zA-Z0-9]+):([^@]+)@/', '$1:****@', env('MONGODB_URI')),
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
             'message' => 'MongoDB Connection Failed',
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
         ], 500);
     }
 });
 
+
 // ═══════════════════════════════
-// KONSELOR (PA3)
+// KONSELOR PA3
 // ═══════════════════════════════
 Route::get('/konselor/dashboard', [CounselorController::class, 'index'])->name('counselor.dashboard');
 Route::get('/konselor/prioritas', [CounselorController::class, 'prioritas'])->name('counselor.prioritas');
@@ -160,36 +179,41 @@ Route::get('/konselor/detail/{nim}', [CounselorController::class, 'showDetail'])
 Route::post('/konselor/scan', [CounselorController::class, 'scanLevel3'])->name('counselor.scan');
 Route::post('/konselor/summary', [CounselorController::class, 'getSummary'])->name('counselor.summary');
 
-// --- FITUR EDUKASI ---
-Route::prefix('konselor/edukasi')->name('counselor.education.')->group(function () {
-    Route::get('/', [EducationController::class, 'index'])->name('index');
 
-    // About page content
-    Route::get('/about-page', [AboutPageController::class, 'edit'])->name('about-page.edit');
-    Route::put('/about-page', [AboutPageController::class, 'update'])->name('about-page.update');
+// ═══════════════════════════════
+// FITUR EDUKASI
+// ═══════════════════════════════
+Route::prefix('konselor/edukasi')
+    ->name('counselor.education.')
+    ->group(function () {
+        Route::get('/', [EducationController::class, 'index'])->name('index');
 
-    // Modules
-    Route::get('/modules', [EducationController::class, 'moduleIndex'])->name('modules.index');
-    Route::get('/modules/create', [EducationController::class, 'moduleCreate'])->name('modules.create');
-    Route::post('/modules', [EducationController::class, 'moduleStore'])->name('modules.store');
-    Route::get('/modules/{module}/edit', [EducationController::class, 'moduleEdit'])->name('modules.edit');
-    Route::put('/modules/{module}', [EducationController::class, 'moduleUpdate'])->name('modules.update');
-    Route::delete('/modules/{module}', [EducationController::class, 'moduleDestroy'])->name('modules.destroy');
+        Route::get('/about-page', [AboutPageController::class, 'edit'])->name('about-page.edit');
+        Route::put('/about-page', [AboutPageController::class, 'update'])->name('about-page.update');
 
-    // Challenges
-    Route::get('/challenges', [EducationController::class, 'challengeIndex'])->name('challenges.index');
-    Route::get('/challenges/create', [EducationController::class, 'challengeCreate'])->name('challenges.create');
-    Route::post('/challenges', [EducationController::class, 'challengeStore'])->name('challenges.store');
-    Route::get('/challenges/{challenge}/edit', [EducationController::class, 'challengeEdit'])->name('challenges.edit');
-    Route::put('/challenges/{challenge}', [EducationController::class, 'challengeUpdate'])->name('challenges.update');
-    Route::delete('/challenges/{challenge}', [EducationController::class, 'challengeDestroy'])->name('challenges.destroy');
-});
+        Route::get('/modules', [EducationController::class, 'moduleIndex'])->name('modules.index');
+        Route::get('/modules/create', [EducationController::class, 'moduleCreate'])->name('modules.create');
+        Route::post('/modules', [EducationController::class, 'moduleStore'])->name('modules.store');
+        Route::get('/modules/{module}/edit', [EducationController::class, 'moduleEdit'])->name('modules.edit');
+        Route::put('/modules/{module}', [EducationController::class, 'moduleUpdate'])->name('modules.update');
+        Route::delete('/modules/{module}', [EducationController::class, 'moduleDestroy'])->name('modules.destroy');
 
-// --- DEBUG ROUTE UNTUK PENGETESAN (HAPUS SETELAH DIGUNAKAN) ---
+        Route::get('/challenges', [EducationController::class, 'challengeIndex'])->name('challenges.index');
+        Route::get('/challenges/create', [EducationController::class, 'challengeCreate'])->name('challenges.create');
+        Route::post('/challenges', [EducationController::class, 'challengeStore'])->name('challenges.store');
+        Route::get('/challenges/{challenge}/edit', [EducationController::class, 'challengeEdit'])->name('challenges.edit');
+        Route::put('/challenges/{challenge}', [EducationController::class, 'challengeUpdate'])->name('challenges.update');
+        Route::delete('/challenges/{challenge}', [EducationController::class, 'challengeDestroy'])->name('challenges.destroy');
+    });
+
+
+// ═══════════════════════════════
+// DEBUG ROUTE UNTUK PENGETESAN
+// HAPUS SETELAH TIDAK DIGUNAKAN
+// ═══════════════════════════════
 Route::get('/debug/seed-if001', function () {
     $nim = 'IF-001';
 
-    // 1. Buat/Update Mahasiswa
     \App\Models\Student::updateOrCreate(['nim' => $nim], [
         'name' => 'Mahasiswa Test Predictive',
         'gender' => 'Laki-laki',
@@ -198,30 +222,27 @@ Route::get('/debug/seed-if001', function () {
         'mental_level' => null,
     ]);
 
-    // 2. Buat Check-in Negatif SEBANYAK 14 HARI (Untuk memicu Predictive Level 3)
-    // Kita hapus data lama dulu agar bersih
     \App\Models\DailyCheckin::where('nim', $nim)->delete();
     \App\Models\JournalText::where('nim', $nim)->delete();
 
     for ($i = 13; $i >= 0; $i--) {
         $date = now()->subDays($i);
+
         \App\Models\DailyCheckin::create([
             'nim' => $nim,
-            'mood_id' => 2, // Sedih
-            'feeling_id' => 11, // Cemas
+            'mood_id' => 2,
+            'feeling_id' => 11,
             'created_at' => $date,
-            'updated_at' => $date
+            'updated_at' => $date,
         ]);
     }
 
-    // 3. Buat Jurnal AMAN (Agar terbukti Level 3 berasal dari TREN, bukan dari teks)
     \App\Models\JournalText::create([
         'nim' => $nim,
         'description' => 'Hari ini saya hanya makan nasi goreng di kantin. Suasananya biasa saja.',
         'created_at' => now(),
     ]);
 
-    // 4. Jalankan AI Klasifikasi
     \App\Http\Controllers\CounselorController::classifyAndSave($nim);
 
     return "Data dummy if001 (14 Hari Negatif) berhasil dibuat. Jurnal diset 'Aman'. Silakan cek Dashboard Konselor.";

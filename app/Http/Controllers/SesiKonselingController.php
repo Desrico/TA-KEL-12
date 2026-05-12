@@ -76,7 +76,7 @@ class SesiKonselingController extends Controller
             'alasan_penolakan' => 'required|string'
         ]);
 
-        $jadwal = Jadwal::findOrFail($id);
+        $jadwal = JadwalKonseling::findOrFail($id);
 
         $jadwal->status = 'ditolak';
         $jadwal->alasan_penolakan = $request->alasan_penolakan; 

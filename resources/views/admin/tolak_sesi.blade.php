@@ -95,6 +95,26 @@
     .btn-batal {
         background: #ff2b2b;
     }
+
+.btn-kembali-sesi {
+    min-width: 260px;
+    height: 52px;
+    border-radius: 999px;
+    background: #0b6b47;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.btn-kembali-sesi:hover {
+    background: #09573a;
+    color: #fff;
+}
+
     .confirm-overlay {
     position: fixed;
     inset: 0;
@@ -276,7 +296,13 @@
             </a>
         </div>
     </form>
+<div class="mt-4 d-flex justify-content-center">
+    <a href="{{ route('admin.sesi') }}" class="btn-kembali-sesi">
+        Kembali ke Sesi Konseling
+    </a>
 </div>
+</div>
+
 
 <div class="confirm-overlay" id="tolakModal">
     <div class="confirm-box">
@@ -298,6 +324,7 @@
         </div>
     </div>
 </div>
+
 
 @push('scripts')
 <script>

@@ -75,62 +75,89 @@ class LaporanController extends Controller
     }
 
     public function storeLaporan(Request $request, $id)
-    {
-        $request->validate([
-            'catatan' => 'required|string',
-            'progress' => 'nullable|in:Membaik,Memburuk',
-            'tanggal_tindak_lanjut' => 'nullable|date',
-        ]);
+{
+    $request->validate([
+        'catatan' => 'required|string',
+        'progress' => 'nullable|in:Membaik,Memburuk',
+        'tanggal_tindak_lanjut' => 'nullable|date',
+    ]);
 
-        $jadwal = JadwalKonseling::findOrFail($id);
+    $jadwal = JadwalKonseling::findOrFail($id);
 
-        $ringkasanMasalah = trim((string) $request->catatan);
-        $catatanLama = (string) ($jadwal->catatan ?? '');
-        $perluLanjut = $request->boolean('tindak_lanjut');
+    $ringkasanMasalah = trim((string) $request->catatan);
+    $catatanLama = (string) ($jadwal->catatan ?? '');
+    $perluLanjut = $request->boolean('tindak_lanjut');
 
-        $updates = [
-            'status' => 'selesai',
-        ];
+    $updates = [
+        'status' => 'selesai',
+    ];
 
-        if ($this->jadwalHasColumn('ringkasan_masalah')) {
-            $updates['ringkasan_masalah'] = $ringkasanMasalah;
+    if ($this->jadwalHasColumn('ringkasan_masalah')) {
+        $updates['ringkasan_masalah'] = $ringkasanMasalah;
+    } else {
+        if (preg_match('/Topik:\s*([^|]+)/i', $catatanLama, $match)) {
+            $updates['catatan'] = 'Topik: '.trim($match[1]).' | Laporan: '.$ringkasanMasalah;
         } else {
-            // Fallback lama: simpan ringkasan tanpa menghilangkan bagian topik pada catatan.
-            if (preg_match('/Topik:\s*([^|]+)/i', $catatanLama, $match)) {
-                $updates['catatan'] = 'Topik: '.trim($match[1]).' | Laporan: '.$ringkasanMasalah;
-            } else {
-                $updates['catatan'] = $ringkasanMasalah;
-            }
+            $updates['catatan'] = $ringkasanMasalah;
         }
-
-        if ($this->jadwalHasColumn('observasi_konselor')) {
-            $updates['observasi_konselor'] = $request->observasi_konselor;
-        }
-
-        if ($this->jadwalHasColumn('progress')) {
-            $updates['progress'] = $request->progress;
-        }
-
-        if ($this->jadwalHasColumn('tindak_lanjut_tipe')) {
-            $updates['tindak_lanjut_tipe'] = $perluLanjut ? 'perlu_lanjut' : null;
-        }
-
-        if ($this->jadwalHasColumn('tanggal_lanjut')) {
-            $updates['tanggal_lanjut'] = $perluLanjut ? $request->tanggal_tindak_lanjut : null;
-        }
-
-        if ($this->jadwalHasColumn('tindak_lanjut')) {
-            $updates['tindak_lanjut'] = $perluLanjut ? 'perlu_lanjut' : null;
-        }
-
-        if ($this->jadwalHasColumn('laporan')) {
-            $updates['laporan'] = ($ringkasanMasalah !== '' || (string) $request->observasi_konselor !== '') ? 'ada' : null;
-        }
-
-        $jadwal->update($updates);
-
-        return redirect()
-            ->route('admin.laporan', ['scroll_to' => $jadwal->id])
-            ->with('success', 'Laporan berhasil disimpan!');
     }
+
+    if ($this->jadwalHasColumn('observasi_konselor')) {
+        $updates['observasi_konselor'] = $request->observasi_konselor;
+    }
+
+    if ($this->jadwalHasColumn('progress')) {
+        $updates['progress'] = $request->progress;
+    }
+
+    if ($this->jadwalHasColumn('tindak_lanjut_tipe')) {
+        $updates['tindak_lanjut_tipe'] = $perluLanjut ? 'perlu_lanjut' : null;
+    }
+
+    if ($this->jadwalHasColumn('tanggal_lanjut')) {
+        $updates['tanggal_lanjut'] = $perluLanjut ? $request->tanggal_tindak_lanjut : null;
+    }
+
+    if ($this->jadwalHasColumn('tindak_lanjut')) {
+        $updates['tindak_lanjut'] = $perluLanjut ? 'perlu_lanjut' : null;
+    }
+
+    if ($this->jadwalHasColumn('laporan')) {
+        $updates['laporan'] = ($ringkasanMasalah !== '' || (string) $request->observasi_konselor !== '') ? 'ada' : null;
+    }
+
+    $jadwal->update($updates);
+
+    return redirect()
+        ->route('admin.laporan', ['scroll_to' => $jadwal->id])
+        ->with('success', 'Laporan berhasil disimpan!');
+}
+
+public function detailRiwayat($id)
+{
+    $jadwal = JadwalKonseling::with([
+        'mahasiswa.user.profil',
+        'konselor.user',
+        'sesiKonseling'
+    ])->findOrFail($id);
+
+    $mahasiswa = $jadwal->mahasiswa;
+    $user = optional($mahasiswa)->user;
+    $profil = optional($user)->profil;
+
+    $totalKonseling = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)->count();
+
+    $sesiBerlangsung = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)
+        ->whereIn('status', ['disetujui', 'diterima', 'berlangsung', 'sedang berlangsung'])
+        ->count();
+
+    return view('Pages.detail-riwayat', compact(
+        'jadwal',
+        'mahasiswa',
+        'user',
+        'profil',
+        'totalKonseling',
+        'sesiBerlangsung'
+    ));
+}
 }

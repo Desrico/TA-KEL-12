@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Konselor;
 use App\Models\Notifikasi;
 use App\Models\SesiKonseling;
+use App\Models\KetidaktersediaanKonselor;
 
 class AdminController extends Controller
 {
@@ -199,7 +200,13 @@ class AdminController extends Controller
 }
     public function jadwal()
     {
-        return view('admin.jadwal');
+        $konselor = Konselor::where('user_id', Auth::id())->first();
+
+        $ketidaktersediaan = KetidaktersediaanKonselor::where('konselor_id', optional($konselor)->id)
+            ->orderBy('tanggal_mulai', 'desc')
+            ->get();
+
+        return view('admin.jadwal', compact('ketidaktersediaan'));
     }
 
     public function setujui($id)
@@ -329,47 +336,100 @@ class AdminController extends Controller
         return view('admin.mahasiswa', compact('mahasiswas'));
     }
 
-    public function jadwalEvents()
+   public function jadwalEvents()
 {
-    $jadwals = JadwalKonseling::with(['mahasiswa.user'])
-        ->orderBy('tanggal')
-        ->orderBy('waktu')
-        ->get();
+    $konselor = auth()->user()->konselor;
 
-    $events = $jadwals->map(function ($jadwal) {
-        $statusColor = match ($jadwal->status) {
-            'menunggu' => '#E9D98B',
-            'disetujui' => '#B8EEC0',
-            'berlangsung' => '#C9B8F5',
-            'selesai' => '#8EC9F5',
-            'ditolak' => '#F4A6A6',
-            default => '#D9D9D9',
-        };
+    $jadwal = \App\Models\JadwalKonseling::with(['mahasiswa.user'])
+        ->where('konselor_id', $konselor->id)
+        ->get()
+        ->map(function ($item) {
+            $status = strtolower($item->status ?? 'menunggu');
 
-        $namaMahasiswa = optional(optional($jadwal->mahasiswa)->user)->nama ?? 'Mahasiswa';
-        $jenis = ucfirst($jadwal->jenis ?? '-');
-        $topik = $jadwal->topik ?: '-';
-        $waktu = $jadwal->waktu ? substr($jadwal->waktu, 0, 5) : '-';
+            $warna = match ($status) {
+                'menunggu', 'menunggu konfirmasi' => '#E9D98B',
+                'disetujui', 'diterima' => '#B8EEC0',
+                'berlangsung', 'sedang berlangsung' => '#C9B8F5',
+                'selesai' => '#8EC9F5',
+                'ditolak' => '#F4A6A6',
+                default => '#E9D98B',
+            };
 
-        return [
-            'id' => $jadwal->id,
-            'title' => $namaMahasiswa . ' - ' . $waktu,
-            'start' => $jadwal->tanggal,
-            'allDay' => true,
-            'backgroundColor' => $statusColor,
-            'borderColor' => $statusColor,
-            'textColor' => '#1F2937',
-            'extendedProps' => [
-                'nama' => $namaMahasiswa,
-                'waktu' => $waktu,
-                'jenis' => $jenis,
-                'topik' => $topik,
-                'status' => ucfirst($jadwal->status),
-            ],
-        ];
-    });
+            return [
+                'title' => $item->mahasiswa->user->nama ?? 'Mahasiswa',
+                'start' => $item->tanggal,
+                'backgroundColor' => $warna,
+                'borderColor' => $warna,
+                'textColor' => '#1F2937',
+                'extendedProps' => [
+                    'nama' => $item->mahasiswa->user->nama ?? '-',
+                    'waktu' => $item->waktu ?? '-',
+                    'jenis' => $item->jenis ?? '-',
+                    'topik' => $item->topik ?? '-',
+                    'status' => ucfirst($item->status ?? 'Menunggu'),
+                ],
+            ];
+        });
 
-    return response()->json($events);
+    $tidakTersedia = \App\Models\KetidaktersediaanKonselor::where('konselor_id', $konselor->id)
+        ->get()
+        ->map(function ($item) {
+            $jamMulai = $item->jam_mulai ? substr($item->jam_mulai, 0, 5) : null;
+            $jamSelesai = $item->jam_selesai ? substr($item->jam_selesai, 0, 5) : null;
+
+            $title = 'Tidak Tersedia';
+
+            if ($jamMulai && $jamSelesai) {
+                $title .= " {$jamMulai} - {$jamSelesai}";
+            }
+
+            return [
+                'title' => $title,
+                'start' => $item->tanggal_mulai,
+                'end' => $item->tanggal_selesai,
+                'backgroundColor' => '#D9D9D9',
+                'borderColor' => '#D9D9D9',
+                'textColor' => '#374151',
+                'extendedProps' => [
+    'id' => $item->id,
+    'tanggal' => $item->tanggal_mulai,
+    'nama' => 'Konselor Tidak Tersedia',
+    'status' => 'Tidak Tersedia',
+
+    'jam_mulai' => $jamMulai,
+    'jam_selesai' => $jamSelesai,
+    'alasan' => $item->alasan ?? '-',
+
+    'waktu' => $jamMulai && $jamSelesai ? "{$jamMulai} - {$jamSelesai}" : 'Seharian',
+    'jenis' => '-',
+    'topik' => $item->alasan ?? '-',
+],
+            ];
+        });
+
+    return response()->json($jadwal->merge($tidakTersedia)->values());
+}
+
+public function update(Request $request, $id)
+{
+    $request->validate([
+        'tanggal_mulai' => 'required|date',
+        'jam_mulai' => 'required',
+        'jam_selesai' => 'required|after:jam_mulai',
+        'alasan' => 'nullable|string|max:200',
+    ]);
+
+    $data = KetidaktersediaanKonselor::findOrFail($id);
+
+    $data->update([
+        'tanggal_mulai' => $request->tanggal_mulai,
+        'tanggal_selesai' => $request->tanggal_mulai,
+        'jam_mulai' => $request->jam_mulai,
+        'jam_selesai' => $request->jam_selesai,
+        'alasan' => $request->alasan,
+    ]);
+
+    return redirect()->back()->with('success', 'Ketidaktersediaan berhasil diperbarui.');
 }
 
     public function pengaturan()

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\KetidaktersediaanKonselor;
 
 class Konselor extends Model
 {
@@ -12,6 +13,6 @@ class Konselor extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(KetidaktersediaanKonselor::class, 'konselor_id');
     }
 }

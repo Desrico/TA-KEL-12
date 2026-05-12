@@ -573,12 +573,12 @@
     font-size: .9rem;
   }
 
-  .confirm-overlay {
+ .confirm-overlay {
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  background: rgba(0, 0, 0, .28);
+  background: rgba(0, 0, 0, .38);
   display: none;
   align-items: center;
   justify-content: center;
@@ -594,7 +594,7 @@
   max-width: 90%;
   background: #066847;
   color: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 1.8rem 1.5rem;
   text-align: center;
   box-shadow: 0 24px 60px rgba(0,0,0,.25);
@@ -640,8 +640,8 @@
   color: #064e3b;
   font-weight: 800;
   font-size: .78rem;
-  border-radius: 5px;
-  padding: .45rem .9rem;
+  border-radius: 6px;
+  padding: .48rem .95rem;
 }
 
 .btn-cancel {
@@ -650,8 +650,144 @@
   color: #fff;
   font-weight: 700;
   font-size: .78rem;
-  border-radius: 5px;
-  padding: .45rem .9rem;
+  border-radius: 6px;
+  padding: .48rem .95rem;
+}
+
+/* POPUP JADWAL TIDAK TERSEDIA */
+.unavailable-box {
+  width: 430px;
+  max-width: 90%;
+  background: #066847;
+  color: #fff;
+  border-radius: 18px;
+  padding: 2rem 2.2rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .28);
+  animation: popFade .25s ease both;
+}
+
+.unavailable-alert-icon {
+  width: 78px;
+  height: 78px;
+  border: 6px solid #ff5757;
+  border-radius: 50%;
+  color: #ff5757;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.3rem;
+}
+
+.unavailable-alert-icon span {
+  font-size: 3.8rem;
+  font-weight: 800;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+
+.unavailable-box h3 {
+  text-align: center;
+  color: #fff !important;
+  font-size: 1.55rem;
+  font-weight: 800;
+  margin: 0 0 1.4rem;
+}
+
+.unavailable-line {
+  height: 1px;
+  background: rgba(255, 255, 255, .6);
+  margin: 1.2rem 0;
+}
+
+.unavailable-info {
+  display: grid;
+  gap: 1rem;
+}
+
+.unavailable-row {
+  display: grid;
+  grid-template-columns: 135px 1fr;
+  align-items: start;
+  column-gap: .8rem;
+}
+
+.unavailable-row-label {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  color: #a8dbc9 !important;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.unavailable-row-label i,
+.unavailable-row-label span {
+  color: #a8dbc9 !important;
+}
+
+.unavailable-row-value {
+  color: #fff !important;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.unavailable-item {
+  display: grid;
+  grid-template-columns: 135px 1fr;
+  align-items: start;
+  column-gap: .8rem;
+}
+
+.unavailable-label {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  color: #a8dbc9 !important;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.unavailable-label i {
+  color: #a8dbc9 !important;
+  font-size: 1.1rem;
+}
+
+.unavailable-value {
+  color: #fff !important;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.unavailable-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.4rem;
+}
+
+.btn-change {
+  min-width: 130px;
+  height: 44px;
+  border-radius: 8px;
+  border: 2px solid #d8fff2;
+  background: transparent;
+  color: #d8fff2;
+  font-size: .9rem;
+  font-weight: 800;
+}
+
+.btn-ok-unavailable {
+  min-width: 130px;
+  height: 44px;
+  border-radius: 8px;
+  border: 2px solid #fffaf5;
+  background: #fffaf5;
+  color: #066847;
+  font-size: 1rem;
+  font-weight: 800;
 }
 
 @keyframes popFade {
@@ -665,126 +801,11 @@
   }
 }
   @media (max-width: 991.98px) {
-    .service-hero {
-      padding-bottom: 2.7rem;
-    }
-
-.confirm-overlay.show,
-.success-overlay.show {
-  display: flex !important;
+  .service-hero {
+    padding-bottom: 2.7rem;
+  }
 }
 
-.confirm-box {
-  width: 360px;
-  max-width: 90%;
-  background: #066847;
-  color: #fff;
-  border-radius: 14px;
-  padding: 1.8rem 1.5rem;
-  text-align: center;
-  animation: popFade .28s ease both;
-}
-
-.confirm-icon {
-  width: 58px;
-  height: 58px;
-  border: 4px solid #ffe66d;
-  color: #ffe66d;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 auto 1rem;
-  animation: iconBounce .55s ease both;
-}
-
-.confirm-box h3 {
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin-bottom: .8rem;
-}
-
-.confirm-box p {
-  font-size: .78rem;
-  line-height: 1.45;
-  margin-bottom: 1.3rem;
-}
-
-.confirm-actions {
-  display: flex;
-  justify-content: center;
-  gap: .8rem;
-}
-
-.btn-confirm {
-  border: 0;
-  background: #ffe66d;
-  color: #064e3b;
-  font-weight: 800;
-  font-size: .78rem;
-  border-radius: 6px;
-  padding: .48rem .95rem;
-}
-
-.btn-cancel {
-  border: 1px solid #fff;
-  background: transparent;
-  color: #fff;
-  font-weight: 700;
-  font-size: .78rem;
-  border-radius: 6px;
-  padding: .48rem .95rem;
-}
-
-.success-box {
-  width: 390px;
-  max-width: 90%;
-  background: #fff;
-  border-radius: 22px;
-  padding: 2rem 1.7rem;
-  text-align: center;
-  box-shadow: 0 28px 70px rgba(15, 23, 42, .22);
-  animation: popFade .28s ease both;
-}
-
-.success-icon {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: #DFF8EA;
-  color: #066847;
-  display: grid;
-  place-items: center;
-  margin: 0 auto 1rem;
-  font-size: 2rem;
-  animation: iconBounce .55s ease both;
-}
-
-.success-box h3 {
-  color: #064E3B;
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin-bottom: .65rem;
-}
-
-.success-box p {
-  margin: 0 auto 1.4rem;
-  color: #64748b;
-  font-size: .9rem;
-  line-height: 1.6;
-  max-width: 300px;
-}
-
-.btn-success-ok {
-  border: 0;
-  background: #066847;
-  color: #fff;
-  border-radius: 999px;
-  padding: .7rem 1.4rem;
-  font-size: .85rem;
-  font-weight: 800;
-}
 
 @keyframes popFade {
   from {
@@ -1096,6 +1117,53 @@
     </div>
   </div>
 </div>
+<div class="confirm-overlay" id="unavailableModal">
+  <div class="unavailable-box">
+
+    <div class="unavailable-alert-icon">
+      <span>!</span>
+    </div>
+
+    <h3>Jadwal Tidak Tersedia</h3>
+
+    <div class="unavailable-line"></div>
+
+    <div class="unavailable-info">
+  <div class="unavailable-row">
+    <div class="unavailable-row-label">
+      <i class="bi bi-calendar3"></i>
+      <span>Tanggal</span>
+    </div>
+    <div class="unavailable-row-value" id="unavailableTanggal">-</div>
+  </div>
+
+  <div class="unavailable-row">
+    <div class="unavailable-row-label">
+      <i class="bi bi-clock"></i>
+      <span>Waktu</span>
+    </div>
+    <div class="unavailable-row-value" id="unavailableWaktu">-</div>
+  </div>
+
+  <div class="unavailable-row">
+    <div class="unavailable-row-label">
+      <i class="bi bi-chat-square-text"></i>
+      <span>Alasan</span>
+    </div>
+    <div class="unavailable-row-value" id="unavailableAlasan">-</div>
+  </div>
+</div>
+
+    <div class="unavailable-line"></div>
+
+    <div class="unavailable-actions">
+      <button type="button" class="btn-change" onclick="closeUnavailableModal()">
+        Ubah Jadwal
+      </button>
+    </div>
+
+  </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1318,6 +1386,46 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.classList.add('show');
   }
 
+  function formatTanggalIndo(tanggal) {
+  const bulan = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+
+  const date = new Date(tanggal);
+  const day = date.getDate();
+  const month = bulan[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
+}
+
+function formatRentangWaktu(waktu) {
+  const [hour, minute] = waktu.split(':').map(Number);
+
+  const start = `${String(hour).padStart(2, '0')}.${String(minute).padStart(2, '0')}`;
+  const endHour = hour + 1;
+  const end = `${String(endHour).padStart(2, '0')}.${String(minute).padStart(2, '0')}`;
+
+  return `${start} - ${end} WIB`;
+}
+
+function openUnavailableModal(tanggal, waktu, alasan = null) {
+  document.getElementById('unavailableTanggal').innerText = formatTanggalIndo(tanggal);
+  document.getElementById('unavailableWaktu').innerText = formatRentangWaktu(waktu);
+
+  document.getElementById('unavailableAlasan').innerText =
+    alasan || 'Konselor tidak tersedia pada waktu tersebut.';
+
+  const modal = document.getElementById('unavailableModal');
+  document.body.appendChild(modal);
+  modal.classList.add('show');
+}
+
+function closeUnavailableModal() {
+  document.getElementById('unavailableModal').classList.remove('show');
+}
+
   function closeSuccessModal() {
     document.getElementById('successModal').classList.remove('show');
     window.location.href = '{{ route("konseling") }}';
@@ -1378,9 +1486,17 @@ document.addEventListener('DOMContentLoaded', function () {
       const checkData = await checkRes.json();
 
       if (!checkData.success || !checkData.is_available) {
-        alert(checkData.message || 'Jadwal ini sudah tidak tersedia. Silakan pilih waktu lain.');
+        closeConfirmModal();
+
+        openUnavailableModal(
+          tanggalEl.value,
+          waktuEl.value,
+          checkData.alasan || checkData.reason || checkData.message
+        );
+
         await fetchBookedSlots();
         renderTimeOptions();
+
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
         return;
@@ -1402,7 +1518,13 @@ document.addEventListener('DOMContentLoaded', function () {
         closeConfirmModal();
         openSuccessModal();
       } else {
-        alert(data.message || 'Jadwal gagal dibuat.');
+  closeConfirmModal();
+
+    openUnavailableModal(
+      tanggalEl.value,
+      waktuEl.value,
+      data.alasan || data.reason || data.message
+    );
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
       }
@@ -1436,6 +1558,8 @@ document.addEventListener('DOMContentLoaded', function () {
   };
   window.openSuccessModal = openSuccessModal;
   window.closeSuccessModal = closeSuccessModal;
+  window.openUnavailableModal = openUnavailableModal;
+  window.closeUnavailableModal = closeUnavailableModal;
   window.submitJadwal = submitJadwal;
   window.handleTopikChange = handleTopikChange;
 

@@ -18,92 +18,114 @@ use App\Models\Konselor;
 class CounselorController extends Controller
 {
     public function index()
-    {
-        // OPTIMASI PERFORMA MongoDB:
-        if (!Schema::hasTable('students')) {
-            \Log::warning('CounselorController@index: table "students" not found. Returning empty collection.');
-            $students = collect();
-            $lastScan = null;
-        } else {
-            $students = Student::with('journalTexts')
-                ->orderBy('mental_level', 'desc')
-                ->orderBy('name')
-                ->get()
-                ->map(function ($student) {
-                    $student->journal_texts_count = $student->journalTexts->count();
-                    return $student;
-                });
+{
+    // Pastikan user sudah login
+    $user = Auth::user();
 
-            $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
-        }
-
-        // Get current konselor
-        $user = Auth::user();
-        $konselor = Konselor::where('user_id', $user->id)->first();
-
-        // Get jadwal statistics
-        $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
-
-        $totalPenjadwalan   = (clone $baseQuery)->count();
-        $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
-        $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
-        $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
-        $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
-        $approvalRate   = $totalPenjadwalan > 0 ? round(($disetujui / $totalPenjadwalan) * 100) : 0;
-
-        // Monthly statistics
-        $monthlyLabels = [];
-        $monthlyCounts = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $month = Carbon::now()->subMonths($i);
-            $monthlyLabels[] = $month->translatedFormat('M');
-            $monthlyCounts[] = (clone $baseQuery)
-                ->whereYear('tanggal', $month->year)
-                ->whereMonth('tanggal', $month->month)
-                ->count();
-        }
-
-        // Topic statistics
-        $topikStats = collect();
-        if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
-            $topikStats = (clone $baseQuery)
-                ->whereNotNull('catatan')
-                ->pluck('catatan')
-                ->map(function ($catatan) {
-                    if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
-                        return trim($match[1]);
-                    }
-                    return trim((string) $catatan);
-                })
-                ->filter()
-                ->countBy()
-                ->sortDesc()
-                ->take(5);
-        }
-
-        $topikLabels = $topikStats->keys()->values();
-        $topikCounts = $topikStats->values()->values();
-        $totalTopik = $topikCounts->sum();
-
-        return view('admin.dashboard', compact(
-            'students',
-            'lastScan',
-            'konselor',
-            'totalPenjadwalan',
-            'menunggu',
-            'disetujui',
-            'ditolak',
-            'mahasiswaAktif',
-            'approvalRate',
-            'monthlyLabels',
-            'monthlyCounts',
-            'topikStats',
-            'topikLabels',
-            'topikCounts',
-            'totalTopik',
-        ));
+    if (!$user) {
+        return redirect()->route('login')
+            ->with('error', 'Silakan login terlebih dahulu.');
     }
 
+    // Ambil data konselor berdasarkan user login
+    $konselor = Konselor::where('user_id', $user->id)->first();
+
+    if (!$konselor) {
+        return redirect()->route('login')
+            ->with('error', 'Akun ini belum terdaftar sebagai konselor.');
+    }
+
+    // OPTIMASI PERFORMA MongoDB
+    if (!Schema::hasTable('students')) {
+        \Log::warning('CounselorController@index: table "students" not found. Returning empty collection.');
+        $students = collect();
+        $lastScan = null;
+    } else {
+        $students = Student::with('journalTexts')
+            ->orderBy('mental_level', 'desc')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($student) {
+                $student->journal_texts_count = $student->journalTexts->count();
+                return $student;
+            });
+
+        $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
+    }
+
+    // Query jadwal berdasarkan konselor yang sedang login
+    $baseQuery = JadwalKonseling::where('konselor_id', $konselor->id);
+
+    $totalPenjadwalan = (clone $baseQuery)->count();
+    $menunggu         = (clone $baseQuery)->where('status', 'menunggu')->count();
+    $disetujui        = (clone $baseQuery)->where('status', 'disetujui')->count();
+    $ditolak          = (clone $baseQuery)->where('status', 'ditolak')->count();
+
+    $mahasiswaAktif = (clone $baseQuery)
+        ->distinct('mahasiswa_id')
+        ->count('mahasiswa_id');
+
+    $approvalRate = $totalPenjadwalan > 0
+        ? round(($disetujui / $totalPenjadwalan) * 100)
+        : 0;
+
+    // Statistik bulanan
+    $monthlyLabels = [];
+    $monthlyCounts = [];
+
+    for ($i = 5; $i >= 0; $i--) {
+        $month = Carbon::now()->subMonths($i);
+
+        $monthlyLabels[] = $month->translatedFormat('M');
+
+        $monthlyCounts[] = (clone $baseQuery)
+            ->whereYear('tanggal', $month->year)
+            ->whereMonth('tanggal', $month->month)
+            ->count();
+    }
+
+    // Statistik topik
+    $topikStats = collect();
+
+    if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
+        $topikStats = (clone $baseQuery)
+            ->whereNotNull('catatan')
+            ->pluck('catatan')
+            ->map(function ($catatan) {
+                if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
+                    return trim($match[1]);
+                }
+
+                return trim((string) $catatan);
+            })
+            ->filter()
+            ->countBy()
+            ->sortDesc()
+            ->take(5);
+    }
+
+    $topikLabels = $topikStats->keys()->values();
+    $topikCounts = $topikStats->values()->values();
+    $totalTopik  = $topikCounts->sum();
+
+    return view('admin.dashboard', compact(
+        'students',
+        'lastScan',
+        'konselor',
+        'totalPenjadwalan',
+        'menunggu',
+        'disetujui',
+        'ditolak',
+        'mahasiswaAktif',
+        'approvalRate',
+        'monthlyLabels',
+        'monthlyCounts',
+        'topikStats',
+        'topikLabels',
+        'topikCounts',
+        'totalTopik',
+    ));
+}
     public function prioritas()
     {
         if (!Schema::hasTable('students')) {
