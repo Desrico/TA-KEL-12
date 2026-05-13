@@ -8,10 +8,6 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\Student;
-use App\Models\JournalText;
-use App\Models\DailyCheckin;
-use App\Models\Mood;
-use App\Models\Feeling;
 use App\Models\JadwalKonseling;
 use App\Models\Konselor;
 
@@ -372,12 +368,10 @@ class CounselorController extends Controller
         ]);
     }
 
-
-
-
     public function getJadwalData(Request $request)
     {
-        $konselor = auth()->user()->konselor;
+        $user = Auth::user();
+        $konselor = $user ? Konselor::where('user_id', $user->id)->first() : null;
         $konselor_id = optional($konselor)->id;
         $range = $request->query('range', '14d');
 
@@ -480,93 +474,6 @@ class CounselorController extends Controller
         ]);
     }
 
-    public function getFeelingDistribution(Request $request)
-    {
-        $name = $request->query('name', 'all');
-        
-        $categories = [
-            'CAT:Positif'   => ['Gembira', 'Bangga', 'Bersyukur', 'Ceria', 'Semangat', 'Energik', 'Kagum', 'Bergairah'],
-            'CAT:Netral'    => ['Biasa Saja', 'Stabil', 'Tenang', 'Santai'],
-            'CAT:Penasaran' => ['Tercengang', 'Penasaran', 'Tertarik', 'Gelagapan'],
-            'CAT:Sedih'     => ['Pilu', 'Depresi', 'Kesepian', 'Putus Asa'],
-            'CAT:Cemas'     => ['Cemas', 'Khawatir', 'Panik', 'Gelisah'],
-            'CAT:Kesal'     => ['Kesal', 'Jengkel', 'Benci', 'Kecewa'],
-        ];
-
-        if ($name === 'all') {
-            $allFeelings = Feeling::all()->keyBy('feeling_id');
-            $activeNims = Student::pluck('nim')->toArray();
-            $distribution = DailyCheckin::whereIn('nim', $activeNims)->get()
-                ->groupBy('feeling_id')
-                ->map(function ($checkins, $feelingId) use ($allFeelings) {
-                    $feeling = $allFeelings->get($feelingId);
-                    return [
-                        'name'       => $feeling ? $feeling->feeling_name : 'Tidak Ada',
-                        'count'      => $checkins->count(),
-                        'percentage' => 0
-                    ];
-                })
-                ->values();
-            
-            $total = $distribution->sum('count');
-            if ($total > 0) {
-                $distribution = $distribution->map(function ($item) use ($total) {
-                    $item['percentage'] = round(($item['count'] / $total) * 100);
-                    return $item;
-                })->sortByDesc('count')->take(10)->values();
-            }
-
-            return response()->json(['items' => $distribution]);
-        } elseif (str_starts_with($name, 'CAT:')) {
-            $feelingNames = $categories[$name] ?? [];
-            $matchingFeelings = Feeling::whereIn('feeling_name', $feelingNames)->get()->keyBy('feeling_id');
-            $feelingIds = $matchingFeelings->keys()->toArray();
-            $activeNims = Student::pluck('nim')->toArray();
-            
-            $distribution = DailyCheckin::whereIn('feeling_id', $feelingIds)
-                ->whereIn('nim', $activeNims)
-                ->get()
-                ->groupBy('feeling_id')
-                ->map(function ($checkins, $feelingId) use ($matchingFeelings) {
-                    $feeling = $matchingFeelings->get($feelingId);
-                    return [
-                        'name'       => $feeling ? $feeling->feeling_name : 'Tidak Ada',
-                        'count'      => $checkins->count(),
-                        'percentage' => 0
-                    ];
-                })
-                ->values();
-                
-            $totalAll = DailyCheckin::whereIn('nim', $activeNims)->count();
-            if ($totalAll > 0) {
-                $distribution = $distribution->map(function ($item) use ($totalAll) {
-                    $item['percentage'] = round(($item['count'] / $totalAll) * 100);
-                    return $item;
-                })->sortByDesc('count')->values();
-            }
-            
-            return response()->json(['items' => $distribution]);
-        } else {
-            $feeling = Feeling::where('feeling_name', $name)->first();
-            if (!$feeling) {
-                return response()->json(['items' => []]);
-            }
-
-            $activeNims = Student::pluck('nim')->toArray();
-            $count = DailyCheckin::where('feeling_id', $feeling->_id)->whereIn('nim', $activeNims)->count();
-            $total = DailyCheckin::whereIn('nim', $activeNims)->count();
-            $percentage = $total > 0 ? round(($count / $total) * 100) : 0;
-
-            return response()->json([
-                'items' => [[
-                    'name'       => $feeling->feeling_name,
-                    'count'      => $count,
-                    'percentage' => $percentage
-                ]]
-            ]);
-        }
-    }
-
     /**
      * Helper untuk icon & warna feeling di dashboard
      */
@@ -586,26 +493,21 @@ class CounselorController extends Controller
         return $map[$name] ?? ['icon' => '✨', 'color' => 'rgba(255,255,255,0.08)', 'desc' => 'Emosi yang terekam dalam jurnal.'];
     }
 
-    public function getUrgentNotifications()
+
+
+    public function prioritas()
     {
-        // Ambil mahasiswa dengan mental_level = 3 (Krisis / Bahaya) yang belum dibaca notifnya
-        $urgentStudents = Student::where('mental_level', 3)
-            ->where('mental_notif_read', '!=', true)
-            ->orderBy('mental_level', 'desc')
+        $students = Student::where('mental_level', 3)
             ->orderBy('mental_scanned_at', 'desc')
-            ->take(10)
             ->get();
 
-        return response()->json([
-            'count' => $urgentStudents->count(),
-            'notifications' => $urgentStudents
-        ]);
+        return view('admin.prioritas', compact('students'));
     }
 
-    public function markUrgentRead(string $nim)
+    public function semuaMahasiswa()
     {
-        Student::where('nim', $nim)->update(['mental_notif_read' => true]);
-        return response()->json(['success' => true]);
+        $students = Student::orderBy('name', 'asc')->get();
+        return view('admin.semua_mahasiswa', compact('students'));
     }
 
     public function getStudentPreview(Request $request)
@@ -906,4 +808,5 @@ class CounselorController extends Controller
 
         return response()->json($data);
     }
+}
 }

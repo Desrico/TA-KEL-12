@@ -12,6 +12,7 @@ use App\Http\Controllers\GroupChatAdminController;
 use App\Http\Controllers\GroupChatMahasiswaController;
 use App\Http\Controllers\KampusApiController;
 use App\Http\Controllers\CounselorController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\AboutPageController;
 use App\Http\Controllers\ChatController;
@@ -101,7 +102,7 @@ Route::prefix('admin')
         Route::get('/', fn() => redirect()->route('admin.dashboard'));
 
         Route::get('/dashboard', [CounselorController::class, 'index'])->name('dashboard');
-
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/notifikasi', [AdminController::class, 'notifications'])->name('notifikasi.list');
         Route::post('/notifikasi/baca', [AdminController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
 
@@ -192,19 +193,19 @@ Route::get('/test-mongodb', function () {
 // ═══════════════════════════════
 // KONSELOR PA3
 // ═══════════════════════════════
-Route::get('/konselor/dashboard', [CounselorController::class, 'index'])->name('counselor.dashboard');
+Route::get('/konselor/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('counselor.dashboard');
 Route::get('/konselor/prioritas', [CounselorController::class, 'prioritas'])->name('counselor.prioritas');
 Route::get('/konselor/semua-mahasiswa', [CounselorController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
-Route::post('/konselor/update-status/{nim}', [CounselorController::class, 'updateStatus'])->name('counselor.update-status');
-Route::get('/konselor/chart-data', [CounselorController::class, 'getChartData'])->name('counselor.chart-data');
+Route::post('/konselor/update-status/{nim}', [\App\Http\Controllers\DashboardController::class, 'updateStatus'])->name('counselor.update-status');
+Route::get('/konselor/chart-data', [DashboardController::class, 'getChartData'])->name('counselor.chart-data');
 Route::get('/konselor/jadwal-data', [CounselorController::class, 'getJadwalData'])->name('counselor.jadwal-data');
-Route::get('/konselor/top-students', [CounselorController::class, 'getStudentPreview'])->name('counselor.top-students');
-Route::get('/konselor/notifications', [CounselorController::class, 'getUrgentNotifications'])->name('counselor.notifications');
-Route::post('/konselor/notifications/{nim}/read', [CounselorController::class, 'markUrgentRead'])->name('counselor.notifications.read');
-Route::get('/konselor/feeling-distribution', [CounselorController::class, 'getFeelingDistribution'])->name('counselor.feeling-distribution');
-Route::get('/konselor/detail/{nim}', [CounselorController::class, 'showDetail'])->name('counselor.detail');
-Route::post('/konselor/scan', [CounselorController::class, 'scanLevel3'])->name('counselor.scan');
-Route::post('/konselor/summary', [CounselorController::class, 'getSummary'])->name('counselor.summary');
+Route::get('/konselor/top-students', [\App\Http\Controllers\DashboardController::class, 'getStudentPreview'])->name('counselor.top-students');
+Route::get('/konselor/notifications', [\App\Http\Controllers\DashboardController::class, 'getUrgentNotifications'])->name('counselor.notifications');
+Route::post('/konselor/notifications/{nim}/read', [\App\Http\Controllers\DashboardController::class, 'markUrgentRead'])->name('counselor.notifications.read');
+Route::get('/konselor/feeling-distribution', [\App\Http\Controllers\DashboardController::class, 'getFeelingDistribution'])->name('counselor.feeling-distribution');
+Route::get('/konselor/detail/{nim}', [\App\Http\Controllers\DashboardController::class, 'showDetail'])->name('counselor.detail');
+Route::post('/konselor/scan', [\App\Http\Controllers\DashboardController::class, 'scanLevel3'])->name('counselor.scan');
+Route::post('/konselor/summary', [\App\Http\Controllers\DashboardController::class, 'getSummary'])->name('counselor.summary');
 
 
 // ═══════════════════════════════
@@ -245,6 +246,7 @@ Route::get('/debug/seed-if001', function () {
         'name' => 'Mahasiswa Test Predictive',
         'gender' => 'Laki-laki',
         'prodi' => 'IF',
+        'tingkatan' => '2023',
         'password' => \Illuminate\Support\Facades\Hash::make('password'),
         'mental_level' => null,
     ]);
@@ -269,8 +271,9 @@ Route::get('/debug/seed-if001', function () {
         'description' => 'Hari ini saya hanya makan nasi goreng di kantin. Suasananya biasa saja.',
         'created_at' => now(),
     ]);
-
     \App\Http\Controllers\CounselorController::classifyAndSave($nim);
+    // 4. Jalankan AI Klasifikasi
+    \App\Http\Controllers\DashboardController::classifyAndSave($nim);
 
     return "Data dummy if001 (14 Hari Negatif) berhasil dibuat. Jurnal diset 'Aman'. Silakan cek Dashboard Konselor.";
 });
