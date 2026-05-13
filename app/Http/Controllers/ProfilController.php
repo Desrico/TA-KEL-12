@@ -44,9 +44,9 @@ class ProfilController extends Controller
             'nama'     => 'required|string|max:100',
             'nim'      => 'required|string|max:20|unique:mahasiswa,nim,' . optional($mahasiswa)->id,
             'bio'      => 'nullable|string|max:500',
-            'jurusan'  => 'required|string|max:100',
-            'angkatan' => 'required|digits:4',
-            'foto'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+//             'jurusan'  => 'required|string|max:100',
+//             'angkatan' => 'required|digits:4',
+//             'foto'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // Update data user
@@ -69,7 +69,6 @@ class ProfilController extends Controller
         // Update foto profil jika ada file baru
         if ($request->hasFile('foto')) {
             \Log::info('File foto diterima, menyimpan...');
-            
             // hapus foto lama jika ada
             if ($profil->foto && Storage::disk('public')->exists($profil->foto)) {
                 Storage::disk('public')->delete($profil->foto);
@@ -128,11 +127,7 @@ class ProfilController extends Controller
             ->orderBy('waktu', 'desc')
             ->get();
 
-
         return view('Pages.riwayat', compact('riwayat'));
-        $selectedJadwal = request()->query('jadwal');
-
-        return view('pages.riwayat', compact('riwayat', 'selectedJadwal'));
     }
 
     public function markNotificationsAsRead()

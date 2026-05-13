@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -34,89 +33,9 @@ class JadwalKonseling extends Model
         'alasan_penolakan',
     ];
 
-    public static function sessionTimezone(): string
-    {
-        return self::SESSION_TIMEZONE;
-    }
-
-    public static function sessionNow(): Carbon
-    {
-        return Carbon::now(self::sessionTimezone());
-    }
-
-    public function isOnlineType(): bool
-    {
-        return strtolower(trim((string) $this->jenis)) === 'online';
-    }
-
-    public function scheduledAt(): ?Carbon
-    {
-        if (! $this->tanggal || ! $this->waktu) {
-            return null;
-        }
-
-        return Carbon::parse(
-            trim((string) $this->tanggal.' '.(string) $this->waktu),
-            self::sessionTimezone()
-        );
-    }
-
-    public function scheduledStartLabel(): string
-    {
-        $scheduledAt = $this->scheduledAt();
-
-        if (! $scheduledAt) {
-            return 'jadwal yang ditentukan';
-        }
-
-        return $scheduledAt->translatedFormat('j F Y \\p\\u\\k\\u\\l H:i');
-    }
-
-    public function hasScheduledTimeStarted(?CarbonInterface $reference = null): bool
-    {
-        $scheduledAt = $this->scheduledAt();
-
-        if (! $scheduledAt) {
-            return false;
-        }
-
-        $referenceTime = $reference
-            ? Carbon::instance($reference)->timezone(self::sessionTimezone())
-            : self::sessionNow();
-
-        return $referenceTime->greaterThanOrEqualTo($scheduledAt);
-    }
-
-    public function sessionPriorityRank(): int
-    {
-        if ($this->status === 'berlangsung') {
-            return 0;
-        }
-
-        return $this->hasScheduledTimeStarted() ? 1 : 2;
-    }
-
-    public function sessionPriorityTimestamp(): int
-    {
-        return $this->scheduledAt()?->getTimestamp() ?? PHP_INT_MAX;
-    }
-
-    public function compareSessionPriority(self $other): int
-    {
-        $rankComparison = $this->sessionPriorityRank() <=> $other->sessionPriorityRank();
-
-        if ($rankComparison !== 0) {
-            return $rankComparison;
-        }
-
-        $timeComparison = $this->sessionPriorityTimestamp() <=> $other->sessionPriorityTimestamp();
-
-        if ($timeComparison !== 0) {
-            return $timeComparison;
-        }
-
-        return $this->id <=> $other->id;
-    }
+    protected $casts = [
+        'tanggal' => 'date',
+    ];
 
     public function mahasiswa(): BelongsTo
     {
@@ -130,6 +49,124 @@ class JadwalKonseling extends Model
 
     public function sesiKonseling(): HasOne
     {
-        return $this->hasOne(SesiKonseling::class, 'jadwal_id');
+        return $this->hasOne(SesiKonseling::class, SesiKonseling::jadwalForeignKey());
+    }
+
+    public function scheduledAt(?string $timezone = 'Asia/Jakarta'): ?Carbon
+    {
+        if (! $this->tanggal || ! $this->waktu) {
+            return null;
+        }
+
+        $date = $this->tanggal instanceof Carbon
+            ? $this->tanggal->copy()->timezone($timezone)
+            : Carbon::parse($this->tanggal, $timezone);
+
+        $time = $this->waktu instanceof Carbon
+            ? $this->waktu->format('H:i:s')
+            : trim((string) $this->waktu);
+
+        if ($time === '') {
+            return null;
+        }
+
+        return $date
+            ->startOfDay()
+            ->setTimeFromTimeString($time);
+    }
+
+    public function hasScheduledTimeStarted(?Carbon $reference = null, string $timezone = 'Asia/Jakarta'): bool
+    {
+        $scheduledAt = $this->scheduledAt($timezone);
+
+        if (! $scheduledAt) {
+            return false;
+        }
+
+        $referenceTime = $reference?->copy()->timezone($timezone) ?? Carbon::now($timezone);
+
+        return $referenceTime->greaterThanOrEqualTo($scheduledAt);
+    }
+
+    public function scheduledEndAt(?string $timezone = 'Asia/Jakarta'): ?Carbon
+    {
+        $scheduledAt = $this->scheduledAt($timezone);
+
+        if (! $scheduledAt) {
+            return null;
+        }
+
+        return $scheduledAt->copy()->addDay();
+    }
+
+    public function hasChatWindowEnded(?Carbon $reference = null, string $timezone = 'Asia/Jakarta'): bool
+    {
+        $scheduledEndAt = $this->scheduledEndAt($timezone);
+
+        if (! $scheduledEndAt) {
+            return false;
+        }
+
+        $referenceTime = $reference?->copy()->timezone($timezone) ?? Carbon::now($timezone);
+
+        return $referenceTime->greaterThanOrEqualTo($scheduledEndAt);
+    }
+
+    public function isChatWindowOpen(?Carbon $reference = null, string $timezone = 'Asia/Jakarta'): bool
+    {
+        return $this->hasScheduledTimeStarted($reference, $timezone)
+            && ! $this->hasChatWindowEnded($reference, $timezone);
+    }
+
+    public function compareSessionPriority(self $other, string $timezone = 'Asia/Jakarta'): int
+    {
+        $thisScheduledAt = $this->scheduledAt($timezone);
+        $otherScheduledAt = $other->scheduledAt($timezone);
+
+        $thisRank = $this->sessionPriorityRank($timezone);
+        $otherRank = $other->sessionPriorityRank($timezone);
+
+        if ($thisRank !== $otherRank) {
+            return $thisRank <=> $otherRank;
+        }
+
+        if (! $thisScheduledAt && ! $otherScheduledAt) {
+            return $this->id <=> $other->id;
+        }
+
+        if (! $thisScheduledAt) {
+            return 1;
+        }
+
+        if (! $otherScheduledAt) {
+            return -1;
+        }
+
+        if ($thisRank <= 1) {
+            return $otherScheduledAt <=> $thisScheduledAt;
+        }
+
+        return $thisScheduledAt <=> $otherScheduledAt;
+    }
+
+    private function sessionPriorityRank(string $timezone = 'Asia/Jakarta'): int
+    {
+        if ($this->isChatWindowOpen(null, $timezone) && $this->status === 'berlangsung') {
+            return 0;
+        }
+
+        if ($this->isChatWindowOpen(null, $timezone)) {
+            return 1;
+        }
+
+        if ($this->scheduledAt($timezone) && ! $this->hasChatWindowEnded(null, $timezone)) {
+            return 2;
+        }
+
+        if ($this->scheduledAt($timezone)) {
+            return 3;
+        }
+
+        return 4;
     }
 }

@@ -209,6 +209,47 @@
             .progress-bar-bg { background: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .progress-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
+
+        .btn-notification {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #475569;
+        }
+        .btn-notification:hover {
+            background: #f8fafc;
+            color: #1e293b;
+        }
+        .btn-notification.enabled {
+            background: #ecfdf5;
+            color: #059669;
+            border-color: #a7f3d0;
+        }
+
+        .btn-report {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 12px 28px; border-radius: var(--radius-md);
+            font-size: 0.95rem; font-weight: 700;
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white; border: none; cursor: pointer;
+            text-decoration: none; transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+        }
+        .btn-report:hover {
+            background: linear-gradient(135deg, #047857, #065f46);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
+            color: white;
+        }
+        .btn-report i { font-size: 1.1rem; }
     </style>
 @endpush
 
@@ -265,10 +306,15 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                     Pindai Ulang
                 </button>
+                
+                <button class="btn-notification" id="btnWebPush" onclick="togglePush()">
+                    <i class="ti ti-bell"></i>
+                    <span>Aktifkan Notifikasi Sistem</span>
+                </button>
                 @if($countL3 > 0)
-                <a href="{{ route('counselor.prioritas') ?? '#' }}" class="btn-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    Buat Laporan
+                <a href="{{ route('counselor.prioritas') ?? '#' }}" class="btn-report">
+                    <i class="ti ti-file-analytics"></i>
+                    Buat Laporan Prioritas
                 </a>
                 @endif
             </div>
@@ -403,14 +449,24 @@
                     <div class="card-title">Pratinjau Direktori Mahasiswa</div>
                     <div class="card-subtitle">Profil mahasiswa aktif terbaru dan informasi akademik.</div>
                 </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <select id="previewProdiFilter" onchange="loadTopStudents()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 500; outline: none; background: white; cursor: pointer; color: #475569;">
-                        <option value="Semua">Semua Program Studi</option>
-                        <option value="Teknologi Rekayasa Perangkat Lunak">TRPL</option>
-                        <option value="Informatika">Informatika</option>
-                        <option value="Sistem Informasi Manajemen">Sistem Informasi Manajemen</option>
-                        <option value="Teknik Elektro">Teknik Elektro</option>
-                    </select>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    {{-- Dropdown Level 1: Fakultas --}}
+                    <div style="position: relative;">
+                        <select id="filterFakultas" onchange="onFakultasChange()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 500; outline: none; background: white; cursor: pointer; color: #475569; min-width: 160px;">
+                            <option value="Semua">🏛️ Semua Fakultas</option>
+                            <option value="FAK:Vokasi">Vokasi</option>
+                            <option value="FAK:Informatika & Elektro">Informatika &amp; Elektro</option>
+                            <option value="FAK:Bioteknologi">Bioteknologi</option>
+                            <option value="FAK:Teknik Industri">Teknik Industri</option>
+                        </select>
+                    </div>
+
+                    {{-- Dropdown Level 2: Prodi (muncul setelah fakultas dipilih) --}}
+                    <div id="wrapProdiFilter" style="overflow: hidden; max-width: 0; opacity: 0; transition: max-width 0.35s ease, opacity 0.3s ease; white-space: nowrap;">
+                        <select id="filterProdi" onchange="loadTopStudents()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #059669; font-size: 0.85rem; font-weight: 500; outline: none; background: #f0fdf4; cursor: pointer; color: #065f46; min-width: 200px;">
+                        </select>
+                    </div>
+
                     <a href="{{ route('counselor.semua-mahasiswa') }}" class="btn-link">Lihat Selengkapnya <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
                 </div>
             </div>
@@ -677,16 +733,82 @@
             });
     }
 
+    // Peta prodi per-Fakultas untuk cascading dropdown
+    const fakultasProdiMap = {
+        'FAK:Vokasi': [
+            { value: 'Semua Vokasi', label: '📋 Semua Prodi Vokasi' },
+            { value: 'Teknologi Rekayasa Perangkat Lunak', label: 'Teknologi Rekayasa Perangkat Lunak' },
+            { value: 'Teknologi Informasi',               label: 'Teknologi Informasi' },
+            { value: 'Teknologi Komputer',                label: 'Teknologi Komputer' },
+        ],
+        'FAK:Informatika & Elektro': [
+            { value: 'Semua Informatika & Elektro', label: '📋 Semua Prodi Informatika & Elektro' },
+            { value: 'Informatika',   label: 'Informatika' },
+            { value: 'Teknik Elektro', label: 'Teknik Elektro' },
+        ],
+        'FAK:Bioteknologi': [
+            { value: 'Semua Bioteknologi', label: '📋 Semua Prodi Bioteknologi' },
+            { value: 'Bioproses',    label: 'Bioproses' },
+            { value: 'Bioteknologi', label: 'Bioteknologi' },
+        ],
+        'FAK:Teknik Industri': [
+            { value: 'Semua Teknik Industri', label: '📋 Semua Prodi Teknik Industri' },
+            { value: 'Managemen Rekayasa', label: 'Managemen Rekayasa' },
+            { value: 'Metalurgi',          label: 'Metalurgi' },
+        ],
+    };
+
+    function onFakultasChange() {
+        const fakSel   = document.getElementById('filterFakultas');
+        const prodiSel = document.getElementById('filterProdi');
+        const wrap     = document.getElementById('wrapProdiFilter');
+        const fak      = fakSel ? fakSel.value : 'Semua';
+
+        if (fak === 'Semua') {
+            // Sembunyikan dropdown prodi
+            wrap.style.maxWidth = '0';
+            wrap.style.opacity  = '0';
+            loadTopStudents();
+            return;
+        }
+
+        // Isi opsi prodi sesuai fakultas yang dipilih
+        const options = fakultasProdiMap[fak] || [];
+        prodiSel.innerHTML = options.map(o =>
+            `<option value="${o.value}">${o.label}</option>`
+        ).join('');
+
+        // Tampilkan dropdown prodi dengan animasi
+        wrap.style.maxWidth = '300px';
+        wrap.style.opacity  = '1';
+
+        loadTopStudents();
+    }
+
     function loadTopStudents() {
-        const body = document.getElementById('topStudentsBody');
-        const prodiFilter = document.getElementById('previewProdiFilter');
+        const body    = document.getElementById('topStudentsBody');
+        const fakSel  = document.getElementById('filterFakultas');
+        const prodiSel = document.getElementById('filterProdi');
         if(!body) return;
 
         body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 32px;"><div class="spin" style="margin:0 auto; border-top-color:var(--accent);"></div></td></tr>';
 
-        const prodiParam = prodiFilter ? encodeURIComponent(prodiFilter.value) : 'Semua';
+        const fak   = fakSel   ? fakSel.value   : 'Semua';
+        const prodi = prodiSel ? prodiSel.value : '';
 
-        fetch('{{ route("counselor.top-students") }}?prodi=' + prodiParam)
+        // Tentukan parameter yang dikirim ke backend
+        let prodiParam;
+        if (fak === 'Semua') {
+            prodiParam = 'Semua';
+        } else if (!prodi || prodi.startsWith('Semua ')) {
+            // Pilih "Semua Prodi [Fakultas]" → kirim kode FAK:
+            prodiParam = fak;
+        } else {
+            // Pilih prodi spesifik
+            prodiParam = prodi;
+        }
+
+        fetch('{{ route("counselor.top-students") }}?prodi=' + encodeURIComponent(prodiParam))
             .then(res => res.json())
             .then(data => {
                 if(!data.students || data.students.length === 0) {
@@ -720,6 +842,35 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadChartData('14d');
         loadTopStudents();
+
+        // Check notification status
+        const btn = document.getElementById('btnWebPush');
+        if (Notification.permission === 'granted') {
+            btn.classList.add('enabled');
+            btn.querySelector('span').innerText = 'Notifikasi Aktif';
+            btn.querySelector('i').className = 'ti ti-bell-filled';
+        }
     });
+
+    function togglePush() {
+        if (Notification.permission === 'granted') {
+            showToast('✅ Notifikasi sudah aktif!');
+            return;
+        }
+
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                initWebPush();
+                const btn = document.getElementById('btnWebPush');
+                btn.classList.add('enabled');
+                btn.querySelector('span').innerText = 'Notifikasi Aktif';
+                btn.querySelector('i').className = 'ti ti-bell-filled';
+                showToast('🚀 Notifikasi sistem berhasil diaktifkan!');
+            } else {
+                showToast('⚠️ Izin notifikasi ditolak.', true);
+            }
+        });
+    }
 </script>
+<script src="{{ asset('js/webpush.js') }}"></script>
 @endpush

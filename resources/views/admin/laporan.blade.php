@@ -44,6 +44,129 @@
         padding: 1.2rem 1.2rem 1.35rem;
     }
 
+    .laporan-stack {
+        display: grid;
+        gap: 1.25rem;
+    }
+
+    .laporan-detail {
+        background: linear-gradient(180deg, #ffffff 0%, #f7fcf9 100%);
+        border: 1px solid #dceee4;
+        border-radius: 22px;
+        box-shadow: 0 8px 22px rgba(6, 95, 70, .06);
+        padding: 1.5rem 1.6rem;
+    }
+
+    .laporan-detail-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .laporan-detail-head h5 {
+        margin: 0;
+        color: #064E3B;
+        font-weight: 800;
+    }
+
+    .laporan-detail-head p {
+        margin: .3rem 0 0;
+        color: #64748b;
+        font-size: .88rem;
+    }
+
+    .laporan-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: .9rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .laporan-meta-item {
+        background: #ffffff;
+        border: 1px solid #e6f1eb;
+        border-radius: 16px;
+        padding: .9rem 1rem;
+    }
+
+    .laporan-meta-label {
+        display: block;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: .32rem;
+    }
+
+    .laporan-meta-value {
+        color: #0f172a;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    .laporan-form-label {
+        display: block;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: .55rem;
+    }
+
+    .laporan-textarea {
+        width: 100%;
+        min-height: 240px;
+        border: 1px solid #cfe6d9;
+        border-radius: 16px;
+        padding: 1rem 1.05rem;
+        resize: vertical;
+        font-size: .92rem;
+        line-height: 1.7;
+        color: #334155;
+        background: #fff;
+    }
+
+    .laporan-textarea:focus {
+        outline: none;
+        border-color: #34d399;
+        box-shadow: 0 0 0 4px rgba(52, 211, 153, .14);
+    }
+
+    .laporan-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: .75rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-secondary-soft {
+        background: #effaf4;
+        color: #065F46;
+        border: 1px solid #cceedd;
+    }
+
+    .btn-secondary-soft:hover {
+        background: #def7e8;
+        color: #064E3B;
+    }
+
+    .laporan-content {
+        background: #fff;
+        border: 1px solid #e6f1eb;
+        border-radius: 18px;
+        padding: 1.1rem 1.15rem;
+        color: #334155;
+        line-height: 1.8;
+        white-space: pre-wrap;
+    }
+
+    .laporan-row-active {
+        background: #f7fcf9;
+    }
+
     .laporan-table {
         width: 100%;
         border-collapse: separate;

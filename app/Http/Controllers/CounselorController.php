@@ -227,7 +227,7 @@ class CounselorController extends Controller
         $distribution = [];
         if ($totalCheckins > 0) {
             $topFeelingIds = $feelingsCount->sortDesc()->take(5)->keys();
-            $feelings = Feeling::whereIn('_id', $topFeelingIds)->get()->keyBy('_id');
+            $feelings = Feeling::whereIn('feeling_id', $topFeelingIds)->get()->keyBy('feeling_id');
 
             foreach ($topFeelingIds as $fid) {
                 $count = $feelingsCount[$fid];
@@ -494,7 +494,7 @@ class CounselorController extends Controller
         ];
 
         if ($name === 'all') {
-            $allFeelings = Feeling::all()->keyBy('_id');
+            $allFeelings = Feeling::all()->keyBy('feeling_id');
             $activeNims = Student::pluck('nim')->toArray();
             $distribution = DailyCheckin::whereIn('nim', $activeNims)->get()
                 ->groupBy('feeling_id')
@@ -519,7 +519,7 @@ class CounselorController extends Controller
             return response()->json(['items' => $distribution]);
         } elseif (str_starts_with($name, 'CAT:')) {
             $feelingNames = $categories[$name] ?? [];
-            $matchingFeelings = Feeling::whereIn('feeling_name', $feelingNames)->get()->keyBy('_id');
+            $matchingFeelings = Feeling::whereIn('feeling_name', $feelingNames)->get()->keyBy('feeling_id');
             $feelingIds = $matchingFeelings->keys()->toArray();
             $activeNims = Student::pluck('nim')->toArray();
             
@@ -588,9 +588,9 @@ class CounselorController extends Controller
 
     public function getUrgentNotifications()
     {
-        // Ambil mahasiswa dengan mental_level = 3 (Krisis / Bahaya)
-        // Diurutkan berdasarkan scan terbaru
+        // Ambil mahasiswa dengan mental_level = 3 (Krisis / Bahaya) yang belum dibaca notifnya
         $urgentStudents = Student::where('mental_level', 3)
+            ->where('mental_notif_read', '!=', true)
             ->orderBy('mental_level', 'desc')
             ->orderBy('mental_scanned_at', 'desc')
             ->take(10)
@@ -602,9 +602,28 @@ class CounselorController extends Controller
         ]);
     }
 
+    public function markUrgentRead(string $nim)
+    {
+        Student::where('nim', $nim)->update(['mental_notif_read' => true]);
+        return response()->json(['success' => true]);
+    }
+
     public function getStudentPreview(Request $request)
     {
         $prodi = $request->query('prodi', 'Semua');
+
+        // Pemetaan Fakultas → daftar Prodi yang termasuk di dalamnya
+        // Mendukung dua format key: "FAK:X" (dari dropdown fakultas) dan "Semua X" (dari opsi pertama dropdown prodi)
+        $fakultasMap = [
+            'FAK:Vokasi'                  => ['Teknologi Rekayasa Perangkat Lunak', 'Teknologi Informasi', 'Teknologi Komputer'],
+            'Semua Vokasi'                => ['Teknologi Rekayasa Perangkat Lunak', 'Teknologi Informasi', 'Teknologi Komputer'],
+            'FAK:Informatika & Elektro'   => ['Informatika', 'Teknik Elektro'],
+            'Semua Informatika & Elektro' => ['Informatika', 'Teknik Elektro'],
+            'FAK:Bioteknologi'            => ['Bioproses', 'Bioteknologi'],
+            'Semua Bioteknologi'          => ['Bioproses', 'Bioteknologi'],
+            'FAK:Teknik Industri'         => ['Managemen Rekayasa', 'Metalurgi'],
+            'Semua Teknik Industri'       => ['Managemen Rekayasa', 'Metalurgi'],
+        ];
 
         // OPTIMASI PERFORMA MongoDB: Hanya memanggil kolom _id dari relasi untuk menghemat RAM
         $students = Student::with(['journalTexts' => function ($q) {
@@ -613,8 +632,19 @@ class CounselorController extends Controller
             ->whereNotNull('mental_level')
             ->orderBy('mental_level', 'desc')
             ->orderBy('mental_confidence', 'desc')
-            ->when($prodi !== 'Semua', function ($q) use ($prodi) {
-                $q->where('prodi', $prodi);
+            ->when($prodi !== 'Semua', function ($q) use ($prodi, $fakultasMap) {
+                if (array_key_exists($prodi, $fakultasMap)) {
+                    // Filter per-Fakultas: cocokkan semua prodi yang termasuk
+                    $prodiList = $fakultasMap[$prodi];
+                    $q->where(function ($sub) use ($prodiList) {
+                        foreach ($prodiList as $p) {
+                            $sub->orWhere('prodi', 'like', "%{$p}%");
+                        }
+                    });
+                } else {
+                    // Filter per-Prodi: fuzzy match agar toleran terhadap variasi penulisan di DB
+                    $q->where('prodi', 'like', "%{$prodi}%");
+                }
             })
             ->take(5)
             ->get()
@@ -637,7 +667,46 @@ class CounselorController extends Controller
             $query->with(['mood', 'feeling'])->orderBy('created_at', 'desc');
         }])->where('nim', $nim)->firstOrFail();
 
-        return view('admin.detail', compact('student'));
+        // Merge journals and checkins by date to show unified history
+        $logs = collect();
+        
+        foreach ($student->journalTexts as $journal) {
+            $date = $journal->created_at->format('Y-m-d');
+            if (!$logs->has($date)) {
+                $logs->put($date, [
+                    'created_at' => $journal->created_at,
+                    'journal' => $journal,
+                    'checkin' => null
+                ]);
+            } else {
+                $item = $logs->get($date);
+                if (!$item['journal']) {
+                    $item['journal'] = $journal;
+                    $logs->put($date, $item);
+                }
+            }
+        }
+
+        foreach ($student->dailyCheckins as $checkin) {
+            $date = $checkin->created_at->format('Y-m-d');
+            if (!$logs->has($date)) {
+                $logs->put($date, [
+                    'created_at' => $checkin->created_at,
+                    'journal' => null,
+                    'checkin' => $checkin
+                ]);
+            } else {
+                $item = $logs->get($date);
+                if (!$item['checkin']) {
+                    $item['checkin'] = $checkin;
+                    $logs->put($date, $item);
+                }
+            }
+        }
+
+        $sortedLogs = $logs->sortByDesc('created_at');
+
+        return view('admin.detail', compact('student', 'sortedLogs'));
     }
 
     public function updateStatus(Request $request, string $nim)
@@ -707,14 +776,28 @@ class CounselorController extends Controller
 
                 if ($response->successful()) {
                     $data = $response->json('data');
+                    $oldLevel = $student->mental_level;
 
-                    $student->update([
+                    $updateData = [
                         'mental_level'      => $data['level']      ?? null,
                         'mental_label'      => $data['label']      ?? null,
                         'mental_confidence' => $data['confidence'] ?? null,
                         'mental_red_flag'   => $data['red_flag']   ?? null,
                         'mental_scanned_at' => now(),
-                    ]);
+                    ];
+
+                    if (($data['level'] ?? 0) == 3 && $oldLevel != 3) {
+                        $updateData['mental_notif_read'] = false;
+                    }
+
+                    $student->update($updateData);
+
+                    // Kirim notifikasi HANYA JIKA sebelumnya bukan Level 3
+                    // untuk mencegah spam notifikasi yang sama setiap kali dipindai
+                    if (($data['level'] ?? 0) == 3 && $oldLevel != 3) {
+                        $counselors = \App\Models\User::all();
+                        \Illuminate\Support\Facades\Notification::send($counselors, new \App\Notifications\HighRiskStudentDetected($student));
+                    }
 
                     $saved++;
                 }

@@ -123,7 +123,6 @@ class AuthController extends Controller
             }
 
             return redirect()->intended('/dashboard');
-
         } catch (\Throwable $e) {
             DB::rollBack();
 

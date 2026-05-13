@@ -133,7 +133,7 @@
 
   .chat-thread {
     flex: 1;
-    padding: 1.4rem 1.4rem 0;
+    padding: 1.4rem 1.4rem 4.75rem;
     overflow-y: auto;
     background:
       linear-gradient(180deg, rgba(248, 255, 251, 0.72), rgba(255, 255, 255, 0.98)),
@@ -201,6 +201,7 @@
 
   .message-content {
     max-width: min(76%, 620px);
+    position: relative;
   }
 
   .message-meta {
@@ -223,6 +224,172 @@
     font-size: .95rem;
     line-height: 1.72;
     word-break: break-word;
+  }
+
+  .message-bubble-shell {
+    position: relative;
+  }
+
+  .message-edited {
+    font-size: .68rem;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  .message-actions {
+    position: absolute;
+    top: .55rem;
+    right: .7rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease;
+  }
+
+  .message-row.mine:hover .message-actions,
+  .message-row.mine.is-menu-open .message-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .message-action-toggle {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .message-action-menu {
+    position: absolute;
+    top: calc(100% + .3rem);
+    right: 0;
+    min-width: 150px;
+    padding: .4rem;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid rgba(221, 239, 231, 0.96);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+    display: none;
+    z-index: 4;
+  }
+
+  .message-row:last-child .message-action-menu {
+    top: calc(100% + .45rem);
+  }
+
+  .message-row.is-menu-open .message-action-menu {
+    display: block;
+  }
+
+  .message-action-item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    padding: .55rem .7rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    color: #0f172a;
+    font-size: .8rem;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .message-action-item:hover {
+    background: #f8fffb;
+  }
+
+  .message-action-item.delete {
+    color: #b91c1c;
+  }
+
+  .message-row.is-editing .message-actions {
+    display: none;
+  }
+
+  .message-editor-shell {
+    display: grid;
+    gap: .7rem;
+  }
+
+  .message-editor-input {
+    width: 100%;
+    min-height: 92px;
+    border: 1px solid rgba(209, 250, 229, 0.96);
+    border-radius: 18px;
+    padding: .8rem .9rem;
+    resize: vertical;
+    outline: none;
+    font-size: .92rem;
+    line-height: 1.65;
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.98);
+  }
+
+  .message-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .55rem;
+    flex-wrap: wrap;
+  }
+
+  .message-editor-btn {
+    border: none;
+    border-radius: 999px;
+    padding: .5rem .9rem;
+    font-size: .76rem;
+    font-weight: 700;
+  }
+
+  .message-editor-btn.cancel {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .message-editor-btn.save {
+    background: #065f46;
+    color: #fff;
+  }
+
+  .message-delete-confirm {
+    display: grid;
+    gap: .75rem;
+  }
+
+  .message-delete-confirm-text {
+    font-size: .83rem;
+    line-height: 1.6;
+    color: #334155;
+  }
+
+  .message-delete-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .55rem;
+    flex-wrap: wrap;
+  }
+
+  .message-delete-confirm-btn {
+    border: none;
+    border-radius: 999px;
+    padding: .5rem .9rem;
+    font-size: .76rem;
+    font-weight: 700;
+  }
+
+  .message-delete-confirm-btn.cancel {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .message-delete-confirm-btn.delete {
+    background: #b91c1c;
+    color: #fff;
   }
 
   .chat-composer {
@@ -722,7 +889,6 @@
               </p>
               <form action="{{ route('mahasiswa.chat.start') }}" method="POST">
                 @csrf
-                <input type="hidden" name="jadwal_id" value="{{ $jadwal->id }}">
                 <button type="submit" class="chat-start-btn" {{ $canStartNow ? '' : 'disabled' }}>
                   <i class="bi bi-chat-dots-fill"></i>
                   <span>Mulai Sesi</span>
@@ -806,11 +972,7 @@
             <div class="chat-badge">{{ $statusLabel }}</div>
           </div>
 
-          <div class="chat-thread" id="chatThread">
-            <div class="chat-date-pill">
-              {{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('l, j F Y') }}
-            </div>
-          </div>
+          <div class="chat-thread" id="chatThread"></div>
 
           <div class="chat-composer">
             <form id="chatForm" class="chat-form">
@@ -897,6 +1059,29 @@
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+  const dateFormatter = new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Asia/Jakarta',
+  });
+  const dateKeyFormatter = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'Asia/Jakarta',
+  });
+
+  const resolveDateParts = (value) => {
+    const date = value ? new Date(value) : new Date();
+    const keyParts = Object.fromEntries(dateKeyFormatter.formatToParts(date).map((part) => [part.type, part.value]));
+
+    return {
+      key: `${keyParts.year}-${keyParts.month}-${keyParts.day}`,
+      label: dateFormatter.format(date).toUpperCase(),
+    };
+  };
 
   const scrollToBottom = () => {
     thread.scrollTop = thread.scrollHeight;
@@ -907,12 +1092,108 @@
     input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
   };
 
+  const lastRenderedDateKey = () => Array.from(thread.querySelectorAll('[data-date-key]')).pop()?.dataset.dateKey || null;
+
+  const renderDateSeparator = (label, key) => {
+    const separator = document.createElement('div');
+    separator.className = 'chat-date-pill';
+    separator.dataset.dateKey = key;
+    separator.textContent = label;
+    thread.appendChild(separator);
+  };
+
+  const ensureDateSeparator = (key, label) => {
+    if (!key || lastRenderedDateKey() === key) {
+      return;
+    }
+
+    renderDateSeparator(label, key);
+  };
+
+  const messageUpdateUrl = (messageId) => payload.updateUrlTemplate.replace('__CHAT_ID__', String(messageId));
+  const messageDeleteUrl = (messageId) => payload.deleteUrlTemplate.replace('__CHAT_ID__', String(messageId));
+
+  const closeAllMenus = () => {
+    thread.querySelectorAll('.message-row.is-menu-open').forEach((element) => {
+      element.classList.remove('is-menu-open');
+    });
+  };
+
+  // Bubble dan editor inline dipisah supaya mode edit terasa seperti chat modern, bukan popup.
+  const buildMessageBubbleMarkup = (message, isMine) => `
+    <div class="message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
+    ${isMine ? `
+      <div class="message-actions">
+        <button type="button" class="message-action-toggle" data-action="toggle-menu" aria-label="Opsi pesan">
+          <i class="bi bi-three-dots"></i>
+        </button>
+        <div class="message-action-menu">
+          <button type="button" class="message-action-item" data-action="edit-message" data-message-id="${message.id}">
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit pesan</span>
+          </button>
+          <button type="button" class="message-action-item delete" data-action="delete-message" data-message-id="${message.id}">
+            <i class="bi bi-trash3"></i>
+            <span>Hapus pesan</span>
+          </button>
+        </div>
+      </div>
+    ` : ''}
+  `;
+
+  const buildInlineEditorMarkup = (text, messageId) => `
+    <div class="message-editor-shell" data-editing-message-id="${messageId}">
+      <textarea class="message-editor-input" maxlength="2000">${escapeHtml(text)}</textarea>
+      <div class="message-editor-actions">
+        <button type="button" class="message-editor-btn cancel" data-action="cancel-edit" data-message-id="${messageId}">Batal</button>
+        <button type="button" class="message-editor-btn save" data-action="save-edit" data-message-id="${messageId}">Simpan</button>
+      </div>
+    </div>
+  `;
+
+  const buildDeleteConfirmMarkup = (messageId) => `
+    <div class="message-delete-confirm" data-delete-message-id="${messageId}">
+      <div class="message-delete-confirm-text">Hapus pesan ini secara permanen?</div>
+      <div class="message-delete-confirm-actions">
+        <button type="button" class="message-delete-confirm-btn cancel" data-action="cancel-delete" data-message-id="${messageId}">Batal</button>
+        <button type="button" class="message-delete-confirm-btn delete" data-action="confirm-delete" data-message-id="${messageId}">Hapus</button>
+      </div>
+    </div>
+  `;
+
+  // Polling ditahan saat user sedang edit atau konfirmasi hapus agar isi bubble tidak tertimpa.
+  const hasActiveInlineState = () => Boolean(
+    thread.querySelector('.message-row.is-editing, [data-delete-message-id]')
+  );
+
+  // Bubble asli bisa dipulihkan lagi setelah batal edit atau batal hapus.
+  const restoreMessageBubble = (row) => {
+    const bubbleShell = row.querySelector('.message-bubble-shell');
+    const isMine = row.classList.contains('mine');
+
+    if (!bubbleShell) {
+      return;
+    }
+
+    bubbleShell.innerHTML = buildMessageBubbleMarkup({
+      id: Number(row.dataset.messageId),
+      text: row.dataset.messageText ?? '',
+    }, isMine);
+    row.classList.remove('is-editing');
+    row.classList.remove('is-menu-open');
+  };
+
   const renderMessage = (message) => {
     const row = document.createElement('div');
     const isMine = Boolean(message.is_mine ?? (message.sender_id === currentUserId));
+    const dateParts = resolveDateParts(message.sent_at);
+
+    ensureDateSeparator(dateParts.key, dateParts.label);
 
     row.className = `message-row ${isMine ? 'mine' : 'other'}`;
     row.dataset.messageId = message.id;
+    row.dataset.messageText = message.text ?? '';
+    row.dataset.messageEdited = message.is_edited ? '1' : '0';
 
     row.innerHTML = `
       ${isMine ? '' : `
@@ -924,8 +1205,9 @@
         <div class="message-meta">
           <span class="message-name">${escapeHtml(message.sender_name)}</span>
           <span>${escapeHtml(message.time)}</span>
+          ${message.is_edited ? '<span class="message-edited">telah diedit</span>' : ''}
         </div>
-        <div class="message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
+        <div class="message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
       </div>
       ${isMine ? `
         <div class="message-avatar">
@@ -938,17 +1220,31 @@
   };
 
   const renderInitialMessages = () => {
-    payload.messages.forEach((message) => renderMessage(message));
+    renderMessages(payload.messages || []);
+  };
+
+  const renderMessages = (messages, force = false) => {
+    // Render ulang penuh agar edit dan delete tersinkron untuk semua client.
+    if (!force && hasActiveInlineState()) {
+      return;
+    }
+
+    thread.innerHTML = '';
+    messages.forEach((message) => renderMessage(message));
+    closeAllMenus();
     scrollToBottom();
   };
 
-  const syncMessages = async () => {
+  // Force dipakai setelah simpan/hapus sukses supaya hasil server langsung mengganti state inline.
+  const syncMessages = async (force = false) => {
     try {
-      const response = await fetch(payload.messagesUrl, {
+      const response = await fetch(`${payload.messagesUrl}?sesi_id=${payload.sessionId}&jadwal_id=${payload.jadwalId ?? ''}`, {
+        method: 'GET',
         headers: {
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
         },
+        credentials: 'same-origin',
       });
 
       if (!response.ok) {
@@ -961,15 +1257,7 @@
         return;
       }
 
-      const knownIds = new Set(Array.from(thread.querySelectorAll('[data-message-id]')).map((element) => Number(element.dataset.messageId)));
-
-      data.messages.forEach((message) => {
-        if (!knownIds.has(Number(message.id))) {
-          renderMessage(message);
-        }
-      });
-
-      scrollToBottom();
+      renderMessages(data.messages, force);
     } catch (error) {
       console.error(error);
     }
@@ -1011,6 +1299,161 @@
     }
   });
 
+  document.addEventListener('click', (event) => {
+    if (!thread.contains(event.target)) {
+      closeAllMenus();
+    }
+  });
+
+  thread.addEventListener('click', async (event) => {
+    const toggleButton = event.target.closest('[data-action="toggle-menu"]');
+    const editButton = event.target.closest('[data-action="edit-message"]');
+    const deleteButton = event.target.closest('[data-action="delete-message"]');
+    const saveButton = event.target.closest('[data-action="save-edit"]');
+    const cancelButton = event.target.closest('[data-action="cancel-edit"]');
+    const cancelDeleteButton = event.target.closest('[data-action="cancel-delete"]');
+    const confirmDeleteButton = event.target.closest('[data-action="confirm-delete"]');
+
+    if (toggleButton) {
+      const row = toggleButton.closest('.message-row');
+      const willOpen = !row.classList.contains('is-menu-open');
+      closeAllMenus();
+      row.classList.toggle('is-menu-open', willOpen);
+      return;
+    }
+
+    if (editButton) {
+      const messageId = Number(editButton.dataset.messageId);
+      const row = editButton.closest('.message-row');
+      const bubbleShell = row?.querySelector('.message-bubble-shell');
+      const currentText = row?.dataset.messageText ?? '';
+
+      closeAllMenus();
+
+      if (!row || !bubbleShell) {
+        return;
+      }
+
+      row.classList.add('is-editing');
+      bubbleShell.innerHTML = buildInlineEditorMarkup(currentText, messageId);
+      const textarea = bubbleShell.querySelector('.message-editor-input');
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      }
+      return;
+    }
+
+    if (cancelButton) {
+      const row = cancelButton.closest('.message-row');
+      if (row) {
+        restoreMessageBubble(row);
+      }
+      return;
+    }
+
+    if (cancelDeleteButton) {
+      const row = cancelDeleteButton.closest('.message-row');
+      if (row) {
+        restoreMessageBubble(row);
+      }
+      return;
+    }
+
+    if (saveButton) {
+      const messageId = Number(saveButton.dataset.messageId);
+      const row = saveButton.closest('.message-row');
+      const textarea = row?.querySelector('.message-editor-input');
+      const currentText = row?.dataset.messageText ?? '';
+      const pesan = textarea?.value?.trim() ?? '';
+
+      if (!row || !textarea) {
+        return;
+      }
+
+      if (!pesan) {
+        hint.textContent = 'Pesan tidak boleh kosong.';
+        textarea.focus();
+        return;
+      }
+
+      if (pesan === currentText.trim()) {
+        restoreMessageBubble(row);
+        return;
+      }
+
+      try {
+        const response = await fetch(messageUpdateUrl(messageId), {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ pesan }),
+        });
+
+        const data = await response.json();
+        hint.textContent = response.ok && data.success
+          ? 'Pesan berhasil diedit.'
+          : (data.message ?? 'Pesan gagal diedit.');
+
+        if (response.ok && data.success) {
+          syncMessages(true);
+        }
+      } catch (error) {
+        console.error(error);
+        hint.textContent = 'Terjadi kendala saat mengedit pesan.';
+      }
+
+      return;
+    }
+
+    if (deleteButton) {
+      const messageId = Number(deleteButton.dataset.messageId);
+      const row = deleteButton.closest('.message-row');
+      const bubbleShell = row?.querySelector('.message-bubble-shell');
+      closeAllMenus();
+
+      if (!row || !bubbleShell) {
+        return;
+      }
+
+      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId);
+      return;
+    }
+
+    if (confirmDeleteButton) {
+      const messageId = Number(confirmDeleteButton.dataset.messageId);
+
+      try {
+        const response = await fetch(messageDeleteUrl(messageId), {
+          method: 'DELETE',
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+
+        const data = await response.json();
+        hint.textContent = response.ok && data.success
+          ? 'Pesan berhasil dihapus.'
+          : (data.message ?? 'Pesan gagal dihapus.');
+
+        if (response.ok && data.success) {
+          syncMessages(true);
+        }
+      } catch (error) {
+        console.error(error);
+        hint.textContent = 'Terjadi kendala saat menghapus pesan.';
+      }
+
+      return;
+    }
+  });
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -1032,7 +1475,11 @@
           'X-Requested-With': 'XMLHttpRequest',
           'X-Socket-ID': window.Echo?.socketId?.() ?? '',
         },
-        body: JSON.stringify({ pesan }),
+        body: JSON.stringify({
+          sesi_id: payload.sessionId,
+          jadwal_id: payload.jadwalId,
+          pesan,
+        }),
       });
 
       const data = await response.json();

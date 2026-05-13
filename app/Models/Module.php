@@ -15,6 +15,8 @@ class Module extends Model
         'content_url',
         'reward_point',
         'status',
+        'kategori',
+        'target_audiens',
     ];
 
     protected $casts = [
