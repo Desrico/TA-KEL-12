@@ -3,18 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use App\Models\JadwalKonseling;
 use App\Models\Laporan;
 use App\Models\SesiKonseling;
 
 class LaporanController extends Controller
 {
-//     private function jadwalHasColumn(string $column): bool
-//     {
-//         static $cache = [];
+    private function jadwalHasColumn(string $column): bool
+    {
+        static $cache = [];
 
-//         return $cache[$column] ??= Schema::hasColumn('jadwal_konseling', $column);
-//     }
+        return $cache[$column] ??= Schema::hasColumn('jadwal_konseling', $column);
+    }
 
     private function extractTopik(?string $catatan, ?string $fallback = null): string
     {
@@ -51,6 +52,7 @@ class LaporanController extends Controller
     public function riwayat()
     {
         $mahasiswa = auth()->user()->mahasiswa;
+
         $riwayat = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
             ->where('mahasiswa_id', optional($mahasiswa)->id)
             ->orderBy('tanggal', 'desc')
@@ -153,6 +155,34 @@ class LaporanController extends Controller
         return redirect()
             ->route('admin.laporan.laporan', $jadwal->id)
             ->with('success', 'Laporan berhasil disimpan.');
+    }
+
+    public function detailRiwayat($id)
+    {
+        $jadwal = JadwalKonseling::with([
+            'mahasiswa.user.profil',
+            'konselor.user',
+            'sesiKonseling'
+        ])->findOrFail($id);
+
+        $mahasiswa = $jadwal->mahasiswa;
+        $user = optional($mahasiswa)->user;
+        $profil = optional($user)->profil;
+
+        $totalKonseling = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)->count();
+
+        $sesiBerlangsung = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)
+            ->whereIn('status', ['disetujui', 'diterima', 'berlangsung', 'sedang berlangsung'])
+            ->count();
+
+        return view('Pages.detail-riwayat', compact(
+            'jadwal',
+            'mahasiswa',
+            'user',
+            'profil',
+            'totalKonseling',
+            'sesiBerlangsung'
+        ));
     }
 
     private function laporanRiwayatQuery()

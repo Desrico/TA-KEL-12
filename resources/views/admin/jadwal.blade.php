@@ -191,6 +191,310 @@
     font-weight: 700;
   }
 
+  .btn-ketidaktersediaan {
+  border: 2px solid var(--admin-primary);
+  background: #ffffff;
+  color: var(--admin-primary);
+  padding: 10px 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-ketidaktersediaan:hover {
+  background: var(--admin-primary);
+  color: #ffffff;
+}
+
+/* MODAL ATUR KETIDAKTERSEDIAAN */
+.modal-unavailable {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-unavailable.show {
+  display: flex;
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(2px);
+}
+
+.modal-box {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 760px;
+  background: #fff;
+  border-radius: 28px;
+  padding: 28px 28px 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  animation: modalFadeIn 0.22s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.modal-icon {
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  border-radius: 50%;
+  background: #E8F6EE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-primary);
+  font-size: 28px;
+}
+
+.modal-title-wrap h3 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.modal-title-wrap p {
+  margin: 0;
+  color: #4B5563;
+  font-size: 15px;
+}
+
+.modal-form {
+  width: 100%;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.form-group input[type="date"],
+.form-group input[type="time"] {
+    cursor: pointer;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group-full {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.form-group label span {
+  font-weight: 500;
+  color: #6B7280;
+}
+
+.form-group input[type="date"],
+.form-group input[type="time"],
+.form-group textarea {
+  width: 100%;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 14px;
+  background: #fff;
+  padding: 13px 14px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.form-group input[type="date"]:focus,
+.form-group input[type="time"]:focus,
+.form-group textarea:focus {
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(11, 107, 80, 0.08);
+}
+
+.form-group textarea {
+  resize: none;
+  min-height: 120px;
+}
+
+#charCount {
+  margin-top: 6px;
+  text-align: right;
+  color: #9CA3AF;
+  font-size: 12px;
+}
+
+.repeat-box {
+  margin-top: 4px;
+}
+
+.checkbox-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.checkbox-inline input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--admin-primary);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.btn-batal,
+.btn-simpan {
+  min-width: 138px;
+  height: 50px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-batal {
+  border: 1.5px solid #D1D5DB;
+  background: #fff;
+  color: #6B7280;
+}
+
+.btn-batal:hover {
+  background: #F9FAFB;
+}
+
+.btn-simpan {
+  border: none;
+  background: var(--admin-primary);
+  color: #fff;
+}
+
+.btn-simpan:hover {
+  background: #09553F;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal-detail {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-detail.show {
+    display: flex;
+}
+
+.modal-detail-box {
+    background: white;
+    width: 420px;
+    border-radius: 18px;
+    padding: 28px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.modal-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.modal-action {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-edit,
+.btn-hapus {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background: #0b5d46;
+    color: white;
+}
+
+.btn-hapus {
+    background: #dc2626;
+    color: white;
+}
+
+@media (max-width: 768px) {
+  .modal-box {
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+
+  .modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .btn-batal,
+  .btn-simpan {
+    width: 100%;
+  }
+}
+
+
   @media (max-width: 991.98px) {
     .jadwal-page-wrap {
       grid-template-columns: 1fr;
@@ -207,11 +511,37 @@
 <div class="jadwal-page-wrap">
   <div class="jadwal-calendar-card">
     <div class="jadwal-head">
-      <div>
-        <h6>Kalender Jadwal Konseling</h6>
-        <p>Lihat tanggal yang memiliki jadwal konseling dan klik tanggal/event untuk melihat detail.</p>
-      </div>
+  <div>
+    <h6>Kalender Jadwal Konseling</h6>
+    <p>Lihat tanggal yang memiliki jadwal konseling dan klik tanggal/event untuk melihat detail.</p>
+  </div>
+  <button type="button" class="btn-ketidaktersediaan" onclick="openUnavailableModal()">
+        + Atur Ketidaktersediaan
+    </button>
+</div>
+<div id="unavailableDetailModal" class="modal-detail">
+    <div class="modal-detail-box">
+        <button type="button" class="modal-close" onclick="closeUnavailableDetail()">×</button>
+
+        <h3>Detail Ketidaktersediaan</h3>
+
+        <p><b>Tanggal:</b> <span id="detailTanggal"></span></p>
+        <p><b>Waktu:</b> <span id="detailWaktu"></span></p>
+        <p><b>Alasan:</b> <span id="detailAlasan"></span></p>
+
+        <div class="modal-action">
+            <a id="btnEditUnavailable" class="btn-edit">Edit</a>
+
+            <form id="formDeleteUnavailable" method="POST">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-hapus" onclick="return confirm('Yakin ingin menghapus data ini?')">
+                    Hapus
+                </button>
+            </form>
+        </div>
     </div>
+</div>
 
     <div class="jadwal-calendar-content">
       <div id="calendar"></div>
@@ -237,108 +567,386 @@
           <span class="legend-dot" style="background:#F4A6A6;"></span>
           <span>Ditolak</span>
         </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#D9D9D9;"></span>
+          <span>Tidak Tersedia</span>
+      </div>
       </div>
     </div>
   </div>
+</div>
+
+<div id="unavailableModal" class="modal-unavailable">
+    <div class="modal-overlay" onclick="closeUnavailableModal()"></div>
+
+    <div class="modal-box">
+        <div class="modal-top">
+            <div class="modal-icon">
+                <i class="ti ti-calendar-event"></i>
+            </div>
+
+            <div class="modal-title-wrap">
+                <h3>Atur Ketidaktersediaan</h3>
+                <p>Tandai waktu di mana Anda tidak tersedia melakukan konseling.</p>
+            </div>
+        </div>
+
+        <form id="unavailableForm" action="{{ route('konselor.ketidaktersediaan.store') }}" method="POST" class="modal-form">
+            @csrf
+
+            <div class="modal-grid">
+                <div class="form-group">
+                    <label for="tanggal_mulai">Tanggal</label>
+                    <input type="date" name="tanggal_mulai" id="tanggal_mulai" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="jam_mulai">Dari</label>
+                    <input type="time" name="jam_mulai" id="jam_mulai" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="jam_selesai">Sampai</label>
+                    <input type="time" name="jam_selesai" id="jam_selesai" required>
+                </div>
+            </div>
+
+            {{-- disamakan dengan tanggal_mulai supaya backend tetap jalan --}}
+            <input type="hidden" name="tanggal_selesai" id="tanggal_selesai">
+
+            <div class="form-group form-group-full">
+                <label for="alasan">Alasan <span>(opsional)</span></label>
+                <textarea
+                    name="alasan"
+                    id="alasan"
+                    rows="5"
+                    maxlength="200"
+                    placeholder="Contoh: rapat, izin, kegiatan kampus"
+                ></textarea>
+                <small id="charCount">0/200</small>
+            </div>
+
+            <div class="form-group form-group-full repeat-box">
+                <label class="checkbox-inline">
+                    <input type="checkbox" id="ulangi_opsional">
+                    <span>Ulangi setiap minggu pada hari yang sama.</span>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-batal" onclick="closeUnavailableModal()">Batal</button>
+                <button type="submit" class="btn-simpan" onclick="submitUnavailableForm()">Simpan</button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const calendarEl = document.getElementById('calendar');
-    const detailEl = document.getElementById('jadwal-detail');
+    function openUnavailableModal(reset = true) {
+        const modal = document.getElementById('unavailableModal');
+        const form = document.getElementById('unavailableForm');
 
-    const statusMap = {
-      'Menunggu': {
-        bg: '#FFF8DC',
-        color: '#8A6D1D'
-      },
-      'Disetujui': {
-        bg: '#EAFBF0',
-        color: '#166534'
-      },
-      'Berlangsung': {
-        bg: '#F1EBFF',
-        color: '#6D28D9'
-      },
-      'Selesai': {
-        bg: '#E8F4FF',
-        color: '#1D4ED8'
-      },
-      'Ditolak': {
-        bg: '#FDECEC',
-        color: '#B91C1C'
-      }
-    };
+        if (!modal) return;
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      locale: 'id',
-      height: 'auto',
-      firstDay: 0,
-      headerToolbar: {
-        left: 'prev,next',
-        center: 'title',
-        right: ''
-      },
-      buttonText: {
-        today: 'Hari ini'
-      },
-      events: '{{ route("admin.jadwal.events") }}',
-      eventClick: function(info) {
-        const data = info.event.extendedProps;
-        const statusStyle = statusMap[data.status] || {
-          bg: '#F3F4F6',
-          color: '#374151'
-        };
+        if (reset && form) {
+            form.action = '{{ route('konselor.ketidaktersediaan.store') }}';
+            const methodInput = document.getElementById('methodPut');
+            if (methodInput) {
+                methodInput.remove();
+            }
+            form.reset();
+            const tanggalSelesai = document.getElementById('tanggal_selesai');
+            if (tanggalSelesai) {
+                tanggalSelesai.value = '';
+            }
+        }
 
-        detailEl.innerHTML = `
-          <div class="detail-list">
-            <div class="detail-row">
-              <div class="detail-label">Mahasiswa</div>
-              <div class="detail-value">${data.nama}</div>
-            </div>
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+    }
 
-            <div class="detail-row">
-              <div class="detail-label">Tanggal</div>
-              <div class="detail-value">${info.event.start.toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              })}</div>
-            </div>
+    function closeUnavailableModal() {
+        const modal = document.getElementById('unavailableModal');
 
-            <div class="detail-row">
-              <div class="detail-label">Waktu</div>
-              <div class="detail-value">${data.waktu} WIB</div>
-            </div>
+        if (modal) {
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+        }
+    }
 
-            <div class="detail-row">
-              <div class="detail-label">Jenis Layanan</div>
-              <div class="detail-value">${data.jenis}</div>
-            </div>
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('calendar');
+        const detailEl = document.getElementById('jadwal-detail');
 
-            <div class="detail-row">
-              <div class="detail-label">Topik</div>
-              <div class="detail-value">${data.topik}</div>
-            </div>
+        const alasanInput = document.getElementById('alasan');
+        const charCount = document.getElementById('charCount');
 
-            <div class="detail-row">
-              <div class="detail-label">Status</div>
-              <div class="detail-value">
-                <span class="status-pill" style="background:${statusStyle.bg}; color:${statusStyle.color};">
-                  ${data.status}
-                </span>
-              </div>
-            </div>
-          </div>
-        `;
-      }
+        const tanggalMulai = document.getElementById('tanggal_mulai');
+        const tanggalSelesai = document.getElementById('tanggal_selesai');
+
+        const jamMulai = document.getElementById('jam_mulai');
+        const jamSelesai = document.getElementById('jam_selesai');
+
+        const modalOverlay = document.querySelector('.modal-overlay');
+
+        function showNativePicker(input) {
+            if (!input) return;
+
+            input.style.cursor = 'pointer';
+
+            input.addEventListener('click', function () {
+                try {
+                    if (typeof input.showPicker === 'function') {
+                        input.showPicker();
+                    }
+                } catch (error) {
+                    input.focus();
+                }
+            });
+
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+
+                    try {
+                        if (typeof input.showPicker === 'function') {
+                            input.showPicker();
+                        }
+                    } catch (error) {
+                        input.focus();
+                    }
+                }
+            });
+        }
+
+        showNativePicker(tanggalMulai);
+        showNativePicker(jamMulai);
+        showNativePicker(jamSelesai);
+
+        if (tanggalMulai && tanggalSelesai) {
+            tanggalMulai.addEventListener('change', function () {
+                tanggalSelesai.value = this.value;
+            });
+        }
+
+        if (alasanInput && charCount) {
+            alasanInput.addEventListener('input', function () {
+                charCount.textContent = `${this.value.length}/200`;
+            });
+        }
+
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', function () {
+                closeUnavailableModal();
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeUnavailableModal();
+            }
+        });
+
+        const statusMap = {
+          'Menunggu': {
+              bg: '#FFF8DC',
+              color: '#8A6D1D'
+          },
+          'Disetujui': {
+              bg: '#EAFBF0',
+              color: '#166534'
+          },
+          'Berlangsung': {
+              bg: '#F1EBFF',
+              color: '#6D28D9'
+          },
+          'Selesai': {
+              bg: '#E8F4FF',
+              color: '#1D4ED8'
+          },
+          'Ditolak': {
+              bg: '#FDECEC',
+              color: '#B91C1C'
+          },
+          'Tidak Tersedia': {
+              bg: '#D9D9D9',
+              color: '#374151'
+          }
+      };
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'id',
+            height: 'auto',
+            firstDay: 0,
+            headerToolbar: {
+                left: 'prev,next',
+                center: 'title',
+                right: ''
+            },
+            buttonText: {
+                today: 'Hari ini'
+            },
+            events: '{{ route("admin.jadwal.events") }}',
+            eventClick: function(info) {
+    const data = info.event.extendedProps;
+
+    if (data.status === 'Tidak Tersedia') {
+document.getElementById('detailTanggal').textContent =
+    info.event.start.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
     });
 
-    calendar.render();
-  });
+document.getElementById('detailWaktu').textContent =
+    data.waktu ?? '-';
+
+document.getElementById('detailAlasan').textContent =
+    data.alasan ?? '-';
+
+document.getElementById('btnEditUnavailable').onclick = function () {
+    editUnavailable(data);
+};
+
+document.getElementById('formDeleteUnavailable').action =
+    `/konselor/ketidaktersediaan/${data.id}`;
+
+document.getElementById('unavailableDetailModal').classList.add('show');
+
+        return;
+    }
+
+    const statusStyle = statusMap[data.status] || {
+        bg: '#F3F4F6',
+        color: '#374151'
+    };
+
+    detailEl.innerHTML = `
+        <div class="detail-list">
+            <div class="detail-row">
+                <div class="detail-label">Mahasiswa</div>
+                <div class="detail-value">${data.nama}</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Tanggal</div>
+                <div class="detail-value">${info.event.start.toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                })}</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Waktu</div>
+                <div class="detail-value">${data.waktu} WIB</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Jenis Layanan</div>
+                <div class="detail-value">${data.jenis}</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Topik</div>
+                <div class="detail-value">${data.topik}</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Status</div>
+                <div class="detail-value">
+                    <span class="status-pill" style="background:${statusStyle.bg}; color:${statusStyle.color};">
+                        ${data.status}
+                    </span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+        });
+
+        calendar.render();
+    });
+
+    function submitUnavailableForm() {
+    const tanggal = document.getElementById('tanggal_mulai').value;
+    const dari = document.getElementById('jam_mulai').value;
+    const sampai = document.getElementById('jam_selesai').value;
+
+    if (!tanggal || !dari || !sampai) {
+        alert('Tanggal, jam mulai, dan jam selesai wajib diisi.');
+        return;
+    }
+
+    if (sampai <= dari) {
+        alert('Jam selesai harus lebih besar dari jam mulai.');
+        return;
+    }
+
+    document.getElementById('unavailableForm').submit();
+}
+
+function closeUnavailableDetail() {
+    document.getElementById('unavailableDetailModal').classList.remove('show');
+}
+
+function editUnavailable(data) {
+
+    closeUnavailableDetail();
+    openUnavailableModal(false);
+
+    const tanggalInput = document.getElementById('tanggal_mulai');
+    const tanggalSelesai = document.getElementById('tanggal_selesai');
+    const jamMulaiInput = document.getElementById('jam_mulai');
+    const jamSelesaiInput = document.getElementById('jam_selesai');
+    const alasanInput = document.getElementById('alasan');
+
+    if (tanggalInput) {
+        tanggalInput.value = data.tanggal ?? '';
+    }
+
+    if (jamMulaiInput) {
+        jamMulaiInput.value = data.jam_mulai ?? '';
+    }
+
+    if (jamSelesaiInput) {
+        jamSelesaiInput.value = data.jam_selesai ?? '';
+    }
+
+    if (alasanInput) {
+        alasanInput.value = data.alasan ?? '';
+    }
+
+    if (tanggalSelesai) {
+        tanggalSelesai.value = data.tanggal ?? '';
+    }
+
+    const form = document.getElementById('unavailableForm');
+
+    if (form) {
+
+        form.action = `/admin/ketidaktersediaan/${data.id}`;
+
+        let methodInput = document.getElementById('methodPut');
+
+        if (!methodInput) {
+            methodInput = document.createElement('input');
+
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            methodInput.id = 'methodPut';
+
+            form.appendChild(methodInput);
+        }
+
+        methodInput.value = 'PUT';
+    }
+}
+
 </script>
 @endpush

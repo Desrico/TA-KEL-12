@@ -112,8 +112,8 @@ class SesiKonselingController extends Controller
             'alasan_penolakan' => 'required|string'
         ]);
 
+        $jadwal = JadwalKonseling::findOrFail($id);
         $konselor = $this->resolveAuthenticatedKonselor();
-
         $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
             ->findOrFail($id);
 

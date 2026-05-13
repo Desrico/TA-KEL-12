@@ -113,6 +113,81 @@
         
         .btn-back-link { display: inline-flex; align-items: center; gap: 6px; color: #475569; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;}
         .btn-back-link:hover { background: #ffffff; color: #059669; }
+        
+        /* ── Journal Timeline UI ── */
+        .journal-item {
+            background: #fdfdfd;
+            border: 1px solid #edf2f7;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+        .journal-item:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            background: #fff;
+        }
+        .journal-time {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .journal-content {
+            color: #334155;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .ai-insight-box {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-top: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .ai-insight-box::before {
+            content: 'AI';
+            position: absolute;
+            right: -10px;
+            bottom: -10px;
+            font-size: 3rem;
+            font-weight: 900;
+            color: rgba(5, 150, 105, 0.05);
+            font-style: italic;
+        }
+        .mood-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .feeling-tag {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            font-weight: 600;
+            margin-top: 4px;
+            margin-left: 4px;
+        }
+        
+        .premium-table thead th {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 16px;
+        }
+        .premium-table tbody td {
+            padding: 24px 16px;
+        }
 
         .spin { width: 18px; height: 18px; border: 2px solid rgba(255, 255, 255, 0.2); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -168,8 +243,8 @@
 
                         <!-- Angkatan -->
                         <div class="info-item">
-                            <span class="info-label">Tahun Angkatan</span>
-                            <span class="info-value">Angkatan {{ $student->angkatan }}</span>
+                            <span class="info-label">Tingkatan / Angkatan</span>
+                            <span class="info-value">Tingkat {{ $student->angkatan }}</span>
                         </div>
                     </div>
 
@@ -348,7 +423,7 @@
                         <tr>
                             <th style="width: 40px; text-align: center;">#</th>
                             <th style="width: 160px;">Tanggal & Waktu</th>
-                            <th style="width: 180px;">Mood Utama</th>
+                            <th style="width: 180px;">Mood dan Perasaan</th>
                             <th>Isi Jurnal & Analisis AI</th>
                             <th style="width: 140px;">Aksi</th>
                         </tr>
@@ -356,47 +431,81 @@
                     <tbody>
                         @foreach($sortedLogs as $log)
                         @php
-                            $journal = $log['journal'];
+                            $journals = $log['journals'];
                             $checkin = $log['checkin'];
                             $createdAt = $log['created_at'];
+                            
+                            // Helper Mood Styling
+                            $moodName = $checkin?->mood?->mood_name ?? 'Tidak ada';
+                            $moodStyle = match($moodName) {
+                                'Bahagia', 'Senang', 'Gembira' => 'background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;',
+                                'Sedih', 'Pilu', 'Depresi' => 'background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;',
+                                'Marah', 'Kesal' => 'background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;',
+                                'Cemas', 'Khawatir', 'Gelisah' => 'background: #fffbeb; color: #92400e; border: 1px solid #fef3c7;',
+                                default => 'background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;'
+                            };
                         @endphp
                         <tr>
-                            <td style="text-align: center; vertical-align: top; padding-top: 20px;">{{ $loop->iteration }}</td>
-                            <td data-timestamp="{{ $createdAt->timestamp }}" style="vertical-align: top; padding-top: 20px;">
-                                <div style="font-weight: 700; color: #1e293b;">{{ $createdAt->isoFormat('DD MMM YYYY') }}</div>
-                                <div style="font-size: 0.75rem; color: #94a3b8;">{{ $createdAt->format('H:i') }} WIB</div>
+                            <td style="text-align: center; vertical-align: top; color: #94a3b8; font-weight: 700;">{{ $loop->iteration }}</td>
+                            <td data-timestamp="{{ $createdAt->timestamp }}" style="vertical-align: top;">
+                                <div style="font-weight: 800; color: #1e293b; font-size: 1.05rem; letter-spacing: -0.02em;">{{ $createdAt->isoFormat('DD MMM YYYY') }}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; margin-top: 4px;">{{ $createdAt->format('l') }}</div>
                             </td>
-                            <td style="vertical-align: top; padding-top: 20px;">
-                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                                    Mood: {{ $checkin?->mood?->mood_name ?? 'Tidak ada' }}
+                            <td style="vertical-align: top;">
+                                <!-- Label Mood -->
+                                <div style="font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Mood:</div>
+                                <div class="mood-badge" style="{{ $moodStyle }}; margin-bottom: 12px; width: fit-content;">
+                                    {{ $moodName }}
                                 </div>
-                                <div style="font-size: 0.75rem; color: #94a3b8;">
-                                    Feeling: {{ $checkin?->feeling?->feeling_name ?? 'Tidak ada' }}
-                                </div>
+
+                                <!-- Label Perasaan -->
+                                @if($checkin?->feeling)
+                                    <div style="font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Perasaan:</div>
+                                    <div class="mood-badge" style="background: #ffffff; color: #64748b; border: 1px solid #e2e8f0; width: fit-content;">
+                                        {{ $checkin->feeling->feeling_name }}
+                                    </div>
+                                @endif
                             </td>
-                            <td style="vertical-align: top; padding-top: 20px; padding-right: 32px;">
-                                <div style="line-height: 1.6; color: #475569; font-size: 0.85rem; margin-bottom: 12px;">
-                                    @if($journal && $journal->description)
-                                        {{ $journal->description }}
-                                    @else
-                                        <span style="color:#94a3b8; font-style:italic;">Tidak ada</span>
-                                    @endif
-                                </div>
+                            <td style="vertical-align: top; padding-right: 32px;">
+                                @if($journals && $journals->count() > 0)
+                                    @foreach($journals->sortByDesc('created_at') as $j)
+                                        <div class="journal-item">
+                                            <div class="journal-time">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                                {{ $j->created_at->format('H:i') }} WIB
+                                            </div>
+                                            <div class="journal-content">
+                                                {{ $j->description }}
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div style="padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px dashed #e2e8f0; color: #94a3b8; font-size: 0.85rem; font-style: italic;">
+                                        Tidak ada catatan jurnal untuk hari ini
+                                    </div>
+                                @endif
+
                                 @if($checkin && $checkin->aiAnalysis)
-                                    <div style="background: #f8fafc; border-left: 3px solid #059669; padding: 10px 14px; border-radius: 0 8px 8px 0; margin-top: 12px;">
-                                        <div style="font-size: 0.7rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Analisis AI</div>
-                                        <div style="font-size: 0.8rem; color: #475569; line-height: 1.5; font-style: italic;">
+                                    <div class="ai-insight-box">
+                                        <div style="font-size: 0.65rem; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                            Analisis AI Emora
+                                        </div>
+                                        <div style="font-size: 0.85rem; color: #065f46; line-height: 1.6; font-weight: 500;">
                                             "{{ $checkin->aiAnalysis->text_analysis }}"
                                         </div>
                                     </div>
                                 @endif
                             </td>
-                            <td style="vertical-align: top; padding-top: 20px;">
-                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <td style="vertical-align: top;">
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
                                     @if($checkin && $checkin->aiAnalysis)
-                                        <span style="color: #059669; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Sudah dianalisis</span>
+                                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #059669; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            Analysed
+                                        </span>
                                     @endif
-                                    <a href="#" class="action-link" style="font-size: 0.8rem; margin-top: 4px;">Lihat Detail</a>
+                                    <a href="#" class="action-link" style="font-size: 0.8rem; width: 100%; justify-content: center;">Tinjau Detail</a>
                                 </div>
                             </td>
                         </tr>

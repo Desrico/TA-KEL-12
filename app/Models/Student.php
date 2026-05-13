@@ -16,6 +16,7 @@ class Student extends Model
     protected $fillable = [
         'nim', 'name', 'jenis_kelamin', 'prodi', 'password', 'point', 'energy_score', 'phone_number',
         'mental_level', 'mental_label', 'mental_confidence', 'mental_red_flag', 'mental_insight', 'mental_scanned_at',
+        'tingkatan', 'angkatan',
     ];
 
     protected static function booted()
@@ -34,9 +35,21 @@ class Student extends Model
 
     public function getAngkatanAttribute()
     {
+        // Prioritas 1: Gunakan field 'tingkatan' jika ada
+        if (isset($this->attributes['tingkatan']) && $this->attributes['tingkatan']) {
+            return $this->attributes['tingkatan'];
+        }
+
+        // Prioritas 2: Gunakan field 'angkatan' jika ada (untuk data lama/migrasi)
+        if (isset($this->attributes['angkatan']) && $this->attributes['angkatan']) {
+            return $this->attributes['angkatan'];
+        }
+
+        // Prioritas 3: Parsing dari NIM (Del Institute pattern: 11421045 -> 2021)
         if (preg_match('/^\d{3}(\d{2})\d{3}$/', $this->nim, $matches)) {
             return '20' . $matches[1];
         }
+        
         return '-';
     }
 

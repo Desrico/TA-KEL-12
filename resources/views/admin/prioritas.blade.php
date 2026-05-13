@@ -266,7 +266,7 @@
                             <div class="avatar-box">{{ substr($s->name, 0, 1) }}</div>
                             <div class="info-box">
                                 <h3>{{ $s->name }}</h3>
-                                <div class="nim-text">{{ $s->nim }} • {{ $s->jenis_kelamin }}</div>
+                                <div class="nim-text">{{ $s->nim }} • {{ $s->jenis_kelamin }} • Tingkat {{ $s->angkatan }}</div>
                                 <div class="tag-group">
                                     <span class="tag tag-krisis"><div class="pulse-dot"></div> {{ $s->mental_label }}</span>
                                     <span class="tag">

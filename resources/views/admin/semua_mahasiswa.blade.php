@@ -204,6 +204,7 @@
                         <tr>
                             <th>MAHASISWA</th>
                             <th>NIM</th>
+                            <th>TINGKATAN</th>
                             <th>GENDER & JURNAL</th>
                             <th>STATUS</th>
                             <th>PREDIKSI AI</th>
@@ -229,6 +230,9 @@
                             </td>
                             <td style="color: #475569; font-size: 0.85rem; font-weight: 500;">
                                 {{ $s->nim }}
+                            </td>
+                            <td style="color: #059669; font-size: 0.85rem; font-weight: 700;">
+                                {{ $s->angkatan }}
                             </td>
                             <td style="color: #475569; font-size: 0.85rem;">
                                 <div style="font-weight: 500;">{{ $s->jenis_kelamin }}</div>
