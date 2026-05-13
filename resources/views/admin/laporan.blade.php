@@ -545,8 +545,7 @@
 @if($isDetailForm)
     <div class="laporan-form-container">
         {{-- LEFT: DETAIL LAPORAN --}}
-        <div class="detail-laporan-card">
-            <h6>📋 Detail Laporan</h6>  
+        <div class="detail-laporan-card"> 
 
             {{-- Informasi Pribadi --}}
             <div class="info-section">

@@ -21,7 +21,9 @@ class AdminController extends Controller
             return 'jadwal yang ditentukan';
         }
 
-        $dateTime = Carbon::parse(trim($tanggal . ' ' . ($waktu ?? '00:00:00')));
+        $dateTime = Carbon::parse($tanggal, 'Asia/Jakarta')
+            ->startOfDay()
+            ->setTimeFromTimeString($waktu ?: '00:00:00');
 
         return $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i');
     }
@@ -268,6 +270,12 @@ public function dashboard()
 
         $this->createApprovalNotificationIfMissing($jadwal);
 
+        if (($jadwal->jenis ?? null) === 'online') {
+            return redirect()
+                ->route('admin.chat', ['jadwal' => $jadwal->id])
+                ->with('success', 'Jadwal berhasil disetujui dan thread chat terbaru sudah dibuka.');
+        }
+
         return back()->with('success', 'Jadwal berhasil disetujui!');
     }
 
@@ -323,6 +331,12 @@ public function dashboard()
         ]);
 
         $this->createApprovalNotificationIfMissing($jadwal->fresh(['mahasiswa.user']));
+
+        if (($jadwal->jenis ?? null) === 'online') {
+            return redirect()
+                ->route('admin.chat', ['jadwal' => $jadwal->id])
+                ->with('success', 'Jadwal berhasil diterima dan thread chat terbaru sudah dibuka.');
+        }
 
         return redirect()
             ->route('admin.sesi.detail', $jadwal->id)
@@ -442,4 +456,3 @@ public function dashboard()
 
 
 }
-

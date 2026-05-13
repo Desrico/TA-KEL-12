@@ -10,15 +10,20 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\ChatMahasiswaController;
 use App\Http\Controllers\ChatAdminController;
+use App\Http\Controllers\GroupChatAdminController;
+use App\Http\Controllers\GroupChatMahasiswaController;
 use App\Http\Controllers\KampusApiController;
 use App\Http\Controllers\CounselorController;
 use App\Http\Controllers\EducationController;
-use App\Http\Controllers\AboutPageController;
-use App\Http\Controllers\ChatController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\SesiKonselingController;
 
-
 // ═══════════════════════════════
+// NOTIFIKASI WEB PUSH
+// ═══════════════════════════════
+Route::post('/subscriptions', [PushSubscriptionController::class, 'update']);
+Route::post('/subscriptions/delete', [PushSubscriptionController::class, 'destroy']);
+
 // HALAMAN PUBLIK
 // ═══════════════════════════════
 Route::get('/', function () {
@@ -52,10 +57,22 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
 
-    // Riwayat - Mahasiswa dapat melihat riwayat sesi konseling mereka
-    Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
-    Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('riwayat.detail');
+    Route::get('/riwayat', [RiwayatController::class, 'riwayatMahasiswa'])->name('riwayat');
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
+    Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
+    Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
+    Route::get('/chat/pesan', [ChatMahasiswaController::class, 'messages'])->name('mahasiswa.chat.messages');
+    Route::post('/chat/pesan', [ChatMahasiswaController::class, 'store'])->name('mahasiswa.chat.store');
+    Route::patch('/chat/pesan/{chat}', [ChatMahasiswaController::class, 'update'])->name('mahasiswa.chat.update');
+    Route::delete('/chat/pesan/{chat}', [ChatMahasiswaController::class, 'destroy'])->name('mahasiswa.chat.destroy');
+    Route::get('/group-chat', [GroupChatMahasiswaController::class, 'index'])->name('mahasiswa.group-chat');
+    Route::get('/group-chat/buat', [GroupChatMahasiswaController::class, 'create'])->name('mahasiswa.group-chat.create');
+    Route::post('/group-chat/gabung', [GroupChatMahasiswaController::class, 'join'])->name('mahasiswa.group-chat.join');
+    Route::get('/group-chat/room/{group}', [GroupChatMahasiswaController::class, 'room'])->name('mahasiswa.group-chat.room');
+    Route::get('/group-chat/pesan', [GroupChatMahasiswaController::class, 'messages'])->name('mahasiswa.group-chat.messages');
+    Route::post('/group-chat/pesan', [GroupChatMahasiswaController::class, 'store'])->name('mahasiswa.group-chat.store');
+    Route::patch('/group-chat/pesan/{message}', [GroupChatMahasiswaController::class, 'update'])->name('mahasiswa.group-chat.update');
+    Route::delete('/group-chat/pesan/{message}', [GroupChatMahasiswaController::class, 'destroy'])->name('mahasiswa.group-chat.destroy');
 
     // Chat - Mahasiswa dapat melakukan chat dengan konselor
     Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
@@ -92,6 +109,13 @@ Route::prefix('admin')
         Route::post('/chat/mulai', [ChatAdminController::class, 'start'])->name('chat.start');
         Route::get('/chat/pesan', [ChatAdminController::class, 'messages'])->name('chat.messages');
         Route::post('/chat/pesan', [ChatAdminController::class, 'store'])->name('chat.store');
+        Route::patch('/chat/pesan/{chat}', [ChatAdminController::class, 'update'])->name('chat.update');
+        Route::delete('/chat/pesan/{chat}', [ChatAdminController::class, 'destroy'])->name('chat.destroy');
+        Route::get('/group-chat', [GroupChatAdminController::class, 'index'])->name('group-chat');
+        Route::get('/group-chat/pesan', [GroupChatAdminController::class, 'messages'])->name('group-chat.messages');
+        Route::post('/group-chat/pesan', [GroupChatAdminController::class, 'store'])->name('group-chat.store');
+        Route::patch('/group-chat/pesan/{message}', [GroupChatAdminController::class, 'update'])->name('group-chat.update');
+        Route::delete('/group-chat/pesan/{message}', [GroupChatAdminController::class, 'destroy'])->name('group-chat.destroy');
 
         Route::get('/sesi', [SesiKonselingController::class, 'index'])->name('sesi');
         Route::get('/sesi/{id}', [SesiKonselingController::class, 'detail'])->name('sesi.detail');
@@ -151,6 +175,7 @@ Route::get('/konselor/chart-data', [CounselorController::class, 'getChartData'])
 Route::get('/konselor/jadwal-data', [CounselorController::class, 'getJadwalData'])->name('counselor.jadwal-data');
 Route::get('/konselor/top-students', [CounselorController::class, 'getStudentPreview'])->name('counselor.top-students');
 Route::get('/konselor/notifications', [CounselorController::class, 'getUrgentNotifications'])->name('counselor.notifications');
+Route::post('/konselor/notifications/{nim}/read', [CounselorController::class, 'markUrgentRead'])->name('counselor.notifications.read');
 Route::get('/konselor/feeling-distribution', [CounselorController::class, 'getFeelingDistribution'])->name('counselor.feeling-distribution');
 Route::get('/konselor/detail/{nim}', [CounselorController::class, 'showDetail'])->name('counselor.detail');
 Route::post('/konselor/scan', [CounselorController::class, 'scanLevel3'])->name('counselor.scan');

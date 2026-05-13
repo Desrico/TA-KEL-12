@@ -2017,6 +2017,13 @@ footer a:hover {
             Chat
           </a>
         </li>
+        <li class="nav-item">
+          <a
+            class="nav-link nav-link-custom {{ request()->routeIs('mahasiswa.group-chat*') ? 'active' : '' }}"
+            href="{{ route('mahasiswa.group-chat') }}"
+          >
+            Grup Chat
+          </a>
         @endif
         @endauth
 

@@ -2,14 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Chat extends Model
 {
-    use HasFactory;
-
     protected $table = 'chat';
 
     protected $fillable = [
@@ -18,12 +15,10 @@ class Chat extends Model
         'pesan',
     ];
 
-
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
 
     public function sesi(): BelongsTo
     {
@@ -34,7 +29,4 @@ class Chat extends Model
     {
         return $this->belongsTo(User::class, 'pengirim_id');
     }
-
 }
-
-

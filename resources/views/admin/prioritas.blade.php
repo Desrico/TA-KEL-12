@@ -3,238 +3,304 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mahasiswa Prioritas – WebKonselor</title>
+    <title>Mahasiswa Prioritas (Level 3) – Campus Care</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --bg-base:    #f8fafc;
+            --bg-base:    #fdfdfd;
+            --bg-gradient: linear-gradient(180deg, #fff5f5 0%, #fdfdfd 300px);
             --bg-card:    #ffffff;
-            --border:     #e2e8f0;
+            --border:     #f1f5f9;
             --accent:     #dc2626;
-            --accent-dim: #fef2f2;
-            --green:      #059669;
-            --amber:      #d97706;
-            --red:        #dc2626;
-            --text-1:     #1e293b;
+            --accent-soft: #fef2f2;
+            --accent-border: #fca5a5;
+            --text-1:     #0f172a;
             --text-2:     #475569;
             --text-3:     #94a3b8;
+            --radius-xl:  24px;
             --radius-lg:  16px;
-            --radius-md:  10px;
-            --radius-sm:  6px;
-            --shadow-red: 0 4px 12px rgba(220, 38, 38, 0.15);
-            --shadow-sm:  0 1px 3px rgba(0,0,0,0.05);
+            --radius-md:  12px;
+            --shadow-premium: 0 10px 40px rgba(220, 38, 38, 0.08);
+            --shadow-hover: 0 20px 50px rgba(220, 38, 38, 0.12);
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg-base); color: var(--text-1); min-height: 100vh; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-base); 
+            background-image: var(--bg-gradient);
+            color: var(--text-1); 
+            min-height: 100vh;
+            line-height: 1.6;
+        }
 
+        /* ── Topbar ── */
         .topbar {
-            position: sticky; top: 0; z-index: 50;
+            position: sticky; top: 0; z-index: 100;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 32px; height: 64px;
-            background: rgba(255,255,255,0.9); backdrop-filter: blur(14px);
+            padding: 0 40px; height: 72px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
         }
-        .topbar-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; text-decoration: none; color: var(--text-1); }
-        .topbar-logo .dot {
-            width: 32px; height: 32px; border-radius: 8px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #fff;
+        .topbar-logo { 
+            display: flex; align-items: center; gap: 12px; 
+            font-weight: 800; font-size: 1.2rem; 
+            text-decoration: none; color: var(--text-1); 
         }
-        
-        .container { max-width: 900px; margin: 0 auto; padding: 40px 32px; }
-
-        .page-header { margin-bottom: 32px; display: flex; align-items: center; gap: 16px; }
-        .page-header h1 {
-            font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em;
-            color: var(--text-1); margin: 0;
+        .logo-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
         }
 
+        /* ── Container ── */
+        .container { max-width: 1000px; margin: 0 auto; padding: 48px 32px; }
+
+        /* ── Page Header ── */
+        .header-section {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 40px; flex-wrap: wrap; gap: 20px;
+        }
+        .title-area { display: flex; align-items: center; gap: 20px; }
         .btn-back {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 40px; height: 40px; border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center;
+            width: 48px; height: 48px; border-radius: 14px;
             background: #fff; border: 1px solid var(--border);
-            color: var(--text-2); text-decoration: none; transition: 0.2s;
+            color: var(--text-2); text-decoration: none; transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         }
-        .btn-back:hover { background: var(--bg-base); color: var(--text-1); border-color: #cbd5e1; }
+        .btn-back:hover { 
+            transform: translateX(-4px);
+            background: var(--accent-soft); color: var(--accent); border-color: var(--accent-border);
+        }
+        .header-text h1 {
+            font-size: 1.75rem; font-weight: 800; color: #1e293b;
+            letter-spacing: -0.03em; margin: 0;
+        }
+        .header-text p { color: var(--text-3); font-size: 0.95rem; font-weight: 500; margin-top: 4px; }
 
         .btn-print {
-            display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px;
-            border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600;
-            background: #fff; color: var(--text-1); border: 1px solid var(--border); cursor: pointer; text-decoration: none;
-            transition: 0.2s;
+            display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px;
+            border-radius: 14px; font-size: 0.9rem; font-weight: 700;
+            background: #fff; color: var(--text-1); border: 1px solid var(--border);
+            cursor: pointer; text-decoration: none; transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
         }
-        .btn-print:hover { background: var(--bg-base); border-color: #cbd5e1; }
-        .btn-print svg { color: var(--text-2); }
+        .btn-print:hover { 
+            background: #f8fafc; border-color: #cbd5e1; transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
 
-        .student-grid { display: flex; flex-direction: column; gap: 24px; margin-top: 24px; }
+        /* ── Student Grid ── */
+        .student-grid { display: flex; flex-direction: column; gap: 28px; }
+
         .student-card {
-            display: flex; flex-direction: column;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 28px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 32px;
             text-decoration: none; color: inherit;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: var(--shadow-premium);
             position: relative;
             overflow: hidden;
         }
-        .student-card:hover { 
-            border-color: #fca5a5; 
-            box-shadow: 0 20px 25px -5px rgba(220, 38, 38, 0.1), 0 8px 10px -6px rgba(220, 38, 38, 0.1); 
-            transform: translateY(-4px); 
+        .student-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--accent-border);
         }
-
         .student-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #ef4444, #f87171);
+            content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%;
+            background: linear-gradient(180deg, #ef4444, #991b1b);
         }
 
-        .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+        .card-main { display: flex; justify-content: space-between; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
         
-        .card-user { display: flex; gap: 20px; align-items: flex-start; }
-        .avatar-lg {
-            width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0;
+        .profile-section { display: flex; gap: 24px; align-items: flex-start; flex: 1; }
+        .avatar-box {
+            width: 72px; height: 72px; border-radius: 20px; flex-shrink: 0;
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
             display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 1.8rem;
-            background: #fee2e2; color: #dc2626;
-            border: 1px solid #fecaca;
-            box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);
+            font-weight: 800; font-size: 2rem; color: #dc2626;
+            border: 2px solid #fff; box-shadow: 0 8px 20px rgba(220, 38, 38, 0.15);
         }
-        
-        .user-details h3 { font-size: 1.3rem; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .user-details p { font-size: 0.9rem; color: #64748b; margin: 0 0 16px 0; font-weight: 500; }
-        
-        .pill-group { display: flex; gap: 10px; flex-wrap: wrap; }
-        .pill { 
-            background: #f1f5f9; color: #475569; padding: 6px 12px; 
-            border-radius: 8px; font-size: 0.8rem; font-weight: 600; 
-            display: flex; align-items: center; gap: 6px;
-            border: 1px solid #e2e8f0;
-        }
-        .pill-red { background: #fef2f2; color: #dc2626; border-color: #fecaca; padding: 4px 12px; }
-        
-        .ldot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.8s ease-in-out infinite; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
-        .card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 16px; }
-        .confidence-area { background: #f8fafc; padding: 12px 16px; border-radius: 12px; border: 1px solid #f1f5f9; text-align: right; }
-        
-        .btn-primary {
-            display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px;
-            border-radius: 10px; font-size: 0.85rem; font-weight: 600;
-            background: #dc2626; color: #ffffff;
-            transition: 0.2s;
-            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+        .info-box h3 {
+            font-size: 1.4rem; font-weight: 800; color: #0f172a;
+            margin-bottom: 6px; display: flex; align-items: center; gap: 12px;
         }
-        .btn-primary:hover { background: #b91c1c; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3); }
+        .nim-text { font-size: 0.95rem; color: var(--text-3); font-weight: 600; margin-bottom: 16px; }
 
-        .red-flag-box {
-            margin-top: 24px; padding: 16px 20px;
-            background: #fef2f2; border-left: 4px solid #dc2626; border-radius: 8px 16px 16px 8px;
-            display: flex; gap: 16px; align-items: flex-start;
+        .tag-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .tag {
+            padding: 6px 14px; border-radius: 10px; font-size: 0.8rem; font-weight: 700;
+            display: flex; align-items: center; gap: 8px; border: 1px solid var(--border);
+            background: #f8fafc; color: var(--text-2);
         }
-        .rf-icon { font-size: 1.5rem; line-height: 1; }
-        .rf-content h4 { color: #991b1b; font-size: 0.85rem; font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.05em; }
-        .rf-content p { color: #b91c1c; font-size: 0.95rem; margin: 0; line-height: 1.6; font-weight: 500; }
+        .tag-krisis { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+        .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
 
+        .metrics-section { display: flex; flex-direction: column; align-items: flex-end; gap: 20px; min-width: 200px; }
+        .ai-confidence {
+            background: #f8fafc; padding: 16px; border-radius: 16px;
+            border: 1px solid #f1f5f9; width: 100%; text-align: right;
+        }
+        .confidence-label { font-size: 0.7rem; font-weight: 800; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+        .progress-container { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+        .progress-bg { width: 100px; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #ef4444, #dc2626); border-radius: 999px; }
+        .confidence-value { font-weight: 800; font-size: 1rem; color: #dc2626; }
+
+        .btn-view {
+            padding: 10px 24px; background: #0f172a; color: #fff;
+            border-radius: 12px; font-size: 0.85rem; font-weight: 700;
+            transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .btn-view:hover { background: #1e293b; transform: scale(1.05); }
+
+        /* ── Red Flag Alert ── */
+        .red-flag-alert {
+            margin-top: 28px; padding: 20px 24px;
+            background: #fff5f5; border: 1px solid #fee2e2; border-radius: 18px;
+            display: flex; gap: 20px; align-items: flex-start;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .rf-icon-circle {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: #dc2626; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2);
+        }
+        .rf-text h4 { color: #991b1b; font-size: 0.85rem; font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .rf-text p { color: #b91c1c; font-size: 1rem; font-weight: 600; line-height: 1.5; font-style: italic; }
+
+        /* ── Toast ── */
         #toast {
-            position: fixed; bottom: 28px; right: 28px; z-index: 999;
-            display: none; align-items: center; gap: 10px;
-            padding: 12px 18px; border-radius: var(--radius-md);
-            background: #fff; border: 1px solid var(--border);
-            box-shadow: var(--shadow-sm);
-            font-size: 0.84rem; color: var(--text-1); font-weight: 500;
-            animation: slideInUp 0.3s ease;
+            position: fixed; bottom: 32px; right: 32px; z-index: 1000;
+            display: none; align-items: center; gap: 12px;
+            padding: 16px 24px; border-radius: 16px;
+            background: #1e293b; color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            font-size: 0.9rem; font-weight: 600;
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         #toast.show { display: flex; }
-        @keyframes slideInUp { from { transform:translateY(16px);opacity:0 } to { transform:none;opacity:1 } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* ── Empty State ── */
+        .empty-state {
+            text-align: center; padding: 100px 40px;
+            background: #fff; border: 2px dashed #e2e8f0; border-radius: 32px;
+        }
+        .empty-icon { font-size: 4rem; margin-bottom: 24px; display: block; }
+        .empty-state h2 { font-size: 1.5rem; font-weight: 800; color: var(--text-1); margin-bottom: 12px; }
+        .empty-state p { color: var(--text-3); font-size: 1.05rem; }
+
+        @media (max-width: 768px) {
+            .header-section { flex-direction: column; align-items: flex-start; }
+            .metrics-section { align-items: flex-start; width: 100%; }
+            .ai-confidence { text-align: left; }
+            .progress-container { justify-content: flex-start; }
+            .btn-view { width: 100%; text-align: center; }
+            .topbar { padding: 0 20px; }
+        }
     </style>
 </head>
 <body>
 
 <header class="topbar">
     <a href="{{ route('counselor.dashboard') }}" class="topbar-logo">
-        <div class="dot">🎓</div>
-        WebKonselor
+        <div class="logo-icon">🎓</div>
+        <span>Campus Care</span>
     </a>
+    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-3);">Panel Konselor</div>
 </header>
 
 <main class="container">
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-        <div class="page-header" style="margin: 0;">
-            <a href="{{ route('counselor.dashboard') }}" class="btn-back" title="Kembali">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <div class="header-section">
+        <div class="title-area">
+            <a href="{{ route('counselor.dashboard') }}" class="btn-back">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </a>
-            <h1>🚨 Daftar Seluruh Mahasiswa Prioritas (Level 3)</h1>
+            <div class="header-text">
+                <h1>Daftar Mahasiswa Prioritas</h1>
+                <p>Menampilkan kasus Level 3 yang membutuhkan penanganan segera</p>
+            </div>
         </div>
         
-        <button class="btn-print" onclick="printElementToPDF('printLevel3Area', 'Daftar_Seluruh_Mahasiswa_Prioritas.pdf')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Cetak seluruh mahasiswa
+        <button class="btn-print" onclick="printElementToPDF('printLevel3Area', 'Laporan_Mahasiswa_Prioritas.pdf')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Ekspor Laporan PDF
         </button>
     </div>
 
     @if($students->isEmpty())
-        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--text-3);">
-            <div style="font-size: 2.5rem; margin-bottom: 16px;">✅</div>
-            <p>Tidak ada mahasiswa dengan status prioritas (Level 3) saat ini.</p>
+        <div class="empty-state">
+            <span class="empty-icon">✨</span>
+            <h2>Semua Aman!</h2>
+            <p>Tidak ada mahasiswa dengan status krisis (Level 3) saat ini.</p>
         </div>
     @else
-        <div id="printLevel3Area" style="background: var(--bg-card); padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
-            <h2 style="font-size: 1.1rem; margin-bottom: 8px;" data-html2canvas-ignore="true">Total: {{ $students->count() }} Mahasiswa</h2>
-            <p style="color: var(--text-3); font-size: 0.85rem; margin-bottom: 24px;" data-html2canvas-ignore="true">
-                Berikut adalah daftar mahasiswa yang terdeteksi membutuhkan penanganan cepat berdasarkan AI.
-            </p>
+        <div id="printLevel3Area">
+            <div style="margin-bottom: 24px; display: flex; align-items: center; gap: 12px;" data-html2canvas-ignore="true">
+                <span style="background: var(--accent); color: #fff; padding: 4px 12px; border-radius: 8px; font-weight: 800; font-size: 0.9rem;">
+                    {{ $students->count() }} Mahasiswa
+                </span>
+                <span style="color: var(--text-3); font-size: 0.85rem; font-weight: 600;">Terdeteksi risiko tinggi oleh sistem AI</span>
+            </div>
 
             <div class="student-grid">
                 @foreach($students as $s)
                 <a class="student-card" href="{{ route('counselor.detail', $s->nim) }}">
-                    <div class="card-top">
-                        <div class="card-user">
-                            <div class="avatar-lg">{{ substr($s->name, 0, 1) }}</div>
-                            <div class="user-details">
-                                <h3>
-                                    {{ $s->name }}
-                                    <span class="pill pill-red"><span class="ldot"></span>{{ $s->mental_label }}</span>
-                                </h3>
-                                <p>{{ $s->nim }} • {{ $s->jenis_kelamin }}</p>
-                                <div class="pill-group">
-                                    <span class="pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> {{ $s->journal_texts_count }} Jurnal</span>
+                    <div class="card-main">
+                        <div class="profile-section">
+                            <div class="avatar-box">{{ substr($s->name, 0, 1) }}</div>
+                            <div class="info-box">
+                                <h3>{{ $s->name }}</h3>
+                                <div class="nim-text">{{ $s->nim }} • {{ $s->jenis_kelamin }}</div>
+                                <div class="tag-group">
+                                    <span class="tag tag-krisis"><div class="pulse-dot"></div> {{ $s->mental_label }}</span>
+                                    <span class="tag">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                        {{ $s->journal_texts_count }} Jurnal
+                                    </span>
                                     @if($s->mental_scanned_at)
-                                    <span class="pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> {{ $s->mental_scanned_at->isoFormat('DD MMM, HH:mm') }}</span>
+                                    <span class="tag">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        {{ $s->mental_scanned_at->isoFormat('DD MMM, HH:mm') }}
+                                    </span>
                                     @endif
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="card-actions">
-                            <div class="confidence-area">
-                                <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Keyakinan AI</div>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 80px; height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
-                                        <div style="width: {{ round($s->mental_confidence) }}%; height: 100%; background: #dc2626; border-radius: 999px;"></div>
+                        <div class="metrics-section">
+                            <div class="ai-confidence">
+                                <div class="confidence-label">Tingkat Keyakinan AI</div>
+                                <div class="progress-container">
+                                    <div class="progress-bg">
+                                        <div class="progress-fill" style="width: {{ round($s->mental_confidence) }}%;"></div>
                                     </div>
-                                    <span style="font-weight: 800; font-size: 0.9rem; color: #dc2626;">{{ round($s->mental_confidence) }}%</span>
+                                    <span class="confidence-value">{{ round($s->mental_confidence) }}%</span>
                                 </div>
                             </div>
-                            <span class="btn-primary" data-html2canvas-ignore="true">Lihat Profil & Jurnal →</span>
+                            <span class="btn-view" data-html2canvas-ignore="true">Tinjau Kasus →</span>
                         </div>
                     </div>
 
                     @if($s->mental_red_flag)
-                    <div class="red-flag-box">
-                        <div class="rf-icon">🚨</div>
-                        <div class="rf-content">
-                            <h4>Peringatan Temuan Krisis (AI)</h4>
+                    <div class="red-flag-alert">
+                        <div class="rf-text">
+                            <h4>Analisis Temuan Krisis</h4>
                             <p>"{{ $s->mental_red_flag }}"</p>
                         </div>
                     </div>
@@ -251,36 +317,36 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-    function showToast(msg, color = 'var(--green)') {
+    function showToast(msg, isSuccess = true) {
         const t = document.getElementById('toast');
-        t.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0"></span> ${msg}`;
+        t.innerHTML = isSuccess ? `<span>✅</span> ${msg}` : `<span>⚠️</span> ${msg}`;
+        t.style.background = isSuccess ? '#0f172a' : '#dc2626';
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 3500);
     }
 
     function printElementToPDF(elementId, filename) {
-        showToast('⏳ Menyusun dokumen PDF...', 'var(--amber)');
+        showToast('⏳ Sedang memproses laporan PDF...');
         const element = document.getElementById(elementId);
 
         const opt = {
-            margin:       10,
+            margin:       15,
             filename:     filename,
-            image:        { type: 'jpeg', quality: 0.98 },
+            image:        { type: 'jpeg', quality: 1 },
             html2canvas:  { 
-                scale: 2, 
+                scale: 3, 
                 useCORS: true, 
                 backgroundColor: '#ffffff',
-                scrollY: 0,
-                scrollX: 0
+                letterRendering: true
             },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         html2pdf().set(opt).from(element).save().then(() => {
-            showToast('✅ Berhasil mengunduh PDF', 'var(--green)');
+            showToast('Laporan berhasil diunduh!');
         }).catch(err => {
             console.error(err);
-            showToast('⚠️ Gagal menyusun PDF', 'var(--red)');
+            showToast('Gagal mengunduh laporan.', false);
         });
     }
 </script>

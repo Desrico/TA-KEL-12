@@ -86,7 +86,7 @@ class RiwayatMahasiswaController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Jadwal berhasil diubah.',
-            'redirect' => route('riwayat.detail', $jadwal->id),
+            'redirect' => route('riwayat'),
         ]);
     }
 }

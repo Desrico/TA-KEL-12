@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Konselor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use App\Models\JadwalKonseling;
@@ -9,12 +10,37 @@ use App\Models\SesiKonseling;
 
 class SesiKonselingController extends Controller
 {
-    public function index()
+    private function resolveAuthenticatedKonselor(): Konselor
     {
-        $konselor = auth()->user()->konselor;
+        $user = auth()->user();
 
-        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil', 'sesiKonseling'])
-            ->where('konselor_id', $konselor->id)
+        if (! $user || ! $user->konselor) {
+            abort(403, 'Data konselor tidak ditemukan.');
+        }
+
+        return $user->konselor;
+    }
+
+    public function index(Request $request)
+    {
+        $konselor = $this->resolveAuthenticatedKonselor();
+        $search = trim((string) $request->query('search', ''));
+
+        $jadwalQuery = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil', 'sesiKonseling'])
+            ->where('konselor_id', $konselor->id);
+
+        if ($search !== '') {
+            $jadwalQuery->where(function ($query) use ($search) {
+                $query->whereHas('mahasiswa.user', function ($userQuery) use ($search) {
+                    $userQuery->where('nama', 'like', '%' . $search . '%');
+                })->orWhereHas('mahasiswa', function ($mahasiswaQuery) use ($search) {
+                    $mahasiswaQuery->where('nim', 'like', '%' . $search . '%')
+                        ->orWhere('jurusan', 'like', '%' . $search . '%');
+                });
+            });
+        }
+
+        $jadwal = $jadwalQuery
             ->orderByRaw("
                 CASE
                     WHEN status = 'menunggu' THEN 1
@@ -27,7 +53,8 @@ class SesiKonselingController extends Controller
             ")
             ->orderBy('tanggal', 'asc')
             ->orderBy('waktu', 'asc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $jadwal->getCollection()->each(function (JadwalKonseling $item) {
             $item->syncExpiredSessionStatus();
@@ -43,7 +70,7 @@ class SesiKonselingController extends Controller
 
     public function detail($id)
     {
-        $konselor = auth()->user()->konselor;
+        $konselor = $this->resolveAuthenticatedKonselor();
 
         $jadwal = JadwalKonseling::with(['mahasiswa.user'])
             ->where('konselor_id', $konselor->id)
@@ -54,7 +81,7 @@ class SesiKonselingController extends Controller
 
     public function terima($id)
     {
-        $konselor = auth()->user()->konselor;
+        $konselor = $this->resolveAuthenticatedKonselor();
 
         $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
             ->findOrFail($id);
@@ -70,7 +97,7 @@ class SesiKonselingController extends Controller
 
     public function tolak($id)
     {
-        $konselor = auth()->user()->konselor;
+        $konselor = $this->resolveAuthenticatedKonselor();
 
         $jadwal = JadwalKonseling::with(['mahasiswa.user'])
             ->where('konselor_id', $konselor->id)
@@ -85,10 +112,13 @@ class SesiKonselingController extends Controller
             'alasan_penolakan' => 'required|string'
         ]);
 
-        $jadwal = Jadwal::findOrFail($id);
+        $konselor = $this->resolveAuthenticatedKonselor();
+
+        $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
+            ->findOrFail($id);
 
         $jadwal->status = 'ditolak';
-        $jadwal->alasan_penolakan = $request->alasan_penolakan; 
+        $jadwal->alasan_penolakan = $request->alasan_penolakan;
         $jadwal->save();
 
         return redirect()
@@ -98,7 +128,7 @@ class SesiKonselingController extends Controller
 
     public function selesai($id)
     {
-        $konselor = auth()->user()->konselor;
+        $konselor = $this->resolveAuthenticatedKonselor();
 
         $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
             ->findOrFail($id);

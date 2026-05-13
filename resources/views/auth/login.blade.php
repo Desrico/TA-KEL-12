@@ -41,9 +41,8 @@
                     Masuk ke Akun
                 </h2>
 
-                <!-- ERROR GLOBAL -->
                 @if ($errors->any())
-                    <div class="mb-3 text-sm text-red-500 text-center">
+                    <div class="mb-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">
                         {{ $errors->first() }}
                     </div>
                 @endif
@@ -59,13 +58,18 @@
                         <label class="text-sm text-gray-600">Username CIS</label>
                         <input type="text" name="username"
                             value="{{ old('username') }}"
-                            class="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#5FAF9F]">
+                            placeholder=""
+                            class="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#5FAF9F] focus:outline-none">
                     </div>
 
                     <div>
                         <label class="text-sm text-gray-600">Password</label>
-                        <input type="password" name="password"
-                            class="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#5FAF9F]">
+                        <input
+                            type="password"
+                            name="password"
+                            id="loginPassword"
+                            class="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#5FAF9F] focus:outline-none"
+                        >
                     </div>
 
                     <button type="submit"
@@ -77,6 +81,8 @@
 
         </div>
     </div>
+
+
 
 </body>
 </html>
