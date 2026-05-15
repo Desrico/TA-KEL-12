@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Penjadwalan Konseling')
-
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
 
@@ -58,7 +57,7 @@
   }
 
   .jadwal-calendar-content {
-    padding: 1.2rem;
+    padding: 1.2rem 1.4rem;
   }
 
   #calendar {
@@ -192,231 +191,230 @@
   }
 
   .btn-ketidaktersediaan {
-  border: 2px solid var(--admin-primary);
-  background: #ffffff;
-  color: var(--admin-primary);
-  padding: 10px 18px;
-  border-radius: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.btn-ketidaktersediaan:hover {
-  background: var(--admin-primary);
-  color: #ffffff;
-}
-
-/* MODAL ATUR KETIDAKTERSEDIAAN */
-.modal-unavailable {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.modal-unavailable.show {
-  display: flex;
-}
-
-.modal-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(2px);
-}
-
-.modal-box {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 760px;
-  background: #fff;
-  border-radius: 28px;
-  padding: 28px 28px 24px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
-  animation: modalFadeIn 0.22s ease;
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.modal-top {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.modal-icon {
-  width: 58px;
-  height: 58px;
-  min-width: 58px;
-  border-radius: 50%;
-  background: #E8F6EE;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--admin-primary);
-  font-size: 28px;
-}
-
-.modal-title-wrap h3 {
-  margin: 0 0 4px;
-  font-size: 24px;
-  font-weight: 800;
-  color: #111827;
-}
-
-.modal-title-wrap p {
-  margin: 0;
-  color: #4B5563;
-  font-size: 15px;
-}
-
-.modal-form {
-  width: 100%;
-}
-
-.modal-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.form-group input[type="date"],
-.form-group input[type="time"] {
+    border: 2px solid var(--admin-primary);
+    background: #ffffff;
+    color: var(--admin-primary);
+    padding: 10px 18px;
+    border-radius: 14px;
+    font-weight: 700;
     cursor: pointer;
-}
+    transition: 0.2s ease;
+  }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
+  .btn-ketidaktersediaan:hover {
+    background: var(--admin-primary);
+    color: #ffffff;
+  }
 
-.form-group-full {
-  margin-bottom: 18px;
-}
+  .modal-unavailable {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
 
-.form-group label {
-  font-size: 15px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 8px;
-}
+  .modal-unavailable.show {
+    display: flex;
+  }
 
-.form-group label span {
-  font-weight: 500;
-  color: #6B7280;
-}
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(2px);
+  }
 
-.form-group input[type="date"],
-.form-group input[type="time"],
-.form-group textarea {
-  width: 100%;
-  border: 1.5px solid #E5E7EB;
-  border-radius: 14px;
-  background: #fff;
-  padding: 13px 14px;
-  font-size: 14px;
-  color: #111827;
-  outline: none;
-  transition: 0.2s ease;
-}
+  .modal-box {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 760px;
+    background: #fff;
+    border-radius: 28px;
+    padding: 28px 28px 24px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+    animation: modalFadeIn 0.22s ease;
+  }
 
-.form-group input[type="date"]:focus,
-.form-group input[type="time"]:focus,
-.form-group textarea:focus {
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(11, 107, 80, 0.08);
-}
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
 
-.form-group textarea {
-  resize: none;
-  min-height: 120px;
-}
+  .modal-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
 
-#charCount {
-  margin-top: 6px;
-  text-align: right;
-  color: #9CA3AF;
-  font-size: 12px;
-}
+  .modal-icon {
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
+    border-radius: 50%;
+    background: #E8F6EE;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--admin-primary);
+    font-size: 28px;
+  }
 
-.repeat-box {
-  margin-top: 4px;
-}
+  .modal-title-wrap h3 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+  }
 
-.checkbox-inline {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: #374151;
-  cursor: pointer;
-}
+  .modal-title-wrap p {
+    margin: 0;
+    color: #4B5563;
+    font-size: 15px;
+  }
 
-.checkbox-inline input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--admin-primary);
-}
+  .modal-form {
+    width: 100%;
+  }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 14px;
-  margin-top: 22px;
-}
+  .modal-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
 
-.btn-batal,
-.btn-simpan {
-  min-width: 138px;
-  height: 50px;
-  border-radius: 14px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
 
-.btn-batal {
-  border: 1.5px solid #D1D5DB;
-  background: #fff;
-  color: #6B7280;
-}
+  .form-group-full {
+    margin-bottom: 18px;
+  }
 
-.btn-batal:hover {
-  background: #F9FAFB;
-}
+  .form-group label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+  }
 
-.btn-simpan {
-  border: none;
-  background: var(--admin-primary);
-  color: #fff;
-}
+  .form-group label span {
+    font-weight: 500;
+    color: #6B7280;
+  }
 
-.btn-simpan:hover {
-  background: #09553F;
-}
+  .form-group input[type="date"],
+  .form-group input[type="time"] {
+    cursor: pointer;
+  }
 
-body.modal-open {
-  overflow: hidden;
-}
+  .form-group input[type="date"],
+  .form-group input[type="time"],
+  .form-group textarea {
+    width: 100%;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 14px;
+    background: #fff;
+    padding: 13px 14px;
+    font-size: 14px;
+    color: #111827;
+    outline: none;
+    transition: 0.2s ease;
+  }
 
-.modal-detail {
+  .form-group input[type="date"]:focus,
+  .form-group input[type="time"]:focus,
+  .form-group textarea:focus {
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 3px rgba(11, 107, 80, 0.08);
+  }
+
+  .form-group textarea {
+    resize: none;
+    min-height: 120px;
+  }
+
+  #charCount {
+    margin-top: 6px;
+    text-align: right;
+    color: #9CA3AF;
+    font-size: 12px;
+  }
+
+  .repeat-box {
+    margin-top: 4px;
+  }
+
+  .checkbox-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  .checkbox-inline input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--admin-primary);
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 22px;
+  }
+
+  .btn-batal,
+  .btn-simpan {
+    min-width: 138px;
+    height: 50px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .btn-batal {
+    border: 1.5px solid #D1D5DB;
+    background: #fff;
+    color: #6B7280;
+  }
+
+  .btn-batal:hover {
+    background: #F9FAFB;
+  }
+
+  .btn-simpan {
+    border: none;
+    background: var(--admin-primary);
+    color: #fff;
+  }
+
+  .btn-simpan:hover {
+    background: #09553F;
+  }
+
+  body.modal-open {
+    overflow: hidden;
+  }
+
+  .modal-detail {
     display: none;
     position: fixed;
     inset: 0;
@@ -424,22 +422,22 @@ body.modal-open {
     z-index: 9999;
     justify-content: center;
     align-items: center;
-}
+  }
 
-.modal-detail.show {
+  .modal-detail.show {
     display: flex;
-}
+  }
 
-.modal-detail-box {
+  .modal-detail-box {
     background: white;
     width: 420px;
     border-radius: 18px;
     padding: 28px;
     position: relative;
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
+  }
 
-.modal-close {
+  .modal-close {
     position: absolute;
     top: 14px;
     right: 18px;
@@ -447,53 +445,123 @@ body.modal-open {
     background: transparent;
     font-size: 28px;
     cursor: pointer;
-}
+  }
 
-.modal-action {
+  .modal-action {
     display: flex;
     gap: 12px;
     margin-top: 24px;
-}
+  }
 
-.btn-edit,
-.btn-hapus {
+  .btn-edit,
+  .btn-hapus {
     padding: 10px 22px;
     border-radius: 10px;
     border: none;
     text-decoration: none;
     cursor: pointer;
-}
+  }
 
-.btn-edit {
+  .btn-edit {
     background: #0b5d46;
     color: white;
-}
+  }
 
-.btn-hapus {
+  .btn-hapus {
     background: #dc2626;
     color: white;
-}
-
-@media (max-width: 768px) {
-  .modal-box {
-    padding: 22px 18px;
-    border-radius: 22px;
   }
 
-  .modal-grid {
-    grid-template-columns: 1fr;
-  }
+  /* ==============================
+     TOOLBAR KALENDER CUSTOM FIXED
+  ============================== */
 
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .btn-batal,
-  .btn-simpan {
+  .calendar-toolbar-custom {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 56px;
+    align-items: center;
     width: 100%;
+    min-height: 56px;
+    margin: 0 0 20px 0;
   }
-}
 
+  .calendar-nav-btn {
+    width: 56px;
+    height: 56px;
+    border: 1.5px solid #d8eee6 !important;
+    background: #ffffff;
+    color: #005b4a;
+    border-radius: 14px !important;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.2s ease;
+  }
+
+  .calendar-nav-btn:hover {
+    background: #eef8f4;
+    color: var(--admin-primary);
+    border-color: var(--admin-primary) !important;
+  }
+
+  #prevMonth {
+    justify-self: start;
+  }
+
+  #nextMonth {
+    justify-self: end;
+  }
+
+  .calendar-month-title {
+    justify-self: center;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1;
+  }
+
+  @media (max-width: 768px) {
+    .modal-box {
+      padding: 22px 18px;
+      border-radius: 22px;
+    }
+
+    .modal-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .modal-actions {
+      flex-direction: column;
+    }
+
+    .btn-batal,
+    .btn-simpan {
+      width: 100%;
+    }
+
+    .calendar-toolbar-custom {
+      grid-template-columns: 46px minmax(0, 1fr) 46px;
+      margin-bottom: 16px;
+    }
+
+    .calendar-nav-btn {
+      width: 46px;
+      height: 46px;
+      font-size: 24px;
+      border-radius: 12px !important;
+    }
+
+    .calendar-month-title {
+      font-size: 1rem;
+    }
+  }
 
   @media (max-width: 991.98px) {
     .jadwal-page-wrap {
@@ -544,7 +612,20 @@ body.modal-open {
 </div>
 
     <div class="jadwal-calendar-content">
-      <div id="calendar"></div>
+
+    <div class="calendar-toolbar-custom">
+    <button type="button" class="calendar-nav-btn" id="prevMonth" aria-label="Bulan sebelumnya">
+        ‹
+    </button>
+
+    <div class="calendar-month-title" id="calendarTitle"></div>
+
+    <button type="button" class="calendar-nav-btn" id="nextMonth" aria-label="Bulan berikutnya">
+        ›
+    </button>
+</div>
+
+    <div id="calendar"></div>
 
       <div class="jadwal-legend">
         <div class="legend-item">
@@ -778,101 +859,110 @@ body.modal-open {
           }
       };
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'id',
-            height: 'auto',
-            firstDay: 0,
-            headerToolbar: {
-                left: 'prev,next',
-                center: 'title',
-                right: ''
-            },
-            buttonText: {
-                today: 'Hari ini'
-            },
-            events: '{{ route("admin.jadwal.events") }}',
-            eventClick: function(info) {
-    const data = info.event.extendedProps;
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'id',
+    height: 'auto',
+    firstDay: 0,
+    headerToolbar: false,
 
-    if (data.status === 'Tidak Tersedia') {
-document.getElementById('detailTanggal').textContent =
-    info.event.start.toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    });
+    buttonText: {
+        today: 'Hari ini'
+    },
 
-document.getElementById('detailWaktu').textContent =
-    data.waktu ?? '-';
+    events: '{{ route("admin.jadwal.events") }}',
 
-document.getElementById('detailAlasan').textContent =
-    data.alasan ?? '-';
+    datesSet: function (info) {
+        const titleEl = document.getElementById('calendarTitle');
+        if (titleEl) {
+            titleEl.innerText = info.view.title;
+        }
+    },
 
-document.getElementById('btnEditUnavailable').onclick = function () {
-    editUnavailable(data);
-};
+    eventClick: function(info) {
+        const data = info.event.extendedProps;
 
-document.getElementById('formDeleteUnavailable').action =
-    `/konselor/ketidaktersediaan/${data.id}`;
-
-document.getElementById('unavailableDetailModal').classList.add('show');
-
-        return;
-    }
-
-    const statusStyle = statusMap[data.status] || {
-        bg: '#F3F4F6',
-        color: '#374151'
-    };
-
-    detailEl.innerHTML = `
-        <div class="detail-list">
-            <div class="detail-row">
-                <div class="detail-label">Mahasiswa</div>
-                <div class="detail-value">${data.nama}</div>
-            </div>
-
-            <div class="detail-row">
-                <div class="detail-label">Tanggal</div>
-                <div class="detail-value">${info.event.start.toLocaleDateString('id-ID', {
+        if (data.status === 'Tidak Tersedia') {
+            document.getElementById('detailTanggal').textContent =
+                info.event.start.toLocaleDateString('id-ID', {
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric'
-                })}</div>
-            </div>
+                });
 
-            <div class="detail-row">
-                <div class="detail-label">Waktu</div>
-                <div class="detail-value">${data.waktu} WIB</div>
-            </div>
+            document.getElementById('detailWaktu').textContent = data.waktu ?? '-';
+            document.getElementById('detailAlasan').textContent = data.alasan ?? '-';
 
-            <div class="detail-row">
-                <div class="detail-label">Jenis Layanan</div>
-                <div class="detail-value">${data.jenis}</div>
-            </div>
+            document.getElementById('btnEditUnavailable').onclick = function () {
+                editUnavailable(data);
+            };
 
-            <div class="detail-row">
-                <div class="detail-label">Topik</div>
-                <div class="detail-value">${data.topik}</div>
-            </div>
+            document.getElementById('formDeleteUnavailable').action =
+                `/konselor/ketidaktersediaan/${data.id}`;
 
-            <div class="detail-row">
-                <div class="detail-label">Status</div>
-                <div class="detail-value">
-                    <span class="status-pill" style="background:${statusStyle.bg}; color:${statusStyle.color};">
-                        ${data.status}
-                    </span>
+            document.getElementById('unavailableDetailModal').classList.add('show');
+            return;
+        }
+
+        const statusStyle = statusMap[data.status] || {
+            bg: '#F3F4F6',
+            color: '#374151'
+        };
+
+        detailEl.innerHTML = `
+            <div class="detail-list">
+                <div class="detail-row">
+                    <div class="detail-label">Mahasiswa</div>
+                    <div class="detail-value">${data.nama ?? '-'}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Tanggal</div>
+                    <div class="detail-value">${info.event.start.toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    })}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Waktu</div>
+                    <div class="detail-value">${data.waktu ?? '-'} WIB</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Jenis Layanan</div>
+                    <div class="detail-value">${data.jenis ?? '-'}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Topik</div>
+                    <div class="detail-value">${data.topik ?? '-'}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value">
+                        <span class="status-pill" style="background:${statusStyle.bg}; color:${statusStyle.color};">
+                            ${data.status ?? '-'}
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
-}
-        });
+        `;
+    }
+});
 
-        calendar.render();
-    });
+calendar.render();
 
+document.getElementById('prevMonth').addEventListener('click', function () {
+    calendar.prev();
+});
+
+document.getElementById('nextMonth').addEventListener('click', function () {
+    calendar.next();
+});
+});
     function submitUnavailableForm() {
     const tanggal = document.getElementById('tanggal_mulai').value;
     const dari = document.getElementById('jam_mulai').value;
