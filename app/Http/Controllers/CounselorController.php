@@ -68,6 +68,35 @@ class CounselorController extends Controller
                 ->count();
         }
 
+        $user = Auth::user();
+        $konselor = Konselor::where('user_id', $user->id)->first();
+
+        // Get jadwal statistics
+        $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
+
+        $totalPenjadwalan   = (clone $baseQuery)->count();
+        $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
+        $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
+        $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
+        $totalSesiSelesai = (clone $baseQuery)->whereNotNull('laporan')->orWhere('status', 'selesai')->count();
+        $totalDiterima  = $disetujui;
+        $totalDitolak   = $ditolak;
+        $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
+        $approvalRate   = $totalPenjadwalan > 0 ? round(($disetujui / $totalPenjadwalan) * 100) : 0;
+
+        // Monthly statistics (6 bulan terakhir)
+        $monthlyLabels = [];
+        $monthlyCounts = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = Carbon::now()->subMonths($i);
+            $monthlyLabels[] = $month->translatedFormat('M');
+            $monthlyCounts[] = (clone $baseQuery)
+                ->whereYear('tanggal', $month->year)
+                ->whereMonth('tanggal', $month->month)
+                ->count();
+        }
+
+
         // Topic statistics - Ambil langsung dari field topik di JadwalKonseling
         // Ini adalah topik yang dipilih mahasiswa saat membuat penjadwalan
         $topikStats = (clone $baseQuery)
@@ -111,9 +140,12 @@ class CounselorController extends Controller
             ->with('mahasiswa')
             ->orderBy('waktu')
             ->get();
+
         
+       
         return view('admin.dashboard', compact(
             'students',
+            'lastScan',
             'konselor',
             'totalPenjadwalan',
             'menunggu',
@@ -790,6 +822,9 @@ class CounselorController extends Controller
 
         return response()->json($data);
     }
+
 }
+
+
 
 
