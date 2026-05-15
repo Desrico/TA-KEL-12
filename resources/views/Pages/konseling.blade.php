@@ -572,232 +572,18 @@
     color: #46514B;
     font-size: .9rem;
   }
- .confirm-overlay {
+
+  .confirm-overlay {
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
   background: rgba(0, 0, 0, .28);
-  background: rgba(0, 0, 0, .38);
   display: none;
   align-items: center;
   justify-content: center;
   z-index: 999999 !important;
 }
-
-.confirm-overlay.show {
-  display: flex !important;
-}
-
-.confirm-box {
-  width: 360px;
-  max-width: 90%;
-  background: #066847;
-  color: #fff;
-  border-radius: 14px;
-  padding: 1.8rem 1.5rem;
-  text-align: center;
-  box-shadow: 0 24px 60px rgba(0,0,0,.25);
-  animation: popFade .25s ease both;
-}
-
-.confirm-icon {
-  width: 58px;
-  height: 58px;
-  border: 4px solid #ffe66d;
-  color: #ffe66d;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 auto 1rem;
-}
-
-.confirm-box h3 {
-  color: #fff;
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin-bottom: .8rem;
-}
-
-.confirm-box p {
-  color: #fff;
-  font-size: .78rem;
-  line-height: 1.45;
-  margin-bottom: 1.3rem;
-}
-
-.confirm-actions {
-  display: flex;
-  justify-content: center;
-  gap: .8rem;
-}
-
-.btn-confirm {
-  border: 0;
-  background: #ffe66d;
-  color: #064e3b;
-  font-weight: 800;
-  font-size: .78rem;
-  border-radius: 6px;
-  padding: .48rem .95rem;
-}
-
-.btn-cancel {
-  border: 1px solid #fff;
-  background: transparent;
-  color: #fff;
-  font-weight: 700;
-  font-size: .78rem;
-  border-radius: 6px;
-  padding: .48rem .95rem;
-}
-
-/* POPUP JADWAL TIDAK TERSEDIA */
-.unavailable-box {
-  width: 430px;
-  max-width: 90%;
-  background: #066847;
-  color: #fff;
-  border-radius: 18px;
-  padding: 2rem 2.2rem;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, .28);
-  animation: popFade .25s ease both;
-}
-
-.unavailable-alert-icon {
-  width: 78px;
-  height: 78px;
-  border: 6px solid #ff5757;
-  border-radius: 50%;
-  color: #ff5757;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.3rem;
-}
-
-.unavailable-alert-icon span {
-  font-size: 3.8rem;
-  font-weight: 800;
-  line-height: 1;
-  transform: translateY(-2px);
-}
-
-.unavailable-box h3 {
-  text-align: center;
-  color: #fff !important;
-  font-size: 1.55rem;
-  font-weight: 800;
-  margin: 0 0 1.4rem;
-}
-
-.unavailable-line {
-  height: 1px;
-  background: rgba(255, 255, 255, .6);
-  margin: 1.2rem 0;
-}
-
-.unavailable-info {
-  display: grid;
-  gap: 1rem;
-}
-
-.unavailable-row {
-  display: grid;
-  grid-template-columns: 135px 1fr;
-  align-items: start;
-  column-gap: .8rem;
-}
-
-.unavailable-row-label {
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  color: #a8dbc9 !important;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.unavailable-row-label i,
-.unavailable-row-label span {
-  color: #a8dbc9 !important;
-}
-
-.unavailable-row-value {
-  color: #fff !important;
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.45;
-  text-align: left;
-}
-
-.unavailable-item {
-  display: grid;
-  grid-template-columns: 135px 1fr;
-  align-items: start;
-  column-gap: .8rem;
-}
-
-.unavailable-label {
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  color: #a8dbc9 !important;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.unavailable-label i {
-  color: #a8dbc9 !important;
-  font-size: 1.1rem;
-}
-
-.unavailable-value {
-  color: #fff !important;
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.45;
-  text-align: left;
-}
-
-.unavailable-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 2.4rem;
-}
-
-.btn-change {
-  min-width: 130px;
-  height: 44px;
-  border-radius: 8px;
-  border: 2px solid #d8fff2;
-  background: transparent;
-  color: #d8fff2;
-  font-size: .9rem;
-  font-weight: 800;
-}
-
-.btn-ok-unavailable {
-  min-width: 130px;
-  height: 44px;
-  border-radius: 8px;
-  border: 2px solid #fffaf5;
-  background: #fffaf5;
-  color: #066847;
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-@keyframes popFade {
-  from {
-    opacity: 0;
-    transform: scale(.92);
-  .success-detail-row:first-child {
-    border-top: 0;
-    padding-top: 0;
-  }
 
 .confirm-overlay.show {
   display: flex !important;
@@ -879,27 +665,16 @@
   }
 }
   @media (max-width: 991.98px) {
-  .service-hero {
-    padding-bottom: 2.7rem;
-  }
-}
-
-
-@keyframes popFade {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(.94);
-
     .service-hero {
       padding-bottom: 2.7rem;
     }
+}
 
 .confirm-overlay.show,
 .success-overlay.show {
   display: flex !important;
 }
 
-<<<<<<< HEAD
 .confirm-box {
   width: 360px;
   max-width: 90%;
@@ -1016,9 +791,6 @@
   from {
     opacity: 0;
     transform: translateY(18px) scale(.94);
-    .schedule-card-head {
-      flex-direction: column;
-    }
   }
   to {
     opacity: 1;
@@ -1316,60 +1088,11 @@
       Pengajuan jadwal konseling berhasil dibuat dan sedang menunggu persetujuan konselor.
     </p>
 
-    <div id="success-detail" style="margin-top: 1rem; text-align: left;"></div>
-
     <div class="confirm-actions">
       <button type="button" class="btn-confirm" onclick="closeSuccessModal()">
         OK
       </button>
     </div>
-  </div>
-</div>
-<div class="confirm-overlay" id="unavailableModal">
-  <div class="unavailable-box">
-
-    <div class="unavailable-alert-icon">
-      <span>!</span>
-    </div>
-
-    <h3>Jadwal Tidak Tersedia</h3>
-
-    <div class="unavailable-line"></div>
-
-    <div class="unavailable-info">
-  <div class="unavailable-row">
-    <div class="unavailable-row-label">
-      <i class="bi bi-calendar3"></i>
-      <span>Tanggal</span>
-    </div>
-    <div class="unavailable-row-value" id="unavailableTanggal">-</div>
-  </div>
-
-  <div class="unavailable-row">
-    <div class="unavailable-row-label">
-      <i class="bi bi-clock"></i>
-      <span>Waktu</span>
-    </div>
-    <div class="unavailable-row-value" id="unavailableWaktu">-</div>
-  </div>
-
-  <div class="unavailable-row">
-    <div class="unavailable-row-label">
-      <i class="bi bi-chat-square-text"></i>
-      <span>Alasan</span>
-    </div>
-    <div class="unavailable-row-value" id="unavailableAlasan">-</div>
-  </div>
-</div>
-
-    <div class="unavailable-line"></div>
-
-    <div class="unavailable-actions">
-      <button type="button" class="btn-change" onclick="closeUnavailableModal()">
-        Ubah Jadwal
-      </button>
-    </div>
-
   </div>
 </div>
 @endsection
@@ -1471,401 +1194,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!ymd) {
       waktuEl.disabled = true;
       waktuNote.textContent = 'Pilih tanggal terlebih dahulu.';
-function handleTopikChange() {
-  const select = document.getElementById('topik');
-  const input = document.getElementById('topik-lainnya');
-
-  if (select.value === 'lainnya') {
-    select.style.display = 'none';
-    input.style.display = 'block';
-    input.value = '';
-    input.focus();
-  } else {
-    select.style.display = 'block';
-    input.style.display = 'none';
-    input.value = '';
-  }
-}
-
-function resetTopikSelect() {
-  const select = document.getElementById('topik');
-  const input = document.getElementById('topik-lainnya');
-
-  select.style.display = 'block';
-  select.value = '';
-  input.style.display = 'none';
-  input.value = '';
-}
-
-function getTopikValue() {
-  const select = document.getElementById('topik');
-  const input = document.getElementById('topik-lainnya');
-
-  if (input.style.display !== 'none') {
-    const customTopik = input.value.trim();
-    if (!customTopik) {
-      alert('Isi topik konseling terlebih dahulu.');
-      return null;
-    }
-    return customTopik;
-  }
-
-  if (!select.value) {
-    alert('Pilih topik konseling terlebih dahulu.');
-    return null;
-  }
-
-  return select.value;
-}
-
-function setServiceMode(mode, shouldScroll = false) {
-  if (!serviceConfig[mode]) return;
-
-  selectedService = mode;
-  const config = serviceConfig[mode];
-  document.getElementById('booking').classList.add('is-visible');
-
-  document.querySelectorAll('[data-mode], [data-mode-action]').forEach(el => {
-    el.classList.toggle('active', (el.dataset.mode || el.dataset.modeAction) === mode);
-  });
-
-  document.querySelectorAll('[data-panel]').forEach(panel => {
-    panel.classList.toggle('active', panel.dataset.panel === mode);
-  });
-
-  document.getElementById('schedule-subtitle').textContent = config.subtitle;
-  document.getElementById('selected-mode-pill').className = `selected-mode-pill ${mode === 'online' ? 'online' : ''}`;
-  document.getElementById('selected-mode-pill').innerHTML = `<i class="bi ${config.icon}"></i> ${config.label}`;
-  document.getElementById('jenis-display').value = config.label;
-  const jenisNoteEl = document.getElementById('jenis-note');
-  if (jenisNoteEl) {
-    jenisNoteEl.textContent = config.stored;
-  }
-  document.getElementById('side-media').innerHTML = config.sideMedia;
-  document.getElementById('side-location').innerHTML = config.sideLocation;
-  document.getElementById('session-note').className = `session-note ${config.noteClass}`;
-  document.getElementById('session-note-text').textContent = config.note;
-  setMediaButton(document.getElementById('media-primary'), config.mediaPrimaryIcon, config.mediaPrimary, config.mediaPrimaryText);
-  setMediaButton(document.getElementById('media-secondary'), config.mediaSecondaryIcon, config.mediaSecondary, config.mediaSecondaryText);
-  submitBtn.textContent = config.submit;
-  submitBtn.classList.toggle('online', mode === 'online');
-  closeAllScheduleModals();
-  syncSubmitState();
-
-  if (shouldScroll) {
-    document.getElementById('booking').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-async function fetchBookedSlots() {
-  try {
-    const res = await fetch('{{ route("jadwal.terisi") }}', {
-      headers: { 'Accept': 'application/json' }
-    });
-    const data = await res.json();
-    bookedSlots.clear();
-    data.forEach(slot => bookedSlots.add(slot));
-  } catch (error) {
-    bookedSlots.clear();
-  }
-}
-
-function renderTimeOptions() {
-  const ymd = tanggalEl.value;
-  waktuEl.innerHTML = '<option value="">Pilih waktu</option>';
-
-  if (!ymd) {
-    waktuEl.disabled = true;
-    waktuNote.textContent = 'Pilih tanggal terlebih dahulu.';
-    return;
-  }
-
-  if (!isWeekday(ymd)) {
-    waktuEl.disabled = true;
-    waktuNote.textContent = 'Layanan tersedia Senin sampai Jumat.';
-    return;
-  }
-
-  waktuEl.disabled = false;
-  const now = new Date();
-
-  serviceTimes.forEach(time => {
-    const option = document.createElement('option');
-    option.value = time;
-    option.textContent = `${time} WIB`;
-
-    const slotDate = parseYmd(ymd);
-    const [hour, minute] = time.split(':').map(Number);
-    slotDate.setHours(hour, minute, 0, 0);
-
-    const isPastTime = slotDate < new Date(now.getTime() - 30 * 60 * 1000);
-    const isBooked = bookedSlots.has(`${ymd}-${time}`);
-
-    if (isPastTime || isBooked) {
-      option.disabled = true;
-      option.textContent += isBooked ? ' - penuh' : ' - lewat';
-    }
-
-    waktuEl.appendChild(option);
-  });
-
-  waktuNote.textContent = 'Pilih salah satu slot konseling yang tersedia.';
-}
-
-function validateDate() {
-  const ymd = tanggalEl.value;
-
-  if (!ymd) {
-    tanggalNote.textContent = 'Pilih hari layanan Senin sampai Jumat.';
-    return false;
-  }
-
-  if (ymd < todayYmd()) {
-    tanggalNote.textContent = 'Tanggal tidak boleh sebelum hari ini.';
-    return false;
-  }
-
-  if (!isWeekday(ymd)) {
-    tanggalNote.textContent = 'Layanan hanya tersedia Senin sampai Jumat.';
-    return false;
-  }
-
-  tanggalNote.textContent = 'Tanggal tersedia untuk pengajuan jadwal.';
-  return true;
-}
-
-function buildSuccessDetail(data, topikValue) {
-  const config = serviceConfig[selectedService];
-  const rows = [
-    ['Kode Jadwal', data.kode_jadwal || '-'],
-    ['Mahasiswa', data.nama_display || document.getElementById('profile-nama').value || '-'],
-    ['Tanggal', formatDateDisplay(tanggalEl.value)],
-    ['Waktu', `${waktuEl.value} WIB`],
-    ['Topik Konseling', topikValue],
-    ['Jenis Layanan', config.label],
-    ['Status', 'Menunggu Persetujuan Konselor'],
-  ];
-
-  document.getElementById('success-detail').innerHTML = rows.map(([label, value]) => `
-    <div class="success-detail-row">
-      <span>${label}</span>
-      <strong>${value}</strong>
-    </div>
-  `).join('');
-}
-
-async function submitJadwal() {
-  if (!isLoggedIn) {
-    if (confirm('Anda harus login terlebih dahulu untuk membuat jadwal. Login sekarang?')) {
-      window.location.href = '/login';
-    }
-    return;
-  }
-
-  if (!ensureConfirmationChecked()) {
-    return;
-  }
-
-  if (!validateDate()) {
-    alert('Pilih tanggal layanan yang valid.');
-    return;
-  }
-
-  function formatTanggalIndo(tanggal) {
-  const bulan = [
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-  ];
-
-  const date = new Date(tanggal);
-  const day = date.getDate();
-  const month = bulan[date.getMonth()];
-  const year = date.getFullYear();
-
-  return `${day} ${month} ${year}`;
-}
-
-function formatRentangWaktu(waktu) {
-  const [hour, minute] = waktu.split(':').map(Number);
-
-  const start = `${String(hour).padStart(2, '0')}.${String(minute).padStart(2, '0')}`;
-  const endHour = hour + 1;
-  const end = `${String(endHour).padStart(2, '0')}.${String(minute).padStart(2, '0')}`;
-
-  return `${start} - ${end} WIB`;
-}
-
-function openUnavailableModal(tanggal, waktu, alasan = null) {
-  document.getElementById('unavailableTanggal').innerText = formatTanggalIndo(tanggal);
-  document.getElementById('unavailableWaktu').innerText = formatRentangWaktu(waktu);
-
-  document.getElementById('unavailableAlasan').innerText =
-    alasan || 'Konselor tidak tersedia pada waktu tersebut.';
-
-  const modal = document.getElementById('unavailableModal');
-  document.body.appendChild(modal);
-  modal.classList.add('show');
-}
-
-function closeUnavailableModal() {
-  document.getElementById('unavailableModal').classList.remove('show');
-}
-
-  function closeSuccessModal() {
-    document.getElementById('successModal').classList.remove('show');
-    window.location.href = '{{ route("konseling") }}';
-  }
-
-  // Submit jadwal
-  async function submitJadwal() {
-    if (!isLoggedIn) {
-      window.location.href = '/login';
-      return;
-    }
-
-    const checkbox = document.getElementById('confirmation-checkbox');
-    if (!checkbox.checked) {
-      alert('Centang konfirmasi bahwa data penjadwalan sudah benar.');
-      return;
-    }
-
-    if (!validateDate()) {
-      alert('Pilih tanggal layanan yang valid.');
-      return;
-    }
-
-    if (!waktuEl.value) {
-      alert('Pilih waktu konseling terlebih dahulu.');
-      return;
-    }
-
-    const topikValue = getTopikValue();
-    if (!topikValue) {
-      alert('Pilih topik konseling terlebih dahulu.');
-      return;
-    }
-
-    const payload = {
-      tanggal: tanggalEl.value,
-      waktu: waktuEl.value,
-      jenis: selectedService,
-      topik: topikValue,
-      konfirmasi: checkbox.checked,
-    };
-
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Memproses...';
-
-    try {
-      const checkRes = await fetch('{{ route("jadwal.check") }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const checkData = await checkRes.json();
-
-      if (!checkData.success || !checkData.is_available) {
-        closeConfirmModal();
-
-        openUnavailableModal(
-          tanggalEl.value,
-          waktuEl.value,
-          checkData.alasan || checkData.reason || checkData.message
-        );
-
-        await fetchBookedSlots();
-        renderTimeOptions();
-
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-        return;
-      }
-
-      const res = await fetch('{{ route("jadwal.store") }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        closeConfirmModal();
-        openSuccessModal();
-      } else {
-  closeConfirmModal();
-
-    openUnavailableModal(
-      tanggalEl.value,
-      waktuEl.value,
-      data.alasan || data.reason || data.message
-    );
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-      }
-
-    } catch (error) {
-      console.error(error);
-      alert('Terjadi kesalahan. Coba lagi.');
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
-    }
-
-  if (!waktuEl.value) {
-    alert('Pilih waktu konseling terlebih dahulu.');
-    return;
-  }
-
-  const topikValue = getTopikValue();
-  if (!topikValue) {
-    return;
-  }
-
-  const payload = {
-    tanggal: tanggalEl.value,
-    waktu: waktuEl.value,
-    jenis: selectedService,
-    topik: topikValue,
-    konfirmasi: confirmationCheckboxEl ? confirmationCheckboxEl.checked : false,
-  };
-
-  window.openSuccessModal = openSuccessModal;
-  window.closeSuccessModal = closeSuccessModal;
-  window.openUnavailableModal = openUnavailableModal;
-  window.closeUnavailableModal = closeUnavailableModal;
-  window.submitJadwal = submitJadwal;
-  window.handleTopikChange = handleTopikChange;
-
-  const originalText = submitBtn.textContent;
-  isSubmittingSchedule = true;
-  syncSubmitState();
-  submitBtn.textContent = 'Memproses...';
-
-  try {
-    const checkRes = await fetch('{{ route("jadwal.check") }}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const checkData = await checkRes.json();
-
-    if (!checkRes.ok) {
-      alert(getResponseMessage(checkData, 'Data penjadwalan belum lengkap.'));
       return;
     }
 
@@ -2002,6 +1330,7 @@ function closeUnavailableModal() {
     }
 
     const checkbox = document.getElementById('confirmation-checkbox');
+
     if (!checkbox.checked) {
       alert('Centang konfirmasi bahwa data penjadwalan sudah benar.');
       return;
@@ -2018,6 +1347,7 @@ function closeUnavailableModal() {
     }
 
     const topikValue = getTopikValue();
+
     if (!topikValue) {
       alert('Pilih topik konseling terlebih dahulu.');
       return;
@@ -2036,27 +1366,6 @@ function closeUnavailableModal() {
     submitBtn.textContent = 'Memproses...';
 
     try {
-      const checkRes = await fetch('{{ route("jadwal.check") }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const checkData = await checkRes.json();
-
-      if (!checkData.success || !checkData.is_available) {
-        alert(checkData.message || 'Jadwal ini sudah tidak tersedia. Silakan pilih waktu lain.');
-        await fetchBookedSlots();
-        renderTimeOptions();
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-        return;
-      }
-
       const res = await fetch('{{ route("jadwal.store") }}', {
         method: 'POST',
         headers: {
@@ -2067,7 +1376,24 @@ function closeUnavailableModal() {
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
+      const rawText = await res.text();
+      let data = {};
+
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        console.error('Response bukan JSON:', rawText);
+        throw new Error('Controller tidak mengembalikan JSON.');
+      }
+
+      if (!res.ok) {
+        console.error('ERROR jadwal.store:', res.status, data);
+        alert(data.message || 'Jadwal gagal dibuat.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        closeConfirmModal();
+        return;
+      }
 
       if (data.success) {
         closeConfirmModal();
@@ -2076,11 +1402,16 @@ function closeUnavailableModal() {
         alert(data.message || 'Jadwal gagal dibuat.');
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
+        closeConfirmModal();
       }
 
     } catch (error) {
-      console.error(error);
-      alert('Terjadi kesalahan. Coba lagi.');
+      console.error('ERROR DETAIL:', error);
+
+      closeConfirmModal();
+
+      alert('Gagal menyimpan jadwal. Cek Console untuk melihat error asli.');
+
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
     }

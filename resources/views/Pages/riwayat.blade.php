@@ -82,7 +82,7 @@
 
         <div class="card-right">
             <span class="status-pill {{ $statusClass }}">{{ $statusLabel }}</span>
-            <a href="{{ route('riwayat.detail', $item->id) }}" class="btn-riwayat">Lihat Riwayat</a>
+            <a href="{{ route('detail.riwayat', $item->id) }}" class="btn-riwayat">Lihat Riwayat</a>
         </div>
     </div>
 @endforeach

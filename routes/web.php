@@ -19,7 +19,6 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SesiKonselingController;
 use App\Http\Controllers\KetidaktersediaanKonselorController;
 use App\Http\Controllers\PushSubscriptionController;
-use App\Http\Controllers\SesiKonselingController;
 
 // ═══════════════════════════════
 // NOTIFIKASI WEB PUSH
@@ -61,7 +60,7 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
     Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
-    Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('riwayat.detail');
+    Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('detail.riwayat');
     Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
     Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
     Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
@@ -81,12 +80,6 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     // Chat - Mahasiswa dapat melakukan chat dengan konselor
     Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->name('chat.student');
     Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->name('chat.student.store');
-    Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
-    Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
-    Route::get('/chat/pesan', [ChatMahasiswaController::class, 'messages'])->name('mahasiswa.chat.messages');
-    Route::post('/chat/pesan', [ChatMahasiswaController::class, 'store'])->name('mahasiswa.chat.store');
-    Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->name('chat.student');
-    Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->name('chat.student.store');
 
     Route::get('/detail-penjadwalan', [JadwalController::class, 'detail'])->name('jadwal.detail');
     Route::post('/jadwal', [JadwalController::class, 'store'])->name('jadwal.store');
@@ -104,7 +97,6 @@ Route::prefix('admin')
     ->group(function () {
         Route::get('/', fn() => redirect()->route('admin.dashboard'));
 
-        Route::get('/dashboard', [CounselorController::class, 'index'])->name('dashboard');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/notifikasi', [AdminController::class, 'notifications'])->name('notifikasi.list');
         Route::post('/notifikasi/baca', [AdminController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
@@ -135,6 +127,7 @@ Route::prefix('admin')
         Route::post('/sesi/{id}/selesai', [SesiKonselingController::class, 'selesai'])->name('sesi.selesai');
 
         Route::get('/laporan', [LaporanController::class, 'laporanAdmin'])->name('laporan');
+        Route::get('/laporan/search', [LaporanController::class, 'search'])->name('laporan.search');
         Route::get('/laporan/{id}/laporan', [LaporanController::class, 'createLaporan'])->name('laporan.laporan');
         Route::post('/laporan/{id}/laporan', [LaporanController::class, 'storeLaporan'])->name('laporan.laporan.store');
 
@@ -192,6 +185,11 @@ Route::get('/test-mongodb', function () {
     }
 });
 
+// ═══════════════════════════════
+// KONSELOR Web
+// ═══════════════════════════════
+Route::get('/konselor/jadwal-data', [CounselorController::class, 'getJadwalData'])->name('counselor.web.jadwal-data');
+
 
 // ═══════════════════════════════
 // KONSELOR PA3
@@ -201,7 +199,6 @@ Route::get('/konselor/prioritas', [CounselorController::class, 'prioritas'])->na
 Route::get('/konselor/semua-mahasiswa', [CounselorController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
 Route::post('/konselor/update-status/{nim}', [\App\Http\Controllers\DashboardController::class, 'updateStatus'])->name('counselor.update-status');
 Route::get('/konselor/chart-data', [DashboardController::class, 'getChartData'])->name('counselor.chart-data');
-Route::get('/konselor/jadwal-data', [CounselorController::class, 'getJadwalData'])->name('counselor.jadwal-data');
 Route::get('/konselor/top-students', [\App\Http\Controllers\DashboardController::class, 'getStudentPreview'])->name('counselor.top-students');
 Route::get('/konselor/notifications', [\App\Http\Controllers\DashboardController::class, 'getUrgentNotifications'])->name('counselor.notifications');
 Route::post('/konselor/notifications/{nim}/read', [\App\Http\Controllers\DashboardController::class, 'markUrgentRead'])->name('counselor.notifications.read');

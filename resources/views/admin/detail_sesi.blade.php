@@ -107,6 +107,8 @@
     };
 
     $topik = $jadwal->topik ?? null;
+    $canStartNow = $status === 'disetujui' && $jadwal->isChatWindowOpen(null, 'Asia/Jakarta');
+    $scheduledStartLabel = $jadwal->scheduledStartLabel('Asia/Jakarta');
 
     if (!$topik && !empty($jadwal->catatan)) {
         if (preg_match('/Topik:\s*([^|]+)/i', $jadwal->catatan, $match)) {
@@ -188,9 +190,15 @@
 
     @elseif($status === 'disetujui')
         <div class="detail-actions">
-            <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
-                Mulai Sesi
-            </a>
+            @if($canStartNow)
+                <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
+                    Mulai Sesi
+                </a>
+            @else
+                <button type="button" class="btn-terima" style="min-width:220px;text-align:center;opacity:.6;cursor:not-allowed;" disabled>
+                    Menunggu Jadwal Sesi{{ $scheduledStartLabel ? ' - '.$scheduledStartLabel : '' }}
+                </button>
+            @endif
         </div>
     @elseif($status === 'berlangsung')
         <div class="detail-actions">

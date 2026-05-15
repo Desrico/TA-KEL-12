@@ -80,6 +80,7 @@ class ChatController extends Controller
     public function session($sessionId)
     {
         $jadwal = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])->findOrFail($sessionId);
+        $canChatNow = $jadwal->isChatWindowOpen(null, 'Asia/Jakarta');
         $sesi = $this->resolveSesi($jadwal);
         $mahasiswa = $jadwal->mahasiswa;
         $user = $mahasiswa?->user;
@@ -106,10 +107,12 @@ class ChatController extends Controller
             'konselor' => $konselorUser->nama ?? 'Konselor',
         ];
 
-        $messages = Chat::with('pengirim')
-            ->where('sesi_id', $sesi->id)
-            ->orderBy('created_at')
-            ->get();
+        $messages = $canChatNow
+            ? Chat::with('pengirim')
+                ->where('sesi_id', $sesi->id)
+                ->orderBy('created_at')
+                ->get()
+            : collect();
 
         $isReadyToStart = $jadwal->status === 'disetujui';
 
@@ -130,6 +133,13 @@ class ChatController extends Controller
         ]);
 
         $jadwal = JadwalKonseling::findOrFail($sessionId);
+
+        if (! $jadwal->isChatWindowOpen(null, 'Asia/Jakarta')) {
+            return redirect()
+                ->route('admin.chat.session', $sessionId)
+                ->with('error', 'Ruang chat belum bisa dibuka karena jadwal belum dimulai.');
+        }
+
         $sesi = $this->resolveSesi($jadwal);
 
         Chat::create([
@@ -154,18 +164,21 @@ class ChatController extends Controller
             abort(403);
         }
 
+        $canChatNow = $jadwal->isChatWindowOpen(null, 'Asia/Jakarta');
         $sesi = $this->resolveSesi($jadwal);
 
-        $messages = Chat::with('pengirim')
-            ->where('sesi_id', $sesi->id)
-            ->orderBy('created_at')
-            ->get();
+        $messages = $canChatNow
+            ? Chat::with('pengirim')
+                ->where('sesi_id', $sesi->id)
+                ->orderBy('created_at')
+                ->get()
+            : collect();
 
-        $sessionData = [
+        $sessionData = $canChatNow ? [
             'id' => $jadwal->id,
             'sesi_id' => $sesi->id,
             'nama' => $jadwal->mahasiswa?->user->getNamaDisplay() ?? 'Mahasiswa',
-        ];
+        ] : null;
 
         return view('chat.student', compact('sessionData', 'messages'));
     }
@@ -181,6 +194,12 @@ class ChatController extends Controller
 
         if ($jadwal->mahasiswa?->user?->id !== $user->id) {
             abort(403);
+        }
+
+        if (! $jadwal->isChatWindowOpen(null, 'Asia/Jakarta')) {
+            return redirect()
+                ->route('chat.student', $jadwalId)
+                ->with('error', 'Ruang chat belum bisa dibuka karena jadwal belum dimulai.');
         }
 
         $sesi = $this->resolveSesi($jadwal);
@@ -203,12 +222,13 @@ class ChatController extends Controller
         ]);
 
         $updates = [];
+        $canChatNow = $jadwal->isChatWindowOpen(null, 'Asia/Jakarta');
 
-        if (Schema::hasColumn('sesi_konseling', 'status') && $sesi->status === 'menunggu') {
+        if ($canChatNow && Schema::hasColumn('sesi_konseling', 'status') && $sesi->status === 'menunggu') {
             $updates['status'] = 'berlangsung';
         }
 
-        if (Schema::hasColumn('sesi_konseling', 'waktu_mulai') && empty($sesi->waktu_mulai)) {
+        if ($canChatNow && Schema::hasColumn('sesi_konseling', 'waktu_mulai') && empty($sesi->waktu_mulai)) {
             $updates['waktu_mulai'] = now();
         }
 

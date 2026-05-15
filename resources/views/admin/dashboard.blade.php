@@ -203,6 +203,44 @@
             }
         }
 
+        .topik-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            height: 220px;
+        }
+
+        .topik-chart-container {
+            width: 45%;
+            height: 100%;
+        }
+
+        .topik-legend-container {
+            width: 55%;
+        }
+
+        .topik-legend-container ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .topik-legend-container li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 9px;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .topik-legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
         /* ── Stats Right Column ── */
         .stats-section-title { font-size: 0.85rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 18px; margin-top: 8px;}
         
@@ -727,7 +765,7 @@
             <div class="konseling-stat-card">
                 <div class="stat-row">
                     <i class="ti ti-calendar-event"></i>
-                    <h3>{{ $totalPenjadwalan ?? 0 }}</h3>
+                    <h3 id="totalPenjadwalan">0</h3>
                 </div>
                 <p>Total Penjadwalan</p>
             </div>
@@ -735,15 +773,15 @@
             <div class="konseling-stat-card">
                 <div class="stat-row">
                     <i class="ti ti-circle-check"></i>
-                    <h3>{{ $totalSesiSelesai ?? 0 }}</h3>
+                    <h3 id="totalSesiSelesai">0</h3>
                 </div>
                 <p>Total Sesi Selesai</p>
             </div>
 
             <div class="konseling-stat-card">
                 <div class="stat-row">
-                    <i class="ti ti-checkup-list"></i>
-                    <h3>{{ $totalDiterima ?? 0 }}</h3>
+                    <i class="ti ti-circle-check"></i>
+                    <h3 id="totalDiterima">0</h3>
                 </div>
                 <p>Penjadwalan Diterima</p>
             </div>
@@ -751,7 +789,7 @@
             <div class="konseling-stat-card">
                 <div class="stat-row">
                     <i class="ti ti-square-x"></i>
-                    <h3>{{ $totalDitolak ?? 0 }}</h3>
+                    <h3 id="totalDitolak">0</h3>
                 </div>
                 <p>Penjadwalan Dibatalkan</p>
             </div>
@@ -797,8 +835,15 @@
 
             <div class="konseling-chart-card">
                 <h4>Topik Masalah</h4>
-                <div class="konseling-chart-box">
-                    <canvas id="topikChart"></canvas>
+
+                <div class="topik-wrapper">
+                    <div class="topik-chart-container">
+                        <canvas id="topikChart"></canvas>
+                    </div>
+
+                    <div class="topik-legend-container">
+                        <ul id="topikLegend"></ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -852,7 +897,7 @@
     let moodChartInstance = null;
     function renderChart(labels, data) {
         const ctx = document.getElementById('moodTrendChart');
-        if(!ctx) return;
+        if (!ctx) return;
 
         if (moodChartInstance) {
             moodChartInstance.data.labels = labels;
@@ -885,10 +930,15 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
                 scales: {
-                    y: { 
-                        display: true, 
-                        min: 1, 
+                    y: {
+                        display: true,
+                        min: 1,
                         max: 7,
                         ticks: {
                             callback: function(value) {
@@ -899,17 +949,27 @@
                             font: { size: 11, family: 'Inter' },
                             color: 'var(--text-2)'
                         },
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        border: { display: false }
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        border: {
+                            display: false
+                        }
                     },
-                    x: { 
+                    x: {
                         display: true,
-                        grid: { display: false },
-                        border: { display: false },
-                        ticks: { font: { size: 11, family: 'Inter' }, color: 'var(--text-2)' }
+                        grid: {
+                            display: false
+                        },
+                        border: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { size: 11, family: 'Inter' },
+                            color: 'var(--text-2)'
+                        }
                     }
-                },
-                plugins: { legend: { display: false } }
+                }
             }
         });
     }
@@ -1195,10 +1255,9 @@
             target.classList.add('active');
         }
 
-        if (button.dataset.tab === 'tab-web') {
+       if (button.dataset.tab === 'tab-web') {
             setTimeout(() => {
-                renderKonselingChart();
-                renderTopikChart();
+                loadKonselingStatistics();
             }, 100);
         }
     }
@@ -1422,6 +1481,128 @@
                                 return 'Total: ' + value + ' (' + percentage + '%)';
                             }
                         }
+                    }
+                }
+            }
+        });
+    }
+
+    async function loadKonselingStatistics() {
+        try {
+            const response = await fetch('{{ route("counselor.web.jadwal-data") }}');
+            const data = await response.json();
+
+            // CARD STATISTIK
+            document.getElementById('totalPenjadwalan').innerText =
+                data.total_count ?? 0;
+
+            document.getElementById('totalSesiSelesai').innerText =
+                data.status_counts?.selesai ?? 0;
+
+            document.getElementById('totalDiterima').innerText =
+                data.status_counts?.diterima ?? 0;
+
+            document.getElementById('totalDitolak').innerText =
+                data.status_counts?.ditolak ?? 0;
+
+            // CHART KONSELING
+            renderKonselingChartFromApi(
+                data.trend_data?.labels ?? [],
+                data.trend_data?.data ?? []
+            );
+
+            // DONUT TOPIK
+            renderTopikChartFromApi(
+                Object.keys(data.problem_distribution ?? {}),
+                Object.values(data.problem_distribution ?? {})
+            );
+
+        } catch (error) {
+            console.error('Gagal memuat statistik konseling:', error);
+        }
+    }
+
+    function renderKonselingChartFromApi(labels, data) {
+        const ctx = document.getElementById('konselingChart');
+        if (!ctx) return;
+
+        if (konselingChartInstance) {
+            konselingChartInstance.destroy();
+        }
+
+        konselingChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Jumlah Konseling',
+                    data: data,
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(5, 150, 105, 0.15)',
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#059669',
+                    pointBorderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+   function renderTopikChartFromApi(labels, data) {
+        const ctx = document.getElementById('topikChart');
+        if (!ctx) return;
+
+        const colors = [
+            '#3498db', '#ff6384', '#ff9f40', '#f4c542',
+            '#4bc0c0', '#9966ff', '#2ecc71', '#95a5a6'
+        ];
+
+        const legend = document.getElementById('topikLegend');
+        if (legend) {
+            legend.innerHTML = labels.map((label, index) => `
+                <li>
+                    <span class="topik-legend-color" style="background:${colors[index % colors.length]}"></span>
+                    <span>${label} (${data[index]})</span>
+                </li>
+            `).join('');
+        }
+
+        if (topikChartInstance) {
+            topikChartInstance.destroy();
+        }
+
+        topikChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: labels.map((_, i) => colors[i % colors.length]),
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        display: false
                     }
                 }
             }

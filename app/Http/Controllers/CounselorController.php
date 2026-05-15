@@ -10,28 +10,47 @@ use Carbon\Carbon;
 use App\Models\Student;
 use App\Models\JadwalKonseling;
 use App\Models\Konselor;
+use App\Models\DailyCheckin;
 
 class CounselorController extends Controller
 {
     public function index()
-{
-    // Pastikan user sudah login
-    $user = Auth::user();
-            $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
-        }
+    {
+        // Pastikan user sudah login
+        $user = Auth::user();
 
         // Get current konselor
-        $user = Auth::user();
         $konselor = Konselor::where('user_id', $user->id)->first();
 
-        // Get jadwal statistics
-        $baseQuery = JadwalKonseling::where('konselor_id', optional($konselor)->id);
+        // Get jadwal statistics - jika konselor ada, filter by konselor_id
+        if ($konselor) {
+            $baseQuery = JadwalKonseling::where('konselor_id', $konselor->id);
+        } else {
+            // Jika belum ada konselor, tampilkan semua data jadwal (untuk dashboard umum)
+            $baseQuery = JadwalKonseling::query();
+        }
+
+        // Get students data for the Data Mobile tab
+        if (!Schema::hasTable('students')) {
+            \Log::warning('CounselorController@index: table "students" not found. Returning empty collection.');
+            $students = collect();
+        } else {
+            $students = Student::with('journalTexts')
+                ->whereNotNull('mental_level')
+                ->orderBy('mental_level', 'desc')
+                ->orderBy('mental_confidence', 'desc')
+                ->get()
+                ->map(function ($student) {
+                    $student->journal_texts_count = $student->journalTexts->count();
+                    return $student;
+                });
+        }
 
         $totalPenjadwalan   = (clone $baseQuery)->count();
         $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
-        $disetujui      = (clone $baseQuery)->where('status', 'disetujui')->count();
+        $disetujui = (clone $baseQuery)->whereIn('status', ['disetujui', 'diterima'])->count();
         $ditolak        = (clone $baseQuery)->where('status', 'ditolak')->count();
-        $totalSesiSelesai = (clone $baseQuery)->whereNotNull('laporan')->orWhere('status', 'selesai')->count();
+        $totalSesiSelesai = (clone $baseQuery)->where(function ($q) {$q->whereNotNull('laporan')->orWhere('status', 'selesai');})->count();
         $totalDiterima  = $disetujui;
         $totalDitolak   = $ditolak;
         $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
@@ -92,9 +111,9 @@ class CounselorController extends Controller
             ->with('mahasiswa')
             ->orderBy('waktu')
             ->get();
+        
         return view('admin.dashboard', compact(
             'students',
-            'lastScan',
             'konselor',
             'totalPenjadwalan',
             'menunggu',
@@ -117,110 +136,8 @@ class CounselorController extends Controller
             'todayWaiting',
             'todayJadwals',
         ));
-    if (!$user) {
-        return redirect()->route('login')
-            ->with('error', 'Silakan login terlebih dahulu.');
     }
 
-    // Ambil data konselor berdasarkan user login
-    $konselor = Konselor::where('user_id', $user->id)->first();
-
-    if (!$konselor) {
-        return redirect()->route('login')
-            ->with('error', 'Akun ini belum terdaftar sebagai konselor.');
-    }
-
-    // OPTIMASI PERFORMA MongoDB
-    if (!Schema::hasTable('students')) {
-        \Log::warning('CounselorController@index: table "students" not found. Returning empty collection.');
-        $students = collect();
-        $lastScan = null;
-    } else {
-        $students = Student::with('journalTexts')
-            ->orderBy('mental_level', 'desc')
-            ->orderBy('name')
-            ->get()
-            ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts->count();
-                return $student;
-            });
-
-        $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
-    }
-
-    // Query jadwal berdasarkan konselor yang sedang login
-    $baseQuery = JadwalKonseling::where('konselor_id', $konselor->id);
-
-    $totalPenjadwalan = (clone $baseQuery)->count();
-    $menunggu         = (clone $baseQuery)->where('status', 'menunggu')->count();
-    $disetujui        = (clone $baseQuery)->where('status', 'disetujui')->count();
-    $ditolak          = (clone $baseQuery)->where('status', 'ditolak')->count();
-
-    $mahasiswaAktif = (clone $baseQuery)
-        ->distinct('mahasiswa_id')
-        ->count('mahasiswa_id');
-
-    $approvalRate = $totalPenjadwalan > 0
-        ? round(($disetujui / $totalPenjadwalan) * 100)
-        : 0;
-
-    // Statistik bulanan
-    $monthlyLabels = [];
-    $monthlyCounts = [];
-
-    for ($i = 5; $i >= 0; $i--) {
-        $month = Carbon::now()->subMonths($i);
-
-        $monthlyLabels[] = $month->translatedFormat('M');
-
-        $monthlyCounts[] = (clone $baseQuery)
-            ->whereYear('tanggal', $month->year)
-            ->whereMonth('tanggal', $month->month)
-            ->count();
-    }
-
-    // Statistik topik
-    $topikStats = collect();
-
-    if (Schema::hasColumn('jadwal_konseling', 'catatan')) {
-        $topikStats = (clone $baseQuery)
-            ->whereNotNull('catatan')
-            ->pluck('catatan')
-            ->map(function ($catatan) {
-                if (preg_match('/Topik:\s*([^|]+)/i', (string) $catatan, $match)) {
-                    return trim($match[1]);
-                }
-
-                return trim((string) $catatan);
-            })
-            ->filter()
-            ->countBy()
-            ->sortDesc()
-            ->take(5);
-    }
-
-    $topikLabels = $topikStats->keys()->values();
-    $topikCounts = $topikStats->values()->values();
-    $totalTopik  = $topikCounts->sum();
-
-    return view('admin.dashboard', compact(
-        'students',
-        'lastScan',
-        'konselor',
-        'totalPenjadwalan',
-        'menunggu',
-        'disetujui',
-        'ditolak',
-        'mahasiswaAktif',
-        'approvalRate',
-        'monthlyLabels',
-        'monthlyCounts',
-        'topikStats',
-        'topikLabels',
-        'topikCounts',
-        'totalTopik',
-    ));
-}
     public function prioritas()
     {
         if (!Schema::hasTable('students')) {
@@ -373,7 +290,9 @@ class CounselorController extends Controller
         }
 
         // Get JadwalKonseling statistics
-        $konselor_id = auth()->guard('konselor')->id();
+        $user = Auth::user();
+        $konselor = $user ? Konselor::where('user_id', $user->id)->first() : null;
+        $konselor_id = optional($konselor)->id;
         $jadwalQuery = \App\Models\JadwalKonseling::where('konselor_id', $konselor_id);
         
         // Apply date range filter
@@ -526,36 +445,15 @@ class CounselorController extends Controller
         }
 
         // Get problem distribution
-        $problemDist = [];
-        $problemCategories = [
-            'Akademik' => ['nilai', 'ujian', 'mata kuliah', 'beasiswa', 'akademik', 'tugas'],
-            'Finansial' => ['uang', 'biaya', 'tuition', 'finansial', 'utang', 'duit'],
-            'Relasi' => ['hubungan', 'pacar', 'teman', 'keluarga', 'orang tua', 'relasi'],
-            'Keluarga' => ['keluarga', 'orang tua', 'saudara', 'ayah', 'ibu'],
-            'Pribadi' => ['diri sendiri', 'kepribadian', 'identitas', 'harga diri', 'percaya diri'],
-            'Karir' => ['karir', 'pekerjaan', 'magang', 'lowongan', 'profesi'],
-            'Kesehatan' => ['kesehatan', 'sakit', 'medis', 'fisik']
-        ];
-        
-        $allJadwal = JadwalKonseling::where('konselor_id', $konselor_id)
-            ->whereNotNull('ringkasan_masalah')
-            ->get();
-        
-        foreach ($problemCategories as $category => $keywords) {
-            $count = 0;
-            foreach ($allJadwal as $jadwal) {
-                $summary = strtolower($jadwal->ringkasan_masalah ?? '');
-                foreach ($keywords as $keyword) {
-                    if (strpos($summary, strtolower($keyword)) !== false) {
-                        $count++;
-                        break;
-                    }
-                }
-            }
-            if ($count > 0) {
-                $problemDist[$category] = $count;
-            }
-        }
+        $topikDist = JadwalKonseling::where('konselor_id', $konselor_id)
+            ->whereNotNull('topik')
+            ->pluck('topik')
+            ->map(fn ($topik) => trim((string) $topik))
+            ->filter()
+            ->countBy()
+            ->sortDesc()
+            ->take(8)
+            ->toArray();
 
         return response()->json([
             'total_count' => $totalPenjadwalan,
@@ -569,7 +467,7 @@ class CounselorController extends Controller
                 'labels' => $labels,
                 'data' => $data
             ],
-            'problem_distribution' => $problemDist
+            'problem_distribution' => $topikDist
         ]);
     }
 
@@ -593,21 +491,6 @@ class CounselorController extends Controller
     }
 
 
-
-    public function prioritas()
-    {
-        $students = Student::where('mental_level', 3)
-            ->orderBy('mental_scanned_at', 'desc')
-            ->get();
-
-        return view('admin.prioritas', compact('students'));
-    }
-
-    public function semuaMahasiswa()
-    {
-        $students = Student::orderBy('name', 'asc')->get();
-        return view('admin.semua_mahasiswa', compact('students'));
-    }
 
     public function getStudentPreview(Request $request)
     {
@@ -908,4 +791,5 @@ class CounselorController extends Controller
         return response()->json($data);
     }
 }
-}
+
+

@@ -400,61 +400,7 @@
         <a href="{{ route('riwayat') }}" class="back-icon">
             <i class="bi bi-arrow-left"></i>
         </a>
-                    <div class="profil-avatar-overlay" id="avatar-overlay">
-                    <i class="bi bi-camera"></i>
-                    <span>Ganti Foto</span>
-                    </div>
-                </div>
-                </div>
 
-            <div class="profil-user-name" id="nama-header">
-              {{ $user->getNamaDisplay() }}
-            </div>
-
-            <div class="profil-user-meta">
-              @if($user->isAnonim())
-                {{ $mahasiswa->jurusan ?? '-' }} · Angkatan {{ $mahasiswa->angkatan ?? '-' }}
-              @else
-                {{ $mahasiswa->nim ?? '-' }}<br>
-                {{ $mahasiswa->jurusan ?? '-' }} · Angkatan {{ $mahasiswa->angkatan ?? '-' }}
-              @endif
-            </div>
-          </div>
-
-          <div class="profil-stat-grid">
-            <div class="profil-stat-box">
-              <div class="profil-stat-number">{{ $totalKonseling }}</div>
-              <div class="profil-stat-label">Total Konseling</div>
-            </div>
-            <div class="profil-stat-box">
-              <div class="profil-stat-number">{{ $sesiBerlangsung }}</div>
-              <div class="profil-stat-label">Sesi Disetujui</div>
-            </div>
-          </div>
-
-          <a href="{{ route('riwayat') }}" class="profil-link-btn">
-            <i class="bi bi-clock-history me-2"></i>Lihat Riwayat
-          </a>
-
-          <div class="profil-anon-card">
-            <div class="profil-anon-top">
-              <div>
-                <div class="profil-anon-title">Mode Anonim</div>
-                <p class="profil-anon-desc">
-                  Sembunyikan identitas dari konselor pada kondisi tertentu.
-                </p>
-              </div>
-
-              <label class="toggle-switch">
-                <input type="checkbox" {{ optional($profil)->anonim ? 'checked' : '' }} onchange="toggleAnonim(this)">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div class="profil-note-box">
-              Saat mode anonim aktif, identitas mahasiswa tidak ditampilkan secara penuh pada alur layanan tertentu sehingga pengguna dapat merasa lebih nyaman saat memulai proses konseling.
-            </div>
-          </div>
         <div class="detail-hero">
             <h1>
                 Detail <span>Riwayatmu</span><br>
@@ -483,13 +429,6 @@
                         <strong>{{ $jadwal->durasi ?? '60 Menit' }}</strong>
                     </div>
 
-
-            <div class="profil-grid">
-              <div class="profil-field full">
-                <label class="profil-label">Nama Lengkap</label>
-                <div class="profil-value-box" id="view-nama">
-                  {{ $user->getNamaDisplay() }}
-
                     <div class="side-row">
                         <span><i class="bi bi-camera-video"></i> Media</span>
                         <strong>{{ $metode }}</strong>
@@ -500,11 +439,6 @@
                         <strong>{{ $jadwal->lokasi ?? '-' }}</strong>
                     </div>
                 </div>
-
-              <div class="profil-field">
-                <label class="profil-label">NIM</label>
-                <div class="profil-value-box" id="view-nim">
-                  {{ $user->isAnonim() ? '-' : ($mahasiswa->nim ?? '-') }}
 
                 <div class="note-card">
                     <h5>Catatan Sesi</h5>
@@ -674,35 +608,6 @@ function previewFoto(input) {
     };
 
     reader.readAsDataURL(file);
-}
-
-async function toggleAnonim(checkbox) {
-  const previousState = !checkbox.checked;
-
-  try {
-    const response = await fetch('{{ route('profil.anonim') }}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ anonim: checkbox.checked }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      checkbox.checked = previousState;
-      alert(data.message || 'Gagal memperbarui mode anonim.');
-      return;
-    }
-
-    window.location.reload();
-  } catch (error) {
-    checkbox.checked = previousState;
-    alert('Gagal memperbarui mode anonim.');
-  }
 }
 </script>
 @endpush
