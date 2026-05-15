@@ -248,31 +248,76 @@
     .sesi-pagination {
         display: flex;
         justify-content: center;
-        gap: .55rem;
         padding: 0 1.5rem 1.5rem;
     }
 
-    .sesi-page-item,
-    .sesi-pagination .page-link {
-        width: 28px;
-        height: 28px;
-        border-radius: 9px;
+    .sesi-pagination-shell {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .sesi-pagination-inline {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .6rem;
+        flex-wrap: nowrap;
+        margin: 0 auto;
+        width: fit-content;
+    }
+
+    .sesi-pagination-link,
+    .sesi-pagination-page,
+    .sesi-pagination-ellipsis {
+        height: 34px;
+        min-width: 34px;
+        padding: 0 .85rem;
+        border: 1px solid #dbe7df;
+        border-radius: 10px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         text-decoration: none;
         font-size: .82rem;
-        font-weight: 600;
+        font-weight: 700;
         color: #065F46;
-        background: transparent;
-        border: none;
+        background: #fff;
+        white-space: nowrap;
+        box-sizing: border-box;
     }
 
-    .sesi-pagination .active .page-link {
+    .sesi-pagination-pages {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .sesi-pagination-page.is-active {
         background: #065F46;
+        border-color: #065F46;
         color: #fff;
     }
 
+    .sesi-pagination-link.is-disabled,
+    .sesi-pagination-ellipsis {
+        color: #94a3b8;
+        background: #f8fafc;
+    }
+
+    .sesi-pagination-link:hover,
+    .sesi-pagination-page:hover {
+        background: #f0f9f7;
+        border-color: #bfe3d2;
+        color: #047857;
+    }
+
+    .sesi-pagination-link.is-disabled:hover,
+    .sesi-pagination-ellipsis:hover {
+        background: #f8fafc;
+        border-color: #dbe7df;
+        color: #94a3b8;
+    }
     @media (max-width: 991.98px) {
         .sesi-search input {
             width: 100%;
@@ -291,6 +336,9 @@
 @endpush
 
 @section('konten')
+@php
+    $search = request('search', '');
+@endphp
 <div class="sesi-card">
     <div class="sesi-head">
         <h6>Daftar Sesi Konseling</h6>
@@ -300,12 +348,23 @@
     <div class="sesi-toolbar">
         <div></div>
 
-        <div class="sesi-search-wrap">
+        <form class="sesi-search-wrap" id="sesiSearchForm" method="GET" action="{{ route('admin.sesi') }}">
             <div class="sesi-search">
                 <i class="ti ti-search"></i>
-                <input type="text" placeholder="Cari mahasiswa...">
+                <input
+                    id="sesiSearchInput"
+                    type="text"
+                    name="search"
+                    value="{{ $search }}"
+                    placeholder="Cari mahasiswa..."
+                    autocomplete="off"
+                >
             </div>
-        </div>
+            <button type="submit" class="sesi-filter-btn">Cari</button>
+            @if($search !== '')
+                <a href="{{ route('admin.sesi') }}" class="sesi-filter-btn text-decoration-none">Reset</a>
+            @endif
+        </form>
     </div>
 
     <div class="sesi-table-wrap">
@@ -421,8 +480,31 @@
 
     @if(method_exists($jadwal, 'links'))
         <div class="sesi-pagination">
-            {{ $jadwal->links() }}
+            {{ $jadwal->links('pagination::bootstrap-4') }}
         </div>
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const form = document.getElementById('sesiSearchForm');
+    const input = document.getElementById('sesiSearchInput');
+
+    if (!form || !input) {
+        return;
+    }
+
+    let debounceTimer = null;
+
+    input.addEventListener('input', () => {
+        window.clearTimeout(debounceTimer);
+
+        debounceTimer = window.setTimeout(() => {
+            form.submit();
+        }, 300);
+    });
+})();
+</script>
+@endpush

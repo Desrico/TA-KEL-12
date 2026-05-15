@@ -44,129 +44,6 @@
         padding: 1.2rem 1.2rem 1.35rem;
     }
 
-    .laporan-stack {
-        display: grid;
-        gap: 1.25rem;
-    }
-
-    .laporan-detail {
-        background: linear-gradient(180deg, #ffffff 0%, #f7fcf9 100%);
-        border: 1px solid #dceee4;
-        border-radius: 22px;
-        box-shadow: 0 8px 22px rgba(6, 95, 70, .06);
-        padding: 1.5rem 1.6rem;
-    }
-
-    .laporan-detail-head {
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        margin-bottom: 1rem;
-    }
-
-    .laporan-detail-head h5 {
-        margin: 0;
-        color: #064E3B;
-        font-weight: 800;
-    }
-
-    .laporan-detail-head p {
-        margin: .3rem 0 0;
-        color: #64748b;
-        font-size: .88rem;
-    }
-
-    .laporan-meta {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: .9rem;
-        margin-bottom: 1.2rem;
-    }
-
-    .laporan-meta-item {
-        background: #ffffff;
-        border: 1px solid #e6f1eb;
-        border-radius: 16px;
-        padding: .9rem 1rem;
-    }
-
-    .laporan-meta-label {
-        display: block;
-        font-size: .72rem;
-        font-weight: 700;
-        letter-spacing: .02em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin-bottom: .32rem;
-    }
-
-    .laporan-meta-value {
-        color: #0f172a;
-        font-weight: 700;
-        line-height: 1.5;
-    }
-
-    .laporan-form-label {
-        display: block;
-        font-weight: 700;
-        color: #0f172a;
-        margin-bottom: .55rem;
-    }
-
-    .laporan-textarea {
-        width: 100%;
-        min-height: 240px;
-        border: 1px solid #cfe6d9;
-        border-radius: 16px;
-        padding: 1rem 1.05rem;
-        resize: vertical;
-        font-size: .92rem;
-        line-height: 1.7;
-        color: #334155;
-        background: #fff;
-    }
-
-    .laporan-textarea:focus {
-        outline: none;
-        border-color: #34d399;
-        box-shadow: 0 0 0 4px rgba(52, 211, 153, .14);
-    }
-
-    .laporan-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: .75rem;
-        margin-top: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .btn-secondary-soft {
-        background: #effaf4;
-        color: #065F46;
-        border: 1px solid #cceedd;
-    }
-
-    .btn-secondary-soft:hover {
-        background: #def7e8;
-        color: #064E3B;
-    }
-
-    .laporan-content {
-        background: #fff;
-        border: 1px solid #e6f1eb;
-        border-radius: 18px;
-        padding: 1.1rem 1.15rem;
-        color: #334155;
-        line-height: 1.8;
-        white-space: pre-wrap;
-    }
-
-    .laporan-row-active {
-        background: #f7fcf9;
-    }
-
     .laporan-table {
         width: 100%;
         border-collapse: separate;
@@ -641,6 +518,98 @@
         background: rgba(255, 255, 255, 0.08);
     }
 
+    .laporan-search-area {
+    padding: 1rem 1.7rem 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+    .laporan-toolbar {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .laporan-search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .laporan-search-icon {
+        position: absolute;
+        left: 16px;
+        color: #8aa29a;
+        font-size: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .laporan-search-input {
+        min-width: 300px;
+        max-width: 420px;
+        height: 46px;
+        padding: 12px 16px 12px 46px;
+        border-radius: 999px;
+        border: 1px solid #e6f0ea;
+        background: #fff;
+        font-size: 14px;
+        color: #0f172a;
+        outline: none;
+    }
+
+    .laporan-search-input:focus {
+        border-color: #9bd8bd;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.08);
+    }
+
+    .btn-search-laporan {
+        height: 46px;
+        padding: 0 24px;
+        border-radius: 14px;
+        border: 1px solid #e6f0ea;
+        background: #fff;
+        color: #065f46;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        line-height: 1;
+    }
+
+    .btn-search-laporan:hover {
+        background: #f0fdf4;
+        border-color: #bde8ce;
+    }
+
+
+    @media (max-width: 768px) {
+        .laporan-head {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+
+        .laporan-toolbar {
+            width: 100%;
+            margin-left: 0;
+        }
+
+        .laporan-search-box {
+            flex: 1;
+        }
+
+        .laporan-search-input {
+            width: 100%;
+            min-width: 0;
+        }
+    }
+
     @media (max-width: 991.98px) {
         .laporan-table-wrap {
             overflow-x: auto;
@@ -668,8 +637,7 @@
 @if($isDetailForm)
     <div class="laporan-form-container">
         {{-- LEFT: DETAIL LAPORAN --}}
-        <div class="detail-laporan-card">
-            <h6>📋 Detail Laporan</h6>  
+        <div class="detail-laporan-card"> 
 
             {{-- Informasi Pribadi --}}
             <div class="info-section">
@@ -904,6 +872,31 @@
             </div>
         </div>
 
+        <div class="laporan-search-area">
+            <div class="laporan-toolbar">
+                <div class="laporan-search-box">
+                    <span class="laporan-search-icon">🔍</span>
+
+                    <input 
+                        id="laporanSearch" 
+                        type="search" 
+                        name="q" 
+                        placeholder="Cari mahasiswa..." 
+                        value="{{ old('q', request('q', '')) }}" 
+                        class="laporan-search-input"
+                    >
+                </div>
+
+                <button 
+                    type="button" 
+                    id="laporanSearchBtn" 
+                    class="btn-search-laporan"
+                >
+                    Cari
+                </button>
+            </div>
+        </div>
+
         <div class="laporan-table-wrap">
             <table class="laporan-table">
                 <thead>
@@ -986,6 +979,106 @@
                 </tbody>
             </table>
         </div>
+
+        @if(method_exists($riwayat, 'links'))
+            <div class="sesi-pagination" style="margin-top:18px; display:flex; justify-content:center;">
+                {{ $riwayat->links('pagination::bootstrap-4') }}
+            </div>
+        @endif
+
+        <script>
+            (function () {
+                const input = document.getElementById('laporanSearch');
+                const clearBtn = document.getElementById('laporanClear');
+                const tbody = document.querySelector('.laporan-table tbody');
+                const baseAdmin = "{{ url('/admin') }}";
+
+                function emptyRow() {
+                    return `<tr><td colspan="7" class="empty-state">Tidak ada hasil pencarian.</td></tr>`;
+                }
+
+                function renderRows(items) {
+                    if (!items || items.length === 0) return emptyRow();
+
+                    return items.map(i => {
+                        const actionLabel = i.laporan_available ? 'Lihat Laporan' : 'Buat Laporan';
+                        const actionClass = i.laporan_available ? 'btn-lihat' : 'btn-buat';
+                        return `
+                            <tr>
+                                <td>
+                                    <div class="student-name">${escapeHtml(i.nama)}</div>
+                                    <div class="student-sub">${escapeHtml(i.nim)}</div>
+                                </td>
+                                <td>${escapeHtml(i.tanggal)}</td>
+                                <td>${escapeHtml(i.waktu)}</td>
+                                <td>${escapeHtml(i.jenis)}</td>
+                                <td>
+                                    <div class="topic-text">${escapeHtml(i.topik)}</div>
+                                </td>
+                                <td>
+                                    <span class="status-pill ${escapeHtml(i.status_class)}">${escapeHtml(i.status_label)}</span>
+                                </td>
+                                <td style="text-align:center;">
+                                    <a href="${baseAdmin}/laporan/${i.id}/laporan" class="btn-laporan ${actionClass}">
+                                        <i class="ti ti-eye"></i>
+                                        ${actionLabel}
+                                    </a>
+                                </td>
+                            </tr>`;
+                    }).join('');
+                }
+
+                function escapeHtml(text) {
+                    if (!text) return '';
+                    return String(text)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                }
+
+                let timer = null;
+
+                function doSearch(q) {
+                    fetch(`${baseAdmin}/laporan/search?q=${encodeURIComponent(q)}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            tbody.innerHTML = renderRows(data);
+                        })
+                        .catch(() => {
+                            tbody.innerHTML = emptyRow();
+                        });
+                }
+
+                input.addEventListener('input', function (e) {
+                    const val = this.value.trim();
+                    clearTimeout(timer);
+                    timer = setTimeout(() => doSearch(val), 300);
+                });
+                // bind search button
+                const searchBtn = document.getElementById('laporanSearchBtn');
+                if (searchBtn) {
+                    searchBtn.addEventListener('click', function () {
+                        const v = input.value.trim();
+                        doSearch(v);
+                    });
+                }
+
+                // clear behavior when pressing ESC inside input
+                input.addEventListener('keydown', function (ev) {
+                    if (ev.key === 'Escape') {
+                        input.value = '';
+                        doSearch('');
+                    }
+                });
+
+                // Initialize with current value (in case q prefilled)
+                if (input.value && input.value.trim() !== '') {
+                    doSearch(input.value.trim());
+                }
+            })();
+        </script>
 
         @if(request()->filled('scroll_to'))
             <script>

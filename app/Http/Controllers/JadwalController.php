@@ -176,112 +176,112 @@ class JadwalController extends Controller
         ]);
     }
 
-    $sudahAda = $this->isSlotBooked(
-        $validated['tanggal'],
-        $jamMulai,
-        $konselor->id
-    );
-
-    if ($sudahAda) {
-        return response()->json([
-            'success' => false,
-            'is_available' => false,
-            'message' => 'Jadwal ini sudah terisi. Silakan pilih waktu lain.'
-        ], 409);
-    }
-
     return response()->json([
         'success' => true,
-        'is_available' => true,
-        'message' => 'Jadwal tersedia dan bisa dikonfirmasi.'
+        'message' => 'Penjadwalan berhasil dibuat.',
+        'kode_jadwal' => $jadwal->kode_jadwal ?? '-',
+        'nama_display' => Auth::user()->nama ?? '-',
+        'tanggal' => $jadwal->tanggal,
+        'waktu' => $jadwal->waktu,
+        'topik' => $jadwal->topik,
+        'jenis' => $jadwal->jenis,
     ]);
-}
-
-public function store(Request $request)
-{
-    if (!Auth::check()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Silakan login terlebih dahulu.'
-        ], 401);
     }
 
-    $validated = $this->validateSchedulingPayload($request);
-    $user = Auth::user();
+    public function store(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success'  => false,
+                'message'  => 'Silakan login terlebih dahulu untuk membuat jadwal.',
+                'redirect' => '/login'
+            ], 401);
+        }
 
-    $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+        $validated = $this->validateSchedulingPayload($request, true);
 
-    if (!$mahasiswa) {
+        $user      = Auth::user();
+        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+
+        if (!$mahasiswa) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data mahasiswa tidak ditemukan.'
+            ], 404);
+        }
+
+        $konselor = $this->resolveActiveKonselor();
+        if (!$konselor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Konselor belum tersedia.'
+            ], 404);
+        }
+        $konselor->loadMissing('user');
+
+        $normalizedWaktu = Carbon::createFromFormat('H:i', $validated['waktu'])->format('H:i:s');
+
+        $sudahAda = $this->isSlotBooked($validated['tanggal'], $normalizedWaktu, $konselor->id);
+
+        if ($sudahAda) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jadwal ini sudah terisi. Silakan pilih waktu lain.'
+            ], 409);
+        }
+
+        $isAnonim    = $user->isAnonim();
+        $namaDisplay = $user->getNamaDisplay();
+        $prodi       = $mahasiswa->jurusan ?? '-';
+        $angkatan    = $mahasiswa->angkatan ?? '-';
+
+        $identitasUntukKonselor = $isAnonim
+            ? trim($user->getAnonimDisplayName())
+            : $user->nama;
+
+        $jadwal = DB::transaction(function () use ($mahasiswa, $konselor, $validated, $normalizedWaktu, $isAnonim, $user, $identitasUntukKonselor) {
+            $jadwal = JadwalKonseling::create([
+                'mahasiswa_id' => $mahasiswa->id,
+                'konselor_id'  => $konselor->id,
+                'tanggal'      => $validated['tanggal'],
+                'waktu'        => $normalizedWaktu,
+                'status'       => 'menunggu',
+                'jenis'        => $validated['jenis'],
+                'topik'        => $validated['topik'],
+                'anonim'       => $isAnonim,
+                'catatan'      => null,
+            ]);
+
+            Notifikasi::create([
+                'user_id' => $user->id,
+                'pesan'   => 'Penjadwalan #' . $jadwal->id . ' berhasil dibuat dan menunggu persetujuan konselor.',
+                'status'  => 'belum',
+            ]);
+
+            $konselorUserId = optional($konselor->user)->id;
+            if ($konselorUserId) {
+                Notifikasi::create([
+                    'user_id' => $konselorUserId,
+                    'pesan'   => 'Penjadwalan baru dari ' . $identitasUntukKonselor . ' pada ' . $validated['tanggal'] . ' pukul ' . $validated['waktu'] . '.',
+                    'status'  => 'belum',
+                ]);
+            }
+
+            return $jadwal;
+        });
+
         return response()->json([
-            'success' => false,
-            'message' => 'Data mahasiswa tidak ditemukan.'
-        ], 404);
-    }
-
-    $normalizedWaktu = Carbon::createFromFormat('H:i', $validated['waktu'])->format('H:i:s');
-
-    $konselor = $this->resolveActiveKonselor();
-
-    if (!$konselor) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Konselor belum tersedia.'
-        ], 404);
-    }
-
-    $sudahAda = $this->isSlotBooked(
-        $validated['tanggal'],
-        $normalizedWaktu,
-        $konselor->id
-    );
-
-    if ($sudahAda) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Jadwal ini sudah terisi. Silakan pilih waktu lain.'
-        ], 409);
-    }
-
-    $isAnonim = $user->isAnonim();
-    $namaDisplay = $isAnonim ? 'Mahasiswa Anonim' : $user->nama;
-
-    $jadwal = DB::transaction(function () use (
-        $mahasiswa,
-        $konselor,
-        $validated,
-        $normalizedWaktu,
-        $isAnonim,
-        $user
-    ) {
-        $jadwal = JadwalKonseling::create([
-            'mahasiswa_id' => $mahasiswa->id,
-            'konselor_id'  => $konselor->id,
-            'tanggal'      => $validated['tanggal'],
-            'waktu'        => $normalizedWaktu,
-            'status'       => 'menunggu',
-            'jenis'        => $validated['jenis'],
-            'topik'        => $validated['topik'],
-            'anonim'       => $isAnonim,
-            'catatan'      => null,
+            'success'       => true,
+            'message'       => 'Jadwal berhasil dibuat.',
+            'kode_jadwal'   => '#' . $jadwal->id,
+            'nama_display'  => $namaDisplay,
+            'tanggal'       => $validated['tanggal'],
+            'waktu'         => $validated['waktu'],
+            'topik'         => $validated['topik'],
+            'jenis'         => $validated['jenis'],
+            'id'            => $jadwal->id,
         ]);
-
-        Notifikasi::create([
-            'user_id' => $user->id,
-            'pesan'   => 'Penjadwalan #' . $jadwal->id . ' berhasil dibuat dan menunggu persetujuan konselor.',
-            'status'  => 'belum',
-        ]);
-
-        return $jadwal;
-    });
-
-    return response()->json([
-        'success'      => true,
-        'message'      => 'Jadwal berhasil dibuat!',
-        'kode_jadwal'  => 'JD-' . strtoupper(base_convert($jadwal->id, 10, 36)),
-        'nama_display' => $namaDisplay,
-        'is_anonim'    => $isAnonim,
-    ]);
-}
+    }
 
     public function getBookedSlots(Request $request)
     {

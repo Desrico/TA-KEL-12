@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 use App\Models\Student;
 use App\Models\JournalText;
 use App\Models\DailyCheckin;
 use App\Models\Feeling;
 use App\Models\User;
+use App\Models\JadwalKonseling;
+use App\Models\Konselor;
 
 class DashboardController extends Controller
 {
@@ -25,11 +30,25 @@ class DashboardController extends Controller
                 return $student;
             });
 
+        $user = Auth::user();
+        $konselor = $user ? Konselor::where('user_id', $user->id)->first() : null;
+
+        $baseQuery = $konselor
+            ? JadwalKonseling::where('konselor_id', $konselor->id)
+            : JadwalKonseling::query();
+
+        $todayJadwals = (clone $baseQuery)
+            ->whereDate('tanggal', Carbon::today())
+            ->with('mahasiswa.user')
+            ->orderBy('waktu')
+            ->get();
+
         $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
 
         return view('admin.dashboard', [
             'students' => $students,
             'lastScan' => $lastScan,
+            'todayJadwals' => $todayJadwals,
         ]);
     }
 

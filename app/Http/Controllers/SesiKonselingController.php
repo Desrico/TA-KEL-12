@@ -21,12 +21,26 @@ class SesiKonselingController extends Controller
         return $user->konselor;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $konselor = $this->resolveAuthenticatedKonselor();
+        $search = trim((string) $request->query('search', ''));
 
-        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil'])
-            ->where('konselor_id', $konselor->id)
+        $jadwalQuery = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil', 'sesiKonseling'])
+            ->where('konselor_id', $konselor->id);
+
+        if ($search !== '') {
+            $jadwalQuery->where(function ($query) use ($search) {
+                $query->whereHas('mahasiswa.user', function ($userQuery) use ($search) {
+                    $userQuery->where('nama', 'like', '%' . $search . '%');
+                })->orWhereHas('mahasiswa', function ($mahasiswaQuery) use ($search) {
+                    $mahasiswaQuery->where('nim', 'like', '%' . $search . '%')
+                        ->orWhere('jurusan', 'like', '%' . $search . '%');
+                });
+            });
+        }
+
+        $jadwal = $jadwalQuery
             ->orderByRaw("
                 CASE
                     WHEN status = 'menunggu' THEN 1
@@ -39,7 +53,17 @@ class SesiKonselingController extends Controller
             ")
             ->orderBy('tanggal', 'asc')
             ->orderBy('waktu', 'asc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
+
+        $jadwal->getCollection()->each(function (JadwalKonseling $item) {
+            $item->syncExpiredSessionStatus();
+
+            // If a sesi exists and is active, ensure the jadwal status reflects it.
+            if ($item->relationLoaded('sesiKonseling') && $item->sesiKonseling?->status === 'berlangsung' && ($item->status ?? '') !== 'berlangsung') {
+                $item->forceFill(['status' => 'berlangsung'])->save();
+            }
+        });
 
         return view('admin.sesi', compact('jadwal'));
     }

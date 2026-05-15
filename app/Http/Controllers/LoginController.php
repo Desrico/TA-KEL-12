@@ -121,10 +121,9 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ], [
             'username.required' => 'Username dan password harus diisi.',
-            'password.required' => 'Username dan password harus diisi.',
+            'password.required' => 'Password harus diisi.',
         ]);
 
-        // Login lokal tetap didukung, tetapi role user diselaraskan ulang sebelum redirect.
         $localUser = $this->attemptLocalLogin($validated['username'], $validated['password']);
         if ($localUser) {
             Auth::login($localUser, $request->boolean('ingat'));
@@ -136,7 +135,6 @@ class LoginController extends Controller
         DB::beginTransaction();
 
         try {
-            // Login utama memakai CIS agar data user dan role tidak bergantung pada session sebelumnya.
             $cisLogin = $kampusApi->loginWithCredentials(
                 $validated['username'],
                 $validated['password']
@@ -154,7 +152,6 @@ class LoginController extends Controller
             $nama = $mahasiswaData['nama'] ?? $validated['username'];
             $email = $mahasiswaData['email'] ?? ($validated['username'] . '@cis.local');
 
-            // Sinkronisasi akun CIS tidak mengubah password lokal yang masih dipakai admin.
             $user = User::firstOrNew(['username_cis' => $validated['username']]);
             $user->nama = $nama;
             $user->email = $email;
@@ -177,7 +174,6 @@ class LoginController extends Controller
                 );
             }
 
-            // Role konselor/mahasiswa ditentukan ulang dari sumber yang lebih stabil daripada role tersimpan sebelumnya.
             $user = $this->syncResolvedRoleForUser($user, $validated['username'], (bool) $mahasiswaData);
 
             DB::commit();

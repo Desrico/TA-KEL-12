@@ -64,3 +64,4 @@ class SesiKonseling extends Model
         return $this->hasOne(Laporan::class, 'sesi_id');
     }
 }
+

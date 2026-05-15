@@ -74,8 +74,20 @@ class User extends Authenticatable
         return optional($this->profil)->anonim ?? false;
     }
 
+    public function getAnonimDisplayName(): string
+    {
+        $seed = (string) ($this->id ?? $this->username_cis ?? $this->email ?? $this->nama ?? 'anon');
+        $code = strtoupper(substr(hash('crc32b', $seed), 0, 4));
+
+        return 'Anonim-' . $code;
+    }
+
     public function getNamaDisplay(): string
     {
-        return $this->isAnonim() ? 'Mahasiswa Anonim' : $this->nama;
+        if ($this->isAnonim()) {
+            return $this->getAnonimDisplayName();
+        }
+
+        return $this->nama;
     }
 }
