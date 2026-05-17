@@ -138,6 +138,8 @@
         grid-template-columns: 1fr 1.3fr;
         gap: 24px;
         max-width: 1200px;
+        margin: 0 auto;
+        width: calc(100% - 48px);
     }
 
     .detail-laporan-card {
@@ -757,7 +759,8 @@
             </div>
 
             @if($isReadOnly)
-                <a href="{{ route('admin.laporan') }}" class="btn-simpan" style="text-align:center; text-decoration:none; display:flex; align-items:center; justify-content:center;">
+                <!-- MODIFIED: Update rute tombol kembali ke halaman Detail Laporan Mahasiswa -->
+                <a href="{{ route('admin.laporan.mahasiswa', $jadwal->mahasiswa_id) }}" class="btn-simpan" style="text-align:center; text-decoration:none; display:flex; align-items:center; justify-content:center;">
                     <i class="ti ti-arrow-left"></i>&nbsp;Kembali
                 </a>
             @else

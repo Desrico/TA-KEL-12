@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use App\Models\AiLaporanSummary;
 use App\Models\JadwalKonseling;
 use App\Models\Laporan;
+use App\Models\Mahasiswa;
 use App\Models\SesiKonseling;
+use App\Services\GroqSummaryService;
 
 class LaporanController extends Controller
 {
@@ -114,68 +117,140 @@ class LaporanController extends Controller
     {
         $q = trim((string) $request->query('q', ''));
 
-        $query = $this->laporanRiwayatQuery();
+        $query = Mahasiswa::query()
+            ->with('user')
+            ->withCount(['jadwalKonseling as total_laporan' => function ($query) {
+                $this->scopeJadwalWithReport($query);
+            }])
+            ->whereHas('jadwalKonseling', function ($query) {
+                $this->scopeJadwalWithReport($query);
+            });
 
         if ($q !== '') {
             $query->where(function ($builder) use ($q) {
-                $builder->whereHas('mahasiswa.user', function ($qb) use ($q) {
+                $builder->whereHas('user', function ($qb) use ($q) {
                     $qb->where('nama', 'like', "%{$q}%");
-                })->orWhereHas('mahasiswa', function ($qb2) use ($q) {
-                    $qb2->where('nim', 'like', "%{$q}%");
-                })->orWhere('ringkasan_masalah', 'like', "%{$q}%")
-                  ->orWhere('laporan', 'like', "%{$q}%")
-                  ->orWhere('topik', 'like', "%{$q}%");
+                })->orWhere('nim', 'like', "%{$q}%")
+                    ->orWhere('jurusan', 'like', "%{$q}%")
+                    ->orWhere('angkatan', 'like', "%{$q}%");
             });
         }
 
-        $riwayat = $query->paginate(10)->withQueryString();
+        $mahasiswa = $query
+            ->orderBy(
+                \App\Models\User::select('nama')
+                    ->whereColumn('users.id', 'mahasiswa.user_id')
+                    ->limit(1)
+            )
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('admin.laporan', compact('riwayat', 'q'));
+        return view('admin.laporan.index', compact('mahasiswa', 'q'));
     }
 
     public function search(\Illuminate\Http\Request $request)
     {
         $q = trim((string) $request->query('q', ''));
 
-        $query = $this->laporanRiwayatQuery();
+        $query = Mahasiswa::query()
+            ->with('user')
+            ->withCount(['jadwalKonseling as total_laporan' => function ($query) {
+                $this->scopeJadwalWithReport($query);
+            }])
+            ->whereHas('jadwalKonseling', function ($query) {
+                $this->scopeJadwalWithReport($query);
+            });
 
         if ($q !== '') {
             $query->where(function ($builder) use ($q) {
-                $builder->whereHas('mahasiswa.user', function ($qb) use ($q) {
+                $builder->whereHas('user', function ($qb) use ($q) {
                     $qb->where('nama', 'like', "%{$q}%");
-                })->orWhereHas('mahasiswa', function ($qb2) use ($q) {
-                    $qb2->where('nim', 'like', "%{$q}%");
-                })->orWhere('ringkasan_masalah', 'like', "%{$q}%")
-                  ->orWhere('laporan', 'like', "%{$q}%")
-                  ->orWhere('topik', 'like', "%{$q}%");
+                })->orWhere('nim', 'like', "%{$q}%")
+                    ->orWhere('jurusan', 'like', "%{$q}%")
+                    ->orWhere('angkatan', 'like', "%{$q}%");
             });
         }
 
-        $results = $query->limit(10)->get()->map(function ($jadwal) {
-            $nama = optional(optional($jadwal->mahasiswa)->user)->nama ?? 'Anonim';
-            $nim = optional($jadwal->mahasiswa)->nim ?? '-';
-            $tanggal = $jadwal->tanggal ? \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('d M Y') : '-';
-            $waktu = $jadwal->waktu ? substr($jadwal->waktu, 0, 5) . ' WIB' : '-';
-            $jenis = ucfirst($jadwal->jenis ?? 'Online');
-            $topik = $jadwal->topik ?? '-';
-
-            $statusInfo = $this->formatRiwayatStatus($jadwal->status ?? '');
-
+        $results = $query->limit(10)->get()->map(function ($mahasiswa) {
             return [
-                'id' => $jadwal->id,
-                'nama' => $nama,
-                'nim' => $nim,
-                'tanggal' => $tanggal,
-                'waktu' => $waktu,
-                'jenis' => $jenis,
-                'topik' => $topik,
-                'status_label' => $statusInfo['label'],
-                'status_class' => $statusInfo['class'],
-                'laporan_available' => (! empty($jadwal->laporan) || strtolower((string) $jadwal->status) === 'selesai'),
+                'id' => $mahasiswa->id,
+                'nama' => optional($mahasiswa->user)->nama ?? 'Anonim',
+                'nim' => $mahasiswa->nim ?? '-',
+                'jurusan' => $mahasiswa->jurusan ?? '-',
+                'angkatan' => $mahasiswa->angkatan ?? '-',
+                'total_laporan' => $mahasiswa->total_laporan ?? 0,
+                'url' => route('admin.laporan.mahasiswa', $mahasiswa->id),
             ];
         });
 
         return response()->json($results->values());
+    }
+
+    public function showMahasiswaLaporan(Mahasiswa $mahasiswa)
+    {
+        $mahasiswa->load('user');
+
+        $riwayat = $this->laporanRiwayatQuery()
+            ->where('mahasiswa_id', $mahasiswa->id)
+            ->where(function ($query) {
+                $this->scopeJadwalWithReport($query);
+            })
+            ->paginate(10)
+            ->withQueryString();
+
+        $aiSummary = AiLaporanSummary::where('mahasiswa_id', $mahasiswa->id)
+            ->latest('generated_at')
+            ->latest()
+            ->first();
+
+        $sourceHash = $this->buildAiSummarySourceHash($mahasiswa);
+        $summaryOutdated = $aiSummary && $aiSummary->source_hash !== $sourceHash;
+        $summarySessionsCount = count($this->buildAiSummaryPayload($mahasiswa));
+
+        return view('admin.laporan.show', compact(
+            'mahasiswa',
+            'riwayat',
+            'aiSummary',
+            'summaryOutdated',
+            'summarySessionsCount'
+        ));
+    }
+
+    public function generateAiSummary(Mahasiswa $mahasiswa, GroqSummaryService $groqSummaryService)
+    {
+        $sessions = $this->buildAiSummaryPayload($mahasiswa);
+
+        if (empty($sessions)) {
+            return back()->withErrors([
+                'ai_summary' => 'Belum ada laporan sesi konseling yang dapat diringkas.',
+            ]);
+        }
+
+        try {
+            $summary = $groqSummaryService->summarize($sessions);
+        } catch (\Throwable $e) {
+            return back()->withErrors([
+                'ai_summary' => $e->getMessage(),
+            ]);
+        }
+
+        AiLaporanSummary::create([
+            'mahasiswa_id' => $mahasiswa->id,
+            'konselor_id' => optional(auth()->user()->konselor)->id,
+            'provider' => 'groq',
+            'model' => config('services.groq.model', 'llama-3.1-8b-instant'),
+            'summary' => $summary,
+            'source_hash' => hash('sha256', json_encode($sessions)),
+            'generated_at' => now(),
+        ]);
+
+        // <!-- MODIFIED: Tambah flash data modal untuk notifikasi sukses interaktif -->
+        return redirect()
+            ->route('admin.laporan.mahasiswa', $mahasiswa)
+            ->with([
+                'ai_summary_success' => true,
+                'ai_summary_message' => 'Ringkasan AI berhasil dibuat.'
+            ]);
     }
 
     public function createLaporan($id)
@@ -224,13 +299,14 @@ class LaporanController extends Controller
             'ringkasan_masalah' => $request->input('ringkasan_masalah'),
             'observasi_konselor' => $request->input('observasi_konselor'),
             'progress' => $request->input('progress'),
-            'tindak_lanjut_tipe' => $request->has('perlu_lanjut') ? 'perlu_lanjut' : ($request->input('tindak_lanjut') ?? $jadwal->tindak_lanjut_tipe),
+            // MODIFIED: Fix bug - ubah 'perlu_lanjut' menjadi 'perlu lanjut' (dengan spasi) dan gunakan 'tindak_lanjut' checkbox yang benar
+            'tindak_lanjut_tipe' => $request->has('tindak_lanjut') ? 'perlu lanjut' : ($request->input('tindak_lanjut') ?? $jadwal->tindak_lanjut_tipe),
             'tanggal_lanjut' => $request->input('tanggal_lanjut') ?: null,
             'laporan' => $isi,
         ]);
 
         return redirect()
-            ->route('admin.laporan', ['scroll_to' => $jadwal->id])
+            ->route('admin.laporan.mahasiswa', $jadwal->mahasiswa_id)
             ->with('success', 'Laporan berhasil disimpan.');
     }
 
@@ -242,6 +318,52 @@ class LaporanController extends Controller
             'sesiKonseling.laporan',
         ])->orderBy('tanggal', 'desc')
             ->orderBy('waktu', 'desc');
+    }
+
+    private function scopeJadwalWithReport($query): void
+    {
+        $query->where(function ($builder) {
+            $builder->whereNotNull('laporan')
+                ->where('laporan', '<>', '')
+                ->orWhereNotNull('ringkasan_masalah')
+                ->orWhereNotNull('observasi_konselor')
+                ->orWhereHas('sesiKonseling.laporan');
+        });
+    }
+
+    private function buildAiSummaryPayload(Mahasiswa $mahasiswa): array
+    {
+        return $this->laporanRiwayatQuery()
+            ->where('mahasiswa_id', $mahasiswa->id)
+            ->get()
+            ->filter(function (JadwalKonseling $jadwal) {
+                return trim((string) ($jadwal->laporan ?? '')) !== ''
+                    || trim((string) ($jadwal->ringkasan_masalah ?? '')) !== ''
+                    || trim((string) ($jadwal->observasi_konselor ?? '')) !== ''
+                    || optional($jadwal->sesiKonseling?->laporan)->isi_laporan;
+            })
+            ->values()
+            ->map(function (JadwalKonseling $jadwal) {
+                $laporan = trim((string) ($jadwal->laporan ?? ''));
+                if ($laporan === '') {
+                    $laporan = trim((string) optional($jadwal->sesiKonseling?->laporan)->isi_laporan);
+                }
+
+                return [
+                    'topik' => $this->extractTopik($jadwal->catatan, $jadwal->topik ?? null),
+                    'ringkasan_masalah' => trim((string) ($jadwal->ringkasan_masalah ?: $laporan)),
+                    'observasi_konselor' => trim((string) ($jadwal->observasi_konselor ?? '')),
+                    'progress' => trim((string) ($jadwal->progress ?? '')),
+                    // MODIFIED: Fix bug text perlu_lanjut menjadi perlu lanjut dengan merubah underscore menjadi spasi
+                    'tindak_lanjut' => str_replace('_', ' ', trim((string) ($jadwal->tindak_lanjut_tipe ?? $jadwal->tindak_lanjut ?? ''))),
+                ];
+            })
+            ->all();
+    }
+
+    private function buildAiSummarySourceHash(Mahasiswa $mahasiswa): string
+    {
+        return hash('sha256', json_encode($this->buildAiSummaryPayload($mahasiswa)));
     }
 
     private function resolveSesiKonseling(JadwalKonseling $jadwal): SesiKonseling

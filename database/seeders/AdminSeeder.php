@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Konselor;
 use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
@@ -13,11 +14,20 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@gmail.com'],
             [
-                'name' => 'Admin',
+                'nama' => 'Admin',
                 'email' => 'admin@gmail.com',
                 'password' => Hash::make('admin123'),
-                'role' => 'admin',
+                'role' => 'konselor',
             ]
         );
+
+        $admin = User::where('email', 'admin@gmail.com')->first();
+
+        if ($admin) {
+            Konselor::updateOrCreate(
+                ['user_id' => $admin->id],
+                ['spesialisasi' => 'Admin']
+            );
+        }
     }
 }

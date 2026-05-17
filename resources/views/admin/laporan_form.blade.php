@@ -607,8 +607,9 @@
                             </button>
                         </div>
                     @else
+                        <!-- MODIFIED: Fix button kembali untuk direct ke detail laporan mahasiswa, bukan ke daftar laporan -->
                         <div class="finish-wrap">
-                            <a href="{{ route('admin.laporan') }}" class="submit-btn finish-btn">
+                            <a href="{{ route('admin.laporan.mahasiswa', $jadwal->mahasiswa_id) }}" class="submit-btn finish-btn">
                                 Kembali
                             </a>
                         </div>

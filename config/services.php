@@ -38,4 +38,10 @@ return [
     'timeout'  => env('KAMPUS_API_TIMEOUT', 20),
     ],
 
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'model' => env('GROQ_MODEL', 'llama-3.1-8b-instant'),
+        'timeout' => env('GROQ_TIMEOUT', 60),
+    ],
+
 ];
