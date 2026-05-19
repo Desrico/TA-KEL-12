@@ -96,7 +96,10 @@ class LaporanController extends Controller
 
         $observasi = trim((string) ($jadwal->observasi_konselor ?? ''));
         $progress = trim((string) ($jadwal->progress ?? ''));
-        $tindakLanjut = trim((string) ($jadwal->tindak_lanjut ?? $jadwal->tindak_lanjut_tipe ?? ''));
+        // Normalisasi state tindak lanjut untuk detail laporan mahasiswa.
+        $tindakLanjutRaw = trim((string) ($jadwal->tindak_lanjut_tipe ?? $jadwal->tindak_lanjut ?? ''));
+        $perluSesiLanjutan = in_array(strtolower(str_replace('_', ' ', $tindakLanjutRaw)), ['perlu lanjut', 'perlu sesi lanjutan', 'on', '1', 'ya'], true);
+        $tindakLanjut = $perluSesiLanjutan ? 'Perlu sesi lanjutan' : 'Tidak perlu sesi lanjutan';
         $tanggalLanjut = trim((string) ($jadwal->tanggal_lanjut ?? ''));
 
         return view('Pages.detail-riwayat', compact(
@@ -109,6 +112,7 @@ class LaporanController extends Controller
             'observasi',
             'progress',
             'tindakLanjut',
+            'perluSesiLanjutan',
             'tanggalLanjut'
         ));
     }
@@ -259,8 +263,10 @@ class LaporanController extends Controller
         $riwayat = $this->laporanRiwayatQuery()->get();
         $sesi = $this->resolveSesiKonseling($jadwal);
         $laporan = $sesi->laporan;
+        // Sesi selesai tetap bisa dibuatkan laporan jika laporan belum tersimpan.
+        $sudahAdaLaporan = $this->jadwalHasStoredReport($jadwal, $laporan);
 
-        return view('admin.laporan', compact('jadwal', 'riwayat', 'sesi', 'laporan'));
+        return view('admin.laporan', compact('jadwal', 'riwayat', 'sesi', 'laporan', 'sudahAdaLaporan'));
     }
 
     public function storeLaporan(Request $request, $id)
@@ -281,6 +287,16 @@ class LaporanController extends Controller
         $jadwal = JadwalKonseling::findOrFail($id);
         $sesi = $this->resolveSesiKonseling($jadwal);
         $konselorId = optional(auth()->user()->konselor)->id ?? $jadwal->konselor_id;
+        // Dukung nama input dari dua versi form laporan.
+        $perluLanjut = $request->has('tindak_lanjut') || $request->has('perlu_lanjut');
+        // Dukung nama input tanggal dari dua versi form laporan.
+        $tanggalLanjut = $request->input('tanggal_lanjut') ?: $request->input('tanggal_tindak_lanjut');
+
+        if ($perluLanjut && ! $tanggalLanjut) {
+            return back()
+                ->withErrors(['tanggal_lanjut' => 'Tanggal sesi lanjutan wajib diisi.'])
+                ->withInput();
+        }
 
         Laporan::updateOrCreate([
             'sesi_id' => $sesi->id,
@@ -299,15 +315,17 @@ class LaporanController extends Controller
             'ringkasan_masalah' => $request->input('ringkasan_masalah'),
             'observasi_konselor' => $request->input('observasi_konselor'),
             'progress' => $request->input('progress'),
-            // MODIFIED: Fix bug - ubah 'perlu_lanjut' menjadi 'perlu lanjut' (dengan spasi) dan gunakan 'tindak_lanjut' checkbox yang benar
-            'tindak_lanjut_tipe' => $request->has('tindak_lanjut') ? 'perlu lanjut' : ($request->input('tindak_lanjut') ?? $jadwal->tindak_lanjut_tipe),
-            'tanggal_lanjut' => $request->input('tanggal_lanjut') ?: null,
+            // Simpan tindak lanjut dari form laporan aktif.
+            'tindak_lanjut' => $perluLanjut ? 'Perlu sesi lanjutan' : 'Tidak perlu sesi lanjutan',
+            'tindak_lanjut_tipe' => $perluLanjut ? 'perlu lanjut' : null,
+            'tanggal_lanjut' => $perluLanjut ? ($tanggalLanjut ?: null) : null,
             'laporan' => $isi,
         ]);
 
         return redirect()
             ->route('admin.laporan.mahasiswa', $jadwal->mahasiswa_id)
-            ->with('success', 'Laporan berhasil disimpan.');
+            // Gunakan key khusus agar tidak muncul sebagai alert teks global.
+            ->with('laporan_success', 'Laporan berhasil dibuat.');
     }
 
     private function laporanRiwayatQuery()
@@ -325,6 +343,7 @@ class LaporanController extends Controller
         $query->where(function ($builder) {
             $builder->whereNotNull('laporan')
                 ->where('laporan', '<>', '')
+                ->orWhere('status', 'selesai')
                 ->orWhereNotNull('ringkasan_masalah')
                 ->orWhereNotNull('observasi_konselor')
                 ->orWhereHas('sesiKonseling.laporan');
@@ -364,6 +383,15 @@ class LaporanController extends Controller
     private function buildAiSummarySourceHash(Mahasiswa $mahasiswa): string
     {
         return hash('sha256', json_encode($this->buildAiSummaryPayload($mahasiswa)));
+    }
+
+    private function jadwalHasStoredReport(JadwalKonseling $jadwal, ?Laporan $laporan = null): bool
+    {
+        // Cek isi laporan aktual, bukan status jadwal.
+        return trim((string) ($jadwal->laporan ?? '')) !== ''
+            || trim((string) ($jadwal->ringkasan_masalah ?? '')) !== ''
+            || trim((string) ($jadwal->observasi_konselor ?? '')) !== ''
+            || trim((string) optional($laporan ?? $jadwal->sesiKonseling?->laporan)->isi_laporan) !== '';
     }
 
     private function resolveSesiKonseling(JadwalKonseling $jadwal): SesiKonseling

@@ -392,6 +392,11 @@
         : '-';
 
     $metode = $jadwal->metode ?? $jadwal->jenis ?? 'Online';
+
+    // Tampilkan tanggal lanjutan hanya jika admin memilih perlu sesi lanjutan.
+    $tanggalLanjutLabel = $tanggalLanjut
+        ? Carbon::parse($tanggalLanjut)->translatedFormat('d F Y')
+        : '-';
 @endphp
 
 <section class="detail-riwayat-page">
@@ -511,6 +516,24 @@
                     <span>Status</span>
                     <strong>{{ ucwords($jadwal->status ?? '-') }}</strong>
                 </div>
+
+                <div class="section-label mt-4">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>Tindak Lanjut</span>
+                </div>
+
+                <div class="detail-row">
+                    <span>Status Tindak Lanjut</span>
+                    <strong>{{ $tindakLanjut }}</strong>
+                </div>
+
+                @if($perluSesiLanjutan)
+                    <div class="detail-row">
+                        <span>Tanggal Sesi Lanjutan</span>
+                        <strong>{{ $tanggalLanjutLabel }}</strong>
+                    </div>
+                @endif
+
                 <div class="detail-action">
                 <a href="{{ route('riwayat') }}" class="btn-back-riwayat">
                     Kembali ke Riwayat

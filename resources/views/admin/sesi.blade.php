@@ -239,6 +239,21 @@
         color: #fff;
     }
 
+    .action-stack {
+        display: inline-flex;
+        gap: .5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-buat-laporan {
+        background: #0f766e;
+    }
+
+    .btn-buat-laporan:hover {
+        background: #115e59;
+    }
+
     .empty-row {
         text-align: center;
         color: #94a3b8;
@@ -420,6 +435,14 @@
                             'ditolak', 'dibatalkan' => 'status-dibatalkan',
                             default => 'status-menunggu',
                         };
+
+                        // Sesi selesai tanpa isi laporan bisa langsung dibuatkan laporan.
+                        $sudahAdaLaporan = trim((string) ($item->laporan ?? '')) !== ''
+                            || trim((string) ($item->ringkasan_masalah ?? '')) !== ''
+                            || trim((string) ($item->observasi_konselor ?? '')) !== ''
+                            || trim((string) optional($item->sesiKonseling?->laporan)->isi_laporan) !== '';
+
+                        $bisaBuatLaporan = $statusRaw === 'selesai' && !$sudahAdaLaporan;
                     @endphp
 
                     <tr>
@@ -464,7 +487,15 @@
                         </td>
 
                         <td style="text-align:center;">
-                            <a href="{{ route('admin.sesi.detail', $item->id) }}" class="btn-lihat">Lihat</a>
+                            <div class="action-stack">
+                                <a href="{{ route('admin.sesi.detail', $item->id) }}" class="btn-lihat">Lihat</a>
+
+                                @if($bisaBuatLaporan)
+                                    <a href="{{ route('admin.laporan.laporan', $item->id) }}" class="btn-lihat btn-buat-laporan">
+                                        Buat Laporan
+                                    </a>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty

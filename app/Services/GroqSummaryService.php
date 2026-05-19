@@ -45,7 +45,7 @@ class GroqSummaryService
             throw new RuntimeException('Gagal menghubungi Groq API: ' . $message);
         }
 
-        $summary = trim((string) $response->json('choices.0.message.content'));
+        $summary = $this->normalizeSummary((string) $response->json('choices.0.message.content'));
 
         if ($summary === '') {
             throw new RuntimeException('Groq API tidak mengembalikan ringkasan.');
@@ -66,6 +66,7 @@ class GroqSummaryService
             'Catatan:',
             '- Jangan menambah informasi di luar laporan.',
             '- Jangan membuat diagnosis.',
+            '- Jangan gunakan format markdown seperti **teks tebal** atau bullet bintang.',
             "- Jika ada bagian yang tidak tersedia, tulis 'Tidak disebutkan dalam laporan'.",
             '',
             'Isi laporan:',
@@ -88,5 +89,13 @@ class GroqSummaryService
         }
 
         return trim(implode("\n", $lines));
+    }
+
+    private function normalizeSummary(string $summary): string
+    {
+        $summary = preg_replace('/\*\*(.*?)\*\*/s', '$1', $summary) ?? $summary;
+        $summary = preg_replace('/^\s*\*\s*/m', '', $summary) ?? $summary;
+
+        return trim($summary);
     }
 }

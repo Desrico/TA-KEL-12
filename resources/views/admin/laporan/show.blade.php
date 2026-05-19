@@ -356,6 +356,49 @@
 @section('konten')
 @php
     $namaMahasiswa = optional($mahasiswa->user)->nama ?? 'Anonim';
+    $formatAiSummary = function (?string $summary): string {
+        $summary = preg_replace('/\*\*(.*?)\*\*/s', '$1', (string) $summary);
+        $summary = preg_replace('/^\s*\*\s*/m', '', $summary ?? '');
+        $summary = trim((string) $summary);
+
+        $escaped = e($summary);
+        $importantWords = [
+            'Ringkasan Masalah Utama',
+            'Kondisi/Perkembangan Mahasiswa',
+            'Catatan Penting dari Konselor',
+            'Tindak Lanjut yang Disarankan Berdasarkan Laporan',
+            'Tidak disebutkan dalam laporan',
+            'masalah utama',
+            'kondisi',
+            'perkembangan',
+            'catatan penting',
+            'tindak lanjut',
+            'disarankan',
+            'prioritas',
+            'hambatan',
+            'risiko',
+            'kecemasan',
+            'cemas',
+            'stres',
+            'tekanan',
+            'motivasi',
+            'akademik',
+            'dukungan',
+            'konselor',
+            'keluarga',
+            'mahasiswa',
+        ];
+
+        foreach ($importantWords as $word) {
+            $escaped = preg_replace(
+                '/(?<![[:alnum:]_>])(' . preg_quote(e($word), '/') . ')(?![[:alnum:]_<])/iu',
+                '<strong>$1</strong>',
+                $escaped
+            );
+        }
+
+        return $escaped;
+    };
 @endphp
 
 <div class="laporan-shell">
@@ -363,10 +406,6 @@
         <i class="ti ti-arrow-left"></i>
         Kembali ke daftar laporan
     </a>
-
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
 
     @error('ai_summary')
         <div class="alert alert-error">{{ $message }}</div>
@@ -406,6 +445,12 @@
                             if (!$topik) {
                                 $topik = $item->ringkasan_masalah ?? $item->laporan ?? '-';
                             }
+
+                            // Sesi selesai tanpa laporan tetap menjadi kandidat pembuatan laporan.
+                            $sudahAdaLaporan = trim((string) ($item->laporan ?? '')) !== ''
+                                || trim((string) ($item->ringkasan_masalah ?? '')) !== ''
+                                || trim((string) ($item->observasi_konselor ?? '')) !== ''
+                                || trim((string) optional($item->sesiKonseling?->laporan)->isi_laporan) !== '';
                         @endphp
                         <tr>
                             <td>{{ $namaMahasiswa }}</td>
@@ -420,8 +465,8 @@
                             </td>
                             <td style="text-align:center;">
                                 <a href="{{ route('admin.laporan.laporan', $item->id) }}" class="btn-laporan">
-                                    <i class="ti ti-eye"></i>
-                                    Lihat Detail
+                                    <i class="ti {{ $sudahAdaLaporan ? 'ti-eye' : 'ti-file-plus' }}"></i>
+                                    {{ $sudahAdaLaporan ? 'Lihat Detail' : 'Buat Laporan' }}
                                 </a>
                             </td>
                         </tr>
@@ -469,7 +514,7 @@
         @if($aiSummary)
             <!-- ADDED: Container untuk animasi streaming text baris per baris dari kiri ke kanan -->
             <div class="ai-summary-box" id="aiSummaryContainer">
-                <span id="aiSummaryText">{{ $aiSummary->summary }}</span>
+                <span id="aiSummaryText" data-summary="{{ $aiSummary->summary }}">{!! $formatAiSummary($aiSummary->summary) !!}</span>
             </div>
             <p class="ai-empty" style="margin:12px 0 0;">
                 Ringkasan AI hanya bersifat bantuan awal dan tetap perlu ditinjau oleh konselor.
@@ -499,8 +544,23 @@
     </div>
 </div>
 
+<!-- Modal fallback jika SweetAlert gagal dimuat -->
+<div id="reportSuccessModal" class="ai-success-modal">
+    <div class="ai-modal-content">
+        <div class="ai-modal-header">
+            <div class="ai-modal-icon">OK</div>
+            <h3 class="ai-modal-title">Laporan Berhasil Dibuat</h3>
+        </div>
+        <p class="ai-modal-message" id="reportSuccessMessage">Laporan hasil konseling berhasil dibuat.</p>
+        <div class="ai-modal-actions">
+            <button class="ai-modal-btn ai-modal-btn-primary" onclick="closeReportSuccessModal()">Mengerti</button>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <!-- ADDED: JavaScript untuk menampilkan modal sukses dan animasi streaming text -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // ADDED: Fungsi untuk menampilkan modal sukses AI summary
     function showAiSuccessModal() {
@@ -520,6 +580,90 @@
         }
     }
 
+    function showReportSuccessModal(message) {
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Laporan Berhasil Dibuat',
+                text: message,
+                confirmButtonText: 'Mengerti',
+                confirmButtonColor: '#065f46'
+            });
+            return;
+        }
+
+        // Fallback modal lokal saat SweetAlert tidak tersedia.
+        const modal = document.getElementById('reportSuccessModal');
+        const messageEl = document.getElementById('reportSuccessMessage');
+
+        if (messageEl) {
+            messageEl.textContent = message;
+        }
+
+        if (modal) {
+            modal.classList.add('show');
+        }
+    }
+
+    function closeReportSuccessModal() {
+        const modal = document.getElementById('reportSuccessModal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+
+    function escapeAiSummaryHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatAiSummaryLine(line) {
+        const importantWords = [
+            'Ringkasan Masalah Utama',
+            'Kondisi/Perkembangan Mahasiswa',
+            'Catatan Penting dari Konselor',
+            'Tindak Lanjut yang Disarankan Berdasarkan Laporan',
+            'Tidak disebutkan dalam laporan',
+            'masalah utama',
+            'kondisi',
+            'perkembangan',
+            'catatan penting',
+            'tindak lanjut',
+            'disarankan',
+            'prioritas',
+            'hambatan',
+            'risiko',
+            'kecemasan',
+            'cemas',
+            'stres',
+            'tekanan',
+            'motivasi',
+            'akademik',
+            'dukungan',
+            'konselor',
+            'keluarga',
+            'mahasiswa',
+        ];
+
+        let formattedLine = escapeAiSummaryHtml(line)
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/^\s*\*\s*/, '');
+
+        importantWords.forEach((word) => {
+            const escapedWord = escapeAiSummaryHtml(word).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            formattedLine = formattedLine.replace(
+                new RegExp(`(^|[^\\p{L}\\p{N}_>])(${escapedWord})(?![\\p{L}\\p{N}_<])`, 'giu'),
+                '$1<strong>$2</strong>'
+            );
+        });
+
+        return formattedLine;
+    }
+
     // MODIFIED: Fungsi untuk animasi streaming text - teks berjalan smooth dari kanan ke kiri baris per baris
     function animateAiSummaryText() {
         const textElement = document.getElementById('aiSummaryText');
@@ -528,7 +672,7 @@
         if (!textElement || !container) return;
 
         // ADDED: Ambil teks asli dan split per baris
-        const originalText = textElement.textContent;
+        const originalText = textElement.dataset.summary || textElement.textContent;
         const lines = originalText.split('\n');
         
         // ADDED: Kosongkan container dan set initial state
@@ -550,7 +694,7 @@
             const lineSpan = document.createElement('span');
             lineSpan.className = 'streaming-line';
             lineSpan.style.animationDelay = `${delayOffset}ms`;
-            lineSpan.textContent = line;
+            lineSpan.innerHTML = formatAiSummaryLine(line);
             container.appendChild(lineSpan);
 
             // ADDED: Buat line break setelah setiap baris
@@ -571,12 +715,26 @@
             setTimeout(animateAiSummaryText, 500);
         @endif
 
+        @if(session('laporan_success'))
+            // Tampilkan sukses laporan sebagai SweetAlert atau fallback modal.
+            showReportSuccessModal(@json(session('laporan_success')));
+        @endif
+
         // ADDED: Close modal ketika user klik di luar modal
         const modal = document.getElementById('aiSuccessModal');
         if (modal) {
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
                     closeAiSuccessModal();
+                }
+            });
+        }
+
+        const reportModal = document.getElementById('reportSuccessModal');
+        if (reportModal) {
+            reportModal.addEventListener('click', function(e) {
+                if (e.target === reportModal) {
+                    closeReportSuccessModal();
                 }
             });
         }

@@ -387,6 +387,17 @@
         white-space: nowrap;
     }
 
+    .follow-up-date-value {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid #dceee4;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: #0f172a;
+        font-size: .86rem;
+        font-weight: 600;
+    }
+
     .btn-simpan {
         width: 100%;
         padding: 14px 20px;
@@ -632,8 +643,16 @@
 @php
     // Check if this is showing detail form or list
     $isDetailForm = isset($jadwal);
-    $isReadOnly = !empty($jadwal) && (!empty($jadwal->laporan) || strtolower($jadwal->status ?? '') === 'selesai');
+    // Read-only hanya untuk jadwal yang sudah punya isi laporan.
+    $isReadOnly = !empty($jadwal) && ($sudahAdaLaporan ?? false);
     $riwayat = $riwayat ?? collect();
+    // Normalisasi state tindak lanjut dari data lama dan baru.
+    $isPerluLanjut = isset($jadwal)
+        && in_array(strtolower(str_replace('_', ' ', (string) ($jadwal->tindak_lanjut_tipe ?? $jadwal->tindak_lanjut ?? ''))), ['perlu lanjut', 'perlu sesi lanjutan', 'on', '1', 'ya'], true);
+    // Format tanggal sesi lanjutan untuk tampilan read-only.
+    $tanggalLanjutLabel = isset($jadwal) && $jadwal->tanggal_lanjut
+        ? \Carbon\Carbon::parse($jadwal->tanggal_lanjut)->translatedFormat('d M Y')
+        : '-';
 @endphp
 
 @if($isDetailForm)
@@ -747,15 +766,25 @@
                 <div class="checkbox-group">
                     <div class="checkbox-item">
                         <input type="checkbox" id="perlu_lanjut" name="perlu_lanjut" value="1" 
-                            {{ old('perlu_lanjut', $jadwal->tindak_lanjut_tipe ?? '') === '1' || $jadwal->tindak_lanjut_tipe === 'perlu_lanjut' ? 'checked' : '' }} {{ $isReadOnly ? 'disabled' : '' }}>
+                            {{ old('perlu_lanjut') === '1' || (!old() && $isPerluLanjut) ? 'checked' : '' }} {{ $isReadOnly ? 'disabled' : '' }}>
                         <label for="perlu_lanjut">Perlu sesi lanjutan</label>
                     </div>
                 </div>
-                <div class="date-picker-group" id="datePickerGroup" style="display: none;">
-                    <span class="date-picker-label">Pilih Tanggal</span>
-                    <input type="date" id="tanggal_lanjut" name="tanggal_lanjut" 
-                        value="{{ old('tanggal_lanjut', $jadwal->tanggal_lanjut ?? '') }}" {{ $isReadOnly ? 'disabled' : '' }}>
-                </div>
+                @if($isReadOnly)
+                    @if($isPerluLanjut)
+                        <!-- Tanggal lanjutan tetap terlihat pada detail laporan yang sudah tersimpan. -->
+                        <div class="date-picker-group" id="datePickerGroup">
+                            <span class="date-picker-label">Tanggal Sesi Lanjutan</span>
+                            <span class="follow-up-date-value">{{ $tanggalLanjutLabel }}</span>
+                        </div>
+                    @endif
+                @else
+                    <div class="date-picker-group" id="datePickerGroup" style="display: none;">
+                        <span class="date-picker-label">Pilih Tanggal</span>
+                        <input type="date" id="tanggal_lanjut" name="tanggal_lanjut" 
+                            value="{{ old('tanggal_lanjut', $jadwal->tanggal_lanjut ?? '') }}">
+                    </div>
+                @endif
             </div>
 
             @if($isReadOnly)
@@ -935,7 +964,11 @@
                                 $topik = $ringkasan;
                             }
 
-                            $sudahAdaLaporan = !empty($l->laporan) || strtolower($l->status ?? '') === 'selesai';
+                            // Status selesai belum tentu laporan sudah diisi.
+                            $sudahAdaLaporan = trim((string) ($l->laporan ?? '')) !== ''
+                                || trim((string) ($l->ringkasan_masalah ?? '')) !== ''
+                                || trim((string) ($l->observasi_konselor ?? '')) !== ''
+                                || trim((string) optional($l->sesiKonseling?->laporan)->isi_laporan) !== '';
                         @endphp
 
                         <tr id="laporan-row-{{ $l->id }}">

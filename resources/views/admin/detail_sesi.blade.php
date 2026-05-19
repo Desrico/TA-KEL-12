@@ -58,7 +58,8 @@
     }
 
     .btn-terima,
-    .btn-tolak {
+    .btn-tolak,
+    .btn-laporan {
         border: none;
         border-radius: 10px;
         padding: .75rem 1.5rem;
@@ -76,6 +77,15 @@
 
     .btn-tolak {
         background: #ff2b2b;
+    }
+
+    .btn-laporan {
+        background: #0f766e;
+    }
+
+    .btn-laporan:hover {
+        background: #115e59;
+        color: #fff;
     }
 
     .alasan-box {
@@ -109,6 +119,11 @@
     $topik = $jadwal->topik ?? null;
     $canStartNow = $status === 'disetujui' && $jadwal->isChatWindowOpen(null, 'Asia/Jakarta');
     $scheduledStartLabel = $jadwal->scheduledStartLabel('Asia/Jakarta');
+    // Cek laporan aktual agar sesi selesai tetap bisa dibuatkan laporan.
+    $sudahAdaLaporan = trim((string) ($jadwal->laporan ?? '')) !== ''
+        || trim((string) ($jadwal->ringkasan_masalah ?? '')) !== ''
+        || trim((string) ($jadwal->observasi_konselor ?? '')) !== ''
+        || trim((string) optional($jadwal->sesiKonseling?->laporan)->isi_laporan) !== '';
 
     if (!$topik && !empty($jadwal->catatan)) {
         if (preg_match('/Topik:\s*([^|]+)/i', $jadwal->catatan, $match)) {
@@ -204,6 +219,20 @@
         <div class="detail-actions">
             <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
                 Lanjutkan Chat
+            </a>
+
+            <form action="{{ route('admin.sesi.selesai', $jadwal->id) }}" method="POST">
+                @csrf
+                <!-- Tandai selesai agar laporan bisa dibuat. -->
+                <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
+                    Tandai Selesai
+                </button>
+            </form>
+        </div>
+    @elseif($status === 'selesai')
+        <div class="detail-actions">
+            <a href="{{ route('admin.laporan.laporan', $jadwal->id) }}" class="btn-laporan" style="min-width:220px;text-align:center;">
+                {{ $sudahAdaLaporan ? 'Lihat Laporan' : 'Buat Laporan' }}
             </a>
         </div>
     @endif
