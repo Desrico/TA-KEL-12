@@ -198,6 +198,7 @@ Route::get('/konselor/dashboard', [\App\Http\Controllers\DashboardController::cl
 Route::get('/konselor/prioritas', [\App\Http\Controllers\DashboardController::class, 'prioritas'])->name('counselor.prioritas');
 Route::get('/konselor/semua-mahasiswa', [\App\Http\Controllers\DashboardController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
 Route::post('/konselor/update-status/{nim}', [\App\Http\Controllers\DashboardController::class, 'updateStatus'])->name('counselor.update-status');
+Route::post('/konselor/kirim-notifikasi/{nim}', [\App\Http\Controllers\DashboardController::class, 'sendCustomNotification'])->name('counselor.send-notification');
 Route::get('/konselor/chart-data', [DashboardController::class, 'getChartData'])->name('counselor.chart-data');
 Route::get('/konselor/top-students', [\App\Http\Controllers\DashboardController::class, 'getStudentPreview'])->name('counselor.top-students');
 Route::get('/konselor/notifications', [\App\Http\Controllers\DashboardController::class, 'getUrgentNotifications'])->name('counselor.notifications');

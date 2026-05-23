@@ -471,8 +471,16 @@ class DashboardController extends Controller
                     // Kirim notifikasi HANYA JIKA sebelumnya bukan Level 3
                     // untuk mencegah spam notifikasi yang sama setiap kali dipindai
                     if (($data['level'] ?? 0) == 3 && $oldLevel != 3) {
-                        $counselors = User::all();
+                        $counselors = User::where('role', 'konselor')->get();
                         Notification::send($counselors, new \App\Notifications\HighRiskStudentDetected($student));
+
+                        foreach ($counselors as $counselor) {
+                            \App\Models\Notifikasi::create([
+                                'user_id' => $counselor->id,
+                                'pesan'   => "⚠️ Peringatan Risiko Tinggi! Mahasiswa {$student->name} ({$student->nim}) terdeteksi berada di Level 3 (Krisis).",
+                                'status'  => 'belum',
+                            ]);
+                        }
                     }
 
                     $saved++;
@@ -648,6 +656,35 @@ class DashboardController extends Controller
             }
         } catch (\Exception $e) {
         }
+    }
+
+    public function sendCustomNotification(Request $request, string $nim)
+    {
+        $request->validate([
+            'pesan' => 'required|string|max:1000',
+        ]);
+
+        $student = Student::where('nim', $nim)->firstOrFail();
+        
+        $mahasiswa = \App\Models\Mahasiswa::where('nim', $nim)->first();
+        if (!$mahasiswa || !$mahasiswa->user_id) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'User mahasiswa tidak ditemukan di database SQL.',
+            ], 404);
+        }
+
+        // Simpan ke SQL table. Hook booted() akan otomatis mensinkronisasikan ke MongoDB!
+        \App\Models\Notifikasi::create([
+            'user_id' => $mahasiswa->user_id,
+            'pesan'   => $request->pesan,
+            'status'  => 'belum',
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Notifikasi berhasil dikirim ke mahasiswa.',
+        ]);
     }
 
 }

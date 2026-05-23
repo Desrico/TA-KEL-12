@@ -661,8 +661,16 @@ class CounselorController extends Controller
                     // Kirim notifikasi HANYA JIKA sebelumnya bukan Level 3
                     // untuk mencegah spam notifikasi yang sama setiap kali dipindai
                     if (($data['level'] ?? 0) == 3 && $oldLevel != 3) {
-                        $counselors = \App\Models\User::all();
+                        $counselors = \App\Models\User::where('role', 'konselor')->get();
                         \Illuminate\Support\Facades\Notification::send($counselors, new \App\Notifications\HighRiskStudentDetected($student));
+
+                        foreach ($counselors as $counselor) {
+                            \App\Models\Notifikasi::create([
+                                'user_id' => $counselor->id,
+                                'pesan'   => "⚠️ Peringatan Risiko Tinggi! Mahasiswa {$student->name} ({$student->nim}) terdeteksi berada di Level 3 (Krisis).",
+                                'status'  => 'belum',
+                            ]);
+                        }
                     }
 
                     $saved++;
