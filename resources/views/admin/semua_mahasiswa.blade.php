@@ -53,6 +53,7 @@
         .avatar.l2 { background: linear-gradient(135deg, #fbbf24, #d97706); }
         .avatar.l1 { background: linear-gradient(135deg, #3b82f6, #2563eb); }
         .avatar.l0 { background: linear-gradient(135deg, #10b981, #059669); }
+        .avatar.lnull { background: linear-gradient(135deg, #94a3b8, #64748b); }
 
         .name-wrapper { display: flex; flex-direction: column; }
         .name-wrapper .name { font-weight: 600; font-size: 0.9rem; color: #1e293b; }
@@ -67,6 +68,7 @@
         .pill-status.l2 { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
         .pill-status.l1 { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
         .pill-status.l0 { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .pill-status.lnull { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
         .ldot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
         .ldot.anim { animation: pulse 1.8s ease-in-out infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
@@ -78,6 +80,7 @@
         .conf-fill.l2 { background: #d97706; }
         .conf-fill.l1 { background: #2563eb; }
         .conf-fill.l0 { background: #059669; }
+        .conf-fill.lnull { background: #64748b; }
         .conf-val { font-size: 0.75rem; color: #475569; font-weight: 600; }
 
         .btn-detail {
@@ -167,14 +170,53 @@
                     <i class="ti ti-arrow-left" style="font-size: 1.2rem;"></i>
                     Dashboard
                 </a>
-                <h2 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin: 0;">📑 Daftar Seluruh Mahasiswa</h2>
+                <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 999px; padding: 3px 12px; font-size: 0.8rem; font-weight: 700;">
+                    {{ $students->count() }} mahasiswa
+                </span>
             </div>
-            
-            <div style="display: flex; align-items: center; gap: 12px;">
+
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                {{-- Semua filter dalam 1 form --}}
+                <form method="GET" action="{{ route('counselor.semua-mahasiswa') }}" id="filterForm" style="display: contents;">
+
+                    {{-- Filter Angkatan --}}
+                    <select name="angkatan" id="filterAngkatan" onchange="submitFilter()"
+                        style="padding: 9px 12px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 500; outline: none; background: white; cursor: pointer; color: #475569; min-width: 140px;">
+                        <option value="Semua" {{ ($angkatan ?? 'Semua') === 'Semua' ? 'selected' : '' }}>🎓 Semua Angkatan</option>
+                        @foreach($angkatanList as $thn)
+                            <option value="{{ $thn }}" {{ ($angkatan ?? '') == $thn ? 'selected' : '' }}>Angkatan {{ $thn }}</option>
+                        @endforeach
+                    </select>
+
+                    {{-- Filter Fakultas --}}
+                    <select name="_fakultas" id="filterFakultas" onchange="onFakultasChange()"
+                        style="padding: 9px 12px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 500; outline: none; background: white; cursor: pointer; color: #475569; min-width: 160px;">
+                        <option value="Semua">🏛️ Semua Fakultas</option>
+                        <option value="FAK:Vokasi">Vokasi</option>
+                        <option value="FAK:Informatika & Elektro">Informatika &amp; Elektro</option>
+                        <option value="FAK:Bioteknologi">Bioteknologi</option>
+                        <option value="FAK:Teknik Industri">Teknik Industri</option>
+                    </select>
+
+                    {{-- Filter Prodi (cascading, muncul setelah fakultas dipilih) --}}
+                    <div id="wrapProdiFilter" style="overflow: hidden; max-width: 0; opacity: 0; transition: max-width 0.35s ease, opacity 0.3s ease;">
+                        <select id="filterProdi" onchange="submitFilter()"
+                            style="padding: 9px 12px; border-radius: 10px; border: 1px solid #059669; font-size: 0.85rem; font-weight: 500; outline: none; background: #f0fdf4; cursor: pointer; color: #065f46; min-width: 210px;">
+                        </select>
+                    </div>
+
+                    {{-- Hidden input prodi yang dikirim ke server --}}
+                    <input type="hidden" name="prodi" id="prodiInput" value="{{ $prodi ?? 'Semua' }}">
+
+                    @if(request('search'))
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                    @endif
+                </form>
+
                 <div class="search-group">
                     <i class="ti ti-search search-icon"></i>
-                    <input type="text" id="liveSearch" class="search-input" placeholder="Cari nama atau NIM..." oninput="liveFilterTable(this.value)" autocomplete="off">
-                    <button class="btn-clear-search" id="btnClearSearch" onclick="clearSearch()" style="display:none;">
+                    <input type="text" id="liveSearch" class="search-input" placeholder="Cari nama atau NIM..." oninput="liveFilterTable(this.value)" autocomplete="off" value="{{ $search ?? '' }}">
+                    <button class="btn-clear-search" id="btnClearSearch" onclick="clearSearch()" style="{{ $search ? '' : 'display:none;' }}">
                         <i class="ti ti-x"></i>
                     </button>
                 </div>
@@ -185,6 +227,7 @@
                 </button>
             </div>
         </div>
+
 
         <div id="searchResultsInfo" class="search-results-info" style="display:none;">
             <i class="ti ti-info-circle"></i>
@@ -214,7 +257,7 @@
                     <tbody id="studentTableBody">
                         @foreach($students as $s)
                         @php
-                            $lvlClass = $s->mental_level === 3 ? 'l3' : ($s->mental_level === 2 ? 'l2' : ($s->mental_level === 1 ? 'l1' : 'l0'));
+                            $lvlClass = is_null($s->mental_level) ? 'lnull' : ($s->mental_level === 3 ? 'l3' : ($s->mental_level === 2 ? 'l2' : ($s->mental_level === 1 ? 'l1' : 'l0')));
                         @endphp
                         <tr data-name="{{ strtolower($s->name) }}" data-nim="{{ strtolower($s->nim) }}">
                             <td>
@@ -241,14 +284,18 @@
                             <td>
                                 <span class="pill-status {{ $lvlClass }}">
                                     <span class="ldot {{ $s->mental_level === 3 ? 'anim' : '' }}"></span>
-                                    {{ $s->mental_label }}
+                                    {{ $s->mental_label ?? 'Belum Dipindai' }}
                                 </span>
                             </td>
                             <td>
-                                <div class="conf-wrap">
-                                    <span class="conf-val">{{ round($s->mental_confidence) }}%</span>
-                                    <div class="conf-bar"><div class="conf-fill {{ $lvlClass }}" style="width:{{ round($s->mental_confidence) }}%"></div></div>
-                                </div>
+                                @if(is_null($s->mental_level))
+                                    <span class="conf-val" style="color: #94a3b8;">-</span>
+                                @else
+                                    <div class="conf-wrap">
+                                        <span class="conf-val">{{ round($s->mental_confidence) }}%</span>
+                                        <div class="conf-bar"><div class="conf-fill {{ $lvlClass }}" style="width:{{ round($s->mental_confidence) }}%"></div></div>
+                                    </div>
+                                @endif
                             </td>
                             <td style="text-align: right;">
                                 <a href="{{ route('counselor.detail', $s->nim) }}" class="btn-detail" data-html2canvas-ignore="true">Lihat Riwayat</a>
@@ -315,6 +362,116 @@
         liveFilterTable('');
         input.focus();
     }
+
+    // Peta prodi per-Fakultas (sama dengan dashboard)
+    const fakultasProdiMap = {
+        'FAK:Vokasi': [
+            { value: 'Semua Vokasi',                        label: '📋 Semua Prodi Vokasi' },
+            { value: 'Teknologi Rekayasa Perangkat Lunak',  label: 'Teknologi Rekayasa Perangkat Lunak' },
+            { value: 'Teknologi Informasi',                 label: 'Teknologi Informasi' },
+            { value: 'Teknologi Komputer',                  label: 'Teknologi Komputer' },
+        ],
+        'FAK:Informatika & Elektro': [
+            { value: 'Semua Informatika & Elektro',         label: '📋 Semua Prodi Informatika & Elektro' },
+            { value: 'Informatika',                         label: 'Informatika' },
+            { value: 'Teknik Elektro',                      label: 'Teknik Elektro' },
+        ],
+        'FAK:Bioteknologi': [
+            { value: 'Semua Bioteknologi',                  label: '📋 Semua Prodi Bioteknologi' },
+            { value: 'Bioproses',                           label: 'Bioproses' },
+            { value: 'Bioteknologi',                        label: 'Bioteknologi' },
+        ],
+        'FAK:Teknik Industri': [
+            { value: 'Semua Teknik Industri',               label: '📋 Semua Prodi Teknik Industri' },
+            { value: 'Managemen Rekayasa',                  label: 'Managemen Rekayasa' },
+            { value: 'Metalurgi',                           label: 'Metalurgi' },
+        ],
+    };
+
+    function onFakultasChange() {
+        const fakSel   = document.getElementById('filterFakultas');
+        const prodiSel = document.getElementById('filterProdi');
+        const wrap     = document.getElementById('wrapProdiFilter');
+        const prodiInput = document.getElementById('prodiInput');
+        const fak      = fakSel ? fakSel.value : 'Semua';
+
+        if (fak === 'Semua') {
+            wrap.style.maxWidth = '0';
+            wrap.style.opacity  = '0';
+            prodiInput.value = 'Semua';
+            submitFilter();
+            return;
+        }
+
+        // Isi opsi prodi sesuai fakultas
+        const options = fakultasProdiMap[fak] || [];
+        prodiSel.innerHTML = options.map(o =>
+            `<option value="${o.value}">${o.label}</option>`
+        ).join('');
+
+        wrap.style.maxWidth = '300px';
+        wrap.style.opacity  = '1';
+
+        // Set prodiInput = FAK: (seluruh prodi fakultas) lalu submit
+        prodiInput.value = fak;
+        submitFilter();
+    }
+
+    function submitFilter() {
+        const fakSel   = document.getElementById('filterFakultas');
+        const prodiSel = document.getElementById('filterProdi');
+        const prodiInput = document.getElementById('prodiInput');
+        const fak   = fakSel   ? fakSel.value   : 'Semua';
+        const prodi = prodiSel ? prodiSel.value : '';
+
+        if (fak === 'Semua') {
+            prodiInput.value = 'Semua';
+        } else if (!prodi || prodi.startsWith('Semua ')) {
+            prodiInput.value = fak;
+        } else {
+            prodiInput.value = prodi;
+        }
+
+        document.getElementById('filterForm').submit();
+    }
+
+    // Inisialisasi: restore state dropdown dari URL
+    (function initFilters() {
+        const currentProdi = @json($prodi ?? 'Semua');
+        const fakSel = document.getElementById('filterFakultas');
+        const prodiSel = document.getElementById('filterProdi');
+        const wrap = document.getElementById('wrapProdiFilter');
+
+        if (currentProdi === 'Semua') return;
+
+        // Tentukan fakultas dari nilai prodi saat ini
+        const fakultasMap = {
+            'FAK:Vokasi':                ['Teknologi Rekayasa Perangkat Lunak','Teknologi Informasi','Teknologi Komputer','Semua Vokasi'],
+            'FAK:Informatika & Elektro': ['Informatika','Teknik Elektro','Semua Informatika & Elektro'],
+            'FAK:Bioteknologi':          ['Bioproses','Bioteknologi','Semua Bioteknologi'],
+            'FAK:Teknik Industri':       ['Managemen Rekayasa','Metalurgi','Semua Teknik Industri'],
+        };
+
+        let detectedFak = currentProdi; // bisa jadi FAK:XXX langsung
+        if (!currentProdi.startsWith('FAK:')) {
+            for (const [fak, prodis] of Object.entries(fakultasMap)) {
+                if (prodis.includes(currentProdi)) { detectedFak = fak; break; }
+            }
+        }
+
+        // Set dropdown fakultas
+        if (fakSel) fakSel.value = detectedFak;
+
+        // Render opsi prodi dan tampilkan dropdown
+        const options = fakultasProdiMap[detectedFak] || [];
+        if (prodiSel && options.length) {
+            prodiSel.innerHTML = options.map(o =>
+                `<option value="${o.value}" ${o.value === currentProdi ? 'selected' : ''}>${o.label}</option>`
+            ).join('');
+            wrap.style.maxWidth = '300px';
+            wrap.style.opacity  = '1';
+        }
+    })();
 
     function showToast(msg, color = '#059669') {
         const t = document.getElementById('toast');

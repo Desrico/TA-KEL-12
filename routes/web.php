@@ -195,8 +195,8 @@ Route::get('/konselor/jadwal-data', [CounselorController::class, 'getJadwalData'
 // KONSELOR PA3
 // ═══════════════════════════════
 Route::get('/konselor/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('counselor.dashboard');
-Route::get('/konselor/prioritas', [CounselorController::class, 'prioritas'])->name('counselor.prioritas');
-Route::get('/konselor/semua-mahasiswa', [CounselorController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
+Route::get('/konselor/prioritas', [\App\Http\Controllers\DashboardController::class, 'prioritas'])->name('counselor.prioritas');
+Route::get('/konselor/semua-mahasiswa', [\App\Http\Controllers\DashboardController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
 Route::post('/konselor/update-status/{nim}', [\App\Http\Controllers\DashboardController::class, 'updateStatus'])->name('counselor.update-status');
 Route::get('/konselor/chart-data', [DashboardController::class, 'getChartData'])->name('counselor.chart-data');
 Route::get('/konselor/top-students', [\App\Http\Controllers\DashboardController::class, 'getStudentPreview'])->name('counselor.top-students');
