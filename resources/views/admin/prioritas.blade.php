@@ -135,7 +135,7 @@
             font-size: 1.4rem; font-weight: 800; color: #0f172a;
             margin-bottom: 6px; display: flex; align-items: center; gap: 12px;
         }
-        .nim-text { font-size: 0.95rem; color: var(--text-3); font-weight: 600; margin-bottom: 16px; }
+        .nim-text { font-size: 0.95rem; color: #4b5563; font-weight: 600; margin-bottom: 16px; }
 
         .tag-group { display: flex; gap: 10px; flex-wrap: wrap; }
         .tag {
@@ -162,8 +162,9 @@
             padding: 10px 24px; background: #0f172a; color: #fff;
             border-radius: 12px; font-size: 0.85rem; font-weight: 700;
             transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%; text-align: center; display: inline-block; box-sizing: border-box;
         }
-        .btn-view:hover { background: #1e293b; transform: scale(1.05); }
+        .btn-view:hover { background: #1e293b; transform: scale(1.02); }
 
         /* ── Red Flag Alert ── */
         .red-flag-alert {
@@ -180,7 +181,7 @@
             font-size: 1.2rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2);
         }
         .rf-text h4 { color: #991b1b; font-size: 0.85rem; font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .rf-text p { color: #b91c1c; font-size: 1rem; font-weight: 600; line-height: 1.5; font-style: italic; }
+        .rf-text p { color: #7f1d1d; font-size: 1rem; font-weight: 700; line-height: 1.5; }
 
         /* ── Toast ── */
         #toast {
@@ -266,7 +267,7 @@
                             <div class="avatar-box">{{ substr($s->name, 0, 1) }}</div>
                             <div class="info-box">
                                 <h3>{{ $s->name }}</h3>
-                                <div class="nim-text">{{ $s->nim }} • {{ $s->jenis_kelamin }} • Tingkat {{ $s->angkatan }}</div>
+                                <div class="nim-text">{{ $s->nim }} • {{ $s->jenis_kelamin }} • Angkatan {{ $s->angkatan }}</div>
                                 <div class="tag-group">
                                     <span class="tag tag-krisis"><div class="pulse-dot"></div> {{ $s->mental_label }}</span>
                                     <span class="tag">

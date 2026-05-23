@@ -362,6 +362,27 @@
       border-color: #D7EBDD;
     }
 
+    .btn-notification {
+      background: #ffffff;
+      border: 1px solid var(--admin-border);
+      color: var(--admin-text-mid);
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-notification:hover {
+      background: var(--admin-soft-2);
+      color: var(--admin-primary);
+      border-color: #D7EBDD;
+    }
+
     .notif-badge {
       position: absolute;
       top: -4px;
@@ -788,7 +809,13 @@
     </div>
 
     <div class="ms-auto admin-header-actions">
-      <ul class="list-unstyled d-flex align-items-center gap-1 mb-0">
+      <ul class="list-unstyled d-flex align-items-center gap-2 mb-0">
+        <li class="pc-h-item">
+          <button class="btn-notification" id="btnWebPush" onclick="togglePush()">
+              <i class="ti ti-bell"></i>
+              <span class="d-none d-md-inline">Notifikasi Sistem</span>
+          </button>
+        </li>
         <li class="dropdown pc-h-item">
           <a href="#" class="admin-notif-btn position-relative"
              id="adminNotifTrigger"
@@ -1094,8 +1121,47 @@
     fetchAllNotifications();
     setInterval(fetchAllNotifications, 10000);
   })();
+
+  function togglePush() {
+    if (Notification.permission === 'granted') {
+      alert('✅ Notifikasi sudah aktif!');
+      return;
+    }
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        if (typeof initWebPush === 'function') initWebPush();
+        const btn = document.getElementById('btnWebPush');
+        if (btn) {
+          btn.style.background = '#ecfdf5';
+          btn.style.color = '#059669';
+          btn.style.borderColor = '#a7f3d0';
+          const span = btn.querySelector('span');
+          if (span) span.innerText = 'Notifikasi Aktif';
+          const i = btn.querySelector('i');
+          if (i) i.className = 'ti ti-bell-filled';
+        }
+        alert('🚀 Notifikasi sistem berhasil diaktifkan!');
+      } else {
+        alert('⚠️ Izin notifikasi ditolak.');
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('btnWebPush');
+    if (btn && Notification.permission === 'granted') {
+      btn.style.background = '#ecfdf5';
+      btn.style.color = '#059669';
+      btn.style.borderColor = '#a7f3d0';
+      const span = btn.querySelector('span');
+      if (span) span.innerText = 'Notifikasi Aktif';
+      const i = btn.querySelector('i');
+      if (i) i.className = 'ti ti-bell-filled';
+    }
+  });
 </script>
 
+<script src="{{ asset('js/webpush.js') }}"></script>
 @stack('scripts')
 </body>
 </html>

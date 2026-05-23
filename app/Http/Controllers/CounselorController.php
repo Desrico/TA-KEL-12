@@ -31,20 +31,15 @@ class CounselorController extends Controller
         }
 
         // Get students data for the Data Mobile tab
-        if (!Schema::hasTable('students')) {
-            \Log::warning('CounselorController@index: table "students" not found. Returning empty collection.');
-            $students = collect();
-        } else {
-            $students = Student::with('journalTexts')
-                ->whereNotNull('mental_level')
-                ->orderBy('mental_level', 'desc')
-                ->orderBy('mental_confidence', 'desc')
-                ->get()
-                ->map(function ($student) {
-                    $student->journal_texts_count = $student->journalTexts->count();
-                    return $student;
-                });
-        }
+        $students = Student::with('journalTexts')
+            ->whereNotNull('mental_level')
+            ->orderBy('mental_level', 'desc')
+            ->orderBy('mental_confidence', 'desc')
+            ->get()
+            ->map(function ($student) {
+                $student->journal_texts_count = $student->journalTexts->count();
+                return $student;
+            });
 
         $totalPenjadwalan   = (clone $baseQuery)->count();
         $menunggu       = (clone $baseQuery)->where('status', 'menunggu')->count();
@@ -168,51 +163,6 @@ class CounselorController extends Controller
             'todayWaiting',
             'todayJadwals',
         ));
-    }
-
-    public function prioritas()
-    {
-        if (!Schema::hasTable('students')) {
-            \Log::warning('CounselorController@prioritas: table "students" not found. Returning empty collection.');
-            $students = collect();
-        } else {
-            $students = Student::with('journalTexts')
-                ->where('mental_level', 3)
-                ->orderBy('name')
-                ->get()
-                ->map(function ($student) {
-                    $student->journal_texts_count = $student->journalTexts->count();
-                    return $student;
-                });
-        }
-
-        return view('admin.prioritas', compact('students'));
-    }
-
-    public function semuaMahasiswa(Request $request)
-    {
-        $search = $request->query('search');
-
-        if (!Schema::hasTable('students')) {
-            \Log::warning('CounselorController@semuaMahasiswa: table "students" not found. Returning empty collection.');
-            $students = collect();
-        } else {
-            $students = Student::with('journalTexts')
-                ->whereNotNull('mental_level')
-                ->when($search, function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('nim', 'like', "%{$search}%");
-                })
-                ->orderBy('mental_level', 'desc')
-                ->orderBy('mental_confidence', 'desc')
-                ->get()
-                ->map(function ($student) {
-                    $student->journal_texts_count = $student->journalTexts->count();
-                    return $student;
-                });
-        }
-
-        return view('admin.semua_mahasiswa', compact('students', 'search'));
     }
 
     public function getChartData(Request $request)

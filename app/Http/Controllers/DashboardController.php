@@ -22,6 +22,7 @@ class DashboardController extends Controller
     {
         // Data utama dashboard konselor (MongoDB)
         $students = Student::with('journalTexts')
+            ->whereNotNull('mental_level')
             ->orderBy('mental_level', 'desc')
             ->orderBy('name')
             ->get()
@@ -45,10 +46,14 @@ class DashboardController extends Controller
 
         $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
 
+        // Daftar angkatan unik dari MongoDB untuk filter dropdown
+        $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
+
         return view('admin.dashboard', [
-            'students' => $students,
-            'lastScan' => $lastScan,
+            'students'     => $students,
+            'lastScan'     => $lastScan,
             'todayJadwals' => $todayJadwals,
+            'angkatanList' => $angkatanList,
         ]);
     }
 
@@ -166,7 +171,7 @@ class DashboardController extends Controller
             if (!$logs->has($date)) {
                 $logs->put($date, [
                     'created_at' => $journal->created_at,
-                    'journals'   => collect([$journal]), // Gunakan koleksi untuk menampung banyak jurnal
+                    'journals'   => collect([$journal]),
                     'checkin'    => null
                 ]);
             } else {
@@ -330,10 +335,10 @@ class DashboardController extends Controller
 
     public function getStudentPreview(Request $request)
     {
-        $prodi = $request->query('prodi', 'Semua');
+        $prodi    = $request->query('prodi', 'Semua');
+        $angkatan = $request->query('angkatan', 'Semua');
 
         // Pemetaan Fakultas → daftar Prodi yang termasuk di dalamnya
-        // Mendukung dua format key: "FAK:X" (dari dropdown fakultas) dan "Semua X" (dari opsi pertama dropdown prodi)
         $fakultasMap = [
             'FAK:Vokasi'                  => ['Teknologi Rekayasa Perangkat Lunak', 'Teknologi Informasi', 'Teknologi Komputer'],
             'Semua Vokasi'                => ['Teknologi Rekayasa Perangkat Lunak', 'Teknologi Informasi', 'Teknologi Komputer'],
@@ -352,9 +357,11 @@ class DashboardController extends Controller
             ->whereNotNull('mental_level')
             ->orderBy('mental_level', 'desc')
             ->orderBy('mental_confidence', 'desc')
+            ->when($angkatan !== 'Semua', function ($q) use ($angkatan) {
+                $q->where('angkatan', $angkatan);
+            })
             ->when($prodi !== 'Semua', function ($q) use ($prodi, $fakultasMap) {
                 if (array_key_exists($prodi, $fakultasMap)) {
-                    // Filter per-Fakultas: cocokkan semua prodi yang termasuk
                     $prodiList = $fakultasMap[$prodi];
                     $q->where(function ($sub) use ($prodiList) {
                         foreach ($prodiList as $p) {
@@ -362,7 +369,6 @@ class DashboardController extends Controller
                         }
                     });
                 } else {
-                    // Filter per-Prodi: fuzzy match agar toleran terhadap variasi penulisan di DB
                     $q->where('prodi', 'like', "%{$prodi}%");
                 }
             })
@@ -529,6 +535,72 @@ class DashboardController extends Controller
         return response()->json($data);
     }
 
+    public function prioritas()
+    {
+        $students = Student::with('journalTexts')
+            ->whereIn('mental_level', [3, '3'])
+            ->orderBy('name')
+            ->get()
+            ->map(function ($student) {
+                $student->journal_texts_count = $student->journalTexts->count();
+                return $student;
+            });
+
+        return view('admin.prioritas', compact('students'));
+    }
+
+    public function semuaMahasiswa(Request $request)
+    {
+        $search   = $request->query('search');
+        $angkatan = $request->query('angkatan', 'Semua');
+        $prodi    = $request->query('prodi', 'Semua');
+
+        // Daftar angkatan unik dari MongoDB
+        $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
+
+        // Pemetaan Fakultas → daftar Prodi (sama dengan getStudentPreview)
+        $fakultasMap = [
+            'FAK:Vokasi'                  => ['Teknologi Rekayasa Perangkat Lunak', 'Teknologi Informasi', 'Teknologi Komputer'],
+            'Semua Vokasi'                => ['Teknologi Rekayasa Perangkat Lunak', 'Teknologi Informasi', 'Teknologi Komputer'],
+            'FAK:Informatika & Elektro'   => ['Informatika', 'Teknik Elektro'],
+            'Semua Informatika & Elektro' => ['Informatika', 'Teknik Elektro'],
+            'FAK:Bioteknologi'            => ['Bioproses', 'Bioteknologi'],
+            'Semua Bioteknologi'          => ['Bioproses', 'Bioteknologi'],
+            'FAK:Teknik Industri'         => ['Managemen Rekayasa', 'Metalurgi'],
+        ];
+
+        $students = Student::with('journalTexts')
+            ->whereNotNull('mental_level')
+            ->when($angkatan !== 'Semua', function ($q) use ($angkatan) {
+                $q->where('angkatan', $angkatan);
+            })
+            ->when($prodi !== 'Semua', function ($q) use ($prodi, $fakultasMap) {
+                if (array_key_exists($prodi, $fakultasMap)) {
+                    $prodiList = $fakultasMap[$prodi];
+                    $q->where(function ($sub) use ($prodiList) {
+                        foreach ($prodiList as $p) {
+                            $sub->orWhere('prodi', 'like', "%{$p}%");
+                        }
+                    });
+                } else {
+                    $q->where('prodi', 'like', "%{$prodi}%");
+                }
+            })
+            ->when($search, function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nim', 'like', "%{$search}%");
+            })
+            ->orderBy('mental_level', 'desc')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($student) {
+                $student->journal_texts_count = $student->journalTexts->count();
+                return $student;
+            });
+
+        return view('admin.semua_mahasiswa', compact('students', 'search', 'angkatanList', 'angkatan', 'prodi'));
+    }
+
     public static function classifyAndSave(string $nim): void
     {
         try {
@@ -577,4 +649,5 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
         }
     }
+
 }
