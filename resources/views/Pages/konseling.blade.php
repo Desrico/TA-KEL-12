@@ -411,6 +411,17 @@
     transition: border-color .2s ease, box-shadow .2s ease;
   }
 
+  .schedule-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%23728680' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 14px 14px;
+    padding-right: 2.8rem;
+  }
+
   .schedule-input:focus,
   .schedule-select:focus {
     border-color: #A4C8AE;
@@ -421,25 +432,6 @@
     background: #FCFCFC;
     color: #46514B;
     cursor: not-allowed;
-  }
-
-  .input-icon-wrap {
-    position: relative;
-  }
-
-  .input-icon-wrap i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #BDBDBD;
-    font-size: 1.18rem;
-    pointer-events: none;
-  }
-
-  .input-icon-wrap .schedule-input,
-  .input-icon-wrap .schedule-select {
-    padding-left: 2.85rem;
   }
 
   .media-options {
@@ -493,11 +485,120 @@
     font-weight: 800;
   }
 
+  .anonim-toggle-row {
+    margin-top: 1.15rem;
+    border: 1px solid #D8E7E0;
+    border-radius: 16px;
+    background: #F8FCFA;
+    padding: .9rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .anonim-toggle-copy {
+    min-width: 0;
+  }
+
+  .anonim-toggle-title {
+    margin: 0;
+    color: #173428;
+    font-size: .88rem;
+    font-weight: 800;
+  }
+
+  .anonim-toggle-status {
+    margin: .18rem 0 0;
+    color: var(--care-muted);
+    font-size: .78rem;
+    line-height: 1.45;
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-flex;
+    width: 52px;
+    height: 30px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #D8E3DD;
+    transition: background .2s ease;
+    cursor: pointer;
+  }
+
+  .toggle-slider::before {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    left: 4px;
+    top: 4px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .15);
+    transition: transform .2s ease;
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background: var(--care-green);
+  }
+
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(22px);
+  }
+
   .form-note {
     margin-top: .65rem;
     color: var(--care-muted);
     font-size: .8rem;
     line-height: 1.55;
+  }
+
+  .confirmation-wrap {
+    display: flex;
+    align-items: flex-start;
+    margin-top: .65rem;
+  }
+
+  .confirmation-wrap .form-check {
+    margin: 0;
+    padding-left: 2.1rem;
+  }
+
+  .confirmation-wrap .form-check-input {
+    margin-left: -2.1rem;
+    margin-top: .18rem;
+  }
+
+  .confirmation-wrap .form-check-label {
+    color: #555;
+    font-size: .9rem;
+    line-height: 1.55;
+  }
+
+  .swal2-popup.swal-service-popup {
+    border-radius: 22px;
+    padding: 1.5rem 1.35rem 1.35rem;
+  }
+
+  .swal2-popup.swal-service-popup .swal2-confirm {
+    border-radius: 12px;
+    padding: .72rem 1.15rem;
+    font-weight: 800;
+    box-shadow: none !important;
   }
 
   .submit-wrap {
@@ -821,6 +922,7 @@
   $profil = optional($user)->profil;
   $isAnonim = $user ? $user->isAnonim() : false;
   $namaMahasiswa = $user?->nama ?? 'Silakan login';
+  $anonimDisplayName = $user ? $user->getAnonimDisplayName() : 'Mahasiswa Anonim';
   $nimMahasiswa = optional($mahasiswa)->nim ?? '-';
   $jurusanMahasiswa = optional($mahasiswa)->jurusan ?? '-';
   $angkatanMahasiswa = optional($mahasiswa)->angkatan ?? '-';
@@ -852,14 +954,14 @@
                 <span>Durasi sesi</span>
               </div>
               <div class="mode-fact">
-                <i class="bi bi-camera-video"></i>
-                <strong>Video/Chat</strong>
-                <span>Media online</span>
+                <i class="bi bi-chat-dots"></i>
+                <strong>Chat</strong>
+                <span>Media sesi</span>
               </div>
               <div class="mode-fact">
-                <i class="bi bi-house-heart"></i>
-                <strong>Ruang privat</strong>
-                <span>Dari lokasi nyaman</span>
+                <i class="bi bi-hourglass-split"></i>
+                <strong>Fleksibel</strong>
+                <span>Dari Tempat Pilihanmu</span>
               </div>
             </div>
             <a href="#booking" class="mode-action" data-mode-action="online">Pilih Online <i class="bi bi-arrow-right"></i></a>
@@ -875,7 +977,7 @@
             <p>Gunakan layanan ini bila kamu ingin bertemu langsung dengan konselor di kampus. Data yang disimpan adalah jenis offline, tanggal, waktu, dan topik.</p>
             <div class="mode-facts">
               <div class="mode-fact">
-                <i class="bi bi-stopwatch"></i>
+                <i class="bi bi-clock"></i>
                 <strong>60 menit</strong>
                 <span>Durasi sesi</span>
               </div>
@@ -886,8 +988,8 @@
               </div>
               <div class="mode-fact">
                 <i class="bi bi-geo-alt-fill"></i>
-                <strong>Gedung 5</strong>
-                <span>Lantai 2</span>
+                <strong>Gedung 5, Lt. 2</strong>
+                <span>Area GD 525-GD 526</span>
               </div>
             </div>
             <a href="#booking" class="mode-action" data-mode-action="offline">Pilih Offline <i class="bi bi-arrow-right"></i></a>
@@ -913,7 +1015,7 @@
 
           <div class="info-list">
             <div class="info-row">
-              <i class="bi bi-stopwatch"></i>
+              <i class="bi bi-clock"></i>
               <div class="info-label">Durasi</div>
               <div class="info-value">60 Menit</div>
             </div>
@@ -925,7 +1027,7 @@
             <div class="info-row">
               <i class="bi bi-geo-alt-fill"></i>
               <div class="info-label">Lokasi</div>
-              <div class="info-value" id="side-location">Gedung 5 Lantai 2<br>(Antara GD 525 - GD 526)</div>
+              <div class="info-value" id="side-location">Gedung 5, Lt. 2<br>Area GD 525-GD 526</div>
             </div>
           </div>
         </aside>
@@ -947,7 +1049,7 @@
             </div>
             <span class="selected-mode-pill" id="selected-mode-pill">
               <i class="bi bi-geo-alt"></i>
-              Online
+              Offline
             </span>
           </div>
 
@@ -972,12 +1074,23 @@
             </div>
             <div class="col-md-6">
               <label class="field-label" for="profile-nama">Nama</label>
-              <input type="text" class="schedule-input" id="profile-nama" value="{{ $isAnonim ? $user->getAnonimDisplayName() : $namaMahasiswa }}" disabled>
+              <input type="text" class="schedule-input" id="profile-nama" value="{{ $isAnonim ? $anonimDisplayName : $namaMahasiswa }}" disabled>
             </div>
             <div class="col-md-6">
               <label class="field-label" for="profile-angkatan">Angkatan</label>
               <input type="text" class="schedule-input" id="profile-angkatan" value="{{ $angkatanMahasiswa }}" disabled>
             </div>
+          </div>
+
+          <div class="anonim-toggle-row">
+            <div class="anonim-toggle-copy">
+              <p class="anonim-toggle-title">Mode Anonim</p>
+              <p class="anonim-toggle-status" id="anonim-status-text">{{ $isAnonim ? 'Aktif' : 'Nonaktif' }}</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="anonim-toggle" {{ $isAnonim ? 'checked' : '' }} onchange="toggleAnonim(this)">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
 
           <div class="form-section-title">
@@ -988,20 +1101,14 @@
           <div class="row g-4">
             <div class="col-md-6">
               <label class="field-label" for="tanggal">Tanggal</label>
-              <div class="input-icon-wrap">
-                <i class="bi bi-calendar-fill"></i>
-                <input type="date" class="schedule-input" id="tanggal">
-              </div>
+              <input type="date" class="schedule-input" id="tanggal">
               <div class="form-note" id="tanggal-note">Pilih hari layanan Senin sampai Jumat.</div>
             </div>
             <div class="col-md-6">
               <label class="field-label" for="waktu">Waktu</label>
-              <div class="input-icon-wrap">
-                <i class="bi bi-clock-fill"></i>
-                <select class="schedule-select" id="waktu">
-                  <option value="">Pilih waktu</option>
-                </select>
-              </div>
+              <select class="schedule-select" id="waktu">
+                <option value="">Pilih waktu</option>
+              </select>
               <div class="form-note" id="waktu-note">Slot yang sudah terisi akan otomatis dinonaktifkan.</div>
             </div>
           </div>
@@ -1012,7 +1119,7 @@
           </div>
 
           <div class="row g-4">
-            <div class="col-md-7">
+            <div class="col-md-6">
               <label class="field-label" for="topik">Topik Konseling</label>
               <select class="schedule-select" id="topik" onchange="handleTopikChange()">
                 <option value="">Pilih topik konseling</option>
@@ -1029,26 +1136,25 @@
                 id="topik-lainnya"
                 class="schedule-input"
                 placeholder="Tuliskan topik konseling..."
-                style="display:none;"
+                style="display:none; margin-top:.75rem;"
               >
             </div>
-            <div class="col-md-5">
-              <label class="field-label">Jenis Tersimpan</label>
-              <input type="text" class="schedule-input" id="jenis-display" value="Online" disabled>
+            <div class="col-12 confirmation-wrap">
+              <div class="form-check ms-md-1">
+                <input type="checkbox" class="form-check-input" id="confirmation-checkbox">
+                <label class="form-check-label" for="confirmation-checkbox">
+                  Saya sudah memeriksa dan memastikan data penjadwalan sudah benar.
+                </label>
+              </div>
             </div>
-
-            <div class="form-check">
-              <input type="checkbox" class="form-check-input" id="confirmation-checkbox">
-              <label class="form-check-label" for="confirmation-checkbox">
-                  <span style="font-size: 0.9rem; color: #555;">Saya sudah memeriksa dan memastikan data penjadwalan sudah benar.</span>
-              </label>
+            <div class="col-12">
+              <div class="submit-wrap">
+                <button type="button" class="schedule-submit" id="submit-booking" onclick="openConfirmModal()">
+                  Jadwalkan Konseling
+                </button>
+              </div>
             </div>
-            <div class="submit-wrap">
-              <button type="button" class="schedule-submit" id="submit-booking" onclick="openConfirmModal()">
-                Jadwalkan Konseling
-              </button>
-            </div>
-          
+          </div>
 
         </main>
       </div>
@@ -1098,11 +1204,13 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const isLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
-  const bookedSlots = new Set();
+  const bookedSlots = new Map();
   const serviceTimes = ['09:00','10:00','11:00','13:00','14:00','15:00','16:00'];
+  const serviceModeStorageKey = 'konseling:selected-mode';
 
   let selectedService = 'offline';
 
@@ -1119,9 +1227,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const serviceConfig = {
     online: {
       label: 'Online',
-      icon: 'bi-camera-video',
+      icon: 'bi-chat-dots',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling online.',
-      sideMedia: 'Video / Chat',
+      sideMedia: 'Chat',
       sideLocation: 'Online<br>Link sesi menyusul setelah disetujui',
       noteClass: 'online',
       note: 'Pastikan kamu berada di tempat yang tenang dan memiliki koneksi internet stabil sebelum sesi dimulai.',
@@ -1132,7 +1240,7 @@ document.addEventListener('DOMContentLoaded', function () {
       icon: 'bi-geo-alt',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling offline.',
       sideMedia: 'Tatap Muka',
-      sideLocation: 'Gedung 5 Lantai 2<br>(Antara GD 525 - GD 526)',
+      sideLocation: 'Gedung 5, Lt. 2<br>Area GD 525-GD 526',
       noteClass: '',
       note: 'Harap tiba 10 menit lebih awal sebagai persiapan awal.',
       submit: 'Jadwalkan Offline'
@@ -1165,6 +1273,102 @@ document.addEventListener('DOMContentLoaded', function () {
       return topikLainnyaEl.value || null;
     }
     return topikVal || null;
+  }
+
+  function isApprovedSlotStatus(status) {
+    return ['disetujui', 'berlangsung'].includes(String(status || '').toLowerCase());
+  }
+
+  // Simpan mode aktif agar tetap kembali ke panel yang sama setelah reload.
+  function persistSelectedServiceMode(mode) {
+    try {
+      sessionStorage.setItem(serviceModeStorageKey, mode);
+    } catch (error) {
+      // Abaikan jika sessionStorage tidak tersedia.
+    }
+  }
+
+  // Ambil mode terakhir yang valid untuk memulihkan state tampilan.
+  function getPersistedServiceMode() {
+    try {
+      const storedMode = sessionStorage.getItem(serviceModeStorageKey);
+      return serviceConfig[storedMode] ? storedMode : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function showInteractiveAlert({
+    title = 'Informasi',
+    text = '',
+    icon = 'info',
+    confirmButtonText = 'OK'
+  } = {}) {
+    if (window.Swal && typeof window.Swal.fire === 'function') {
+      return Swal.fire({
+        title,
+        text,
+        icon,
+        confirmButtonText,
+        confirmButtonColor: '#0A523A',
+        customClass: {
+          popup: 'swal-service-popup'
+        }
+      });
+    }
+
+    alert(text || title);
+    return Promise.resolve();
+  }
+
+  // Sinkronkan status label anonim dengan posisi toggle.
+  function syncAnonimStatusLabel(isActive) {
+    const anonimStatusEl = document.getElementById('anonim-status-text');
+    if (anonimStatusEl) {
+      anonimStatusEl.textContent = isActive ? 'Aktif' : 'Nonaktif';
+    }
+  }
+
+  // Gunakan endpoint yang sama dengan halaman profil agar perilaku tetap konsisten.
+  async function toggleAnonim(checkbox) {
+    const previousState = !checkbox.checked;
+    syncAnonimStatusLabel(checkbox.checked);
+    persistSelectedServiceMode(selectedService);
+
+    try {
+      const response = await fetch('{{ route('profil.anonim') }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ anonim: checkbox.checked }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        checkbox.checked = previousState;
+        syncAnonimStatusLabel(previousState);
+        await showInteractiveAlert({
+          title: 'Mode Anonim Gagal Diperbarui',
+          text: data.message || 'Gagal memperbarui mode anonim.',
+          icon: 'error'
+        });
+        return;
+      }
+
+      window.location.reload();
+    } catch (error) {
+      checkbox.checked = previousState;
+      syncAnonimStatusLabel(previousState);
+      await showInteractiveAlert({
+        title: 'Mode Anonim Gagal Diperbarui',
+        text: 'Gagal memperbarui mode anonim.',
+        icon: 'error'
+      });
+    }
   }
 
   // Helper: Validasi tanggal
@@ -1216,17 +1420,20 @@ document.addEventListener('DOMContentLoaded', function () {
       slotDate.setHours(hour, minute, 0, 0);
 
       const isPastTime = slotDate < new Date(now.getTime() - 30 * 60 * 1000);
-      const isBooked = bookedSlots.has(`${ymd}-${time}`);
+      const slotInfo = bookedSlots.get(`${ymd}-${time}`);
+      const isApproved = isApprovedSlotStatus(slotInfo?.status);
 
-      if (isPastTime || isBooked) {
+      if (isPastTime || isApproved) {
         option.disabled = true;
-        option.textContent += isBooked ? ' - penuh' : ' - lewat';
+        option.textContent += isApproved
+          ? ` - ${slotInfo?.label || 'Telah Terjadwal'}`
+          : ' - lewat';
       }
 
       waktuEl.appendChild(option);
     });
 
-    waktuNote.textContent = 'Pilih salah satu slot konseling yang tersedia.';
+    waktuNote.textContent = 'Slot dengan status "Telah Terjadwal" sudah disetujui dan tidak dapat dipilih.';
   }
 
   // Fetch booked slots
@@ -1237,7 +1444,19 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       const data = await res.json();
       bookedSlots.clear();
-      data.forEach(slot => bookedSlots.add(slot));
+      data.forEach(slot => {
+        if (typeof slot === 'string') {
+          bookedSlots.set(slot, { status: 'menunggu', label: 'Sudah Terisi' });
+          return;
+        }
+
+        if (slot && slot.slot) {
+          bookedSlots.set(slot.slot, {
+            status: slot.status || 'menunggu',
+            label: slot.label || 'Sudah Terisi',
+          });
+        }
+      });
     } catch (error) {
       bookedSlots.clear();
     }
@@ -1248,6 +1467,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!serviceConfig[mode]) return;
 
     selectedService = mode;
+    persistSelectedServiceMode(mode);
     const config = serviceConfig[mode];
 
     bookingEl.classList.add('is-visible');
@@ -1259,7 +1479,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('schedule-subtitle').textContent = config.subtitle;
     document.getElementById('selected-mode-pill').className = `selected-mode-pill ${mode === 'online' ? 'online' : ''}`;
     document.getElementById('selected-mode-pill').innerHTML = `<i class="bi ${config.icon}"></i> ${config.label}`;
-    document.getElementById('jenis-display').value = config.label;
     document.getElementById('side-media').innerHTML = config.sideMedia;
     document.getElementById('side-location').innerHTML = config.sideLocation;
     document.getElementById('session-note').className = `session-note ${config.noteClass}`;
@@ -1282,23 +1501,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const checkbox = document.getElementById('confirmation-checkbox');
     if (!checkbox.checked) {
-      alert('Centang konfirmasi bahwa data penjadwalan sudah benar.');
+      showInteractiveAlert({
+        title: 'Konfirmasi Diperlukan',
+        text: 'Centang konfirmasi bahwa data penjadwalan sudah benar.',
+        icon: 'warning'
+      });
       return;
     }
 
     if (!validateDate()) {
-      alert('Pilih tanggal layanan yang valid.');
+      showInteractiveAlert({
+        title: 'Tanggal Belum Valid',
+        text: 'Pilih tanggal layanan yang valid.',
+        icon: 'warning'
+      });
       return;
     }
 
     if (!waktuEl.value) {
-      alert('Pilih waktu konseling terlebih dahulu.');
+      showInteractiveAlert({
+        title: 'Waktu Belum Dipilih',
+        text: 'Pilih waktu konseling terlebih dahulu.',
+        icon: 'warning'
+      });
       return;
     }
 
     const topikValue = getTopikValue();
     if (!topikValue) {
-      alert('Pilih topik konseling terlebih dahulu.');
+      showInteractiveAlert({
+        title: 'Topik Belum Dipilih',
+        text: 'Pilih topik konseling terlebih dahulu.',
+        icon: 'warning'
+      });
       return;
     }
 
@@ -1332,24 +1567,40 @@ document.addEventListener('DOMContentLoaded', function () {
     const checkbox = document.getElementById('confirmation-checkbox');
 
     if (!checkbox.checked) {
-      alert('Centang konfirmasi bahwa data penjadwalan sudah benar.');
+      showInteractiveAlert({
+        title: 'Konfirmasi Diperlukan',
+        text: 'Centang konfirmasi bahwa data penjadwalan sudah benar.',
+        icon: 'warning'
+      });
       return;
     }
 
     if (!validateDate()) {
-      alert('Pilih tanggal layanan yang valid.');
+      showInteractiveAlert({
+        title: 'Tanggal Belum Valid',
+        text: 'Pilih tanggal layanan yang valid.',
+        icon: 'warning'
+      });
       return;
     }
 
     if (!waktuEl.value) {
-      alert('Pilih waktu konseling terlebih dahulu.');
+      showInteractiveAlert({
+        title: 'Waktu Belum Dipilih',
+        text: 'Pilih waktu konseling terlebih dahulu.',
+        icon: 'warning'
+      });
       return;
     }
 
     const topikValue = getTopikValue();
 
     if (!topikValue) {
-      alert('Pilih topik konseling terlebih dahulu.');
+      showInteractiveAlert({
+        title: 'Topik Belum Dipilih',
+        text: 'Pilih topik konseling terlebih dahulu.',
+        icon: 'warning'
+      });
       return;
     }
 
@@ -1388,10 +1639,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (!res.ok) {
         console.error('ERROR jadwal.store:', res.status, data);
-        alert(data.message || 'Jadwal gagal dibuat.');
+        closeConfirmModal();
+        await fetchBookedSlots();
+        renderTimeOptions();
+
+        if (res.status === 409) {
+          waktuEl.value = '';
+          await showInteractiveAlert({
+            title: isApprovedSlotStatus(data.slot_status) ? 'Slot Sudah Terjadwal' : 'Jadwal Sudah Terisi',
+            text: data.message || 'Jadwal ini sudah terisi. Silakan pilih waktu lain.',
+            icon: isApprovedSlotStatus(data.slot_status) ? 'info' : 'warning',
+            confirmButtonText: 'Pilih Waktu Lain'
+          });
+        } else {
+          await showInteractiveAlert({
+            title: 'Penjadwalan Gagal',
+            text: data.message || 'Jadwal gagal dibuat.',
+            icon: 'error'
+          });
+        }
+
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
-        closeConfirmModal();
         return;
       }
 
@@ -1399,18 +1668,25 @@ document.addEventListener('DOMContentLoaded', function () {
         closeConfirmModal();
         openSuccessModal();
       } else {
-        alert(data.message || 'Jadwal gagal dibuat.');
+        closeConfirmModal();
+        await showInteractiveAlert({
+          title: 'Penjadwalan Gagal',
+          text: data.message || 'Jadwal gagal dibuat.',
+          icon: 'error'
+        });
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
-        closeConfirmModal();
       }
 
     } catch (error) {
       console.error('ERROR DETAIL:', error);
 
       closeConfirmModal();
-
-      alert('Gagal menyimpan jadwal. Cek Console untuk melihat error asli.');
+      await showInteractiveAlert({
+        title: 'Terjadi Kendala',
+        text: 'Gagal menyimpan jadwal. Silakan coba lagi.',
+        icon: 'error'
+      });
 
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
@@ -1440,6 +1716,7 @@ document.addEventListener('DOMContentLoaded', function () {
   window.closeSuccessModal = closeSuccessModal;
   window.submitJadwal = submitJadwal;
   window.handleTopikChange = handleTopikChange;
+  window.toggleAnonim = toggleAnonim;
 
   // Setup event listeners
   tanggalEl.min = todayYmd();
@@ -1460,7 +1737,13 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Initialize
+  const persistedMode = getPersistedServiceMode();
+  if (persistedMode) {
+    setServiceMode(persistedMode);
+  }
+
   handleTopikChange();
+  syncAnonimStatusLabel(document.getElementById('anonim-toggle')?.checked);
   fetchBookedSlots().then(renderTimeOptions);
 });
 </script>
