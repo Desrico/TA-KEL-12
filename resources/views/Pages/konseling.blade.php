@@ -434,6 +434,25 @@
     cursor: not-allowed;
   }
 
+  .input-icon-wrap {
+    position: relative;
+  }
+
+  .input-icon-wrap i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #BDBDBD;
+    font-size: 1.18rem;
+    pointer-events: none;
+  }
+
+  .input-icon-wrap .schedule-input,
+  .input-icon-wrap .schedule-select {
+    padding-left: 2.85rem;
+  }
+
   .media-options {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -485,79 +504,90 @@
     font-weight: 800;
   }
 
-  .anonim-toggle-row {
-    margin-top: 1.15rem;
+  .anonim-toggle-card {
+    margin-top: 1.2rem;
     border: 1px solid #D8E7E0;
-    border-radius: 16px;
-    background: #F8FCFA;
-    padding: .9rem 1rem;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #FCFFFD, #F6FBF8);
+    padding: 1rem 1.05rem;
+  }
+
+  .anonim-toggle-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
   }
 
   .anonim-toggle-copy {
+    flex: 1;
     min-width: 0;
   }
 
   .anonim-toggle-title {
     margin: 0;
     color: #173428;
-    font-size: .88rem;
+    font-size: .95rem;
     font-weight: 800;
   }
 
   .anonim-toggle-status {
-    margin: .18rem 0 0;
-    color: var(--care-muted);
-    font-size: .78rem;
-    line-height: 1.45;
+    margin-top: .2rem;
+    color: var(--care-green);
+    font-size: .77rem;
+    font-weight: 700;
   }
 
-  .toggle-switch {
+  .anonim-toggle-status.is-error {
+    color: #B42318;
+  }
+
+  .anonim-toggle-switch {
     position: relative;
-    display: inline-flex;
     width: 52px;
     height: 30px;
     flex-shrink: 0;
   }
 
-  .toggle-switch input {
+  .anonim-toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
-    position: absolute;
   }
 
-  .toggle-slider {
+  .anonim-toggle-slider {
     position: absolute;
     inset: 0;
     border-radius: 999px;
-    background: #D8E3DD;
-    transition: background .2s ease;
+    background: #D4DAD7;
     cursor: pointer;
+    transition: background .2s ease;
   }
 
-  .toggle-slider::before {
-    content: "";
+  .anonim-toggle-slider::before {
+    content: '';
     position: absolute;
-    width: 22px;
-    height: 22px;
-    left: 4px;
-    top: 4px;
+    left: 3px;
+    top: 3px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: #fff;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, .15);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .14);
     transition: transform .2s ease;
   }
 
-  .toggle-switch input:checked + .toggle-slider {
+  .anonim-toggle-switch input:checked + .anonim-toggle-slider {
     background: var(--care-green);
   }
 
-  .toggle-switch input:checked + .toggle-slider::before {
+  .anonim-toggle-switch input:checked + .anonim-toggle-slider::before {
     transform: translateX(22px);
+  }
+
+  .anonim-toggle-switch input:disabled + .anonim-toggle-slider {
+    cursor: wait;
+    opacity: .72;
   }
 
   .form-note {
@@ -587,18 +617,6 @@
     color: #555;
     font-size: .9rem;
     line-height: 1.55;
-  }
-
-  .swal2-popup.swal-service-popup {
-    border-radius: 22px;
-    padding: 1.5rem 1.35rem 1.35rem;
-  }
-
-  .swal2-popup.swal-service-popup .swal2-confirm {
-    border-radius: 12px;
-    padding: .72rem 1.15rem;
-    font-weight: 800;
-    box-shadow: none !important;
   }
 
   .submit-wrap {
@@ -674,244 +692,192 @@
     font-size: .9rem;
   }
 
-  .confirm-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: rgba(0, 0, 0, .28);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 999999 !important;
-}
-
-.confirm-overlay.show {
-  display: flex !important;
-}
-
-.confirm-box {
-  width: 360px;
-  max-width: 90%;
-  background: #066847;
-  color: #fff;
-  border-radius: 12px;
-  padding: 1.8rem 1.5rem;
-  text-align: center;
-  box-shadow: 0 24px 60px rgba(0,0,0,.25);
-  animation: popFade .25s ease both;
-}
-
-.confirm-icon {
-  width: 58px;
-  height: 58px;
-  border: 4px solid #ffe66d;
-  color: #ffe66d;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 auto 1rem;
-}
-
-.confirm-box h3 {
-  color: #fff;
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin-bottom: .8rem;
-}
-
-.confirm-box p {
-  color: #fff;
-  font-size: .78rem;
-  line-height: 1.45;
-  margin-bottom: 1.3rem;
-}
-
-.confirm-actions {
-  display: flex;
-  justify-content: center;
-  gap: .8rem;
-}
-
-.btn-confirm {
-  border: 0;
-  background: #ffe66d;
-  color: #064e3b;
-  font-weight: 800;
-  font-size: .78rem;
-  border-radius: 5px;
-  padding: .45rem .9rem;
-}
-
-.btn-cancel {
-  border: 1px solid #fff;
-  background: transparent;
-  color: #fff;
-  font-weight: 700;
-  font-size: .78rem;
-  border-radius: 5px;
-  padding: .45rem .9rem;
-}
-
-@keyframes popFade {
-  from {
-    opacity: 0;
-    transform: scale(.92);
+  .service-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, .34);
+    backdrop-filter: blur(4px);
+    z-index: 999999;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+
+  .service-modal-overlay.show {
+    display: flex;
   }
-}
+
+  .service-modal {
+    position: relative;
+    width: min(100%, 360px);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #0C7A52 0%, #0A6D4A 100%);
+    color: #fff;
+    padding: 1.8rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 28px 68px rgba(15, 23, 42, .3);
+    animation: modalEntrance .28s ease both;
+  }
+
+  .service-modal::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    pointer-events: none;
+  }
+
+  .service-modal-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 1rem;
+    border: 4px solid #FFE06B;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #FFE06B;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    animation: iconBounce .55s ease both;
+  }
+
+  .service-modal.is-success .service-modal-icon {
+    border-color: #D8F5E5;
+    color: #D8F5E5;
+  }
+
+  .service-modal.is-error .service-modal-icon {
+    border-color: #FFD18A;
+    color: #FFD18A;
+  }
+
+  .service-modal h3 {
+    margin: 0 0 .8rem;
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+
+  .service-modal p {
+    max-width: 290px;
+    margin: 0 auto 1.3rem;
+    color: rgba(255,255,255,.96);
+    font-size: .78rem;
+    line-height: 1.45;
+    white-space: pre-line;
+  }
+
+  .service-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .service-modal-btn {
+    min-width: 110px;
+    min-height: 44px;
+    border-radius: 6px;
+    padding: .48rem .95rem;
+    font-size: .78rem;
+    font-weight: 800;
+    transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+  }
+
+  .service-modal-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .service-modal-btn-primary {
+    border: 0;
+    background: #FFE06B;
+    color: #07533A;
+  }
+
+  .service-modal-btn-primary:hover {
+    background: #FFD84F;
+    color: #064A34;
+  }
+
+  .service-modal-btn-secondary {
+    border: 1px solid rgba(255,255,255,.8);
+    background: transparent;
+    color: #fff;
+  }
+
+  .service-modal-btn-secondary:hover {
+    border-color: #fff;
+    background: rgba(255,255,255,.08);
+    color: #fff;
+  }
+
+  .service-modal-btn[hidden] {
+    display: none !important;
+  }
+
+  @keyframes modalEntrance {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes iconBounce {
+    0% {
+      opacity: 0;
+      transform: scale(.35);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
   @media (max-width: 991.98px) {
     .service-hero {
       padding-bottom: 2.7rem;
     }
-}
-
-.confirm-overlay.show,
-.success-overlay.show {
-  display: flex !important;
-}
-
-.confirm-box {
-  width: 360px;
-  max-width: 90%;
-  background: #066847;
-  color: #fff;
-  border-radius: 14px;
-  padding: 1.8rem 1.5rem;
-  text-align: center;
-  animation: popFade .28s ease both;
-}
-
-.confirm-icon {
-  width: 58px;
-  height: 58px;
-  border: 4px solid #ffe66d;
-  color: #ffe66d;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 auto 1rem;
-  animation: iconBounce .55s ease both;
-}
-
-.confirm-box h3 {
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin-bottom: .8rem;
-}
-
-.confirm-box p {
-  font-size: .78rem;
-  line-height: 1.45;
-  margin-bottom: 1.3rem;
-}
-
-.confirm-actions {
-  display: flex;
-  justify-content: center;
-  gap: .8rem;
-}
-
-.btn-confirm {
-  border: 0;
-  background: #ffe66d;
-  color: #064e3b;
-  font-weight: 800;
-  font-size: .78rem;
-  border-radius: 6px;
-  padding: .48rem .95rem;
-}
-
-.btn-cancel {
-  border: 1px solid #fff;
-  background: transparent;
-  color: #fff;
-  font-weight: 700;
-  font-size: .78rem;
-  border-radius: 6px;
-  padding: .48rem .95rem;
-}
-
-.success-box {
-  width: 390px;
-  max-width: 90%;
-  background: #fff;
-  border-radius: 22px;
-  padding: 2rem 1.7rem;
-  text-align: center;
-  box-shadow: 0 28px 70px rgba(15, 23, 42, .22);
-  animation: popFade .28s ease both;
-}
-
-.success-icon {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: #DFF8EA;
-  color: #066847;
-  display: grid;
-  place-items: center;
-  margin: 0 auto 1rem;
-  font-size: 2rem;
-  animation: iconBounce .55s ease both;
-}
-
-.success-box h3 {
-  color: #064E3B;
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin-bottom: .65rem;
-}
-
-.success-box p {
-  margin: 0 auto 1.4rem;
-  color: #64748b;
-  font-size: .9rem;
-  line-height: 1.6;
-  max-width: 300px;
-}
-
-.btn-success-ok {
-  border: 0;
-  background: #066847;
-  color: #fff;
-  border-radius: 999px;
-  padding: .7rem 1.4rem;
-  font-size: .85rem;
-  font-weight: 800;
-}
-
-@keyframes popFade {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(.94);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
 
-@keyframes iconBounce {
-  0% {
-    opacity: 0;
-    transform: scale(.3);
+  @media (max-width: 767.98px) {
+    .anonim-toggle-row {
+      flex-direction: column;
+    }
+
+    .anonim-toggle-switch {
+      align-self: flex-end;
+    }
+
+    .service-modal {
+      width: min(100%, 340px);
+      padding: 1.65rem 1.25rem;
+      border-radius: 14px;
+    }
+
+    .service-modal-btn {
+      flex: 1 1 100%;
+    }
   }
-  60% {
-    opacity: 1;
-    transform: scale(1.12);
+
+  @media (prefers-reduced-motion: reduce) {
+    .service-modal,
+    .service-modal-icon,
+    .service-modal-btn {
+      animation: none;
+      transition: none;
+    }
   }
-  100% {
-    transform: scale(1);
-  }
-}
 </style>
 @endpush
 
@@ -1082,15 +1048,24 @@
             </div>
           </div>
 
-          <div class="anonim-toggle-row">
-            <div class="anonim-toggle-copy">
-              <p class="anonim-toggle-title">Mode Anonim</p>
-              <p class="anonim-toggle-status" id="anonim-status-text">{{ $isAnonim ? 'Aktif' : 'Nonaktif' }}</p>
+          <div class="anonim-toggle-card">
+            <div class="anonim-toggle-row">
+              <div class="anonim-toggle-copy">
+                <p class="anonim-toggle-title">Mode Anonim</p>
+                <div class="anonim-toggle-status" id="anonim-toggle-status">
+                  {{ $isAnonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.' }}
+                </div>
+              </div>
+              <label class="anonim-toggle-switch" aria-label="Toggle mode anonim">
+                <input
+                  type="checkbox"
+                  id="anonim-toggle"
+                  {{ $isAnonim ? 'checked' : '' }}
+                  {{ Auth::check() ? '' : 'disabled' }}
+                >
+                <span class="anonim-toggle-slider"></span>
+              </label>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="anonim-toggle" {{ $isAnonim ? 'checked' : '' }} onchange="toggleAnonim(this)">
-              <span class="toggle-slider"></span>
-            </label>
           </div>
 
           <div class="form-section-title">
@@ -1101,14 +1076,20 @@
           <div class="row g-4">
             <div class="col-md-6">
               <label class="field-label" for="tanggal">Tanggal</label>
-              <input type="date" class="schedule-input" id="tanggal">
+              <div class="input-icon-wrap">
+                <i class="bi bi-calendar-fill"></i>
+                <input type="date" class="schedule-input" id="tanggal">
+              </div>
               <div class="form-note" id="tanggal-note">Pilih hari layanan Senin sampai Jumat.</div>
             </div>
             <div class="col-md-6">
               <label class="field-label" for="waktu">Waktu</label>
-              <select class="schedule-select" id="waktu">
-                <option value="">Pilih waktu</option>
-              </select>
+              <div class="input-icon-wrap">
+                <i class="bi bi-clock-fill"></i>
+                <select class="schedule-select" id="waktu">
+                  <option value="">Pilih waktu</option>
+                </select>
+              </div>
               <div class="form-note" id="waktu-note">Slot yang sudah terisi akan otomatis dinonaktifkan.</div>
             </div>
           </div>
@@ -1162,41 +1143,47 @@
   </div>
 </section>
 
-<div class="confirm-overlay" id="confirmModal">
-  <div class="confirm-box">
-    <div class="confirm-icon">?</div>
-
-    <h3>Konfirmasi Penjadwalan</h3>
-
-    <p>
-      Apakah kamu yakin ingin menjadwalkan sesi konseling ini?<br>
-      Pastikan tanggal, waktu, dan metode yang dipilih sudah sesuai.
-    </p>
-
-    <div class="confirm-actions">
-      <button type="button" class="btn-confirm" onclick="confirmSubmitJadwal()">
+<div class="service-modal-overlay" id="confirmModal" aria-hidden="true">
+  <div class="service-modal is-warning" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="service-modal-icon" aria-hidden="true">?</div>
+    <h3 id="confirmModalTitle">Konfirmasi Penjadwalan</h3>
+    <p>Apakah kamu yakin ingin menjadwalkan sesi konseling ini?
+Pastikan tanggal, waktu, dan metode yang dipilih sudah sesuai.</p>
+    <div class="service-modal-actions">
+      <button type="button" class="service-modal-btn service-modal-btn-primary" onclick="confirmSubmitJadwal()">
         Jadwalkan
       </button>
-      <button type="button" class="btn-cancel" onclick="closeConfirmModal()">
+      <button type="button" class="service-modal-btn service-modal-btn-secondary" onclick="closeConfirmModal()">
         Batalkan
       </button>
     </div>
   </div>
 </div>
-<div class="confirm-overlay" id="successModal">
-  <div class="confirm-box">
-    <div class="confirm-icon">
+<div class="service-modal-overlay" id="successModal" aria-hidden="true">
+  <div class="service-modal is-success" role="dialog" aria-modal="true" aria-labelledby="successModalTitle">
+    <div class="service-modal-icon" aria-hidden="true">
       <i class="bi bi-check-lg"></i>
     </div>
-
-    <h3>Penjadwalan Berhasil</h3>
-    <p>
-      Pengajuan jadwal konseling berhasil dibuat dan sedang menunggu persetujuan konselor.
-    </p>
-
-    <div class="confirm-actions">
-      <button type="button" class="btn-confirm" onclick="closeSuccessModal()">
+    <h3 id="successModalTitle">Penjadwalan Berhasil</h3>
+    <p>Pengajuan jadwal konseling berhasil dibuat dan sedang menunggu persetujuan konselor.</p>
+    <div class="service-modal-actions">
+      <button type="button" class="service-modal-btn service-modal-btn-primary" onclick="closeSuccessModal()">
         OK
+      </button>
+    </div>
+  </div>
+</div>
+<div class="service-modal-overlay" id="alertModal" aria-hidden="true">
+  <div class="service-modal is-warning" role="dialog" aria-modal="true" aria-labelledby="alertModalTitle">
+    <div class="service-modal-icon" id="alertModalIcon" aria-hidden="true">!</div>
+    <h3 id="alertModalTitle">Informasi</h3>
+    <p id="alertModalText"></p>
+    <div class="service-modal-actions">
+      <button type="button" class="service-modal-btn service-modal-btn-primary" id="alertModalConfirm">
+        OK
+      </button>
+      <button type="button" class="service-modal-btn service-modal-btn-secondary" id="alertModalCancel" hidden>
+        Tutup
       </button>
     </div>
   </div>
@@ -1204,13 +1191,17 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const isLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
+  let isAnonim = {{ $isAnonim ? 'true' : 'false' }};
   const bookedSlots = new Map();
   const serviceTimes = ['09:00','10:00','11:00','13:00','14:00','15:00','16:00'];
-  const serviceModeStorageKey = 'konseling:selected-mode';
+  const profileDisplay = {
+    nim: @js($nimMahasiswa),
+    nama: @js($namaMahasiswa),
+    anonimName: @js($anonimDisplayName),
+  };
 
   let selectedService = 'offline';
 
@@ -1223,6 +1214,21 @@ document.addEventListener('DOMContentLoaded', function () {
   const submitBtn = document.getElementById('submit-booking');
   const tanggalNote = document.getElementById('tanggal-note');
   const waktuNote = document.getElementById('waktu-note');
+  const anonimToggleEl = document.getElementById('anonim-toggle');
+  const anonimStatusEl = document.getElementById('anonim-toggle-status');
+  const profileNimEl = document.getElementById('profile-nim');
+  const profileNamaEl = document.getElementById('profile-nama');
+  const confirmModalEl = document.getElementById('confirmModal');
+  const successModalEl = document.getElementById('successModal');
+  const alertModalEl = document.getElementById('alertModal');
+  const alertModalBoxEl = alertModalEl?.querySelector('.service-modal');
+  const alertModalIconEl = document.getElementById('alertModalIcon');
+  const alertModalTitleEl = document.getElementById('alertModalTitle');
+  const alertModalTextEl = document.getElementById('alertModalText');
+  const alertModalConfirmEl = document.getElementById('alertModalConfirm');
+  const alertModalCancelEl = document.getElementById('alertModalCancel');
+
+  let activeAlertResolver = null;
 
   const serviceConfig = {
     online: {
@@ -1279,22 +1285,39 @@ document.addEventListener('DOMContentLoaded', function () {
     return ['disetujui', 'berlangsung'].includes(String(status || '').toLowerCase());
   }
 
-  // Simpan mode aktif agar tetap kembali ke panel yang sama setelah reload.
-  function persistSelectedServiceMode(mode) {
-    try {
-      sessionStorage.setItem(serviceModeStorageKey, mode);
-    } catch (error) {
-      // Abaikan jika sessionStorage tidak tersedia.
-    }
+  function getModalIconMarkup(icon) {
+    const iconMap = {
+      warning: '?',
+      error: '!',
+      success: '<i class="bi bi-check-lg"></i>',
+      info: '<i class="bi bi-info-lg"></i>',
+    };
+
+    return iconMap[icon] || iconMap.info;
   }
 
-  // Ambil mode terakhir yang valid untuk memulihkan state tampilan.
-  function getPersistedServiceMode() {
-    try {
-      const storedMode = sessionStorage.getItem(serviceModeStorageKey);
-      return serviceConfig[storedMode] ? storedMode : null;
-    } catch (error) {
-      return null;
+  function getModalVariant(icon) {
+    if (icon === 'success') return 'is-success';
+    if (icon === 'error') return 'is-error';
+    return 'is-warning';
+  }
+
+  function openModal(modal) {
+    if (!modal) return;
+    document.body.appendChild(modal);
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(modal) {
+    if (!modal) return;
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+
+    const hasVisibleModal = document.querySelector('.service-modal-overlay.show');
+    if (!hasVisibleModal) {
+      document.body.style.overflow = '';
     }
   }
 
@@ -1304,36 +1327,55 @@ document.addEventListener('DOMContentLoaded', function () {
     icon = 'info',
     confirmButtonText = 'OK'
   } = {}) {
-    if (window.Swal && typeof window.Swal.fire === 'function') {
-      return Swal.fire({
-        title,
-        text,
-        icon,
-        confirmButtonText,
-        confirmButtonColor: '#0A523A',
-        customClass: {
-          popup: 'swal-service-popup'
-        }
-      });
+    if (!alertModalEl || !alertModalBoxEl) {
+      alert(text || title);
+      return Promise.resolve();
     }
 
-    alert(text || title);
-    return Promise.resolve();
+    alertModalBoxEl.classList.remove('is-warning', 'is-error', 'is-success');
+    alertModalBoxEl.classList.add(getModalVariant(icon));
+    alertModalIconEl.innerHTML = getModalIconMarkup(icon);
+    alertModalTitleEl.textContent = title;
+    alertModalTextEl.textContent = text;
+    alertModalConfirmEl.textContent = confirmButtonText;
+    alertModalCancelEl.hidden = true;
+
+    openModal(alertModalEl);
+
+    return new Promise(resolve => {
+      activeAlertResolver = resolve;
+    });
   }
 
-  // Sinkronkan status label anonim dengan posisi toggle.
-  function syncAnonimStatusLabel(isActive) {
-    const anonimStatusEl = document.getElementById('anonim-status-text');
-    if (anonimStatusEl) {
-      anonimStatusEl.textContent = isActive ? 'Aktif' : 'Nonaktif';
+  function closeInteractiveAlert() {
+    closeModal(alertModalEl);
+
+    if (typeof activeAlertResolver === 'function') {
+      const resolve = activeAlertResolver;
+      activeAlertResolver = null;
+      resolve();
     }
   }
 
-  // Gunakan endpoint yang sama dengan halaman profil agar perilaku tetap konsisten.
-  async function toggleAnonim(checkbox) {
+  function updateAnonimUI(active) {
+    isAnonim = active;
+    profileNimEl.value = active ? '********' : profileDisplay.nim;
+    profileNamaEl.value = active ? profileDisplay.anonimName : profileDisplay.nama;
+    anonimStatusEl.textContent = active ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
+    anonimStatusEl.classList.remove('is-error');
+  }
+
+  async function toggleAnonimMode(checkbox) {
+    if (!isLoggedIn) {
+      checkbox.checked = false;
+      window.location.href = '/login';
+      return;
+    }
+
     const previousState = !checkbox.checked;
-    syncAnonimStatusLabel(checkbox.checked);
-    persistSelectedServiceMode(selectedService);
+    checkbox.disabled = true;
+    anonimStatusEl.textContent = 'Menyimpan perubahan mode anonim...';
+    anonimStatusEl.classList.remove('is-error');
 
     try {
       const response = await fetch('{{ route('profil.anonim') }}', {
@@ -1350,24 +1392,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (!response.ok || !data.success) {
         checkbox.checked = previousState;
-        syncAnonimStatusLabel(previousState);
-        await showInteractiveAlert({
-          title: 'Mode Anonim Gagal Diperbarui',
-          text: data.message || 'Gagal memperbarui mode anonim.',
-          icon: 'error'
-        });
+        updateAnonimUI(previousState);
+        anonimStatusEl.textContent = data.message || 'Gagal memperbarui mode anonim.';
+        anonimStatusEl.classList.add('is-error');
         return;
       }
 
-      window.location.reload();
+      updateAnonimUI(Boolean(data.anonim));
     } catch (error) {
       checkbox.checked = previousState;
-      syncAnonimStatusLabel(previousState);
-      await showInteractiveAlert({
-        title: 'Mode Anonim Gagal Diperbarui',
-        text: 'Gagal memperbarui mode anonim.',
-        icon: 'error'
-      });
+      updateAnonimUI(previousState);
+      anonimStatusEl.textContent = 'Gagal memperbarui mode anonim.';
+      anonimStatusEl.classList.add('is-error');
+    } finally {
+      checkbox.disabled = false;
     }
   }
 
@@ -1419,7 +1457,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const [hour, minute] = time.split(':').map(Number);
       slotDate.setHours(hour, minute, 0, 0);
 
-      const isPastTime = slotDate < new Date(now.getTime() - 30 * 60 * 1000);
+      // Slot harus sudah ditutup tepat saat jam sesi dimulai, jadi batas terakhir booking adalah 1 menit sebelumnya.
+      const isPastTime = slotDate <= now;
       const slotInfo = bookedSlots.get(`${ymd}-${time}`);
       const isApproved = isApprovedSlotStatus(slotInfo?.status);
 
@@ -1467,7 +1506,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!serviceConfig[mode]) return;
 
     selectedService = mode;
-    persistSelectedServiceMode(mode);
     const config = serviceConfig[mode];
 
     bookingEl.classList.add('is-visible');
@@ -1537,23 +1575,19 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    const modal = document.getElementById('confirmModal');
-    document.body.appendChild(modal);
-    modal.classList.add('show');
+    openModal(confirmModalEl);
   }
 
   function closeConfirmModal() {
-    document.getElementById('confirmModal').classList.remove('show');
+    closeModal(confirmModalEl);
   }
 
   function openSuccessModal() {
-    const modal = document.getElementById('successModal');
-    document.body.appendChild(modal);
-    modal.classList.add('show');
+    openModal(successModalEl);
   }
 
   function closeSuccessModal() {
-    document.getElementById('successModal').classList.remove('show');
+    closeModal(successModalEl);
     window.location.href = '{{ route("konseling") }}';
   }
 
@@ -1716,7 +1750,6 @@ document.addEventListener('DOMContentLoaded', function () {
   window.closeSuccessModal = closeSuccessModal;
   window.submitJadwal = submitJadwal;
   window.handleTopikChange = handleTopikChange;
-  window.toggleAnonim = toggleAnonim;
 
   // Setup event listeners
   tanggalEl.min = todayYmd();
@@ -1727,6 +1760,47 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   topikEl.addEventListener('change', handleTopikChange);
+  anonimToggleEl?.addEventListener('change', function () {
+    toggleAnonimMode(this);
+  });
+  alertModalConfirmEl?.addEventListener('click', closeInteractiveAlert);
+  alertModalCancelEl?.addEventListener('click', closeInteractiveAlert);
+
+  [confirmModalEl, successModalEl, alertModalEl].forEach(modal => {
+    modal?.addEventListener('click', function (event) {
+      if (event.target !== modal) return;
+
+      if (modal === confirmModalEl) {
+        closeConfirmModal();
+        return;
+      }
+
+      if (modal === successModalEl) {
+        closeSuccessModal();
+        return;
+      }
+
+      closeInteractiveAlert();
+    });
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') return;
+
+    if (alertModalEl?.classList.contains('show')) {
+      closeInteractiveAlert();
+      return;
+    }
+
+    if (confirmModalEl?.classList.contains('show')) {
+      closeConfirmModal();
+      return;
+    }
+
+    if (successModalEl?.classList.contains('show')) {
+      closeSuccessModal();
+    }
+  });
 
   // Mode action buttons
   document.querySelectorAll('[data-mode-action]').forEach(el => {
@@ -1737,13 +1811,8 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Initialize
-  const persistedMode = getPersistedServiceMode();
-  if (persistedMode) {
-    setServiceMode(persistedMode);
-  }
-
+  updateAnonimUI(isAnonim);
   handleTopikChange();
-  syncAnonimStatusLabel(document.getElementById('anonim-toggle')?.checked);
   fetchBookedSlots().then(renderTimeOptions);
 });
 </script>

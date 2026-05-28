@@ -114,9 +114,34 @@ trait HandlesOnlineChatSessions
 
         $jadwal = $sesi->jadwalKonseling;
 
-        if ($jadwal && $jadwal->status !== 'berlangsung') {
-            $jadwal->forceFill(['status' => 'berlangsung'])->save();
+        if ($jadwal) {
+            $jadwalUpdates = [];
+
+            if ($jadwal->status !== 'berlangsung') {
+                $jadwalUpdates['status'] = 'berlangsung';
+            }
+
+            if (empty($jadwal->started_at)) {
+                // started_at menyimpan kapan sesi benar-benar mulai dibuka oleh user/konselor.
+                $jadwalUpdates['started_at'] = $this->nowInDisplayTimezone();
+            }
+
+            if (empty($jadwal->expires_at)) {
+                // expires_at tetap dipatok ke jam booking + 24 jam agar jendela akses sinkron untuk kedua pihak.
+                $jadwalUpdates['expires_at'] = $this->getScheduledEndAt($sesi) ?? $this->nowInDisplayTimezone()->copy()->addDay();
+            }
+
+            if ($jadwalUpdates) {
+                $jadwal->forceFill($jadwalUpdates)->save();
+            }
         }
+    }
+
+    protected function isChatWindowOpen(SesiKonseling $sesi): bool
+    {
+        $sesi = $this->synchronizeSessionState($sesi);
+
+        return (bool) $sesi->jadwalKonseling?->isChatWindowOpen(null, $this->displayTimezone());
     }
 
     protected function canStartSessionNow(SesiKonseling $sesi): bool

@@ -205,79 +205,6 @@
     color: var(--primary);
   }
 
-  .profil-anon-card {
-    margin-top: 1rem;
-    background: #f8fffb;
-    border: 1px solid #e6f2ec;
-    border-radius: 18px;
-    padding: 1rem;
-  }
-
-  .profil-anon-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: .7rem;
-  }
-
-  .profil-anon-title {
-    font-weight: 700;
-    font-size: .92rem;
-    color: var(--text-dark);
-    margin-bottom: .15rem;
-  }
-
-  .profil-anon-desc {
-    font-size: .8rem;
-    color: var(--text-light);
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  .toggle-switch {
-    position: relative;
-    width: 48px;
-    height: 26px;
-    flex-shrink: 0;
-  }
-
-  .toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .toggle-slider {
-    position: absolute;
-    inset: 0;
-    background: #d1d5db;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: .25s ease;
-  }
-
-  .toggle-slider:before {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    left: 3px;
-    bottom: 3px;
-    background: white;
-    border-radius: 50%;
-    transition: .25s ease;
-    box-shadow: 0 1px 4px rgba(0,0,0,.12);
-  }
-
-  .toggle-switch input:checked + .toggle-slider {
-    background: var(--primary);
-  }
-
-  .toggle-switch input:checked + .toggle-slider:before {
-    transform: translateX(22px);
-  }
-
   .profil-main-head {
     display: flex;
     justify-content: space-between;
@@ -403,17 +330,6 @@
     color: white;
   }
 
-  .profil-note-box {
-    margin-top: 1rem;
-    background: #f8fffb;
-    border: 1px solid #e6f2ec;
-    border-radius: 16px;
-    padding: 1rem;
-    color: var(--text-mid);
-    font-size: .84rem;
-    line-height: 1.7;
-  }
-
   @media (max-width: 991.98px) {
     .profil-grid {
       grid-template-columns: 1fr;
@@ -487,25 +403,6 @@
             <i class="bi bi-clock-history me-2"></i>Lihat Riwayat
           </a>
 
-          <div class="profil-anon-card">
-            <div class="profil-anon-top">
-              <div>
-                <div class="profil-anon-title">Mode Anonim</div>
-                <p class="profil-anon-desc">
-                  Sembunyikan identitas dari konselor pada kondisi tertentu.
-                </p>
-              </div>
-
-              <label class="toggle-switch">
-                <input type="checkbox" {{ optional($profil)->anonim ? 'checked' : '' }} onchange="toggleAnonim(this)">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div class="profil-note-box">
-              Saat mode anonim aktif, identitas mahasiswa tidak ditampilkan secara penuh pada alur layanan tertentu sehingga pengguna dapat merasa lebih nyaman saat memulai proses konseling.
-            </div>
-          </div>
         </div>
       </div>
 
@@ -698,33 +595,5 @@ function previewFoto(input) {
     reader.readAsDataURL(file);
 }
 
-async function toggleAnonim(checkbox) {
-  const previousState = !checkbox.checked;
-
-  try {
-    const response = await fetch('{{ route('profil.anonim') }}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ anonim: checkbox.checked }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      checkbox.checked = previousState;
-      alert(data.message || 'Gagal memperbarui mode anonim.');
-      return;
-    }
-
-    window.location.reload();
-  } catch (error) {
-    checkbox.checked = previousState;
-    alert('Gagal memperbarui mode anonim.');
-  }
-}
 </script>
 @endpush

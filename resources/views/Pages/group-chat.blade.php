@@ -52,6 +52,93 @@
     line-height: 1.8;
   }
 
+  .anonim-toggle-card {
+    max-width: 420px;
+    margin-top: 1rem;
+    border: 1px solid #D8E7E0;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #FCFFFD, #F6FBF8);
+    padding: 1rem 1.05rem;
+  }
+
+  .anonim-toggle-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .anonim-toggle-copy {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .anonim-toggle-title {
+    margin: 0;
+    color: #173428;
+    font-size: .95rem;
+    font-weight: 800;
+  }
+
+  .anonim-toggle-status {
+    margin-top: .2rem;
+    color: #047857;
+    font-size: .77rem;
+    font-weight: 700;
+  }
+
+  .anonim-toggle-status.is-error {
+    color: #B42318;
+  }
+
+  .anonim-toggle-switch {
+    position: relative;
+    width: 52px;
+    height: 30px;
+    flex-shrink: 0;
+  }
+
+  .anonim-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .anonim-toggle-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #D4DAD7;
+    cursor: pointer;
+    transition: background .2s ease;
+  }
+
+  .anonim-toggle-slider::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .14);
+    transition: transform .2s ease;
+  }
+
+  .anonim-toggle-switch input:checked + .anonim-toggle-slider {
+    background: #0A523A;
+  }
+
+  .anonim-toggle-switch input:checked + .anonim-toggle-slider::before {
+    transform: translateX(22px);
+  }
+
+  .anonim-toggle-switch input:disabled + .anonim-toggle-slider {
+    cursor: wait;
+    opacity: .72;
+  }
+
   .group-lobby-grid {
     max-width: 1180px;
     margin: 0 auto;
@@ -326,11 +413,23 @@
       width: 100%;
       justify-content: center;
     }
+
+    .anonim-toggle-row {
+      flex-direction: column;
+    }
+
+    .anonim-toggle-switch {
+      align-self: flex-end;
+    }
   }
 </style>
 @endpush
 
 @section('konten')
+@php
+  $user = Auth::user();
+  $isAnonim = $user ? $user->isAnonim() : false;
+@endphp
 <section class="group-lobby-page">
   <div class="container">
     @if(session('success'))
@@ -355,6 +454,25 @@
         Halaman ini difokuskan untuk melihat grup yang sudah kamu ikuti dan membuka kembali ruang chat saat diperlukan.
         Jika ingin topik baru, gunakan tombol tambah grup dari kartu daftar grupmu.
       </p>
+      <div class="anonim-toggle-card">
+        <div class="anonim-toggle-row">
+          <div class="anonim-toggle-copy">
+            <p class="anonim-toggle-title">Mode Anonim</p>
+            <div class="anonim-toggle-status" id="anonim-toggle-status">
+              {{ $isAnonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.' }}
+            </div>
+          </div>
+          <label class="anonim-toggle-switch" aria-label="Toggle mode anonim">
+            <input
+              type="checkbox"
+              id="anonim-toggle"
+              {{ $isAnonim ? 'checked' : '' }}
+              {{ Auth::check() ? '' : 'disabled' }}
+            >
+            <span class="anonim-toggle-slider"></span>
+          </label>
+        </div>
+      </div>
     </div>
 
     <div class="group-lobby-grid">
@@ -463,3 +581,59 @@
   </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const isLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
+  const anonimToggleEl = document.getElementById('anonim-toggle');
+  const anonimStatusEl = document.getElementById('anonim-toggle-status');
+
+  async function toggleAnonimMode(checkbox) {
+    if (!isLoggedIn) {
+      checkbox.checked = false;
+      window.location.href = '/login';
+      return;
+    }
+
+    const previousState = !checkbox.checked;
+    checkbox.disabled = true;
+    anonimStatusEl.textContent = 'Menyimpan perubahan mode anonim...';
+    anonimStatusEl.classList.remove('is-error');
+
+    try {
+      const response = await fetch('{{ route('profil.anonim') }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ anonim: checkbox.checked }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        checkbox.checked = previousState;
+        anonimStatusEl.textContent = data.message || 'Gagal memperbarui mode anonim.';
+        anonimStatusEl.classList.add('is-error');
+        return;
+      }
+
+      anonimStatusEl.textContent = data.anonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
+    } catch (error) {
+      checkbox.checked = previousState;
+      anonimStatusEl.textContent = 'Gagal memperbarui mode anonim.';
+      anonimStatusEl.classList.add('is-error');
+    } finally {
+      checkbox.disabled = false;
+    }
+  }
+
+  anonimToggleEl?.addEventListener('change', function () {
+    toggleAnonimMode(this);
+  });
+});
+</script>
+@endpush

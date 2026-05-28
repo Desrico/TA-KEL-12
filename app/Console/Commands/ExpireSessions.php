@@ -16,18 +16,17 @@ class ExpireSessions extends Command
     {
         $now = Carbon::now('Asia/Jakarta');
 
+        // Tetap cek semua sesi yang masih hidup agar data lama tanpa expires_at ikut tersinkron.
         $expired = JadwalKonseling::query()
-            ->whereNotNull('expires_at')
-            ->where('status', 'berlangsung')
-            ->where('expires_at', '<=', $now)
+            ->whereIn('status', ['disetujui', 'berlangsung'])
             ->get();
 
         $count = 0;
 
         foreach ($expired as $jadwal) {
-            $jadwal->status = 'selesai';
-            $jadwal->save();
-            $count++;
+            if ($jadwal->syncExpiredSessionStatus($now)) {
+                $count++;
+            }
         }
 
         $this->info("Expired sessions processed: {$count}");

@@ -318,10 +318,7 @@
 
   .stats-card {
     margin-top: 2rem;
-    padding: 1rem;
-    border: 1px solid var(--line);
-    border-radius: 24px;
-    background: rgba(255, 255, 255, .72);
+    display: none;
   }
 
   .stat-tile {
@@ -374,7 +371,7 @@
     align-items: flex-start;
   }
 
-  .trust-item i {
+  .trust-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -384,9 +381,25 @@
     border-radius: 50%;
     background: var(--primary-soft);
     color: var(--primary);
+    box-shadow: inset 0 0 0 1px rgba(10, 82, 58, .05);
   }
 
-  .trust-item:nth-child(3) i {
+  .trust-icon i,
+  .trust-icon svg {
+    width: 22px;
+    height: 22px;
+    font-size: 1.15rem;
+  }
+
+  .trust-icon svg {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .trust-item:nth-child(3) .trust-icon {
     background: #FFE3B7;
     color: #9A5B05;
   }
@@ -464,12 +477,12 @@
 
   .step-card {
     height: 100%;
-    min-height: 172px;
-    padding: 1.5rem 1.2rem;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, .74);
-    background: rgba(255, 255, 255, .86);
-    box-shadow: 0 18px 38px rgba(10, 82, 58, .08);
+    min-height: 182px;
+    padding: 1.2rem 1rem;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, .78);
+    background: rgba(255, 255, 255, .9);
+    box-shadow: 0 20px 42px rgba(10, 82, 58, .08);
     backdrop-filter: blur(8px);
     text-align: center;
   }
@@ -479,16 +492,19 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
-    margin-bottom: 1rem;
+    width: 56px;
+    height: 56px;
+    margin-bottom: .9rem;
     border-radius: 50%;
     background: var(--primary-soft);
     color: var(--primary);
+    font-size: 1.15rem;
   }
 
   .step-icon.gold { background: #F8D59E; color: #875807; }
   .step-icon.red { background: #FEE2E2; color: #B91C1C; }
+  .step-icon.blue { background: #DDF0FF; color: #1663A6; }
+  .step-icon.mint { background: #E2F7EE; color: #0D6A4B; }
 
   .step-card small {
     display: block;
@@ -500,48 +516,142 @@
   }
 
   .step-card h4 {
-    max-width: 150px;
-    margin: .35rem auto 0;
-    color: var(--ink);
-    font-size: .95rem;
-    font-weight: 800;
-    line-height: 1.35;
-  }
-
-  .dmhi-section {
-    background: #EAF8F1;
-  }
-
-  .dmhi-card {
-    height: 100%;
-    padding: 1rem;
-    border: 1px solid var(--line);
-    border-radius: 22px;
-    background: rgba(255,255,255,.78);
-  }
-
-  .dmhi-thumb {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 76px;
-    height: 76px;
-    margin-bottom: 1rem;
-    overflow: hidden;
-    border-radius: 18px;
-    background: var(--primary-soft);
-  }
-
-  .dmhi-thumb img {
-    width: 82px;
-    height: 82px;
-    object-fit: contain;
-  }
-
-  .dmhi-card h4 {
+    margin: .2rem auto 0;
     color: var(--ink);
     font-size: 1rem;
     font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .step-card p {
+    max-width: 220px;
+    margin: .45rem auto 0;
+    color: var(--muted);
+    font-size: .81rem;
+    line-height: 1.55;
+  }
+
+  .dmhi-section {
+    position: relative;
+    overflow: hidden;
+    background: #EAF8F1;
+  }
+
+  .dmhi-section::before,
+  .dmhi-section::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    pointer-events: none;
+    filter: blur(16px);
+    opacity: .85;
+  }
+
+  .dmhi-section::before {
+    top: 3.5rem;
+    left: -4rem;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(126, 240, 160, .42) 0%, rgba(126, 240, 160, .12) 45%, rgba(126, 240, 160, 0) 72%);
+    animation: ambientGlowOne 10s ease-in-out infinite;
+  }
+
+  .dmhi-section::after {
+    right: -3rem;
+    bottom: 2rem;
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, rgba(15, 184, 122, .22) 0%, rgba(15, 184, 122, .1) 42%, rgba(15, 184, 122, 0) 74%);
+    animation: ambientGlowTwo 12s ease-in-out infinite;
+  }
+
+  .dmhi-section .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .dmhi-grid {
+    position: relative;
+    row-gap: 1.45rem;
+  }
+
+  .dmhi-item {
+    transition: transform .35s ease;
+    will-change: transform;
+  }
+
+  .dmhi-card {
+    position: relative;
+    height: 100%;
+    padding: 1.25rem 1.15rem 1.15rem;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: rgba(255,255,255,.84);
+    box-shadow: 0 18px 38px rgba(10, 82, 58, .06);
+    backdrop-filter: blur(12px);
+    transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease, background .28s ease;
+    animation: dmhiFloat 6s ease-in-out infinite;
+  }
+
+  .dmhi-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(126, 240, 160, .08));
+    opacity: 0;
+    transition: opacity .28s ease;
+    pointer-events: none;
+  }
+
+  .dmhi-card:hover {
+    transform: translateY(-8px) rotate(-.4deg);
+    border-color: rgba(15, 184, 122, .22);
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 24px 48px rgba(10, 82, 58, .12);
+  }
+
+  .dmhi-card:hover::before {
+    opacity: 1;
+  }
+
+  .dmhi-card-head {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    margin-bottom: .8rem;
+  }
+
+  .dmhi-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    border-radius: 18px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    box-shadow: inset 0 0 0 1px rgba(10, 82, 58, .05);
+    transition: transform .28s ease, background .28s ease, color .28s ease;
+  }
+
+  .dmhi-icon i {
+    font-size: 1.35rem;
+  }
+
+  .dmhi-card:hover .dmhi-icon {
+    transform: scale(1.06) rotate(-6deg);
+    background: #DDF7E8;
+    color: var(--primary-600);
+  }
+
+  .dmhi-card h4 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.35;
   }
 
   .dmhi-card p {
@@ -551,41 +661,92 @@
     line-height: 1.7;
   }
 
-  .impact-section {
-    background: #F8FCF9;
+  .dmhi-item:nth-child(1) {
+    transform: translate3d(0, 6px, 0);
   }
 
-  .impact-card {
-    height: 100%;
-    padding: 1.4rem;
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    background: #fff;
+  .dmhi-item:nth-child(2) {
+    transform: translate3d(0, -14px, 0);
   }
 
-  .impact-card i {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    margin-bottom: 1rem;
-    border-radius: 14px;
-    background: var(--primary-soft);
-    color: var(--primary);
+  .dmhi-item:nth-child(3) {
+    transform: translate3d(0, 10px, 0);
   }
 
-  .impact-card h4 {
-    color: var(--ink);
-    font-size: 1.05rem;
-    font-weight: 800;
+  .dmhi-item:nth-child(4) {
+    transform: translate3d(0, 14px, 0);
   }
 
-  .impact-card p {
-    margin: 0;
-    color: var(--muted);
-    font-size: .86rem;
-    line-height: 1.75;
+  .dmhi-item:nth-child(5) {
+    transform: translate3d(0, -10px, 0);
+  }
+
+  .dmhi-item:nth-child(6) {
+    transform: translate3d(0, 12px, 0);
+  }
+
+  .dmhi-item:nth-child(1) .dmhi-card {
+    animation-duration: 6.8s;
+    animation-delay: .2s;
+  }
+
+  .dmhi-item:nth-child(2) .dmhi-card {
+    animation-duration: 5.8s;
+    animation-delay: .8s;
+  }
+
+  .dmhi-item:nth-child(3) .dmhi-card {
+    animation-duration: 7.3s;
+    animation-delay: 1.1s;
+  }
+
+  .dmhi-item:nth-child(4) .dmhi-card {
+    animation-duration: 6.2s;
+    animation-delay: 1.6s;
+  }
+
+  .dmhi-item:nth-child(5) .dmhi-card {
+    animation-duration: 7s;
+    animation-delay: 2s;
+  }
+
+  .dmhi-item:nth-child(6) .dmhi-card {
+    animation-duration: 5.9s;
+    animation-delay: 2.4s;
+  }
+
+  .dmhi-item:hover {
+    transform: translate3d(0, -4px, 0);
+  }
+
+  @keyframes dmhiFloat {
+    0%, 100% {
+      transform: translate3d(0, 0, 0);
+    }
+    35% {
+      transform: translate3d(0, -5px, 0);
+    }
+    70% {
+      transform: translate3d(0, 3px, 0);
+    }
+  }
+
+  @keyframes ambientGlowOne {
+    0%, 100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(20px, 10px, 0) scale(1.08);
+    }
+  }
+
+  @keyframes ambientGlowTwo {
+    0%, 100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(-18px, -12px, 0) scale(1.05);
+    }
   }
 
   .final-cta {
@@ -608,6 +769,10 @@
     margin: 0;
     color: rgba(255,255,255,.78);
     line-height: 1.7;
+  }
+
+  footer {
+    margin-top: 0;
   }
 
   .btn-warm {
@@ -651,6 +816,23 @@
       align-items: flex-start;
       flex-direction: column;
     }
+
+    .dmhi-item:nth-child(n) {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dmhi-section::before,
+    .dmhi-section::after,
+    .dmhi-item,
+    .dmhi-card,
+    .dmhi-card:hover,
+    .dmhi-card:hover .dmhi-icon {
+      animation: none;
+      transform: none;
+      transition: none;
+    }
   }
 
   @media (max-width: 575.98px) {
@@ -680,6 +862,11 @@
       padding: 1.5rem;
     }
 
+    .step-card {
+      min-height: 170px;
+      padding: 1.05rem .9rem;
+    }
+
     .mood-dots {
       right: 1.2rem;
       top: 1.2rem;
@@ -707,7 +894,7 @@
             Langkah berani untuk masa depan yang lebih cerah. Campus Care hadir sebagai ruang bimbingan dan konseling yang aman, tenang, dan mudah diakses oleh mahasiswa IT Del.
           </p>
           <div class="hero-actions">
-            <a href="/tentang" class="btn-home-primary">Tentang Campus Care</a>
+            <a href="/tentang" class="btn-home-primary">Edukasi Mental</a>
           </div>
         </div>
 
@@ -761,47 +948,6 @@
           </div>
         </div>
       </div>
-
-      <div class="stats-card">
-        <div class="row g-2">
-          <div class="col-md-6 col-lg-3">
-            <div class="stat-tile">
-              <i class="bi bi-laptop"></i>
-              <div>
-                <h4>Online</h4>
-                <p>Layanan digital yang fleksibel.</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-3">
-            <div class="stat-tile">
-              <i class="bi bi-incognito"></i>
-              <div>
-                <h4>Anonim</h4>
-                <p>Opsi menjaga kenyamanan awal.</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-3">
-            <div class="stat-tile">
-              <i class="bi bi-calendar-check"></i>
-              <div>
-                <h4>Terjadwal</h4>
-                <p>Pengajuan sesi lebih rapi.</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-3">
-            <div class="stat-tile">
-              <i class="bi bi-journal-check"></i>
-              <div>
-                <h4>Terpantau</h4>
-                <p>Riwayat layanan tersimpan.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -811,24 +957,29 @@
         <div class="col-lg-5">
           <div class="trust-list">
             <div class="trust-item">
-              <i class="bi bi-lock"></i>
+              <span class="trust-icon"><i class="bi bi-door-open"></i></span>
               <div>
-                <h4>100% Privasi Terjamin</h4>
-                <p>Ceritamu aman bersama kami. Data dan pilihan layanan diperlakukan secara hati-hati.</p>
+                <h4>Akses Bantuan Lebih Mudah</h4>
+                <p>Mahasiswa dapat memulai layanan konseling kampus secara digital dengan alur yang lebih sederhana dan mudah dipahami.</p>
               </div>
             </div>
             <div class="trust-item">
-              <i class="bi bi-shield-check"></i>
+              <span class="trust-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" focusable="false">
+                  <path d="M4.5 13.5c0-1.2.8-2 2-2h3l2.2-3.3c.4-.6 1.3-.4 1.4.3l.2 2.2c.1.7-.1 1.4-.5 2l-.4.8h3.5c1 0 1.8.8 1.8 1.8 0 .2 0 .5-.1.7l-1 3.4c-.2.8-1 1.3-1.7 1.3H10c-.8 0-1.6-.2-2.3-.7L5.6 18.3a2 2 0 0 1-1.1-1.8Z"/>
+                  <path d="M16.8 4.8c1.4 0 2.7 1.1 2.7 2.5 0 2.2-2.5 3.8-4.7 5.5-2.2-1.7-4.7-3.3-4.7-5.5 0-1.4 1.2-2.5 2.7-2.5.9 0 1.6.4 2 1 .4-.6 1.2-1 2-1Z"/>
+                </svg>
+              </span>
               <div>
-                <h4>Konselor Berlisensi</h4>
-                <p>Tim bimbingan dan konseling siap mendengarkan dengan profesional dan tidak menghakimi.</p>
+                <h4>Didampingi Konselor Kampus</h4>
+                <p>Campus Care mendukung proses konseling bersama konselor kampus sebagai tenaga profesional yang mendampingi mahasiswa.</p>
               </div>
             </div>
             <div class="trust-item">
-              <i class="bi bi-headset"></i>
+              <span class="trust-icon"><i class="bi bi-journal-check"></i></span>
               <div>
-                <h4>Respon Cepat</h4>
-                <p>Alur layanan dibuat jelas agar kamu tahu langkah berikutnya setelah mengajukan jadwal.</p>
+                <h4>Layanan Lebih Terstruktur</h4>
+                <p>Penjadwalan, pencatatan, dan tindak lanjut layanan disusun rapi agar proses bantuan berjalan lebih konsisten.</p>
               </div>
             </div>
           </div>
@@ -846,39 +997,39 @@
   <section class="section-block steps-section">
     <div class="container">
       <div class="text-center mb-5">
-        <h2 class="section-title">Tahapan Sebelum Konseling</h2>
+        <h2 class="section-title">Mengapa Konseling itu Penting?</h2>
         <p class="section-desc mx-auto">
-          Ikuti langkah-langkah mudah berikut untuk memulai perjalanan kesehatan mentalmu bersama Campus Care.
+          Konseling memberi ruang aman untuk memahami diri, mengelola tekanan, dan mendapatkan dukungan yang tepat saat dibutuhkan.
         </p>
       </div>
 
       <div class="row g-4">
         <div class="col-md-6 col-lg-3">
           <div class="step-card">
-            <div class="step-icon"><i class="bi bi-person-plus"></i></div>
-            <small>Langkah 1</small>
-            <h4>Melakukan Pendaftaran Akun</h4>
+            <div class="step-icon mint"><i class="bi bi-heart"></i></div>
+            <h4>Didukung & Dipahami</h4>
+            <p>Ruang aman untuk berbagi tanpa takut dihakimi.</p>
           </div>
         </div>
         <div class="col-md-6 col-lg-3">
           <div class="step-card">
-            <div class="step-icon gold"><i class="bi bi-box-arrow-in-right"></i></div>
-            <small>Langkah 2</small>
-            <h4>Masuk ke Akun yang Terdaftar</h4>
+            <div class="step-icon"><i class="bi bi-emoji-smile"></i></div>
+            <h4>Jaga Kesehatan Mental</h4>
+            <p>Membantu mengelola stres dan tekanan sehari-hari.</p>
           </div>
         </div>
         <div class="col-md-6 col-lg-3">
           <div class="step-card">
-            <div class="step-icon"><i class="bi bi-clipboard2-pulse"></i></div>
-            <small>Langkah 3</small>
-            <h4>Mengikuti Survey atau Mood Tracker</h4>
+            <div class="step-icon gold"><i class="bi bi-people"></i></div>
+            <h4>Akses Bantuan Lebih Dini</h4>
+            <p>Membantu mengenali masalah lebih awal sebelum tekanan membesar.</p>
           </div>
         </div>
         <div class="col-md-6 col-lg-3">
           <div class="step-card">
-            <div class="step-icon red"><i class="bi bi-calendar2-check"></i></div>
-            <small>Langkah 4</small>
-            <h4>Memilih Menu Jadwal Konseling</h4>
+            <div class="step-icon blue"><i class="bi bi-chat-square-text"></i></div>
+            <h4>Feedback untuk Layanan yang Lebih Baik</h4>
+            <p>Umpan balik digital membantu layanan kampus makin responsif dan relevan.</p>
           </div>
         </div>
       </div>
@@ -892,66 +1043,64 @@
           <div class="section-kicker mb-3">Konsep DMHI</div>
           <h2 class="section-title">Mengarah pada pendekatan <span>Digital Mental Health Intervention</span></h2><br>
         <p class="section-desc">
-            Campus Care menjadi pintu masuk digital untuk membantu mahasiswa memahami kebutuhan, mengatur sesi, dan menjaga keberlanjutan dukungan psikologis.
+            Campus Care dirancang sebagai langkah awal bantuan psikologis digital yang lebih mudah diakses, aman, terstruktur, dan berkelanjutan bagi mahasiswa.
           </p>
         </div>
       </div>
 
-      <div class="row g-4">
-        <div class="col-md-4">
+      <div class="row dmhi-grid">
+        <div class="col-md-6 col-lg-4 dmhi-item">
           <div class="dmhi-card">
-            <div class="dmhi-thumb"><img src="{{ asset('img/ac.png') }}" alt="Akses konseling digital"></div>
-            <h4>Akses Lebih Mudah</h4>
-            <p>Mahasiswa dapat memulai proses bantuan dari platform tanpa harus datang langsung lebih dulu.</p>
+            <div class="dmhi-card-head">
+              <span class="dmhi-icon"><i class="bi bi-door-open"></i></span>
+              <h4>Akses Lebih Mudah</h4>
+            </div>
+            <p>Mahasiswa dapat memulai proses bantuan dari platform digital tanpa harus datang langsung di awal.</p>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6 col-lg-4 dmhi-item">
           <div class="dmhi-card">
-            <div class="dmhi-thumb"><img src="{{ asset('img/privacy.png') }}" alt="Privasi layanan konseling"></div>
-            <h4>Privasi dan Rasa Aman</h4>
-            <p>Mode anonim, akun pengguna, dan riwayat layanan membantu pengalaman terasa lebih aman.</p>
+            <div class="dmhi-card-head">
+              <span class="dmhi-icon"><i class="bi bi-laptop"></i></span>
+              <h4>Online dan Fleksibel</h4>
+            </div>
+            <p>Layanan dapat diakses dari mana saja sehingga lebih sesuai dengan ritme aktivitas mahasiswa.</p>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6 col-lg-4 dmhi-item">
           <div class="dmhi-card">
-            <div class="dmhi-thumb"><img src="{{ asset('img/alur_terstruktur.png') }}" alt="Alur konseling terstruktur"></div>
-            <h4>Alur Terstruktur</h4>
-            <p>Dari registrasi hingga jadwal konseling, setiap langkah dibuat jelas dan mudah dipahami.</p>
+            <div class="dmhi-card-head">
+              <span class="dmhi-icon"><i class="bi bi-incognito"></i></span>
+              <h4>Identitas Terjaga</h4>
+            </div>
+            <p>Opsi anonim membantu mahasiswa memulai cerita dengan rasa aman dan tekanan yang lebih rendah.</p>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section-block impact-section">
-    <div class="container">
-      <div class="mb-4">
-        <h2 class="section-title">Mengapa pendekatan ini relevan untuk mahasiswa?</h2>
-        <p class="section-desc">
-          Mahasiswa sering menghadapi tekanan akademik, adaptasi sosial, dan tantangan personal secara bersamaan. Akses bantuan yang sederhana dapat menjadi langkah awal yang realistis.
-        </p>
-      </div>
-
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="impact-card">
-            <i class="bi bi-people"></i>
-            <h4>Relasi Sosial</h4>
-            <p>Membantu mahasiswa yang sedang menghadapi konflik, rasa kesepian, atau kesulitan beradaptasi.</p>
+        <div class="col-md-6 col-lg-4 dmhi-item">
+          <div class="dmhi-card">
+            <div class="dmhi-card-head">
+              <span class="dmhi-icon"><i class="bi bi-calendar-check"></i></span>
+              <h4>Terjadwal dengan Jelas</h4>
+            </div>
+            <p>Pengajuan sesi konseling dibuat rapi agar mahasiswa lebih mudah memilih waktu yang sesuai.</p>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="impact-card">
-            <i class="bi bi-person-heart"></i>
-            <h4>Personal</h4>
-            <p>Memberi ruang untuk memahami kecemasan, tekanan diri, dan kebutuhan emosi secara lebih tenang.</p>
+        <div class="col-md-6 col-lg-4 dmhi-item">
+          <div class="dmhi-card">
+            <div class="dmhi-card-head">
+              <span class="dmhi-icon"><i class="bi bi-journal-check"></i></span>
+              <h4>Terpantau dan Tercatat</h4>
+            </div>
+            <p>Riwayat layanan dan aktivitas pendukung membantu proses pendampingan berjalan lebih berkelanjutan.</p>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="impact-card">
-            <i class="bi bi-mortarboard"></i>
-            <h4>Akademik</h4>
-            <p>Mendukung mahasiswa yang mengalami stres akademik, kehilangan motivasi, atau kesulitan fokus.</p>
+        <div class="col-md-6 col-lg-4 dmhi-item">
+          <div class="dmhi-card">
+            <div class="dmhi-card-head">
+              <span class="dmhi-icon"><i class="bi bi-shield-lock"></i></span>
+              <h4>Privasi dan Dukungan Berkelanjutan</h4>
+            </div>
+            <p>Pengalaman digital tetap menjaga kerahasiaan sekaligus membuka ruang untuk tindak lanjut yang konsisten.</p>
           </div>
         </div>
       </div>

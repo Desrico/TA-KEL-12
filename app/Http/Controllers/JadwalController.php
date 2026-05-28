@@ -12,6 +12,7 @@ use App\Models\Konselor;
 use App\Models\User;
 use App\Models\Notifikasi;
 use App\Models\KetidaktersediaanKonselor;
+use Illuminate\Validation\ValidationException;
 
 class JadwalController extends Controller
 {
@@ -76,7 +77,7 @@ class JadwalController extends Controller
             $rules['konfirmasi'] = 'accepted';
         }
 
-        return $request->validate($rules, [
+        $validated = $request->validate($rules, [
             'tanggal.required'         => 'Tanggal konseling wajib diisi.',
             'tanggal.date'             => 'Format tanggal konseling tidak valid.',
             'tanggal.after_or_equal'   => 'Tanggal konseling tidak boleh sebelum hari ini.',
@@ -89,6 +90,22 @@ class JadwalController extends Controller
             'topik.max'                => 'Topik konseling maksimal 255 karakter.',
             'konfirmasi.accepted'      => 'Centang pernyataan konfirmasi sebelum menjadwalkan konseling.',
         ]);
+
+        $this->ensureSlotHasNotStarted($validated['tanggal'], $validated['waktu']);
+
+        return $validated;
+    }
+
+    private function ensureSlotHasNotStarted(string $tanggal, string $waktu): void
+    {
+        $slotAt = Carbon::createFromFormat('Y-m-d H:i', $tanggal.' '.$waktu, 'Asia/Jakarta');
+
+        // Booking untuk slot hari ini harus dilakukan sebelum jam sesi dimulai, bukan saat atau sesudahnya.
+        if (Carbon::now('Asia/Jakarta')->greaterThanOrEqualTo($slotAt)) {
+            throw ValidationException::withMessages([
+                'waktu' => 'Slot waktu ini sudah dimulai. Silakan pilih jam lain yang masih sebelum waktu sesi dimulai.',
+            ]);
+        }
     }
 
     private function resolveActiveKonselor(): ?Konselor
