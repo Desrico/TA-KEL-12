@@ -8,7 +8,6 @@ use App\Models\Chat;
 use App\Models\JadwalKonseling;
 use App\Models\SesiKonseling;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -501,49 +500,20 @@ class ChatAdminController extends Controller
             return null;
         }
 
-        $jadwal = $sesi->jadwalKonseling;
-
-        if ($jadwal && $jadwal->status !== 'berlangsung') {
-            $jadwal->forceFill([
-                'status' => 'berlangsung',
-                'started_at' => Carbon::now($this->displayTimezone()),
-                'expires_at' => Carbon::now($this->displayTimezone())->addDay(),
-            ])->save();
-        }
-
+        // Resolver ini hanya membaca sesi milik konselor, tidak boleh menggeser waktu aktif atau expiry.
         return $this->synchronizeSessionState($sesi);
     }
 
     private function isChatWindowOpen(SesiKonseling $sesi): bool
     {
-        $jadwal = $sesi->jadwalKonseling;
+        $sesi = $this->synchronizeSessionState($sesi);
 
-        if (! $jadwal) {
-            return false;
-        }
-
-        $now = $this->nowInDisplayTimezone();
-
-        $start = $jadwal->startedAt() ?? $this->getScheduledAt($sesi);
-
-        if (! $start) {
-            return false;
-        }
-
-        $expires = $jadwal->expiresAt() ?? $start->copy()->addDay();
-
-        return $now->greaterThanOrEqualTo($start) && $now->lessThanOrEqualTo($expires);
+        return (bool) $sesi->jadwalKonseling?->isChatWindowOpen(null, $this->displayTimezone());
     }
 
     private function canStartSessionNow(SesiKonseling $sesi): bool
     {
-        $scheduledAt = $this->getScheduledAt($sesi);
-
-        if (! $scheduledAt) {
-            return false;
-        }
-
-        return $this->nowInDisplayTimezone()->greaterThanOrEqualTo($scheduledAt);
+        return $this->isChatWindowOpen($sesi);
     }
 
     private function getScheduledStartLabel(SesiKonseling $sesi): string
@@ -556,9 +526,6 @@ class ChatAdminController extends Controller
 
         return $scheduledAt
             ->translatedFormat('j F Y \\p\\u\\k\\u\\l H:i');
-
-        return $this->synchronizeSessionState($sesi);
-
     }
 
     private function buildChatPayload(SesiKonseling $sesi, array $messages, bool $isReadyToStart, bool $canStartNow): array
@@ -705,11 +672,23 @@ class ChatAdminController extends Controller
 
     private function isSessionActive(SesiKonseling $sesi): bool
     {
-        return $sesi->status === 'berlangsung';
+        $sesi = $this->synchronizeSessionState($sesi);
+
+        return $this->isChatWindowOpen($sesi)
+            && (
+                $sesi->status === 'berlangsung'
+                || ($sesi->jadwalKonseling?->status === 'berlangsung')
+            );
     }
 
     private function getScheduleBlockedMessage(SesiKonseling $sesi): string
     {
+        $scheduledEndAt = $this->getScheduledEndAt($sesi);
+
+        if ($scheduledEndAt && $this->nowInDisplayTimezone()->greaterThanOrEqualTo($scheduledEndAt)) {
+            return 'Sesi konseling online ini sudah melewati batas 24 jam dan dinyatakan selesai.';
+        }
+
         return 'Sesi konseling online ini akan dimulai pada '.$this->getScheduledStartLabel($sesi).'. Sebelum itu, ruang chat belum bisa diakses.';
     }
 

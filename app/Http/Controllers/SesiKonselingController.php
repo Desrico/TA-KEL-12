@@ -26,7 +26,7 @@ class SesiKonselingController extends Controller
         $konselor = $this->resolveAuthenticatedKonselor();
         $search = trim((string) $request->query('search', ''));
 
-        $jadwalQuery = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil', 'sesiKonseling'])
+        $jadwalQuery = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil', 'sesiKonseling.laporan'])
             ->where('konselor_id', $konselor->id);
 
         if ($search !== '') {
@@ -72,7 +72,7 @@ class SesiKonselingController extends Controller
     {
         $konselor = $this->resolveAuthenticatedKonselor();
 
-        $jadwal = JadwalKonseling::with(['mahasiswa.user'])
+        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'sesiKonseling.laporan'])
             ->where('konselor_id', $konselor->id)
             ->findOrFail($id);
 
@@ -137,8 +137,15 @@ class SesiKonselingController extends Controller
             'status' => 'selesai',
         ]);
 
-        // set waktu_selesai on sesi_konseling if the column exists
-        $sesi = $jadwal->sesiKonseling;
+        // Pastikan sesi terkait ada saat jadwal ditandai selesai.
+        $sesi = $jadwal->sesiKonseling ?: $jadwal->sesiKonseling()->create([
+            'status' => 'selesai',
+            'waktu_mulai' => now()->subHour(),
+        ]);
+
+        $sesi->update(['status' => 'selesai']);
+
+        // Simpan waktu selesai jika kolom tersedia.
         if ($sesi && Schema::hasColumn('sesi_konseling', 'waktu_selesai')) {
             $sesi->update(['waktu_selesai' => now()]);
         }

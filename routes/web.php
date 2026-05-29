@@ -128,6 +128,8 @@ Route::prefix('admin')
 
         Route::get('/laporan', [LaporanController::class, 'laporanAdmin'])->name('laporan');
         Route::get('/laporan/search', [LaporanController::class, 'search'])->name('laporan.search');
+        Route::get('/laporan/mahasiswa/{mahasiswa}', [LaporanController::class, 'showMahasiswaLaporan'])->name('laporan.mahasiswa');
+        Route::post('/laporan/mahasiswa/{mahasiswa}/ai-summary', [LaporanController::class, 'generateAiSummary'])->name('laporan.ai-summary');
         Route::get('/laporan/{id}/laporan', [LaporanController::class, 'createLaporan'])->name('laporan.laporan');
         Route::post('/laporan/{id}/laporan', [LaporanController::class, 'storeLaporan'])->name('laporan.laporan.store');
 

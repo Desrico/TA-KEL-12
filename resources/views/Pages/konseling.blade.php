@@ -411,6 +411,17 @@
     transition: border-color .2s ease, box-shadow .2s ease;
   }
 
+  .schedule-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%23728680' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 14px 14px;
+    padding-right: 2.8rem;
+  }
+
   .schedule-input:focus,
   .schedule-select:focus {
     border-color: #A4C8AE;
@@ -493,10 +504,118 @@
     font-weight: 800;
   }
 
+  .anonim-toggle-card {
+    margin-top: 1.2rem;
+    border: 1px solid #D8E7E0;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #FCFFFD, #F6FBF8);
+    padding: 1rem 1.05rem;
+  }
+
+  .anonim-toggle-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .anonim-toggle-copy {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .anonim-toggle-title {
+    margin: 0;
+    color: #173428;
+    font-size: .95rem;
+    font-weight: 800;
+  }
+
+  .anonim-toggle-status {
+    margin-top: .2rem;
+    color: var(--care-green);
+    font-size: .77rem;
+    font-weight: 700;
+  }
+
+  .anonim-toggle-status.is-error {
+    color: #B42318;
+  }
+
+  .anonim-toggle-switch {
+    position: relative;
+    width: 52px;
+    height: 30px;
+    flex-shrink: 0;
+  }
+
+  .anonim-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .anonim-toggle-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #D4DAD7;
+    cursor: pointer;
+    transition: background .2s ease;
+  }
+
+  .anonim-toggle-slider::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .14);
+    transition: transform .2s ease;
+  }
+
+  .anonim-toggle-switch input:checked + .anonim-toggle-slider {
+    background: var(--care-green);
+  }
+
+  .anonim-toggle-switch input:checked + .anonim-toggle-slider::before {
+    transform: translateX(22px);
+  }
+
+  .anonim-toggle-switch input:disabled + .anonim-toggle-slider {
+    cursor: wait;
+    opacity: .72;
+  }
+
   .form-note {
     margin-top: .65rem;
     color: var(--care-muted);
     font-size: .8rem;
+    line-height: 1.55;
+  }
+
+  .confirmation-wrap {
+    display: flex;
+    align-items: flex-start;
+    margin-top: .65rem;
+  }
+
+  .confirmation-wrap .form-check {
+    margin: 0;
+    padding-left: 2.1rem;
+  }
+
+  .confirmation-wrap .form-check-input {
+    margin-left: -2.1rem;
+    margin-top: .18rem;
+  }
+
+  .confirmation-wrap .form-check-label {
+    color: #555;
+    font-size: .9rem;
     line-height: 1.55;
   }
 
@@ -573,244 +692,192 @@
     font-size: .9rem;
   }
 
-  .confirm-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: rgba(0, 0, 0, .28);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 999999 !important;
-}
-
-.confirm-overlay.show {
-  display: flex !important;
-}
-
-.confirm-box {
-  width: 360px;
-  max-width: 90%;
-  background: #066847;
-  color: #fff;
-  border-radius: 12px;
-  padding: 1.8rem 1.5rem;
-  text-align: center;
-  box-shadow: 0 24px 60px rgba(0,0,0,.25);
-  animation: popFade .25s ease both;
-}
-
-.confirm-icon {
-  width: 58px;
-  height: 58px;
-  border: 4px solid #ffe66d;
-  color: #ffe66d;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 auto 1rem;
-}
-
-.confirm-box h3 {
-  color: #fff;
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin-bottom: .8rem;
-}
-
-.confirm-box p {
-  color: #fff;
-  font-size: .78rem;
-  line-height: 1.45;
-  margin-bottom: 1.3rem;
-}
-
-.confirm-actions {
-  display: flex;
-  justify-content: center;
-  gap: .8rem;
-}
-
-.btn-confirm {
-  border: 0;
-  background: #ffe66d;
-  color: #064e3b;
-  font-weight: 800;
-  font-size: .78rem;
-  border-radius: 5px;
-  padding: .45rem .9rem;
-}
-
-.btn-cancel {
-  border: 1px solid #fff;
-  background: transparent;
-  color: #fff;
-  font-weight: 700;
-  font-size: .78rem;
-  border-radius: 5px;
-  padding: .45rem .9rem;
-}
-
-@keyframes popFade {
-  from {
-    opacity: 0;
-    transform: scale(.92);
+  .service-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, .34);
+    backdrop-filter: blur(4px);
+    z-index: 999999;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+
+  .service-modal-overlay.show {
+    display: flex;
   }
-}
+
+  .service-modal {
+    position: relative;
+    width: min(100%, 360px);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #0C7A52 0%, #0A6D4A 100%);
+    color: #fff;
+    padding: 1.8rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 28px 68px rgba(15, 23, 42, .3);
+    animation: modalEntrance .28s ease both;
+  }
+
+  .service-modal::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    pointer-events: none;
+  }
+
+  .service-modal-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 1rem;
+    border: 4px solid #FFE06B;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #FFE06B;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    animation: iconBounce .55s ease both;
+  }
+
+  .service-modal.is-success .service-modal-icon {
+    border-color: #D8F5E5;
+    color: #D8F5E5;
+  }
+
+  .service-modal.is-error .service-modal-icon {
+    border-color: #FFD18A;
+    color: #FFD18A;
+  }
+
+  .service-modal h3 {
+    margin: 0 0 .8rem;
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+
+  .service-modal p {
+    max-width: 290px;
+    margin: 0 auto 1.3rem;
+    color: rgba(255,255,255,.96);
+    font-size: .78rem;
+    line-height: 1.45;
+    white-space: pre-line;
+  }
+
+  .service-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .service-modal-btn {
+    min-width: 110px;
+    min-height: 44px;
+    border-radius: 6px;
+    padding: .48rem .95rem;
+    font-size: .78rem;
+    font-weight: 800;
+    transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+  }
+
+  .service-modal-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .service-modal-btn-primary {
+    border: 0;
+    background: #FFE06B;
+    color: #07533A;
+  }
+
+  .service-modal-btn-primary:hover {
+    background: #FFD84F;
+    color: #064A34;
+  }
+
+  .service-modal-btn-secondary {
+    border: 1px solid rgba(255,255,255,.8);
+    background: transparent;
+    color: #fff;
+  }
+
+  .service-modal-btn-secondary:hover {
+    border-color: #fff;
+    background: rgba(255,255,255,.08);
+    color: #fff;
+  }
+
+  .service-modal-btn[hidden] {
+    display: none !important;
+  }
+
+  @keyframes modalEntrance {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes iconBounce {
+    0% {
+      opacity: 0;
+      transform: scale(.35);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
   @media (max-width: 991.98px) {
     .service-hero {
       padding-bottom: 2.7rem;
     }
-}
-
-.confirm-overlay.show,
-.success-overlay.show {
-  display: flex !important;
-}
-
-.confirm-box {
-  width: 360px;
-  max-width: 90%;
-  background: #066847;
-  color: #fff;
-  border-radius: 14px;
-  padding: 1.8rem 1.5rem;
-  text-align: center;
-  animation: popFade .28s ease both;
-}
-
-.confirm-icon {
-  width: 58px;
-  height: 58px;
-  border: 4px solid #ffe66d;
-  color: #ffe66d;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 auto 1rem;
-  animation: iconBounce .55s ease both;
-}
-
-.confirm-box h3 {
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin-bottom: .8rem;
-}
-
-.confirm-box p {
-  font-size: .78rem;
-  line-height: 1.45;
-  margin-bottom: 1.3rem;
-}
-
-.confirm-actions {
-  display: flex;
-  justify-content: center;
-  gap: .8rem;
-}
-
-.btn-confirm {
-  border: 0;
-  background: #ffe66d;
-  color: #064e3b;
-  font-weight: 800;
-  font-size: .78rem;
-  border-radius: 6px;
-  padding: .48rem .95rem;
-}
-
-.btn-cancel {
-  border: 1px solid #fff;
-  background: transparent;
-  color: #fff;
-  font-weight: 700;
-  font-size: .78rem;
-  border-radius: 6px;
-  padding: .48rem .95rem;
-}
-
-.success-box {
-  width: 390px;
-  max-width: 90%;
-  background: #fff;
-  border-radius: 22px;
-  padding: 2rem 1.7rem;
-  text-align: center;
-  box-shadow: 0 28px 70px rgba(15, 23, 42, .22);
-  animation: popFade .28s ease both;
-}
-
-.success-icon {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: #DFF8EA;
-  color: #066847;
-  display: grid;
-  place-items: center;
-  margin: 0 auto 1rem;
-  font-size: 2rem;
-  animation: iconBounce .55s ease both;
-}
-
-.success-box h3 {
-  color: #064E3B;
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin-bottom: .65rem;
-}
-
-.success-box p {
-  margin: 0 auto 1.4rem;
-  color: #64748b;
-  font-size: .9rem;
-  line-height: 1.6;
-  max-width: 300px;
-}
-
-.btn-success-ok {
-  border: 0;
-  background: #066847;
-  color: #fff;
-  border-radius: 999px;
-  padding: .7rem 1.4rem;
-  font-size: .85rem;
-  font-weight: 800;
-}
-
-@keyframes popFade {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(.94);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
 
-@keyframes iconBounce {
-  0% {
-    opacity: 0;
-    transform: scale(.3);
+  @media (max-width: 767.98px) {
+    .anonim-toggle-row {
+      flex-direction: column;
+    }
+
+    .anonim-toggle-switch {
+      align-self: flex-end;
+    }
+
+    .service-modal {
+      width: min(100%, 340px);
+      padding: 1.65rem 1.25rem;
+      border-radius: 14px;
+    }
+
+    .service-modal-btn {
+      flex: 1 1 100%;
+    }
   }
-  60% {
-    opacity: 1;
-    transform: scale(1.12);
+
+  @media (prefers-reduced-motion: reduce) {
+    .service-modal,
+    .service-modal-icon,
+    .service-modal-btn {
+      animation: none;
+      transition: none;
+    }
   }
-  100% {
-    transform: scale(1);
-  }
-}
 </style>
 @endpush
 
@@ -821,6 +888,7 @@
   $profil = optional($user)->profil;
   $isAnonim = $user ? $user->isAnonim() : false;
   $namaMahasiswa = $user?->nama ?? 'Silakan login';
+  $anonimDisplayName = $user ? $user->getAnonimDisplayName() : 'Mahasiswa Anonim';
   $nimMahasiswa = optional($mahasiswa)->nim ?? '-';
   $jurusanMahasiswa = optional($mahasiswa)->jurusan ?? '-';
   $angkatanMahasiswa = optional($mahasiswa)->angkatan ?? '-';
@@ -852,14 +920,14 @@
                 <span>Durasi sesi</span>
               </div>
               <div class="mode-fact">
-                <i class="bi bi-camera-video"></i>
-                <strong>Video/Chat</strong>
-                <span>Media online</span>
+                <i class="bi bi-chat-dots"></i>
+                <strong>Chat</strong>
+                <span>Media sesi</span>
               </div>
               <div class="mode-fact">
-                <i class="bi bi-house-heart"></i>
-                <strong>Ruang privat</strong>
-                <span>Dari lokasi nyaman</span>
+                <i class="bi bi-hourglass-split"></i>
+                <strong>Fleksibel</strong>
+                <span>Dari Tempat Pilihanmu</span>
               </div>
             </div>
             <a href="#booking" class="mode-action" data-mode-action="online">Pilih Online <i class="bi bi-arrow-right"></i></a>
@@ -875,7 +943,7 @@
             <p>Gunakan layanan ini bila kamu ingin bertemu langsung dengan konselor di kampus. Data yang disimpan adalah jenis offline, tanggal, waktu, dan topik.</p>
             <div class="mode-facts">
               <div class="mode-fact">
-                <i class="bi bi-stopwatch"></i>
+                <i class="bi bi-clock"></i>
                 <strong>60 menit</strong>
                 <span>Durasi sesi</span>
               </div>
@@ -886,8 +954,8 @@
               </div>
               <div class="mode-fact">
                 <i class="bi bi-geo-alt-fill"></i>
-                <strong>Gedung 5</strong>
-                <span>Lantai 2</span>
+                <strong>Gedung 5, Lt. 2</strong>
+                <span>Area GD 525-GD 526</span>
               </div>
             </div>
             <a href="#booking" class="mode-action" data-mode-action="offline">Pilih Offline <i class="bi bi-arrow-right"></i></a>
@@ -913,7 +981,7 @@
 
           <div class="info-list">
             <div class="info-row">
-              <i class="bi bi-stopwatch"></i>
+              <i class="bi bi-clock"></i>
               <div class="info-label">Durasi</div>
               <div class="info-value">60 Menit</div>
             </div>
@@ -925,7 +993,7 @@
             <div class="info-row">
               <i class="bi bi-geo-alt-fill"></i>
               <div class="info-label">Lokasi</div>
-              <div class="info-value" id="side-location">Gedung 5 Lantai 2<br>(Antara GD 525 - GD 526)</div>
+              <div class="info-value" id="side-location">Gedung 5, Lt. 2<br>Area GD 525-GD 526</div>
             </div>
           </div>
         </aside>
@@ -947,7 +1015,7 @@
             </div>
             <span class="selected-mode-pill" id="selected-mode-pill">
               <i class="bi bi-geo-alt"></i>
-              Online
+              Offline
             </span>
           </div>
 
@@ -972,11 +1040,31 @@
             </div>
             <div class="col-md-6">
               <label class="field-label" for="profile-nama">Nama</label>
-              <input type="text" class="schedule-input" id="profile-nama" value="{{ $isAnonim ? $user->getAnonimDisplayName() : $namaMahasiswa }}" disabled>
+              <input type="text" class="schedule-input" id="profile-nama" value="{{ $isAnonim ? $anonimDisplayName : $namaMahasiswa }}" disabled>
             </div>
             <div class="col-md-6">
               <label class="field-label" for="profile-angkatan">Angkatan</label>
               <input type="text" class="schedule-input" id="profile-angkatan" value="{{ $angkatanMahasiswa }}" disabled>
+            </div>
+          </div>
+
+          <div class="anonim-toggle-card">
+            <div class="anonim-toggle-row">
+              <div class="anonim-toggle-copy">
+                <p class="anonim-toggle-title">Mode Anonim</p>
+                <div class="anonim-toggle-status" id="anonim-toggle-status">
+                  {{ $isAnonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.' }}
+                </div>
+              </div>
+              <label class="anonim-toggle-switch" aria-label="Toggle mode anonim">
+                <input
+                  type="checkbox"
+                  id="anonim-toggle"
+                  {{ $isAnonim ? 'checked' : '' }}
+                  {{ Auth::check() ? '' : 'disabled' }}
+                >
+                <span class="anonim-toggle-slider"></span>
+              </label>
             </div>
           </div>
 
@@ -1012,7 +1100,7 @@
           </div>
 
           <div class="row g-4">
-            <div class="col-md-7">
+            <div class="col-md-6">
               <label class="field-label" for="topik">Topik Konseling</label>
               <select class="schedule-select" id="topik" onchange="handleTopikChange()">
                 <option value="">Pilih topik konseling</option>
@@ -1029,26 +1117,25 @@
                 id="topik-lainnya"
                 class="schedule-input"
                 placeholder="Tuliskan topik konseling..."
-                style="display:none;"
+                style="display:none; margin-top:.75rem;"
               >
             </div>
-            <div class="col-md-5">
-              <label class="field-label">Jenis Tersimpan</label>
-              <input type="text" class="schedule-input" id="jenis-display" value="Online" disabled>
+            <div class="col-12 confirmation-wrap">
+              <div class="form-check ms-md-1">
+                <input type="checkbox" class="form-check-input" id="confirmation-checkbox">
+                <label class="form-check-label" for="confirmation-checkbox">
+                  Saya sudah memeriksa dan memastikan data penjadwalan sudah benar.
+                </label>
+              </div>
             </div>
-
-            <div class="form-check">
-              <input type="checkbox" class="form-check-input" id="confirmation-checkbox">
-              <label class="form-check-label" for="confirmation-checkbox">
-                  <span style="font-size: 0.9rem; color: #555;">Saya sudah memeriksa dan memastikan data penjadwalan sudah benar.</span>
-              </label>
+            <div class="col-12">
+              <div class="submit-wrap">
+                <button type="button" class="schedule-submit" id="submit-booking" onclick="openConfirmModal()">
+                  Jadwalkan Konseling
+                </button>
+              </div>
             </div>
-            <div class="submit-wrap">
-              <button type="button" class="schedule-submit" id="submit-booking" onclick="openConfirmModal()">
-                Jadwalkan Konseling
-              </button>
-            </div>
-          
+          </div>
 
         </main>
       </div>
@@ -1056,41 +1143,47 @@
   </div>
 </section>
 
-<div class="confirm-overlay" id="confirmModal">
-  <div class="confirm-box">
-    <div class="confirm-icon">?</div>
-
-    <h3>Konfirmasi Penjadwalan</h3>
-
-    <p>
-      Apakah kamu yakin ingin menjadwalkan sesi konseling ini?<br>
-      Pastikan tanggal, waktu, dan metode yang dipilih sudah sesuai.
-    </p>
-
-    <div class="confirm-actions">
-      <button type="button" class="btn-confirm" onclick="confirmSubmitJadwal()">
+<div class="service-modal-overlay" id="confirmModal" aria-hidden="true">
+  <div class="service-modal is-warning" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="service-modal-icon" aria-hidden="true">?</div>
+    <h3 id="confirmModalTitle">Konfirmasi Penjadwalan</h3>
+    <p>Apakah kamu yakin ingin menjadwalkan sesi konseling ini?
+Pastikan tanggal, waktu, dan metode yang dipilih sudah sesuai.</p>
+    <div class="service-modal-actions">
+      <button type="button" class="service-modal-btn service-modal-btn-primary" onclick="confirmSubmitJadwal()">
         Jadwalkan
       </button>
-      <button type="button" class="btn-cancel" onclick="closeConfirmModal()">
+      <button type="button" class="service-modal-btn service-modal-btn-secondary" onclick="closeConfirmModal()">
         Batalkan
       </button>
     </div>
   </div>
 </div>
-<div class="confirm-overlay" id="successModal">
-  <div class="confirm-box">
-    <div class="confirm-icon">
+<div class="service-modal-overlay" id="successModal" aria-hidden="true">
+  <div class="service-modal is-success" role="dialog" aria-modal="true" aria-labelledby="successModalTitle">
+    <div class="service-modal-icon" aria-hidden="true">
       <i class="bi bi-check-lg"></i>
     </div>
-
-    <h3>Penjadwalan Berhasil</h3>
-    <p>
-      Pengajuan jadwal konseling berhasil dibuat dan sedang menunggu persetujuan konselor.
-    </p>
-
-    <div class="confirm-actions">
-      <button type="button" class="btn-confirm" onclick="closeSuccessModal()">
+    <h3 id="successModalTitle">Penjadwalan Berhasil</h3>
+    <p>Pengajuan jadwal konseling berhasil dibuat dan sedang menunggu persetujuan konselor.</p>
+    <div class="service-modal-actions">
+      <button type="button" class="service-modal-btn service-modal-btn-primary" onclick="closeSuccessModal()">
         OK
+      </button>
+    </div>
+  </div>
+</div>
+<div class="service-modal-overlay" id="alertModal" aria-hidden="true">
+  <div class="service-modal is-warning" role="dialog" aria-modal="true" aria-labelledby="alertModalTitle">
+    <div class="service-modal-icon" id="alertModalIcon" aria-hidden="true">!</div>
+    <h3 id="alertModalTitle">Informasi</h3>
+    <p id="alertModalText"></p>
+    <div class="service-modal-actions">
+      <button type="button" class="service-modal-btn service-modal-btn-primary" id="alertModalConfirm">
+        OK
+      </button>
+      <button type="button" class="service-modal-btn service-modal-btn-secondary" id="alertModalCancel" hidden>
+        Tutup
       </button>
     </div>
   </div>
@@ -1101,8 +1194,14 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const isLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
-  const bookedSlots = new Set();
+  let isAnonim = {{ $isAnonim ? 'true' : 'false' }};
+  const bookedSlots = new Map();
   const serviceTimes = ['09:00','10:00','11:00','13:00','14:00','15:00','16:00'];
+  const profileDisplay = {
+    nim: @js($nimMahasiswa),
+    nama: @js($namaMahasiswa),
+    anonimName: @js($anonimDisplayName),
+  };
 
   let selectedService = 'offline';
 
@@ -1115,13 +1214,28 @@ document.addEventListener('DOMContentLoaded', function () {
   const submitBtn = document.getElementById('submit-booking');
   const tanggalNote = document.getElementById('tanggal-note');
   const waktuNote = document.getElementById('waktu-note');
+  const anonimToggleEl = document.getElementById('anonim-toggle');
+  const anonimStatusEl = document.getElementById('anonim-toggle-status');
+  const profileNimEl = document.getElementById('profile-nim');
+  const profileNamaEl = document.getElementById('profile-nama');
+  const confirmModalEl = document.getElementById('confirmModal');
+  const successModalEl = document.getElementById('successModal');
+  const alertModalEl = document.getElementById('alertModal');
+  const alertModalBoxEl = alertModalEl?.querySelector('.service-modal');
+  const alertModalIconEl = document.getElementById('alertModalIcon');
+  const alertModalTitleEl = document.getElementById('alertModalTitle');
+  const alertModalTextEl = document.getElementById('alertModalText');
+  const alertModalConfirmEl = document.getElementById('alertModalConfirm');
+  const alertModalCancelEl = document.getElementById('alertModalCancel');
+
+  let activeAlertResolver = null;
 
   const serviceConfig = {
     online: {
       label: 'Online',
-      icon: 'bi-camera-video',
+      icon: 'bi-chat-dots',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling online.',
-      sideMedia: 'Video / Chat',
+      sideMedia: 'Chat',
       sideLocation: 'Online<br>Link sesi menyusul setelah disetujui',
       noteClass: 'online',
       note: 'Pastikan kamu berada di tempat yang tenang dan memiliki koneksi internet stabil sebelum sesi dimulai.',
@@ -1132,7 +1246,7 @@ document.addEventListener('DOMContentLoaded', function () {
       icon: 'bi-geo-alt',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling offline.',
       sideMedia: 'Tatap Muka',
-      sideLocation: 'Gedung 5 Lantai 2<br>(Antara GD 525 - GD 526)',
+      sideLocation: 'Gedung 5, Lt. 2<br>Area GD 525-GD 526',
       noteClass: '',
       note: 'Harap tiba 10 menit lebih awal sebagai persiapan awal.',
       submit: 'Jadwalkan Offline'
@@ -1165,6 +1279,134 @@ document.addEventListener('DOMContentLoaded', function () {
       return topikLainnyaEl.value || null;
     }
     return topikVal || null;
+  }
+
+  function isApprovedSlotStatus(status) {
+    return ['disetujui', 'berlangsung'].includes(String(status || '').toLowerCase());
+  }
+
+  function getModalIconMarkup(icon) {
+    const iconMap = {
+      warning: '?',
+      error: '!',
+      success: '<i class="bi bi-check-lg"></i>',
+      info: '<i class="bi bi-info-lg"></i>',
+    };
+
+    return iconMap[icon] || iconMap.info;
+  }
+
+  function getModalVariant(icon) {
+    if (icon === 'success') return 'is-success';
+    if (icon === 'error') return 'is-error';
+    return 'is-warning';
+  }
+
+  function openModal(modal) {
+    if (!modal) return;
+    document.body.appendChild(modal);
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(modal) {
+    if (!modal) return;
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+
+    const hasVisibleModal = document.querySelector('.service-modal-overlay.show');
+    if (!hasVisibleModal) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  function showInteractiveAlert({
+    title = 'Informasi',
+    text = '',
+    icon = 'info',
+    confirmButtonText = 'OK'
+  } = {}) {
+    if (!alertModalEl || !alertModalBoxEl) {
+      alert(text || title);
+      return Promise.resolve();
+    }
+
+    alertModalBoxEl.classList.remove('is-warning', 'is-error', 'is-success');
+    alertModalBoxEl.classList.add(getModalVariant(icon));
+    alertModalIconEl.innerHTML = getModalIconMarkup(icon);
+    alertModalTitleEl.textContent = title;
+    alertModalTextEl.textContent = text;
+    alertModalConfirmEl.textContent = confirmButtonText;
+    alertModalCancelEl.hidden = true;
+
+    openModal(alertModalEl);
+
+    return new Promise(resolve => {
+      activeAlertResolver = resolve;
+    });
+  }
+
+  function closeInteractiveAlert() {
+    closeModal(alertModalEl);
+
+    if (typeof activeAlertResolver === 'function') {
+      const resolve = activeAlertResolver;
+      activeAlertResolver = null;
+      resolve();
+    }
+  }
+
+  function updateAnonimUI(active) {
+    isAnonim = active;
+    profileNimEl.value = active ? '********' : profileDisplay.nim;
+    profileNamaEl.value = active ? profileDisplay.anonimName : profileDisplay.nama;
+    anonimStatusEl.textContent = active ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
+    anonimStatusEl.classList.remove('is-error');
+  }
+
+  async function toggleAnonimMode(checkbox) {
+    if (!isLoggedIn) {
+      checkbox.checked = false;
+      window.location.href = '/login';
+      return;
+    }
+
+    const previousState = !checkbox.checked;
+    checkbox.disabled = true;
+    anonimStatusEl.textContent = 'Menyimpan perubahan mode anonim...';
+    anonimStatusEl.classList.remove('is-error');
+
+    try {
+      const response = await fetch('{{ route('profil.anonim') }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ anonim: checkbox.checked }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        checkbox.checked = previousState;
+        updateAnonimUI(previousState);
+        anonimStatusEl.textContent = data.message || 'Gagal memperbarui mode anonim.';
+        anonimStatusEl.classList.add('is-error');
+        return;
+      }
+
+      updateAnonimUI(Boolean(data.anonim));
+    } catch (error) {
+      checkbox.checked = previousState;
+      updateAnonimUI(previousState);
+      anonimStatusEl.textContent = 'Gagal memperbarui mode anonim.';
+      anonimStatusEl.classList.add('is-error');
+    } finally {
+      checkbox.disabled = false;
+    }
   }
 
   // Helper: Validasi tanggal
@@ -1215,18 +1457,22 @@ document.addEventListener('DOMContentLoaded', function () {
       const [hour, minute] = time.split(':').map(Number);
       slotDate.setHours(hour, minute, 0, 0);
 
-      const isPastTime = slotDate < new Date(now.getTime() - 30 * 60 * 1000);
-      const isBooked = bookedSlots.has(`${ymd}-${time}`);
+      // Slot harus sudah ditutup tepat saat jam sesi dimulai, jadi batas terakhir booking adalah 1 menit sebelumnya.
+      const isPastTime = slotDate <= now;
+      const slotInfo = bookedSlots.get(`${ymd}-${time}`);
+      const isApproved = isApprovedSlotStatus(slotInfo?.status);
 
-      if (isPastTime || isBooked) {
+      if (isPastTime || isApproved) {
         option.disabled = true;
-        option.textContent += isBooked ? ' - penuh' : ' - lewat';
+        option.textContent += isApproved
+          ? ` - ${slotInfo?.label || 'Telah Terjadwal'}`
+          : ' - lewat';
       }
 
       waktuEl.appendChild(option);
     });
 
-    waktuNote.textContent = 'Pilih salah satu slot konseling yang tersedia.';
+    waktuNote.textContent = 'Slot dengan status "Telah Terjadwal" sudah disetujui dan tidak dapat dipilih.';
   }
 
   // Fetch booked slots
@@ -1237,7 +1483,19 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       const data = await res.json();
       bookedSlots.clear();
-      data.forEach(slot => bookedSlots.add(slot));
+      data.forEach(slot => {
+        if (typeof slot === 'string') {
+          bookedSlots.set(slot, { status: 'menunggu', label: 'Sudah Terisi' });
+          return;
+        }
+
+        if (slot && slot.slot) {
+          bookedSlots.set(slot.slot, {
+            status: slot.status || 'menunggu',
+            label: slot.label || 'Sudah Terisi',
+          });
+        }
+      });
     } catch (error) {
       bookedSlots.clear();
     }
@@ -1259,7 +1517,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('schedule-subtitle').textContent = config.subtitle;
     document.getElementById('selected-mode-pill').className = `selected-mode-pill ${mode === 'online' ? 'online' : ''}`;
     document.getElementById('selected-mode-pill').innerHTML = `<i class="bi ${config.icon}"></i> ${config.label}`;
-    document.getElementById('jenis-display').value = config.label;
     document.getElementById('side-media').innerHTML = config.sideMedia;
     document.getElementById('side-location').innerHTML = config.sideLocation;
     document.getElementById('session-note').className = `session-note ${config.noteClass}`;
@@ -1282,43 +1539,55 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const checkbox = document.getElementById('confirmation-checkbox');
     if (!checkbox.checked) {
-      alert('Centang konfirmasi bahwa data penjadwalan sudah benar.');
+      showInteractiveAlert({
+        title: 'Konfirmasi Diperlukan',
+        text: 'Centang konfirmasi bahwa data penjadwalan sudah benar.',
+        icon: 'warning'
+      });
       return;
     }
 
     if (!validateDate()) {
-      alert('Pilih tanggal layanan yang valid.');
+      showInteractiveAlert({
+        title: 'Tanggal Belum Valid',
+        text: 'Pilih tanggal layanan yang valid.',
+        icon: 'warning'
+      });
       return;
     }
 
     if (!waktuEl.value) {
-      alert('Pilih waktu konseling terlebih dahulu.');
+      showInteractiveAlert({
+        title: 'Waktu Belum Dipilih',
+        text: 'Pilih waktu konseling terlebih dahulu.',
+        icon: 'warning'
+      });
       return;
     }
 
     const topikValue = getTopikValue();
     if (!topikValue) {
-      alert('Pilih topik konseling terlebih dahulu.');
+      showInteractiveAlert({
+        title: 'Topik Belum Dipilih',
+        text: 'Pilih topik konseling terlebih dahulu.',
+        icon: 'warning'
+      });
       return;
     }
 
-    const modal = document.getElementById('confirmModal');
-    document.body.appendChild(modal);
-    modal.classList.add('show');
+    openModal(confirmModalEl);
   }
 
   function closeConfirmModal() {
-    document.getElementById('confirmModal').classList.remove('show');
+    closeModal(confirmModalEl);
   }
 
   function openSuccessModal() {
-    const modal = document.getElementById('successModal');
-    document.body.appendChild(modal);
-    modal.classList.add('show');
+    openModal(successModalEl);
   }
 
   function closeSuccessModal() {
-    document.getElementById('successModal').classList.remove('show');
+    closeModal(successModalEl);
     window.location.href = '{{ route("konseling") }}';
   }
 
@@ -1332,24 +1601,40 @@ document.addEventListener('DOMContentLoaded', function () {
     const checkbox = document.getElementById('confirmation-checkbox');
 
     if (!checkbox.checked) {
-      alert('Centang konfirmasi bahwa data penjadwalan sudah benar.');
+      showInteractiveAlert({
+        title: 'Konfirmasi Diperlukan',
+        text: 'Centang konfirmasi bahwa data penjadwalan sudah benar.',
+        icon: 'warning'
+      });
       return;
     }
 
     if (!validateDate()) {
-      alert('Pilih tanggal layanan yang valid.');
+      showInteractiveAlert({
+        title: 'Tanggal Belum Valid',
+        text: 'Pilih tanggal layanan yang valid.',
+        icon: 'warning'
+      });
       return;
     }
 
     if (!waktuEl.value) {
-      alert('Pilih waktu konseling terlebih dahulu.');
+      showInteractiveAlert({
+        title: 'Waktu Belum Dipilih',
+        text: 'Pilih waktu konseling terlebih dahulu.',
+        icon: 'warning'
+      });
       return;
     }
 
     const topikValue = getTopikValue();
 
     if (!topikValue) {
-      alert('Pilih topik konseling terlebih dahulu.');
+      showInteractiveAlert({
+        title: 'Topik Belum Dipilih',
+        text: 'Pilih topik konseling terlebih dahulu.',
+        icon: 'warning'
+      });
       return;
     }
 
@@ -1388,10 +1673,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (!res.ok) {
         console.error('ERROR jadwal.store:', res.status, data);
-        alert(data.message || 'Jadwal gagal dibuat.');
+        closeConfirmModal();
+        await fetchBookedSlots();
+        renderTimeOptions();
+
+        if (res.status === 409) {
+          waktuEl.value = '';
+          await showInteractiveAlert({
+            title: isApprovedSlotStatus(data.slot_status) ? 'Slot Sudah Terjadwal' : 'Jadwal Sudah Terisi',
+            text: data.message || 'Jadwal ini sudah terisi. Silakan pilih waktu lain.',
+            icon: isApprovedSlotStatus(data.slot_status) ? 'info' : 'warning',
+            confirmButtonText: 'Pilih Waktu Lain'
+          });
+        } else {
+          await showInteractiveAlert({
+            title: 'Penjadwalan Gagal',
+            text: data.message || 'Jadwal gagal dibuat.',
+            icon: 'error'
+          });
+        }
+
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
-        closeConfirmModal();
         return;
       }
 
@@ -1399,18 +1702,25 @@ document.addEventListener('DOMContentLoaded', function () {
         closeConfirmModal();
         openSuccessModal();
       } else {
-        alert(data.message || 'Jadwal gagal dibuat.');
+        closeConfirmModal();
+        await showInteractiveAlert({
+          title: 'Penjadwalan Gagal',
+          text: data.message || 'Jadwal gagal dibuat.',
+          icon: 'error'
+        });
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
-        closeConfirmModal();
       }
 
     } catch (error) {
       console.error('ERROR DETAIL:', error);
 
       closeConfirmModal();
-
-      alert('Gagal menyimpan jadwal. Cek Console untuk melihat error asli.');
+      await showInteractiveAlert({
+        title: 'Terjadi Kendala',
+        text: 'Gagal menyimpan jadwal. Silakan coba lagi.',
+        icon: 'error'
+      });
 
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
@@ -1450,6 +1760,47 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   topikEl.addEventListener('change', handleTopikChange);
+  anonimToggleEl?.addEventListener('change', function () {
+    toggleAnonimMode(this);
+  });
+  alertModalConfirmEl?.addEventListener('click', closeInteractiveAlert);
+  alertModalCancelEl?.addEventListener('click', closeInteractiveAlert);
+
+  [confirmModalEl, successModalEl, alertModalEl].forEach(modal => {
+    modal?.addEventListener('click', function (event) {
+      if (event.target !== modal) return;
+
+      if (modal === confirmModalEl) {
+        closeConfirmModal();
+        return;
+      }
+
+      if (modal === successModalEl) {
+        closeSuccessModal();
+        return;
+      }
+
+      closeInteractiveAlert();
+    });
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') return;
+
+    if (alertModalEl?.classList.contains('show')) {
+      closeInteractiveAlert();
+      return;
+    }
+
+    if (confirmModalEl?.classList.contains('show')) {
+      closeConfirmModal();
+      return;
+    }
+
+    if (successModalEl?.classList.contains('show')) {
+      closeSuccessModal();
+    }
+  });
 
   // Mode action buttons
   document.querySelectorAll('[data-mode-action]').forEach(el => {
@@ -1460,6 +1811,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Initialize
+  updateAnonimUI(isAnonim);
   handleTopikChange();
   fetchBookedSlots().then(renderTimeOptions);
 });

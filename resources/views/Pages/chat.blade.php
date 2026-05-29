@@ -29,29 +29,35 @@
 @push('styles')
 <style>
   .chat-page {
-    min-height: calc(100vh - 180px);
+    min-height: calc(100vh - 96px);
     background:
       radial-gradient(circle at top left, rgba(16, 185, 129, 0.18), transparent 30%),
       radial-gradient(circle at top right, rgba(110, 231, 183, 0.18), transparent 24%),
       linear-gradient(180deg, #effcf5 0%, #f8fffb 20%, #ffffff 60%);
-    padding: 2.25rem 0 3rem;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding: 0;
+  }
+
+  .chat-page-inner {
+    width: 100%;
+    padding: 0;
   }
 
   .chat-shell {
-    max-width: 1180px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: minmax(0, 1.7fr) minmax(280px, .95fr);
-    gap: 1.5rem;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    display: block;
   }
 
   .chat-main,
-  .chat-side,
   .chat-empty {
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(209, 250, 229, 0.9);
-    border-radius: 30px;
-    box-shadow: 0 18px 50px rgba(6, 78, 59, 0.08);
+    border-radius: 26px;
+    box-shadow: 0 16px 42px rgba(6, 78, 59, 0.07);
     backdrop-filter: blur(12px);
   }
 
@@ -59,15 +65,22 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    min-height: 760px;
+    min-height: calc(100vh - 96px);
+    max-height: calc(100vh - 96px);
+    border-radius: 0;
+    border-inline: 0;
+    box-shadow: none;
   }
 
   .chat-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.2rem 1.4rem;
+    padding: .85rem 1.5rem;
     background: linear-gradient(135deg, rgba(239, 252, 245, 0.98), rgba(255, 255, 255, 0.94));
     border-bottom: 1px solid rgba(221, 239, 231, 0.95);
   }
@@ -75,17 +88,17 @@
   .chat-counselor {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: .85rem;
     min-width: 0;
   }
 
   .chat-avatar {
-    width: 58px;
-    height: 58px;
-    border-radius: 18px;
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
     overflow: hidden;
     border: 2px solid rgba(255, 255, 255, 0.96);
-    box-shadow: 0 10px 24px rgba(6, 78, 59, 0.16);
+    box-shadow: 0 8px 20px rgba(6, 78, 59, 0.14);
     flex-shrink: 0;
   }
 
@@ -97,15 +110,15 @@
   }
 
   .chat-title {
-    font-size: 1.2rem;
+    font-size: 1.02rem;
     font-weight: 800;
     color: #064e3b;
-    margin-bottom: .14rem;
+    margin-bottom: .08rem;
   }
 
   .chat-subtitle {
     color: #4b7a68;
-    font-size: .92rem;
+    font-size: .82rem;
     margin: 0;
   }
 
@@ -113,28 +126,31 @@
     display: inline-flex;
     align-items: center;
     gap: .45rem;
-    padding: .7rem 1rem;
+    padding: .58rem .85rem;
     border-radius: 999px;
     background: #e7fff0;
     color: #047857;
-    font-size: .8rem;
+    font-size: .74rem;
     font-weight: 700;
     white-space: nowrap;
   }
 
   .chat-badge::before {
     content: "";
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: #10b981;
-    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.12);
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.12);
   }
 
   .chat-thread {
     flex: 1;
-    padding: 1.4rem 1.4rem 4.75rem;
+    min-height: 0;
+    padding: 1rem 1.5rem .75rem;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
     background:
       linear-gradient(180deg, rgba(248, 255, 251, 0.72), rgba(255, 255, 255, 0.98)),
       radial-gradient(circle at center, rgba(209, 250, 229, 0.34), transparent 42%);
@@ -142,13 +158,13 @@
 
   .chat-date-pill {
     width: fit-content;
-    margin: 0 auto 1.4rem;
-    padding: .55rem 1rem;
+    margin: 0 auto 1rem;
+    padding: .45rem .88rem;
     border-radius: 999px;
     background: #ffffff;
     border: 1px solid rgba(221, 239, 231, 0.95);
     color: #64748b;
-    font-size: .76rem;
+    font-size: .7rem;
     font-weight: 700;
     letter-spacing: .05em;
     text-transform: uppercase;
@@ -156,8 +172,8 @@
 
   .message-row {
     display: flex;
-    gap: .8rem;
-    margin-bottom: 1rem;
+    gap: .65rem;
+    margin-bottom: .78rem;
     align-items: flex-end;
   }
 
@@ -184,11 +200,11 @@
   }
 
   .message-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 7px 16px rgba(15, 23, 42, 0.08);
     flex-shrink: 0;
   }
 
@@ -200,17 +216,17 @@
   }
 
   .message-content {
-    max-width: min(76%, 620px);
+    max-width: min(88%, 920px);
     position: relative;
   }
 
   .message-meta {
     display: flex;
     align-items: center;
-    gap: .55rem;
-    margin: 0 .35rem .35rem;
+    gap: .45rem;
+    margin: 0 .3rem .24rem;
     color: #64748b;
-    font-size: .76rem;
+    font-size: .7rem;
   }
 
   .message-name {
@@ -219,10 +235,10 @@
   }
 
   .message-bubble {
-    padding: .95rem 1.15rem 1rem;
-    border-radius: 24px;
-    font-size: .95rem;
-    line-height: 1.72;
+    padding: .72rem .92rem .78rem;
+    border-radius: 20px;
+    font-size: .88rem;
+    line-height: 1.58;
     word-break: break-word;
   }
 
@@ -393,9 +409,13 @@
   }
 
   .chat-composer {
-    padding: 1rem 1.2rem 1.2rem;
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    padding: .7rem 1.5rem .8rem;
     border-top: 1px solid rgba(221, 239, 231, 0.95);
     background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
   }
 
   .chat-composer.is-locked {
@@ -405,9 +425,9 @@
   .chat-form {
     display: flex;
     align-items: flex-end;
-    gap: .9rem;
-    padding: .75rem;
-    border-radius: 24px;
+    gap: .75rem;
+    padding: .62rem;
+    border-radius: 20px;
     border: 1px solid rgba(209, 250, 229, 0.96);
     background: linear-gradient(180deg, #ffffff, #f8fffb);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
@@ -423,11 +443,11 @@
     border: none;
     resize: none;
     background: transparent;
-    min-height: 56px;
-    max-height: 160px;
-    padding: .6rem .35rem;
+    min-height: 46px;
+    max-height: 140px;
+    padding: .45rem .25rem;
     color: #0f172a;
-    font-size: .95rem;
+    font-size: .88rem;
     outline: none;
   }
 
@@ -437,14 +457,14 @@
   }
 
   .chat-send {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border: none;
-    border-radius: 18px;
+    border-radius: 16px;
     background: linear-gradient(135deg, #065f46, #10b981);
     color: #fff;
-    font-size: 1.4rem;
-    box-shadow: 0 16px 30px rgba(6, 95, 70, 0.24);
+    font-size: 1.18rem;
+    box-shadow: 0 12px 24px rgba(6, 95, 70, 0.22);
     transition: transform .18s ease, box-shadow .18s ease;
   }
 
@@ -460,124 +480,15 @@
   }
 
   .chat-hint {
-    margin-top: .65rem;
+    margin-top: .5rem;
     color: #64748b;
-    font-size: .78rem;
-    padding: 0 .3rem;
-  }
-
-  .chat-side {
-    padding: 1.3rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .side-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 24px;
-    padding: 1.2rem 1.2rem 1.15rem;
-    color: #083344;
-  }
-
-  .side-card::after {
-    content: "";
-    position: absolute;
-    inset: auto -36px -36px auto;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.16);
-  }
-
-  .side-card-title {
-    position: relative;
-    z-index: 1;
-    display: inline-flex;
-    align-items: center;
-    padding: .38rem .72rem;
-    border-radius: 999px;
-    font-size: .73rem;
-    font-weight: 800;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    margin-bottom: .9rem;
-  }
-
-  .side-card h3 {
-    position: relative;
-    z-index: 1;
-    font-size: 1.26rem;
-    font-weight: 800;
-    margin-bottom: .55rem;
-    color: #064e3b;
-  }
-
-  .side-card p {
-    position: relative;
-    z-index: 1;
-    margin: 0;
-    line-height: 1.7;
-    color: rgba(15, 23, 42, 0.8);
-    font-size: .92rem;
-  }
-
-  .side-card.mint {
-    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-  }
-
-  .side-card.mint .side-card-title {
-    background: rgba(4, 120, 87, 0.12);
-    color: #047857;
-  }
-
-  .side-card.peach {
-    background: linear-gradient(135deg, #fde7c7, #fed7aa);
-  }
-
-  .side-card.peach .side-card-title {
-    background: rgba(154, 52, 18, 0.08);
-    color: #9a3412;
-  }
-
-  .session-card {
-    padding: 1.1rem 1.15rem;
-    border-radius: 24px;
-    background: #ffffff;
-    border: 1px solid rgba(221, 239, 231, 0.95);
-  }
-
-  .session-card h4 {
-    font-size: .98rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin-bottom: .85rem;
-  }
-
-  .session-list {
-    display: grid;
-    gap: .8rem;
-  }
-
-  .session-item-label {
-    font-size: .74rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    margin-bottom: .22rem;
-  }
-
-  .session-item-value {
-    color: #0f172a;
-    font-size: .9rem;
-    font-weight: 600;
-    line-height: 1.55;
+    font-size: .72rem;
+    padding: 0 .2rem;
   }
 
   .chat-empty {
     max-width: 880px;
-    margin: 0 auto;
+    margin: 1.25rem auto;
     padding: 3.2rem 2rem;
     text-align: center;
   }
@@ -688,33 +599,26 @@
   }
 
   @media (max-width: 991.98px) {
-    .chat-shell {
-      grid-template-columns: 1fr;
-    }
-
     .chat-main {
-      min-height: 680px;
-    }
-
-    .chat-side {
-      order: -1;
+      min-height: calc(100vh - 88px);
+      max-height: calc(100vh - 88px);
     }
   }
 
   @media (max-width: 767.98px) {
     .chat-page {
-      padding-top: 1.25rem;
+      min-height: calc(100vh - 78px);
     }
 
     .chat-main,
-    .chat-side,
     .chat-empty {
-      border-radius: 24px;
+      border-radius: 0;
     }
 
     .chat-topbar {
       align-items: flex-start;
       flex-direction: column;
+      padding: .85rem 1rem;
     }
 
     .message-content {
@@ -726,9 +630,22 @@
     }
 
     .message-avatar {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+    }
+
+    .chat-main {
+      min-height: calc(100vh - 78px);
+      max-height: calc(100vh - 78px);
+    }
+
+    .chat-thread {
+      padding-inline: 1rem;
+    }
+
+    .chat-composer {
+      padding: .7rem 1rem .8rem;
     }
   }
 </style>
@@ -736,7 +653,7 @@
 
 @section('konten')
 <section class="chat-page">
-  <div class="container">
+  <div class="chat-page-inner">
     @if(session('success'))
       <div style="max-width:880px;margin:0 auto 1rem;background:#e8fff1;border:1px solid #bbf7d0;color:#166534;padding:1rem 1.15rem;border-radius:18px;font-weight:600;">
         {{ session('success') }}
@@ -818,44 +735,6 @@
           </div>
         </div>
 
-        <aside class="chat-side">
-          <div class="session-card">
-            <h4>Detail Sesi</h4>
-            <div class="session-list">
-              <div>
-                <div class="session-item-label">Konselor</div>
-                <div class="session-item-value">{{ $chatPayload['counselorName'] }}</div>
-              </div>
-              <div>
-                <div class="session-item-label">Jadwal</div>
-                <div class="session-item-value">
-                  {{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('j F Y') }}<br>
-                  {{ substr($jadwal->waktu, 0, 5) }} WIB
-                </div>
-              </div>
-              <div>
-                <div class="session-item-label">Topik</div>
-                <div class="session-item-value">{{ $topik ?: 'Belum ada topik khusus' }}</div>
-              </div>
-              <div>
-                <div class="session-item-label">Akses Chat</div>
-                <div class="session-item-value">Aktif mulai {{ $scheduledStartLabel }}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="side-card peach">
-            <div class="side-card-title">Persiapan Ringan</div>
-            <h3>Tarik Napas 4-4</h3>
-            <p>Ambil napas selama 4 detik, tahan 4 detik, lalu hembuskan perlahan. Ulang 4 kali agar tubuh lebih tenang sebelum sesi dimulai.</p>
-          </div>
-
-          <div class="side-card mint">
-            <div class="side-card-title">Catatan Aman</div>
-            <h3>Mulai dari Satu Hal</h3>
-            <p>Anda tidak harus menceritakan semuanya sekaligus. Saat waktu sesi tiba, cukup mulai dari hal yang paling ingin Anda sampaikan lebih dulu.</p>
-          </div>
-        </aside>
       </div>
     @elseif($startReady)
       <div class="chat-shell">
@@ -915,44 +794,6 @@
           </div>
         </div>
 
-        <aside class="chat-side">
-          <div class="session-card">
-            <h4>Detail Sesi</h4>
-            <div class="session-list">
-              <div>
-                <div class="session-item-label">Konselor</div>
-                <div class="session-item-value">{{ $chatPayload['counselorName'] }}</div>
-              </div>
-              <div>
-                <div class="session-item-label">Jadwal</div>
-                <div class="session-item-value">
-                  {{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('j F Y') }}<br>
-                  {{ substr($jadwal->waktu, 0, 5) }} WIB
-                </div>
-              </div>
-              <div>
-                <div class="session-item-label">Topik</div>
-                <div class="session-item-value">{{ $topik ?: 'Belum ada topik khusus' }}</div>
-              </div>
-              <div>
-                <div class="session-item-label">Status</div>
-                <div class="session-item-value">{{ $statusLabel }}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="side-card peach">
-            <div class="side-card-title">Persiapan Ringan</div>
-            <h3>Tarik Napas 4-4</h3>
-            <p>Ambil napas selama 4 detik, tahan 4 detik, lalu hembuskan perlahan. Ulang 4 kali agar tubuh lebih tenang sebelum sesi dimulai.</p>
-          </div>
-
-          <div class="side-card mint">
-            <div class="side-card-title">Catatan Aman</div>
-            <h3>Mulai dari Satu Hal</h3>
-            <p>Anda tidak harus menceritakan semuanya sekaligus. Saat sesi aktif, cukup mulai dari hal yang paling ingin Anda sampaikan lebih dulu.</p>
-          </div>
-        </aside>
       </div>
     @else
       <div class="chat-shell">
@@ -993,44 +834,6 @@
           </div>
         </div>
 
-        <aside class="chat-side">
-          <div class="session-card">
-            <h4>Detail Sesi</h4>
-            <div class="session-list">
-              <div>
-                <div class="session-item-label">Konselor</div>
-                <div class="session-item-value">{{ $chatPayload['counselorName'] }}</div>
-              </div>
-              <div>
-                <div class="session-item-label">Jadwal</div>
-                <div class="session-item-value">
-                  {{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('j F Y') }}<br>
-                  {{ substr($jadwal->waktu, 0, 5) }} WIB
-                </div>
-              </div>
-              <div>
-                <div class="session-item-label">Topik</div>
-                <div class="session-item-value">{{ $topik ?: 'Belum ada topik khusus' }}</div>
-              </div>
-              <div>
-                <div class="session-item-label">Status</div>
-                <div class="session-item-value">{{ $statusLabel }}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="side-card peach">
-            <div class="side-card-title">Tips Cepat</div>
-            <h3>Tarik Napas 4-4</h3>
-            <p>Ambil napas selama 4 detik, tahan 4 detik, lalu hembuskan perlahan. Ulang 4 kali sebelum mulai bercerita.</p>
-          </div>
-
-          <div class="side-card mint">
-            <div class="side-card-title">Misi Hari Ini</div>
-            <h3>Ceritakan Satu Hal Dulu</h3>
-            <p>Anda tidak perlu menjelaskan semuanya sekaligus. Mulai dari hal yang paling ingin Anda sampaikan saat ini.</p>
-          </div>
-        </aside>
       </div>
     @endif
   </div>
@@ -1083,8 +886,10 @@
     };
   };
 
-  const scrollToBottom = () => {
-    thread.scrollTop = thread.scrollHeight;
+  const scrollToBottom = (behavior = 'auto') => {
+    requestAnimationFrame(() => {
+      thread.scrollTo({ top: thread.scrollHeight, behavior });
+    });
   };
 
   const autoResize = () => {

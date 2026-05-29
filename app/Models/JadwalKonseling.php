@@ -189,11 +189,12 @@ class JadwalKonseling extends Model
 
     public function expiresAt(): ?\Carbon\Carbon
     {
+        // Expiry tetap mengikuti jam booking + 24 jam agar jendela chat tidak ikut bergeser saat sesi dimulai lebih lambat.
         if ($this->expires_at) {
             return Carbon::parse($this->expires_at, self::sessionTimezone());
         }
 
-        $start = $this->startedAt() ?? $this->scheduledAt();
+        $start = $this->scheduledAt() ?? $this->startedAt();
 
         return $start ? $start->copy()->addDay() : null;
     }
@@ -207,7 +208,8 @@ class JadwalKonseling extends Model
             return false;
         }
 
-        return $now->greaterThan($expires);
+        // Tepat di batas 24 jam sesi harus dianggap selesai dan akses chat ditutup.
+        return $now->greaterThanOrEqualTo($expires);
     }
 
     public function syncExpiredSessionStatus(?CarbonInterface $reference = null): bool

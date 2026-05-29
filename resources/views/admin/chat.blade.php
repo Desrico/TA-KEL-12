@@ -22,7 +22,7 @@
     display: grid;
     grid-template-columns: 340px minmax(0, 1fr);
     gap: 0;
-    min-height: 760px;
+    min-height: calc(100vh - 170px);
     background: #fff;
     border: 1px solid #dceee4;
     border-radius: 28px;
@@ -43,6 +43,9 @@
     align-self: stretch;
     border-right: 1px solid #edf7f1;
     background: linear-gradient(180deg, #f7fff9, #ffffff 18%);
+    min-height: calc(100vh - 170px);
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
   }
 
   .admin-chat-list-head {
@@ -216,7 +219,8 @@
 
   .admin-chat-card {
     overflow: hidden;
-    min-height: 760px;
+    min-height: calc(100vh - 170px);
+    max-height: calc(100vh - 170px);
     display: flex;
     flex-direction: column;
     background:
@@ -260,11 +264,14 @@
   }
 
   .admin-chat-head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.15rem 1.3rem;
+    padding: .85rem 1rem;
     border-bottom: 1px solid #edf7f1;
     background: rgba(255,255,255,.88);
     backdrop-filter: blur(10px);
@@ -273,18 +280,18 @@
   .admin-chat-person {
     display: flex;
     align-items: center;
-    gap: .95rem;
+    gap: .8rem;
     min-width: 0;
   }
 
   .admin-chat-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
     overflow: hidden;
     background: #dff3e8;
     flex-shrink: 0;
-    box-shadow: 0 10px 25px rgba(6, 95, 70, .12);
+    box-shadow: 0 8px 18px rgba(6, 95, 70, .11);
   }
 
   .admin-chat-avatar img {
@@ -295,72 +302,54 @@
   }
 
   .admin-chat-title {
-    font-size: 1.1rem;
+    font-size: .98rem;
     font-weight: 800;
     color: #0f172a;
-    margin-bottom: .14rem;
+    margin-bottom: .08rem;
   }
 
   .admin-chat-subtitle {
     margin: 0;
     color: #64748b;
-    font-size: .84rem;
-    line-height: 1.5;
+    font-size: .76rem;
+    line-height: 1.42;
   }
 
   .admin-chat-badge {
     display: inline-flex;
     align-items: center;
     gap: .45rem;
-    padding: .65rem .95rem;
+    padding: .52rem .8rem;
     border-radius: 999px;
     background: #e8fff1;
     color: #047857;
-    font-size: .78rem;
+    font-size: .72rem;
     font-weight: 800;
   }
 
   .admin-chat-badge::before {
     content: "";
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: #10b981;
-    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.13);
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.13);
   }
 
   .admin-chat-head-actions {
     display: flex;
     align-items: center;
-    gap: .75rem;
+    gap: .6rem;
     flex-wrap: wrap;
     justify-content: flex-end;
   }
-
-  .admin-chat-video-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: .5rem;
-    padding: .72rem 1rem;
-    border-radius: 999px;
-    border: 1px solid #d8eee2;
-    background: #fff;
-    color: #065f46;
-    text-decoration: none;
-    font-size: .84rem;
-    font-weight: 800;
-    box-shadow: 0 10px 20px rgba(6, 95, 70, .06);
-  }
-
-  .admin-chat-video-btn:hover {
-    color: #047857;
-    background: #f8fffb;
-  }
-
   .admin-chat-thread {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 1.35rem 1.35rem 0;
+    padding: .95rem 1rem .8rem;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
     background:
       radial-gradient(circle at center, rgba(209, 250, 229, 0.28), transparent 42%),
       linear-gradient(180deg, rgba(246,255,249,.7), rgba(255,255,255,.98));
@@ -368,13 +357,13 @@
 
   .admin-chat-date {
     width: fit-content;
-    margin: 0 auto 1.35rem;
-    padding: .52rem .95rem;
+    margin: 0 auto .95rem;
+    padding: .42rem .82rem;
     border-radius: 999px;
     background: #ffffff;
     border: 1px solid #e4f3eb;
     color: #64748b;
-    font-size: .74rem;
+    font-size: .68rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: .05em;
@@ -382,8 +371,8 @@
 
   .admin-message-row {
     display: flex;
-    gap: .8rem;
-    margin-bottom: .95rem;
+    gap: .65rem;
+    margin-bottom: .72rem;
     align-items: flex-end;
   }
 
@@ -410,12 +399,12 @@
   }
 
   .admin-message-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
     overflow: hidden;
     flex-shrink: 0;
-    box-shadow: 0 10px 20px rgba(15, 23, 42, .08);
+    box-shadow: 0 7px 16px rgba(15, 23, 42, .08);
   }
 
   .admin-message-avatar img {
@@ -426,17 +415,17 @@
   }
 
   .admin-message-content {
-    max-width: min(76%, 620px);
+    max-width: min(80%, 700px);
     position: relative;
   }
 
   .admin-message-meta {
     display: flex;
     align-items: center;
-    gap: .5rem;
-    margin: 0 .3rem .3rem;
+    gap: .42rem;
+    margin: 0 .25rem .22rem;
     color: #64748b;
-    font-size: .75rem;
+    font-size: .69rem;
   }
 
   .admin-message-name {
@@ -445,10 +434,10 @@
   }
 
   .admin-message-bubble {
-    padding: .92rem 1.1rem .98rem;
-    border-radius: 24px;
-    font-size: .93rem;
-    line-height: 1.7;
+    padding: .68rem .88rem .74rem;
+    border-radius: 20px;
+    font-size: .85rem;
+    line-height: 1.56;
     word-break: break-word;
   }
 
@@ -615,17 +604,21 @@
   }
 
   .admin-chat-compose {
-    padding: 1rem 1.2rem 1.2rem;
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    padding: .75rem .95rem .9rem;
     border-top: 1px solid #edf7f1;
     background: rgba(255,255,255,.95);
+    backdrop-filter: blur(10px);
   }
 
   .admin-chat-form {
     display: flex;
     align-items: flex-end;
-    gap: .8rem;
-    padding: .75rem;
-    border-radius: 24px;
+    gap: .65rem;
+    padding: .6rem;
+    border-radius: 20px;
     border: 1px solid #d8eee2;
     background: linear-gradient(180deg, #ffffff, #f8fffb);
   }
@@ -636,11 +629,11 @@
     resize: none;
     outline: none;
     background: transparent;
-    min-height: 56px;
-    max-height: 160px;
-    font-size: .94rem;
+    min-height: 44px;
+    max-height: 140px;
+    font-size: .86rem;
     color: #0f172a;
-    padding: .6rem .3rem;
+    padding: .42rem .24rem;
   }
 
   .admin-chat-input:disabled {
@@ -649,14 +642,14 @@
   }
 
   .admin-chat-send {
-    width: 54px;
-    height: 54px;
+    width: 46px;
+    height: 46px;
     border: none;
-    border-radius: 18px;
+    border-radius: 15px;
     background: linear-gradient(135deg, #065f46, #10b981);
     color: #fff;
-    font-size: 1.28rem;
-    box-shadow: 0 16px 28px rgba(6,95,70,.22);
+    font-size: 1.08rem;
+    box-shadow: 0 12px 22px rgba(6,95,70,.2);
   }
 
   .admin-chat-send:disabled {
@@ -666,10 +659,10 @@
   }
 
   .admin-chat-hint {
-    margin-top: .65rem;
+    margin-top: .45rem;
     color: #64748b;
-    font-size: .78rem;
-    padding: 0 .25rem;
+    font-size: .71rem;
+    padding: 0 .18rem;
   }
 
   .admin-chat-gate {
@@ -740,18 +733,21 @@
   @media (max-width: 1199.98px) {
     .admin-chat-page {
       grid-template-columns: 1fr;
-      min-height: 0;
+      min-height: calc(100vh - 150px);
     }
 
     .admin-chat-list {
       border-right: none;
       border-bottom: 1px solid #edf7f1;
+      min-height: auto;
+      max-height: 320px;
     }
   }
 
   @media (max-width: 767.98px) {
     .admin-chat-card {
-      min-height: 680px;
+      min-height: calc(100vh - 126px);
+      max-height: calc(100vh - 126px);
     }
 
     .admin-chat-head {
@@ -766,6 +762,14 @@
 
     .admin-message-content {
       max-width: 100%;
+    }
+
+    .admin-chat-thread {
+      padding-inline: .8rem;
+    }
+
+    .admin-chat-compose {
+      padding: .72rem .8rem .82rem;
     }
   }
 </style>
@@ -917,10 +921,6 @@
           </div>
         </div>
         <div class="admin-chat-head-actions">
-          <a href="{{ $chatPayload['videoCallUrl'] }}" target="_blank" rel="noopener noreferrer" class="admin-chat-video-btn">
-            <i class="ti ti-video"></i>
-            <span>Video Call</span>
-          </a>
         </div>
       </div>
 
@@ -1028,8 +1028,10 @@
     };
   };
 
-  const scrollToBottom = () => {
-    thread.scrollTop = thread.scrollHeight;
+  const scrollToBottom = (behavior = 'auto') => {
+    requestAnimationFrame(() => {
+      thread.scrollTo({ top: thread.scrollHeight, behavior });
+    });
   };
 
   const autoResize = () => {

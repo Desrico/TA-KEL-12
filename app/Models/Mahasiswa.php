@@ -20,4 +20,9 @@ class Mahasiswa extends Model
     {
         return $this->hasMany(JadwalKonseling::class, 'mahasiswa_id');
     }
+
+    public function aiLaporanSummaries(): HasMany
+    {
+        return $this->hasMany(AiLaporanSummary::class, 'mahasiswa_id');
+    }
 }

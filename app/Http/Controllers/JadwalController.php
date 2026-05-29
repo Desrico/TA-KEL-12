@@ -12,6 +12,7 @@ use App\Models\Konselor;
 use App\Models\User;
 use App\Models\Notifikasi;
 use App\Models\KetidaktersediaanKonselor;
+use Illuminate\Validation\ValidationException;
 
 class JadwalController extends Controller
 {
@@ -76,7 +77,7 @@ class JadwalController extends Controller
             $rules['konfirmasi'] = 'accepted';
         }
 
-        return $request->validate($rules, [
+        $validated = $request->validate($rules, [
             'tanggal.required'         => 'Tanggal konseling wajib diisi.',
             'tanggal.date'             => 'Format tanggal konseling tidak valid.',
             'tanggal.after_or_equal'   => 'Tanggal konseling tidak boleh sebelum hari ini.',
@@ -89,6 +90,22 @@ class JadwalController extends Controller
             'topik.max'                => 'Topik konseling maksimal 255 karakter.',
             'konfirmasi.accepted'      => 'Centang pernyataan konfirmasi sebelum menjadwalkan konseling.',
         ]);
+
+        $this->ensureSlotHasNotStarted($validated['tanggal'], $validated['waktu']);
+
+        return $validated;
+    }
+
+    private function ensureSlotHasNotStarted(string $tanggal, string $waktu): void
+    {
+        $slotAt = Carbon::createFromFormat('Y-m-d H:i', $tanggal.' '.$waktu, 'Asia/Jakarta');
+
+        // Booking untuk slot hari ini harus dilakukan sebelum jam sesi dimulai, bukan saat atau sesudahnya.
+        if (Carbon::now('Asia/Jakarta')->greaterThanOrEqualTo($slotAt)) {
+            throw ValidationException::withMessages([
+                'waktu' => 'Slot waktu ini sudah dimulai. Silakan pilih jam lain yang masih sebelum waktu sesi dimulai.',
+            ]);
+        }
     }
 
     private function resolveActiveKonselor(): ?Konselor
@@ -111,11 +128,46 @@ class JadwalController extends Controller
 
     private function isSlotBooked(string $tanggal, string $waktu, int $konselorId): bool
     {
+        return $this->findSlotConflict($tanggal, $waktu, $konselorId) !== null;
+    }
+
+    private function findSlotConflict(string $tanggal, string $waktu, int $konselorId): ?JadwalKonseling
+    {
         return JadwalKonseling::whereDate('tanggal', $tanggal)
             ->whereTime('waktu', $waktu)
             ->where('konselor_id', $konselorId)
             ->where('status', '!=', 'ditolak')
-            ->exists();
+            ->orderByRaw("
+                CASE
+                    WHEN status = 'disetujui' THEN 1
+                    WHEN status = 'berlangsung' THEN 2
+                    WHEN status = 'menunggu' THEN 3
+                    WHEN status = 'selesai' THEN 4
+                    ELSE 5
+                END
+            ")
+            ->first();
+    }
+
+    private function formatSlotConflictResponse(?JadwalKonseling $jadwal): array
+    {
+        $status = strtolower(trim((string) optional($jadwal)->status));
+
+        if (in_array($status, ['disetujui', 'berlangsung'], true)) {
+            return [
+                'success' => false,
+                'message' => 'Jadwal ini telah terjadwal. Silakan pilih waktu lain.',
+                'slot_status' => $status,
+                'slot_label' => 'Telah Terjadwal',
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Jadwal ini sudah terisi. Silakan pilih waktu lain.',
+            'slot_status' => $status ?: 'menunggu',
+            'slot_label' => 'Sudah Terisi',
+        ];
     }
 
    public function checkAvailability(Request $request)
@@ -176,15 +228,16 @@ class JadwalController extends Controller
         ]);
     }
 
+    $conflict = $this->findSlotConflict($validated['tanggal'], $jamMulai, $konselor->id);
+
+    if ($conflict) {
+        return response()->json($this->formatSlotConflictResponse($conflict), 409);
+    }
+
     return response()->json([
         'success' => true,
-        'message' => 'Penjadwalan berhasil dibuat.',
-        'kode_jadwal' => $jadwal->kode_jadwal ?? '-',
-        'nama_display' => Auth::user()->nama ?? '-',
-        'tanggal' => $jadwal->tanggal,
-        'waktu' => $jadwal->waktu,
-        'topik' => $jadwal->topik,
-        'jenis' => $jadwal->jenis,
+        'is_available' => true,
+        'message' => 'Jadwal tersedia.',
     ]);
     }
 
@@ -221,54 +274,72 @@ class JadwalController extends Controller
 
         $normalizedWaktu = Carbon::createFromFormat('H:i', $validated['waktu'])->format('H:i:s');
 
-        $sudahAda = $this->isSlotBooked($validated['tanggal'], $normalizedWaktu, $konselor->id);
-
-        if ($sudahAda) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Jadwal ini sudah terisi. Silakan pilih waktu lain.'
-            ], 409);
-        }
-
         $isAnonim    = $user->isAnonim();
         $namaDisplay = $user->getNamaDisplay();
-        $prodi       = $mahasiswa->jurusan ?? '-';
-        $angkatan    = $mahasiswa->angkatan ?? '-';
-
         $identitasUntukKonselor = $isAnonim
             ? trim($user->getAnonimDisplayName())
             : $user->nama;
 
-        $jadwal = DB::transaction(function () use ($mahasiswa, $konselor, $validated, $normalizedWaktu, $isAnonim, $user, $identitasUntukKonselor) {
-            $jadwal = JadwalKonseling::create([
-                'mahasiswa_id' => $mahasiswa->id,
-                'konselor_id'  => $konselor->id,
-                'tanggal'      => $validated['tanggal'],
-                'waktu'        => $normalizedWaktu,
-                'status'       => 'menunggu',
-                'jenis'        => $validated['jenis'],
-                'topik'        => $validated['topik'],
-                'anonim'       => $isAnonim,
-                'catatan'      => null,
-            ]);
+        try {
+            $jadwal = DB::transaction(function () use ($mahasiswa, $konselor, $validated, $normalizedWaktu, $isAnonim, $user, $identitasUntukKonselor) {
+                $existingBooking = JadwalKonseling::whereDate('tanggal', $validated['tanggal'])
+                    ->whereTime('waktu', $normalizedWaktu)
+                    ->where('konselor_id', $konselor->id)
+                    ->where('status', '!=', 'ditolak')
+                    ->lockForUpdate()
+                    ->orderByRaw("
+                        CASE
+                            WHEN status = 'disetujui' THEN 1
+                            WHEN status = 'berlangsung' THEN 2
+                            WHEN status = 'menunggu' THEN 3
+                            WHEN status = 'selesai' THEN 4
+                            ELSE 5
+                        END
+                    ")
+                    ->first();
 
-            Notifikasi::create([
-                'user_id' => $user->id,
-                'pesan'   => 'Penjadwalan #' . $jadwal->id . ' berhasil dibuat dan menunggu persetujuan konselor.',
-                'status'  => 'belum',
-            ]);
+                if ($existingBooking) {
+                    abort(response()->json($this->formatSlotConflictResponse($existingBooking), 409));
+                }
 
-            $konselorUserId = optional($konselor->user)->id;
-            if ($konselorUserId) {
+                $jadwal = JadwalKonseling::create([
+                    'mahasiswa_id' => $mahasiswa->id,
+                    'konselor_id'  => $konselor->id,
+                    'tanggal'      => $validated['tanggal'],
+                    'waktu'        => $normalizedWaktu,
+                    'status'       => 'menunggu',
+                    'jenis'        => $validated['jenis'],
+                    'topik'        => $validated['topik'],
+                    'anonim'       => $isAnonim,
+                    'catatan'      => null,
+                ]);
+
                 Notifikasi::create([
-                    'user_id' => $konselorUserId,
-                    'pesan'   => 'Penjadwalan baru dari ' . $identitasUntukKonselor . ' pada ' . $validated['tanggal'] . ' pukul ' . $validated['waktu'] . '.',
+                    'user_id' => $user->id,
+                    'pesan'   => 'Penjadwalan #' . $jadwal->id . ' berhasil dibuat dan menunggu persetujuan konselor.',
                     'status'  => 'belum',
                 ]);
+
+                $konselorUserId = optional($konselor->user)->id;
+                if ($konselorUserId) {
+                    Notifikasi::create([
+                        'user_id' => $konselorUserId,
+                        'pesan'   => 'Penjadwalan baru dari ' . $identitasUntukKonselor . ' pada ' . $validated['tanggal'] . ' pukul ' . $validated['waktu'] . '.',
+                        'status'  => 'belum',
+                    ]);
+                }
+
+                return $jadwal;
+            });
+        } catch (\Illuminate\Http\Exceptions\HttpResponseException $exception) {
+            $response = $exception->getResponse();
+
+            if ($response) {
+                return $response;
             }
 
-            return $jadwal;
-        });
+            throw $exception;
+        }
 
         return response()->json([
             'success'       => true,
@@ -292,9 +363,21 @@ class JadwalController extends Controller
 
         $booked = JadwalKonseling::where('konselor_id', $konselor->id)
             ->where('status', '!=', 'ditolak')
-            ->get(['tanggal', 'waktu'])
+            ->whereDate('tanggal', '>=', Carbon::today()->toDateString())
+            ->get(['tanggal', 'waktu', 'status'])
             ->map(function ($j) {
-                return $j->tanggal . '-' . Carbon::parse($j->waktu)->format('H:i');
+                $status = strtolower(trim((string) $j->status));
+                $tanggal = $j->tanggal instanceof Carbon
+                    ? $j->tanggal->format('Y-m-d')
+                    : Carbon::parse($j->tanggal)->format('Y-m-d');
+
+                return [
+                    'slot' => $tanggal . '-' . Carbon::parse($j->waktu)->format('H:i'),
+                    'status' => $status,
+                    'label' => in_array($status, ['disetujui', 'berlangsung'], true)
+                        ? 'Telah Terjadwal'
+                        : 'Sudah Terisi',
+                ];
             })
             ->toArray();
 
