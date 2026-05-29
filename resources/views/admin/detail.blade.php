@@ -249,19 +249,27 @@
                     </div>
 
                     <!-- Action Controls (Sejajar dengan Info) -->
-                    <div style="display: flex; align-items: center; gap: 16px; background: #f8fafc; padding: 8px 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
-                        <div style="display: flex; flex-direction: column; gap: 2px;">
-                            <span class="info-label" style="text-align: right;">Koreksi Status</span>
-                            <select id="statusSelect" style="border: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: #1e293b; outline: none; cursor: pointer; padding: 0;">
-                                <option value="0" {{ $student->mental_level == 0 ? 'selected' : '' }}>Level 0 (Positif)</option>
-                                <option value="1" {{ $student->mental_level == 1 ? 'selected' : '' }}>Level 1 (Ringan)</option>
-                                <option value="2" {{ $student->mental_level == 2 ? 'selected' : '' }}>Level 2 (Pantau)</option>
-                                <option value="3" {{ $student->mental_level == 3 ? 'selected' : '' }}>Level 3 (Krisis)</option>
-                            </select>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 16px; background: #f8fafc; padding: 8px 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <span class="info-label" style="text-align: right;">Koreksi Status</span>
+                                <select id="statusSelect" style="border: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: #1e293b; outline: none; cursor: pointer; padding: 0;">
+                                    <option value="0" {{ $student->mental_level == 0 ? 'selected' : '' }}>Level 0 (Positif)</option>
+                                    <option value="1" {{ $student->mental_level == 1 ? 'selected' : '' }}>Level 1 (Ringan)</option>
+                                    <option value="2" {{ $student->mental_level == 2 ? 'selected' : '' }}>Level 2 (Pantau)</option>
+                                    <option value="3" {{ $student->mental_level == 3 ? 'selected' : '' }}>Level 3 (Krisis)</option>
+                                </select>
+                            </div>
+                            <div class="v-divider" style="height: 20px;"></div>
+                            <button onclick="updateStatus('{{ $student->nim }}', event)" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;">
+                                Simpan
+                            </button>
                         </div>
-                        <div class="v-divider" style="height: 20px;"></div>
-                        <button onclick="updateStatus('{{ $student->nim }}', event)" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;">
-                            Simpan
+
+                        <!-- Tombol Kirim Notifikasi -->
+                        <button onclick="openSendNotifModal()" style="background: #0f766e; color: white; border: none; padding: 12px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            Kirim Notifikasi
                         </button>
                     </div>
                 </div>
@@ -535,6 +543,38 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Kirim Notifikasi ke Mahasiswa -->
+    <div class="custom-modal-backdrop" id="sendNotifModal" onclick="if(event.target.id==='sendNotifModal') closeSendNotifModal()">
+        <div class="custom-modal" style="max-width: 550px;">
+            <div class="custom-modal-header" style="background: #0f766e; color: white;">
+                <h2 style="color: white; margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    Kirim Notifikasi ke Mahasiswa
+                </h2>
+                <button class="custom-modal-close-btn" onclick="closeSendNotifModal()" style="color: white;">&times;</button>
+            </div>
+            <form id="sendNotifForm" onsubmit="submitNotification(event)">
+                <div style="padding: 24px;">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-weight: 700; font-size: 0.85rem; color: #475569; margin-bottom: 8px;">
+                            Pesan Notifikasi
+                        </label>
+                        <textarea id="notifMessage" required rows="4" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 0.9rem; outline: none; resize: vertical; box-sizing: border-box;" placeholder="Tulis pesan notifikasi untuk mahasiswa di sini..."></textarea>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #0f766e; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; line-height: 1.5; font-weight: 500;">
+                        <strong>Informasi:</strong> Notifikasi ini akan langsung tersimpan di database MongoDB dan dapat diakses secara real-time oleh aplikasi mobile mahasiswa.
+                    </div>
+                </div>
+                <div class="custom-modal-footer" style="padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; background: #f8fafc;">
+                    <button type="button" class="btn-outline" onclick="closeSendNotifModal()">Batal</button>
+                    <button type="submit" class="btn-white" id="btnSubmitNotif" style="background: #0f766e; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; font-size: 0.9rem;">
+                        Kirim Notifikasi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -617,6 +657,54 @@
     function closeDetailPreview() {
         document.getElementById('detailPreviewModal').classList.remove('show');
         document.body.style.overflow = '';
+    }
+
+    // Modal helpers (Kirim Notifikasi)
+    function openSendNotifModal() {
+        document.getElementById('sendNotifModal').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSendNotifModal() {
+        document.getElementById('sendNotifModal').classList.remove('show');
+        document.getElementById('notifMessage').value = '';
+        document.body.style.overflow = '';
+    }
+
+    function submitNotification(event) {
+        event.preventDefault();
+        const msg = document.getElementById('notifMessage').value;
+        const btn = document.getElementById('btnSubmitNotif');
+        const originalText = btn.innerText;
+
+        btn.disabled = true;
+        btn.innerText = 'Mengirim...';
+
+        fetch('/konselor/kirim-notifikasi/{{ $student->nim }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ pesan: msg })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('✅ ' + data.message);
+                closeSendNotifModal();
+            } else {
+                alert('⚠️ ' + (data.message || 'Gagal mengirim notifikasi.'));
+            }
+        })
+        .catch(err => {
+            alert('⚠️ Gagal menghubungi server.');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        });
     }
 
     // ── Jurnal Sorting ──

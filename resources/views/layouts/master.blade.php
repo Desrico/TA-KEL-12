@@ -1995,7 +1995,9 @@ footer a:hover {
       <ul class="navbar-nav ms-auto align-items-center gap-1">
         <li class="nav-item"><a class="nav-link nav-link-custom {{ request()->is('/') ? 'active' : '' }}" href="/">Beranda</a></li>
         <li class="nav-item">
-          <a class="nav-link nav-link-custom {{ request()->is('tentang') ? 'active' : '' }}" href="/tentang">Tentang</a>
+          <a class="nav-link nav-link-custom {{ request()->is('edukasi-mental') ? 'active' : '' }}" href="/edukasi-mental">
+            Edukasi Mental
+          </a>
         </li>
         <li class="nav-item">
           <a class="nav-link nav-link-custom {{ request()->is('konseling*') ? 'active' : '' }}" href="/konseling">
@@ -2252,7 +2254,7 @@ footer a:hover {
       <div class="col-6 col-lg-2">
         <h6>Navigasi</h6>
         <a href="/">Beranda</a>
-        <a href="/tentang">Tentang</a>
+        <a href="/edukasi-mental">Edukasi Mental</a>
         <a href="/konseling">Konseling</a>
       </div>
       <div class="col-6 col-lg-3">

@@ -14,7 +14,6 @@ use App\Http\Controllers\KampusApiController;
 use App\Http\Controllers\CounselorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EducationController;
-use App\Http\Controllers\AboutPageController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SesiKonselingController;
 use App\Http\Controllers\KetidaktersediaanKonselorController;
@@ -32,7 +31,8 @@ Route::get('/', function () {
     return view('Pages.beranda');
 })->name('beranda');
 
-Route::get('/tentang', [AboutPageController::class, 'show'])->name('tentang');
+Route::get('/edukasi-mental', [EducationController::class, 'show'])
+    ->name('edukasi.mental');
 
 Route::get('/konseling', [JadwalController::class, 'create'])->name('konseling');
 
@@ -197,9 +197,10 @@ Route::get('/konselor/jadwal-data', [CounselorController::class, 'getJadwalData'
 // KONSELOR PA3
 // ═══════════════════════════════
 Route::get('/konselor/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('counselor.dashboard');
-Route::get('/konselor/prioritas', [CounselorController::class, 'prioritas'])->name('counselor.prioritas');
-Route::get('/konselor/semua-mahasiswa', [CounselorController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
+Route::get('/konselor/prioritas', [\App\Http\Controllers\DashboardController::class, 'prioritas'])->name('counselor.prioritas');
+Route::get('/konselor/semua-mahasiswa', [\App\Http\Controllers\DashboardController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
 Route::post('/konselor/update-status/{nim}', [\App\Http\Controllers\DashboardController::class, 'updateStatus'])->name('counselor.update-status');
+Route::post('/konselor/kirim-notifikasi/{nim}', [\App\Http\Controllers\DashboardController::class, 'sendCustomNotification'])->name('counselor.send-notification');
 Route::get('/konselor/chart-data', [DashboardController::class, 'getChartData'])->name('counselor.chart-data');
 Route::get('/konselor/top-students', [\App\Http\Controllers\DashboardController::class, 'getStudentPreview'])->name('counselor.top-students');
 Route::get('/konselor/notifications', [\App\Http\Controllers\DashboardController::class, 'getUrgentNotifications'])->name('counselor.notifications');
@@ -215,12 +216,15 @@ Route::post('/konselor/summary', [\App\Http\Controllers\DashboardController::cla
 // ═══════════════════════════════
 Route::prefix('konselor/edukasi')
     ->name('counselor.education.')
+    ->middleware(['auth', 'role:konselor'])
     ->group(function () {
         Route::get('/', [EducationController::class, 'index'])->name('index');
 
-        Route::get('/about-page', [AboutPageController::class, 'edit'])->name('about-page.edit');
-        Route::put('/about-page', [AboutPageController::class, 'update'])->name('about-page.update');
+        // ABOUT PAGE
+        Route::get('/about-page', [EducationController::class, 'aboutPageEdit'])->name('about-page.edit');
+        Route::put('/about-page', [EducationController::class, 'aboutPageUpdate'])->name('about-page.update');
 
+        // MODULES MOBILE
         Route::get('/modules', [EducationController::class, 'moduleIndex'])->name('modules.index');
         Route::get('/modules/create', [EducationController::class, 'moduleCreate'])->name('modules.create');
         Route::post('/modules', [EducationController::class, 'moduleStore'])->name('modules.store');
@@ -228,12 +232,21 @@ Route::prefix('konselor/edukasi')
         Route::put('/modules/{module}', [EducationController::class, 'moduleUpdate'])->name('modules.update');
         Route::delete('/modules/{module}', [EducationController::class, 'moduleDestroy'])->name('modules.destroy');
 
+        // CHALLENGES MOBILE
         Route::get('/challenges', [EducationController::class, 'challengeIndex'])->name('challenges.index');
         Route::get('/challenges/create', [EducationController::class, 'challengeCreate'])->name('challenges.create');
         Route::post('/challenges', [EducationController::class, 'challengeStore'])->name('challenges.store');
         Route::get('/challenges/{challenge}/edit', [EducationController::class, 'challengeEdit'])->name('challenges.edit');
         Route::put('/challenges/{challenge}', [EducationController::class, 'challengeUpdate'])->name('challenges.update');
         Route::delete('/challenges/{challenge}', [EducationController::class, 'challengeDestroy'])->name('challenges.destroy');
+
+        // TREND TOPIK / KONTEN EDUKASI WEB
+        Route::get('/web-contents', [EducationController::class, 'webContentIndex'])->name('web-contents.index');
+        Route::get('/web-contents/create', [EducationController::class, 'webContentCreate'])->name('web-contents.create');
+        Route::post('/web-contents', [EducationController::class, 'webContentStore'])->name('web-contents.store');
+        Route::get('/web-contents/{id}/edit', [EducationController::class, 'webContentEdit'])->name('web-contents.edit');
+        Route::put('/web-contents/{id}', [EducationController::class, 'webContentUpdate'])->name('web-contents.update');
+        Route::delete('/web-contents/{id}', [EducationController::class, 'webContentDestroy'])->name('web-contents.destroy');
     });
 
 

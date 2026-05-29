@@ -284,7 +284,7 @@
         .action-link { 
             display: inline-flex; align-items: center; justify-content: center;
             padding: 8px 20px; border-radius: var(--radius-sm);
-            background: var(--accent-light); color: var(--accent);
+            background: var(--accent-light); color: #064e3b;
             font-weight: 700; text-decoration: none; font-size: 0.9rem;
             transition: all 0.2s;
         }
@@ -496,6 +496,23 @@
             color: white;
         }
         .btn-report i { font-size: 1.1rem; }
+
+        .btn-risk-list {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 12px 28px; border-radius: var(--radius-md);
+            font-size: 0.95rem; font-weight: 700;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white; border: none; cursor: pointer;
+            text-decoration: none; transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+        }
+        .btn-risk-list:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.3);
+            color: white;
+        }
+        .btn-risk-list i { font-size: 1.1rem; }
     </style>
 @endpush
 
@@ -567,22 +584,27 @@
             </div>
             @endif
 
-            <div style="display: flex; justify-content: flex-end; gap: 12px;">
-                <button class="btn-primary" style="background: white; color: var(--text-1); border: 1px solid var(--border);" id="btnRefresh" onclick="runScan()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-                    Pindai Ulang
-                </button>
-                
-                <button class="btn-notification" id="btnWebPush" onclick="togglePush()">
-                    <i class="ti ti-bell"></i>
-                    <span>Aktifkan Notifikasi Sistem</span>
-                </button>
-                @if($countL3 > 0)
-                <a href="{{ route('counselor.prioritas') ?? '#' }}" class="btn-report">
-                    <i class="ti ti-file-analytics"></i>
-                    Buat Laporan Prioritas
-                </a>
-                @endif
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <button class="btn-primary" style="background: transparent; color: var(--text-2); border: 1px solid var(--border);" id="btnRefresh" onclick="runScan()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                        Pindai Ulang
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <a href="{{ route('counselor.prioritas') }}" class="btn-risk-list">
+                        <i class="ti ti-alert-triangle"></i>
+                        Lihat Semua Risiko Tinggi
+                    </a>
+
+                    @if($countL3 > 0)
+                    <a href="{{ route('counselor.prioritas') ?? '#' }}" class="btn-report">
+                        <i class="ti ti-file-analytics"></i>
+                        Buat Laporan Prioritas
+                    </a>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -631,7 +653,7 @@
                             </button>
                         </div>
                     </div>
-                    <div style="height: 250px; position: relative;">
+                    <div style="height: 200px; position: relative;">
                         <canvas id="feelingsTrendChart"></canvas>
                     </div>
                 </div>
@@ -650,9 +672,9 @@
                     <div class="py-4 text-center"><div class="spin mx-auto" style="border-top-color:var(--accent);"></div></div>
                 </div>
 
-                <div class="card-header" style="margin-top: 32px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-                    <div class="stats-section-title" style="margin: 0;">PERASAAN UMUM</div>
-                    <select class="filter-dropdown" id="feelingFilter" style="width: auto;" onchange="loadFeelingDistribution(this.value)">
+                <div class="card-header" style="margin-top: 32px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                    <div class="stats-section-title" style="margin: 0; white-space: nowrap; flex-shrink: 0;">PERASAAN UMUM</div>
+                    <select class="filter-dropdown" id="feelingFilter" style="width: auto; max-width: 55%; text-overflow: ellipsis;" onchange="loadFeelingDistribution(this.value)">
                         <option value="all">Semua Perasaan</option>
                         <option value="CAT:Positif" style="font-weight: 700; color: #059669; background: #ecfdf5;">📊 SEMUA POSITIF</option>
                         <optgroup label="Positif">
@@ -716,6 +738,14 @@
                     <div class="card-subtitle">Profil mahasiswa aktif terbaru dan informasi akademik.</div>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    {{-- Dropdown Angkatan (dari MongoDB) --}}
+                    <select id="filterAngkatan" onchange="loadTopStudents()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 500; outline: none; background: white; cursor: pointer; color: #475569; min-width: 130px;">
+                        <option value="Semua">🎓 Semua Angkatan</option>
+                        @foreach($angkatanList as $thn)
+                            <option value="{{ $thn }}">Angkatan {{ $thn }}</option>
+                        @endforeach
+                    </select>
+
                     {{-- Dropdown Level 1: Fakultas --}}
                     <div style="position: relative;">
                         <select id="filterFakultas" onchange="onFakultasChange()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 500; outline: none; background: white; cursor: pointer; color: #475569; min-width: 160px;">
@@ -920,9 +950,19 @@
                     borderColor: '#059669',
                     backgroundColor: gradient,
                     borderWidth: 3,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#059669',
-                    pointRadius: 4,
+                    pointBackgroundColor: function(context) {
+                        const val = context.raw;
+                        const colors = {1: '#ef4444', 2: '#8b5cf6', 3: '#3b82f6', 4: '#f59e0b', 5: '#64748b', 6: '#10b981', 7: '#059669'};
+                        return colors[val] || '#059669';
+                    },
+                    pointBorderColor: function(context) {
+                        const val = context.raw;
+                        const colors = {1: '#ef4444', 2: '#8b5cf6', 3: '#3b82f6', 4: '#f59e0b', 5: '#64748b', 6: '#10b981', 7: '#059669'};
+                        return colors[val] || '#059669';
+                    },
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
                     fill: true,
                     tension: 0.4
                 }]
@@ -1000,9 +1040,19 @@
                     borderColor: '#10b981',
                     backgroundColor: gradient,
                     borderWidth: 3,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#10b981',
-                    pointRadius: 4,
+                    pointBackgroundColor: function(context) {
+                        const val = context.raw;
+                        const colors = {1: '#ef4444', 2: '#f59e0b', 3: '#64748b', 4: '#10b981', 5: '#059669'};
+                        return colors[val] || '#10b981';
+                    },
+                    pointBorderColor: function(context) {
+                        const val = context.raw;
+                        const colors = {1: '#ef4444', 2: '#f59e0b', 3: '#64748b', 4: '#10b981', 5: '#059669'};
+                        return colors[val] || '#10b981';
+                    },
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
                     fill: true,
                     tension: 0.4
                 }]
@@ -1013,8 +1063,8 @@
                 scales: {
                     y: { 
                         display: true, 
-                        min: 1, 
-                        max: 5,
+                        suggestedMin: 1, 
+                        suggestedMax: 5,
                         ticks: {
                             callback: function(value) {
                                 if(value === 5) return 'Semangat';
@@ -1096,14 +1146,22 @@
                 }
                 
                 let html = '';
+                const colorMap = {
+                    'Cemas': '#ef4444',
+                    'Lelah': '#f59e0b',
+                    'Netral': '#64748b',
+                    'Tenang': '#10b981',
+                    'Semangat': '#059669'
+                };
                 data.items.forEach(item => {
+                    const barColor = colorMap[item.name] || '#10b981';
                     html += `
                         <div class="progress-item">
                             <div class="progress-header">
                                 <span>${item.name}</span>
                                 <strong>${item.percentage}%</strong>
                             </div>
-                            <div class="progress-bar-bg"><div class="progress-fill" style="width: ${item.percentage}%; background: #10b981;"></div></div>
+                            <div class="progress-bar-bg"><div class="progress-fill" style="width: ${item.percentage}%; background: ${barColor};"></div></div>
                         </div>
                     `;
                 });
@@ -1167,17 +1225,19 @@
     }
 
     function loadTopStudents() {
-        const body    = document.getElementById('topStudentsBody');
-        const fakSel  = document.getElementById('filterFakultas');
-        const prodiSel = document.getElementById('filterProdi');
+        const body      = document.getElementById('topStudentsBody');
+        const fakSel    = document.getElementById('filterFakultas');
+        const prodiSel  = document.getElementById('filterProdi');
+        const angktSel  = document.getElementById('filterAngkatan');
         if(!body) return;
 
         body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 32px;"><div class="spin" style="margin:0 auto; border-top-color:var(--accent);"></div></td></tr>';
 
-        const fak   = fakSel   ? fakSel.value   : 'Semua';
-        const prodi = prodiSel ? prodiSel.value : '';
+        const fak     = fakSel    ? fakSel.value    : 'Semua';
+        const prodi   = prodiSel  ? prodiSel.value  : '';
+        const angkatan = angktSel ? angktSel.value  : 'Semua';
 
-        // Tentukan parameter yang dikirim ke backend
+        // Tentukan parameter prodi yang dikirim ke backend
         let prodiParam;
         if (fak === 'Semua') {
             prodiParam = 'Semua';
@@ -1189,7 +1249,9 @@
             prodiParam = prodi;
         }
 
-        fetch('{{ route("counselor.top-students") }}?prodi=' + encodeURIComponent(prodiParam))
+        const url = `{{ route("counselor.top-students") }}?prodi=${encodeURIComponent(prodiParam)}&angkatan=${encodeURIComponent(angkatan)}`;
+
+        fetch(url)
             .then(res => res.json())
             .then(data => {
                 if(!data.students || data.students.length === 0) {
@@ -1205,7 +1267,7 @@
                                 <div style="font-weight: 700; color: var(--text-1);">${s.name}</div>
                                 <div style="font-size: 0.85rem; color: var(--text-3);">${s.nim}</div>
                             </td>
-                            <td>${s.prodi || '-'}</td>
+                            <td><div style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${s.prodi || '-'}">${s.prodi || '-'}</div></td>
                             <td>${s.angkatan || '-'}</td>
                             <td>
                                 <a href="/konselor/detail/${s.nim}" class="action-link">Detail Profil</a>
@@ -1224,14 +1286,6 @@
         initDashboardTabs();
         loadChartData('14d');
         loadTopStudents();
-
-        // Check notification status
-        const btn = document.getElementById('btnWebPush');
-        if (Notification.permission === 'granted') {
-            btn.classList.add('enabled');
-            btn.querySelector('span').innerText = 'Notifikasi Aktif';
-            btn.querySelector('i').className = 'ti ti-bell-filled';
-        }
     });
 
     let konselingChartInstance = null;
@@ -1609,25 +1663,5 @@
         });
     }
 
-    function togglePush() {
-        if (Notification.permission === 'granted') {
-            showToast('✅ Notifikasi sudah aktif!');
-            return;
-        }
-
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                initWebPush();
-                const btn = document.getElementById('btnWebPush');
-                btn.classList.add('enabled');
-                btn.querySelector('span').innerText = 'Notifikasi Aktif';
-                btn.querySelector('i').className = 'ti ti-bell-filled';
-                showToast('🚀 Notifikasi sistem berhasil diaktifkan!');
-            } else {
-                showToast('⚠️ Izin notifikasi ditolak.', true);
-            }
-        });
-    }
 </script>
-<script src="{{ asset('js/webpush.js') }}"></script>
 @endpush
