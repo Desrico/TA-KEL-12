@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Laporan Prioritas Kesehatan Mental Mahasiswa – Campus Care</title>
+    <title>Laporan Statistik & Tren Emosional Mahasiswa – Campus Care</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -17,12 +17,12 @@
             --text-primary: #0f172a;
             --text-secondary: #475569;
             --text-muted: #94a3b8;
-            --accent-danger: #dc2626;
-            --accent-danger-soft: #fef2f2;
-            --accent-warning: #d97706;
-            --accent-warning-soft: #fffbeb;
             --accent-success: #16a34a;
             --accent-success-soft: #f0fdf4;
+            --accent-warning: #d97706;
+            --accent-warning-soft: #fffbeb;
+            --accent-danger: #dc2626;
+            --accent-danger-soft: #fef2f2;
             
             --shadow-premium: 0 20px 40px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
             --radius-md: 12px;
@@ -261,10 +261,13 @@
             transition: all 0.2s ease;
         }
         .stat-val {
-            font-size: 1.45rem;
+            font-size: 1.35rem;
             font-weight: 800;
             color: var(--text-primary);
             margin-bottom: 2px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
         }
         .stat-lbl {
             font-size: 0.65rem;
@@ -273,19 +276,23 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        .stat-summary-box.danger {
-            border-color: #fecaca;
-            background-color: var(--accent-danger-soft);
+        .stat-summary-box.accent-box {
+            border-color: #a7f3d0;
+            background-color: var(--accent-success-soft);
         }
-        .stat-summary-box.danger .stat-val {
-            color: var(--accent-danger);
+        .stat-summary-box.accent-box .stat-val {
+            color: var(--accent-success);
         }
-        .stat-summary-box.warning {
-            border-color: #fde047;
-            background-color: var(--accent-warning-soft);
-        }
-        .stat-summary-box.warning .stat-val {
-            color: var(--accent-warning);
+
+        /* ── Chart Area in Paper ── */
+        .report-chart-container {
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            background: #ffffff;
+            margin-bottom: 20px;
+            height: 280px;
+            position: relative;
         }
 
         /* ── Tables ── */
@@ -309,7 +316,7 @@
         .report-table td {
             border: 1px solid #cbd5e1;
             padding: 10px 12px;
-            vertical-align: top;
+            vertical-align: middle;
             color: #1e293b;
         }
         .report-table tbody tr:nth-child(even) {
@@ -429,9 +436,11 @@
                 background-color: #ffffff !important;
                 color: #000000 !important;
             }
-            .stat-summary-box.danger .stat-val,
-            .stat-summary-box.warning .stat-val {
+            .stat-summary-box.accent-box .stat-val {
                 color: #000000 !important;
+            }
+            .report-chart-container {
+                border: 1px solid #000000 !important;
             }
             .report-table th {
                 border: 1px solid #000000 !important;
@@ -473,7 +482,7 @@
         </div>
     </div>
     <div class="topbar-actions">
-        <button class="btn-print" onclick="printElementToPDF('printLevel3Area', 'Laporan_Prioritas_Kesehatan_Mental_{{ now()->format('d_M_Y') }}.pdf')">
+        <button class="btn-print" onclick="printElementToPDF('printTrendArea', 'Laporan_Statistik_Tren_Kesehatan_Mental_{{ $range }}_{{ now()->format('d_M_Y') }}.pdf')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             Ekspor Laporan PDF
         </button>
@@ -483,22 +492,22 @@
 <!-- Main Wrapper -->
 <main class="report-container">
 
-    @if($students->isEmpty())
+    @if($totalCheckins === 0)
         <div class="empty-state" style="margin-top: 60px;">
-            <span class="empty-icon">✨</span>
-            <h2>Semua Mahasiswa Aman!</h2>
-            <p>Tidak ada mahasiswa dengan status krisis (Level 3) saat ini.</p>
+            <span class="empty-icon">📊</span>
+            <h2>Belum Ada Data Tren!</h2>
+            <p>Tidak ditemukan rekaman data check-in mood mahasiswa untuk rentang waktu {{ $rangeName }}.</p>
             <a href="{{ route('admin.dashboard') }}" class="btn-print" style="margin-top: 20px; display: inline-flex; text-decoration: none;">Kembali ke Dashboard</a>
         </div>
     @else
         <!-- Area Kertas Cetak -->
-        <div id="printLevel3Area" class="report-paper">
+        <div id="printTrendArea" class="report-paper">
             
 
             <!-- Judul Dokumen -->
             <div class="report-title-container">
-                <h1 class="report-title">Laporan Prioritas Klasifikasi Kesehatan Mental Mahasiswa</h1>
-                <p class="report-subtitle">Kategori Level 3 (Krisis/Urgent) - Periode Layanan {{ now()->isoFormat('MMMM YYYY') }}</p>
+                <h1 class="report-title">Laporan Statistik & Tren Kesehatan Mental Mahasiswa</h1>
+                <p class="report-subtitle">Analisis Data Check-in Suasana Hati dan Emosional Kolektif – Periode {{ $rangeName }}</p>
             </div>
 
             <!-- Meta Laporan -->
@@ -506,7 +515,7 @@
                 <tr>
                     <td style="width: 16%; font-weight: 700;">Nomor Laporan</td>
                     <td style="width: 2%;">:</td>
-                    <td style="width: 32%;">LKM/BK/IT-DEL/{{ now()->format('Y/m') }}/{{ str_pad($l3Count, 3, '0', STR_PAD_LEFT) }}</td>
+                    <td style="width: 32%;">LSM/BK/IT-DEL/{{ now()->format('Y/m') }}/TRN-{{ strtoupper($range) }}</td>
                     <td style="width: 16%; font-weight: 700;">Tanggal Cetak</td>
                     <td style="width: 2%;">:</td>
                     <td style="width: 32%;">{{ now()->isoFormat('DD MMMM YYYY') }}</td>
@@ -520,220 +529,173 @@
                     <td>{{ auth()->user()->nama ?? 'Staf Konselor IT Del' }}</td>
                 </tr>
                 <tr>
-                    <td style="font-weight: 700;">Status Kasus</td>
+                    <td style="font-weight: 700;">Rentang Analisis</td>
                     <td>:</td>
-                    <td><span style="color: var(--accent-danger); font-weight: bold; text-transform: uppercase;">Prioritas Level 3 (Krisis)</span></td>
-                    <td style="font-weight: 700;">Sistem Deteksi</td>
+                    <td>{{ $rangeName }} (Data Historis Harian/Bulanan)</td>
+                    <td style="font-weight: 700;">Sumber Data</td>
                     <td>:</td>
-                    <td>Predictive AI Classifier + Manual Review</td>
+                    <td>Aplikasi Mobile (Check-in Harian Kolektif)</td>
                 </tr>
             </table>
 
             <!-- Section I: Ringkasan Eksekutif -->
             <div class="report-section">
-                <h3 class="section-title">I. Ringkasan Eksekutif</h3>
+                <h3 class="section-title">I. Ringkasan Statistik</h3>
                 <p class="section-desc">
-                    Laporan ini menyajikan data analitis kondisi kesehatan emosional mahasiswa berdasarkan hasil klasifikasi otomatis sistem kecerdasan buatan (AI) yang mengukur sentimen jurnal ekspresi dan check-in suasana hati mahasiswa harian, dikombinasikan dengan validasi data oleh konselor. Kategori Level 3 menandakan mahasiswa berada pada status krisis emosional yang membutuhkan perhatian, komunikasi, serta intervensi langsung secara luring oleh Unit Bimbingan & Konseling secepatnya guna mengantisipasi risiko klinis yang lebih berat.
+                    Laporan statistik ini menyajikan ringkasan eksekutif dan analisis grafik terkait suasana hati (mood) kolektif mahasiswa yang terekam melalui fitur check-in harian pada aplikasi mobile. Data ini digunakan untuk mendeteksi fluktuasi kondisi psikologis kelompok mahasiswa pada rentang waktu tertentu, membantu konselor mengidentifikasi puncak tingkat kecemasan atau kelelahan mental kolektif (misalnya selama periode ujian), dan mengevaluasi efektivitas program dukungan emosional kampus.
                 </p>
                 
+                @php
+                    $avgMoodKolektif = count($chartData) > 0 ? round(array_sum($chartData) / count($chartData), 2) : 0;
+                    $topEmotion = count($distribution) > 0 ? $distribution[0]['name'] : '-';
+                    
+                    if ($avgMoodKolektif < 3.5) {
+                        $statusEvaluasi = "Rendah (Stres Kolektif)";
+                        $evalClass = "accent-box"; // We can reuse styles
+                    } elseif ($avgMoodKolektif < 5.0) {
+                        $statusEvaluasi = "Cukup / Stabil";
+                        $evalClass = "accent-box";
+                    } else {
+                        $statusEvaluasi = "Sangat Baik (Positif)";
+                        $evalClass = "accent-box";
+                    }
+                @endphp
+
                 <div class="stats-summary-grid">
                     <div class="stat-summary-box">
-                        <div class="stat-val">{{ $totalStudents }}</div>
-                        <div class="stat-lbl">Mahasiswa Terdaftar</div>
+                        <div class="stat-val">{{ $totalCheckins }}</div>
+                        <div class="stat-lbl">Total Input Check-in</div>
+                    </div>
+                    <div class="stat-summary-box accent-box">
+                        <div class="stat-val">{{ $avgMoodKolektif }} / 7.0</div>
+                        <div class="stat-lbl">Rata-rata Mood</div>
                     </div>
                     <div class="stat-summary-box">
-                        <div class="stat-val">{{ $totalScanned }}</div>
-                        <div class="stat-lbl">Mahasiswa Dipindai</div>
+                        <div class="stat-val">{{ $topEmotion }}</div>
+                        <div class="stat-lbl">Emosi Terbanyak</div>
                     </div>
-                    <div class="stat-summary-box danger">
-                        <div class="stat-val">{{ $l3Count }}</div>
-                        <div class="stat-lbl">Kasus L3 (Krisis)</div>
-                    </div>
-                    <div class="stat-summary-box warning">
-                        <div class="stat-val">{{ $ratio }}%</div>
-                        <div class="stat-lbl">Rasio Krisis</div>
+                    <div class="stat-summary-box">
+                        <div class="stat-val">{{ $statusEvaluasi }}</div>
+                        <div class="stat-lbl">Status Evaluasi</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Section II: Analisis Distribusi Kasus -->
+            <!-- Section II: Visualisasi Grafik Tren Mood -->
             <div class="report-section">
-                <h3 class="section-title">II. Analisis Distribusi Kasus</h3>
-                <p class="section-desc" style="margin-bottom: 8px;">
-                    Di bawah ini merupakan pemetaan kontribusi kasus krisis (Level 3) berdasarkan data akademik Program Studi dan tahun Angkatan mahasiswa aktif:
+                <h3 class="section-title">II. Visualisasi Grafik Tren Suasana Hati</h3>
+                <p class="section-desc">
+                    Kurva di bawah ini menggambarkan fluktuasi rata-rata mood kolektif mahasiswa dari hari ke hari atau bulan ke bulan. Nilai tinggi (mendekati 7.0) mengindikasikan emosi positif/bahagia secara kolektif, sedangkan penurunan garis kurva (mendekati 1.0) menunjukkan adanya indikator stres, kelelahan fisik/mental, atau emosi negatif.
                 </p>
+                
+                <div class="report-chart-container">
+                    <canvas id="laporanMoodTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Section III: Tabel Rincian Data Tren -->
+            <div class="report-section" style="page-break-before: auto;">
+                <h3 class="section-title">III. Rincian Poin Data Tren Mood</h3>
+                <p class="section-desc" style="margin-bottom: 10px;">
+                    Daftar angka rata-rata suasana hati per titik waktu pengelompokan yang direpresentasikan oleh kurva grafik di atas:
+                </p>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%; text-align: center;">No</th>
+                            <th>Tanggal / Periode</th>
+                            <th style="width: 30%; text-align: center;">Jumlah Check-in Suasana Hati</th>
+                            <th style="width: 30%; text-align: center;">Rata-rata Skor Mood Kolektif</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($trendTable as $index => $row)
+                            <tr>
+                                <td style="text-align: center;">{{ $index + 1 }}</td>
+                                <td><strong>{{ $row['label'] }}</strong></td>
+                                <td style="text-align: center;">{{ $row['count'] }} kali input</td>
+                                <td style="text-align: center; font-weight: 700;">{{ $row['score'] }} / 7.0</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Section IV: Analisis Distribusi Emosi & Tingkatan Mood (Page Break jika penuh) -->
+            <div class="report-section" style="page-break-before: auto;">
+                <h3 class="section-title">IV. Analisis Distribusi Emosi & Tingkat Mood</h3>
+                <p class="section-desc">
+                    Berikut adalah pemetaan persentase sebaran emosi spesifik dan tingkatan mood yang dirasakan mahasiswa selama periode {{ $rangeName }}:
+                </p>
+                
                 <div class="distribution-row">
-                    <!-- Tabel Prodi -->
-                    <div style="flex: 1;">
-                        <h4 class="sub-section-title">A. Berdasarkan Program Studi</h4>
+                    <!-- Tabel Top 5 Feelings -->
+                    <div style="flex: 1.2;">
+                        <h4 class="sub-section-title">A. Top 5 Emosi Teratas (Feelings)</h4>
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th>Program Studi</th>
-                                    <th style="width: 25%; text-align: center;">Kasus</th>
-                                    <th style="width: 30%; text-align: center;">Kontribusi</th>
+                                    <th>Nama Emosi</th>
+                                    <th style="width: 25%; text-align: center;">Persentase</th>
+                                    <th>Keterangan Deskripsi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($prodiBreakdown as $prodi => $count)
+                                @forelse($distribution as $feel)
                                     <tr>
-                                        <td>{{ $prodi }}</td>
-                                        <td style="text-align: center; font-weight: 700;">{{ $count }}</td>
-                                        <td style="text-align: center;">{{ $l3Count > 0 ? round(($count / $l3Count) * 100, 1) : 0 }}%</td>
+                                        <td><strong>{{ $feel['name'] }}</strong></td>
+                                        <td style="text-align: center; font-weight: 700; color: var(--accent-success);">{{ $feel['percentage'] }}%</td>
+                                        <td style="font-size: 0.75rem; line-height: 1.3;">{{ $feel['desc'] }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" style="text-align: center; color: var(--text-muted);">Tidak ada data</td>
+                                        <td colspan="3" style="text-align: center; color: var(--text-muted);">Tidak ada data emosi</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Tabel Angkatan -->
-                    <div style="flex: 1;">
-                        <h4 class="sub-section-title">B. Berdasarkan Angkatan</h4>
+                    <!-- Tabel Distribusi Mood -->
+                    <div style="flex: 0.8;">
+                        <h4 class="sub-section-title">B. Distribusi Tingkat Mood</h4>
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th>Tahun Angkatan</th>
-                                    <th style="width: 25%; text-align: center;">Kasus</th>
-                                    <th style="width: 30%; text-align: center;">Kontribusi</th>
+                                    <th>Tingkat Mood</th>
+                                    <th style="width: 35%; text-align: center;">Persentase</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($angkatanBreakdown as $angkatan => $count)
+                                @forelse($moodDist as $m)
+                                    @php
+                                        // Pilih warna/klasifikasi badge berdasarkan nama mood
+                                        $mName = strtolower($m['name']);
+                                        if (str_contains($mName, 'sedih') || str_contains($mName, 'buruk') || str_contains($mName, 'sangat buruk')) {
+                                            $badgeClass = "badge-danger";
+                                        } elseif (str_contains($mName, 'cemas') || str_contains($mName, 'biasa')) {
+                                            $badgeClass = "badge-warning";
+                                        } else {
+                                            $badgeClass = "badge-success";
+                                        }
+                                    @endphp
                                     <tr>
-                                        <td>Angkatan {{ $angkatan }}</td>
-                                        <td style="text-align: center; font-weight: 700;">{{ $count }}</td>
-                                        <td style="text-align: center;">{{ $l3Count > 0 ? round(($count / $l3Count) * 100, 1) : 0 }}%</td>
+                                        <td><span class="badge {{ $badgeClass }}" style="font-size: 0.7rem;">{{ $m['name'] }}</span></td>
+                                        <td style="text-align: center; font-weight: 700;">{{ $m['percentage'] }}%</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" style="text-align: center; color: var(--text-muted);">Tidak ada data</td>
+                                        <td colspan="2" style="text-align: center; color: var(--text-muted);">Tidak ada data mood</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-
-            <!-- Section III: Tabel Rinci Mahasiswa Prioritas (Mulai di Halaman Baru jika panjang) -->
-            <div class="report-section" style="page-break-before: auto; margin-top: 10px;">
-                <h3 class="section-title">III. Detail Daftar Kasus Prioritas (Level 3)</h3>
-                <p class="section-desc" style="margin-bottom: 12px;">
-                    Daftar mahasiswa yang diklasifikasikan ke dalam kasus Level 3 yang memerlukan penanganan klinis segera:
-                </p>
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 6%; text-align: center;">No</th>
-                            <th style="width: 25%;">Nama & NIM</th>
-                            <th style="width: 22%;">Prodi & Angkatan</th>
-                            <th style="width: 12%; text-align: center;">Keyakinan AI</th>
-                            <th>Keterangan / Red Flag Masalah</th>
-                            <th style="width: 13%; text-align: center;">Tindak Lanjut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($students as $index => $s)
-                            <tr>
-                                <td style="text-align: center; vertical-align: middle;">{{ $index + 1 }}</td>
-                                <td style="vertical-align: middle;">
-                                    <strong>{{ $s->name }}</strong><br>
-                                    <span style="font-size: 0.72rem; color: var(--text-secondary);">NIM: {{ $s->nim }}</span>
-                                </td>
-                                <td style="vertical-align: middle;">
-                                    {{ $s->prodi }}<br>
-                                    <span style="font-size: 0.72rem; color: var(--text-secondary);">Angkatan {{ $s->angkatan }}</span>
-                                </td>
-                                <td style="text-align: center; font-weight: 700; color: var(--accent-danger); vertical-align: middle;">
-                                    {{ round($s->mental_confidence) }}%
-                                </td>
-                                <td style="font-size: 0.78rem; line-height: 1.45;">
-                                    @if($s->mental_red_flag)
-                                        <span style="color: #991b1b; font-weight: 500;">"{{ $s->mental_red_flag }}"</span>
-                                    @else
-                                        <span style="color: #64748b;">- Tidak ada catatan red flag spesifik -</span>
-                                    @endif
-                                </td>
-                                <td style="text-align: center; vertical-align: middle;">
-                                    @php
-                                        // Deteksi apakah ada notifikasi yang pernah dikirim untuk NIM ini di database MongoDB
-                                        $notifExists = \App\Models\NotifikasiMahasiswa::where('nim', (string)$s->nim)->exists();
-                                    @endphp
-                                    @if($notifExists)
-                                        <span class="badge badge-success">Notifikasi OK</span>
-                                    @else
-                                        <span class="badge badge-danger">Perlu Notif</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">
-                                    Tidak ada data mahasiswa dengan status Level 3 saat ini.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Section IV: Tren Kesehatan Mental Kolektif -->
-            <div class="report-section" style="page-break-inside: avoid;">
-                <h3 class="section-title">IV. Analisis Tren Mood Bulanan Kolektif</h3>
-                <p class="section-desc">
-                    Nilai di bawah merupakan statistik suasana hati (mood) rata-rata kelompok mahasiswa prioritas di atas yang diperoleh dari check-in harian dalam kurun waktu 4 bulan terakhir. Rentang skor penilaian berkisar antara 1.0 (Sangat Murung/Krisis) hingga 7.0 (Sangat Bahagia/Stabil). Penurunan tren skor mood bulanan yang signifikan mengindikasikan perlunya program pencegahan stres terstruktur di tingkat institusi.
-                </p>
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Bulan Aktivitas</th>
-                            <th style="width: 25%; text-align: center;">Frekuensi Check-in</th>
-                            <th style="width: 25%; text-align: center;">Rata-rata Skor Mood</th>
-                            <th style="width: 32%;">Kondisi Mental Kolektif</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($monthlyMoodTrend as $month => $data)
-                            @php
-                                $carbonMonth = \Carbon\Carbon::createFromFormat('Y-m', $month);
-                                $monthName = $carbonMonth->isoFormat('MMMM YYYY');
-                                $avgScore = $data['avg_score'];
-                                $checkinCount = $data['count'];
-                                
-                                if ($avgScore < 3.0) {
-                                    $evalStatus = "Krisis/Risiko Tinggi (Perlu Intervensi)";
-                                    $label = "badge-danger";
-                                } elseif ($avgScore < 4.5) {
-                                    $evalStatus = "Stres Tinggi/Kelelahan Mental";
-                                    $label = "badge-warning";
-                                } else {
-                                    $evalStatus = "Stabil/Sesuai Batas Wajar";
-                                    $label = "badge-success";
-                                }
-                            @endphp
-                            <tr>
-                                <td><strong>{{ $monthName }}</strong></td>
-                                <td style="text-align: center;">{{ $checkinCount }} kali</td>
-                                <td style="text-align: center; font-weight: 700; font-size: 0.92rem;">{{ $avgScore }} / 7.0</td>
-                                <td><span class="badge {{ $label }}">{{ $evalStatus }}</span></td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" style="text-align: center; padding: 16px; color: var(--text-muted);">
-                                    Tidak ada riwayat check-in yang terekam pada kelompok ini dalam 4 bulan terakhir.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
             </div>
 
             <!-- Section V: Lembar Pengesahan -->
-            <div class="report-section signature-section">
+            <div class="report-section signature-section" style="page-break-inside: avoid;">
                 <div class="signature-container">
                     <div class="signature-box">
                         <p>Dibuat Oleh:</p>
@@ -760,8 +722,77 @@
 <div id="toast" class="no-print"></div>
 
 <!-- JS Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js" class="no-print"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" class="no-print"></script>
 <script class="no-print">
+    // Render grafik tren di laporan
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('laporanMoodTrendChart');
+        if (!ctx) return;
+
+        const labels = @json($labels);
+        const chartData = @json($chartData);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Rata-rata Skor Mood',
+                    data: chartData,
+                    borderColor: '#059669', // Campus Care Green
+                    backgroundColor: 'rgba(5, 150, 105, 0.04)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#047857',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 1.5,
+                    pointRadius: 4,
+                    tension: 0.25,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false, // MATIKAN ANIMASI: Agar canvas langsung tergambar utuh saat diekspor ke PDF
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: '#f1f5f9'
+                        },
+                        ticks: {
+                            font: {
+                                family: "'Plus Jakarta Sans', sans-serif",
+                                size: 10
+                            },
+                            color: '#64748b'
+                        }
+                    },
+                    y: {
+                        min: 1,
+                        max: 7,
+                        grid: {
+                            color: '#e2e8f0'
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                family: "'Plus Jakarta Sans', sans-serif",
+                                size: 10
+                            },
+                            color: '#64748b'
+                        }
+                    }
+                }
+            }
+        });
+    });
+
     function showToast(msg, isSuccess = true) {
         const t = document.getElementById('toast');
         t.innerHTML = isSuccess ? `<span>✅</span> ${msg}` : `<span>⚠️</span> ${msg}`;
@@ -775,11 +806,11 @@
         const element = document.getElementById(elementId);
 
         const opt = {
-            margin:       [12, 12, 12, 12], // Margin ideal untuk dokumen A4 formal
+            margin:       [12, 12, 12, 12], // Margin ideal cetak formal
             filename:     filename,
             image:        { type: 'jpeg', quality: 1.0 },
             html2canvas:  { 
-                scale: 2.2, // Ketajaman teks optimal saat dicetak
+                scale: 2.2, // Teks tajam
                 useCORS: true, 
                 backgroundColor: '#ffffff',
                 letterRendering: true

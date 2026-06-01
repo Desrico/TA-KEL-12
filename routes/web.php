@@ -198,6 +198,7 @@ Route::get('/konselor/jadwal-data', [CounselorController::class, 'getJadwalData'
 // ═══════════════════════════════
 Route::get('/konselor/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('counselor.dashboard');
 Route::get('/konselor/prioritas', [\App\Http\Controllers\DashboardController::class, 'prioritas'])->name('counselor.prioritas');
+Route::get('/konselor/laporan-tren', [\App\Http\Controllers\DashboardController::class, 'laporanTren'])->name('counselor.laporan-tren');
 Route::get('/konselor/semua-mahasiswa', [\App\Http\Controllers\DashboardController::class, 'semuaMahasiswa'])->name('counselor.semua-mahasiswa');
 Route::post('/konselor/update-status/{nim}', [\App\Http\Controllers\DashboardController::class, 'updateStatus'])->name('counselor.update-status');
 Route::post('/konselor/kirim-notifikasi/{nim}', [\App\Http\Controllers\DashboardController::class, 'sendCustomNotification'])->name('counselor.send-notification');

@@ -420,10 +420,29 @@ class DashboardController extends Controller
             $q->orderBy('created_at', 'desc');
         }])->get();
 
-        $saved   = 0;
-        $skipped = 0;
+        $saved    = 0;
+        $skipped  = 0;
 
         foreach ($students as $student) {
+            if ($student->mental_scanned_at) {
+                $lastScanned = \Carbon\Carbon::parse($student->mental_scanned_at);
+
+                $lastJournalDate  = $student->journalTexts->first()?->created_at;
+                $lastCheckinDate  = DailyCheckin::where('nim', $student->nim)
+                    ->orderBy('created_at', 'desc')
+                    ->value('created_at');
+
+                $hasNewJournal  = $lastJournalDate && \Carbon\Carbon::parse($lastJournalDate)->gt($lastScanned);
+                $hasNewCheckin  = $lastCheckinDate && \Carbon\Carbon::parse($lastCheckinDate)->gt($lastScanned);
+
+                // Jika tidak ada aktivitas baru sejak scan terakhir, lewati mahasiswa ini
+                if (!$hasNewJournal && !$hasNewCheckin) {
+                    $skipped++;
+                    continue;
+                }
+            }
+            // ─────────────────────────────────────────────────────────────────
+
             // Ambil histori mood & feeling 14 hari terakhir
             $historyInput = DailyCheckin::with(['mood', 'feeling'])
                 ->where('nim', $student->nim)
@@ -493,7 +512,7 @@ class DashboardController extends Controller
 
         return response()->json([
             'status'  => 'success',
-            'message' => "Scan selesai: {$saved} mahasiswa diperbarui, {$skipped} dilewati.",
+            'message' => "Scan selesai: {$saved} mahasiswa diproses, {$skipped} dilewati (tidak ada data baru).",
             'saved'   => $saved,
             'skipped' => $skipped,
         ]);
@@ -554,7 +573,59 @@ class DashboardController extends Controller
                 return $student;
             });
 
-        return view('admin.prioritas', compact('students'));
+        // 1. Hitung statistik dasar
+        $totalStudents = Student::count();
+        $totalScanned = Student::whereNotNull('mental_level')->count();
+        $l3Count = $students->count();
+        $ratio = $totalScanned > 0 ? round(($l3Count / $totalScanned) * 100, 1) : 0;
+
+        // 2. Distribusi kasus per Program Studi (Prodi)
+        $prodiBreakdown = $students->groupBy(function ($s) {
+            return $s->prodi ?: 'Tidak Diketahui';
+        })->map(function ($group) {
+            return $group->count();
+        })->sortDesc();
+
+        // 3. Distribusi kasus per Angkatan
+        $angkatanBreakdown = $students->groupBy('angkatan')->map(function ($group) {
+            return $group->count();
+        })->sort();
+
+        // 4. Tren Mood Bulanan Mahasiswa Prioritas (Level 3)
+        $nims = $students->pluck('nim')->toArray();
+        $fourMonthsAgo = now()->subMonths(4)->startOfMonth();
+        
+        $checkins = DailyCheckin::whereIn('nim', $nims)
+            ->where('created_at', '>=', $fourMonthsAgo)
+            ->get();
+
+        $monthlyMoodTrend = $checkins->groupBy(function ($checkin) {
+            $date = $checkin->created_at instanceof \Carbon\Carbon 
+                ? $checkin->created_at 
+                : \Carbon\Carbon::parse($checkin->created_at);
+            return $date->format('Y-m');
+        })->map(function ($group) {
+            $avg = $group->map(function ($entry) {
+                return match ((int)$entry->mood_id) {
+                    7 => 1, 6 => 2, 5 => 3, 4 => 4, 3 => 5, 2 => 6, 1 => 7, default => 4
+                };
+            })->average();
+            return [
+                'avg_score' => round($avg, 2),
+                'count' => $group->count()
+            ];
+        })->sortKeys();
+
+        return view('admin.prioritas', compact(
+            'students',
+            'totalStudents',
+            'totalScanned',
+            'l3Count',
+            'ratio',
+            'prodiBreakdown',
+            'angkatanBreakdown',
+            'monthlyMoodTrend'
+        ));
     }
 
     public function semuaMahasiswa(Request $request)
@@ -562,6 +633,7 @@ class DashboardController extends Controller
         $search   = $request->query('search');
         $angkatan = $request->query('angkatan', 'Semua');
         $prodi    = $request->query('prodi', 'Semua');
+        $level    = $request->query('level', 'Semua');
 
         // Daftar angkatan unik dari MongoDB
         $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
@@ -579,6 +651,9 @@ class DashboardController extends Controller
 
         $students = Student::with('journalTexts')
             ->whereNotNull('mental_level')
+            ->when($level !== 'Semua', function ($q) use ($level) {
+                $q->whereIn('mental_level', [(int)$level, (string)$level]);
+            })
             ->when($angkatan !== 'Semua', function ($q) use ($angkatan) {
                 $q->where('angkatan', $angkatan);
             })
@@ -606,7 +681,7 @@ class DashboardController extends Controller
                 return $student;
             });
 
-        return view('admin.semua_mahasiswa', compact('students', 'search', 'angkatanList', 'angkatan', 'prodi'));
+        return view('admin.semua_mahasiswa', compact('students', 'search', 'angkatanList', 'angkatan', 'prodi', 'level'));
     }
 
     public static function classifyAndSave(string $nim): void
@@ -658,6 +733,124 @@ class DashboardController extends Controller
         }
     }
 
+    public function laporanTren(Request $request)
+    {
+        $range = $request->query('range', '14d');
+        $query = DailyCheckin::with(['mood', 'feeling']);
+
+        if ($range === '14d') {
+            $query->where('created_at', '>=', now()->subDays(14));
+            $rangeName = '14 Hari Terakhir';
+        } elseif ($range === '1m') {
+            $query->where('created_at', '>=', now()->subMonths(1));
+            $rangeName = '1 Bulan Terakhir';
+        } elseif ($range === '4m') {
+            $query->where('created_at', '>=', now()->subMonths(4));
+            $rangeName = '4 Bulan Terakhir';
+        } elseif ($range === '1y') {
+            $query->where('created_at', '>=', now()->subYears(1));
+            $rangeName = '1 Tahun Terakhir';
+        } else {
+            $query->where('created_at', '>=', now()->subDays(14));
+            $rangeName = '14 Hari Terakhir';
+            $range = '14d';
+        }
+
+        $rawEntries = $query->orderBy('created_at', 'asc')->get();
+        $totalCheckins = $rawEntries->count();
+
+        // 1. Kelompokkan data tren mood
+        if ($range === '1y' || $range === '4m') {
+            $grouped = $rawEntries->groupBy(function ($d) {
+                return $d->created_at->format('Y-m');
+            });
+        } else {
+            $grouped = $rawEntries->groupBy(function ($d) {
+                return $d->created_at->format('Y-m-d');
+            });
+        }
+
+        $moodTrendData = $grouped->map(function ($entries) {
+            $scores = $entries->map(function ($entry) {
+                return match ((int)$entry->mood_id) {
+                    7 => 1, 6 => 2, 5 => 3, 4 => 4, 3 => 5, 2 => 6, 1 => 7, default => 5,
+                };
+            });
+            return round($scores->average(), 2);
+        });
+
+        $labels = [];
+        $chartData = [];
+        foreach ($moodTrendData as $key => $val) {
+            if ($range === '1y' || $range === '4m') {
+                $labels[] = \Carbon\Carbon::createFromFormat('Y-m', $key)->isoFormat('MMMM YYYY');
+            } else {
+                $labels[] = \Carbon\Carbon::parse($key)->isoFormat('D MMM YYYY');
+            }
+            $chartData[] = $val;
+        }
+
+        // Buat tabel data tren
+        $trendTable = [];
+        $i = 0;
+        foreach ($moodTrendData as $key => $val) {
+            $trendTable[] = [
+                'label' => $labels[$i] ?? $key,
+                'score' => $val,
+                'count' => $grouped[$key]->count()
+            ];
+            $i++;
+        }
+
+        // 2. Hitung Top 5 Suasana Perasaan (Feelings)
+        $distribution = [];
+        if ($totalCheckins > 0) {
+            $feelingsCount = $rawEntries->groupBy('feeling_id')->map->count();
+            $topFeelingIds = $feelingsCount->sortDesc()->take(5)->keys();
+            $feelings = Feeling::whereIn('_id', $topFeelingIds)->get()->keyBy('_id');
+            foreach ($topFeelingIds as $fid) {
+                $count = $feelingsCount[$fid];
+                $feeling = $feelings[$fid] ?? null;
+                if (!$feeling) continue;
+                $fName = $feeling->feeling_name;
+                $meta = $this->getFeelingMeta($fName);
+                $distribution[] = [
+                    'name' => $fName,
+                    'percentage' => round(($count / $totalCheckins) * 100, 1),
+                    'count' => $count,
+                    'desc' => $meta['desc']
+                ];
+            }
+        }
+
+        // 3. Hitung Distribusi Mood
+        $moodDist = [];
+        if ($totalCheckins > 0) {
+            $counts = $rawEntries->groupBy('mood.mood_name')->map->count();
+            foreach ($counts as $moodName => $count) {
+                $moodDist[] = [
+                    'name' => $moodName ?: 'Biasa Saja',
+                    'count' => $count,
+                    'percentage' => round(($count / $totalCheckins) * 100, 1)
+                ];
+            }
+            usort($moodDist, function ($a, $b) {
+                return $b['percentage'] <=> $a['percentage'];
+            });
+        }
+
+        return view('admin.laporan_tren', compact(
+            'range',
+            'rangeName',
+            'totalCheckins',
+            'labels',
+            'chartData',
+            'trendTable',
+            'distribution',
+            'moodDist'
+        ));
+    }
+
     public function sendCustomNotification(Request $request, string $nim)
     {
         $request->validate([
@@ -665,21 +858,25 @@ class DashboardController extends Controller
         ]);
 
         $student = Student::where('nim', $nim)->firstOrFail();
-        
-        $mahasiswa = \App\Models\Mahasiswa::where('nim', $nim)->first();
-        if (!$mahasiswa || !$mahasiswa->user_id) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'User mahasiswa tidak ditemukan di database SQL.',
-            ], 404);
-        }
 
-        // Simpan ke SQL table. Hook booted() akan otomatis mensinkronisasikan ke MongoDB!
-        \App\Models\Notifikasi::create([
-            'user_id' => $mahasiswa->user_id,
-            'pesan'   => $request->pesan,
-            'status'  => 'belum',
+        // Selalu simpan langsung ke MongoDB collection "notifications" agar mobile dapat membacanya.
+        // Mobile backend (EMORA-APP-backend) membaca dari collection ini via GET /api/notifications.
+        \App\Models\NotifikasiMahasiswa::create([
+            'nim'    => (string) $nim, // Pastikan nim disimpan sebagai string untuk konsistensi
+            'pesan'  => $request->pesan,
+            'status' => 'belum',
         ]);
+
+        // Jika mahasiswa juga terdaftar di SQL (user web), sinkronisasi juga ke tabel SQL
+        // agar notifikasi muncul di dashboard web konselor.
+        $mahasiswa = \App\Models\Mahasiswa::where('nim', $nim)->first();
+        if ($mahasiswa && $mahasiswa->user_id) {
+            \App\Models\Notifikasi::create([
+                'user_id' => $mahasiswa->user_id,
+                'pesan'   => $request->pesan,
+                'status'  => 'belum',
+            ]);
+        }
 
         return response()->json([
             'status'  => 'success',

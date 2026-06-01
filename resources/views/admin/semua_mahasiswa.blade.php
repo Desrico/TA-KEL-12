@@ -211,6 +211,10 @@
                     @if(request('search'))
                         <input type="hidden" name="search" value="{{ request('search') }}">
                     @endif
+
+                    @if(request('level'))
+                        <input type="hidden" name="level" value="{{ request('level') }}">
+                    @endif
                 </form>
 
                 <div class="search-group">

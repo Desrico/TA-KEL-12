@@ -741,24 +741,29 @@
         const checkins = [...checkinsRaw].reverse();
         let filtered = checkins;
         
+        const parseDate = (d) => {
+            if (!d) return new Date();
+            if (typeof d === 'string') return new Date(d);
+            if (d.$date) return new Date(parseInt(d.$date.$numberLong || d.$date));
+            return new Date(d);
+        };
+
         if (days !== 'all') {
             const cutoffDate = new Date();
             cutoffDate.setDate(cutoffDate.getDate() - parseInt(days));
-            filtered = checkins.filter(c => new Date(c.created_at) >= cutoffDate);
+            filtered = checkins.filter(c => parseDate(c.created_at) >= cutoffDate);
         }
         
         // Mood Data
-        const moodData = filtered.map(c => ({
-            x: new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-            y: moodLevels[c.mood?.mood_name] || 5
-        }));
+        const moodLabels = filtered.map(c => parseDate(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+        const moodData = filtered.map(c => moodLevels[c.mood?.mood_name] || 5);
 
         const moodCtx = document.getElementById('detailMoodChart');
         if (moodChart) moodChart.destroy();
         if (moodCtx && moodData.length > 0) {
             moodChart = new Chart(moodCtx, {
                 type: 'line',
-                data: { datasets: [{ label: 'Mood', data: moodData, borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)', borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#059669', fill: true }] },
+                data: { labels: moodLabels, datasets: [{ label: 'Mood', data: moodData, borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)', borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#059669', fill: true }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 1, max: 7, ticks: { stepSize: 1, callback: v => moodLblMap[v] || '', font: { size: 10 } }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
             });
         } else if (moodCtx) {
@@ -771,20 +776,19 @@
         }
 
         // Feeling Data
-        const feelingDataRaw = filtered.filter(c => c.feeling).map(c => ({
-            x: new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-            label: c.feeling.feeling_name
-        }));
+        const feelingFiltered = filtered.filter(c => c.feeling);
+        const feelLabels = feelingFiltered.map(c => parseDate(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+        const feelingNames = feelingFiltered.map(c => c.feeling.feeling_name);
 
-        const uniqueF = feelingDataRaw.map(d => d.label).filter((v, i, s) => s.indexOf(v) === i);
-        const feelData = feelingDataRaw.map(d => ({ x: d.x, y: uniqueF.indexOf(d.label) + 1 }));
+        const uniqueF = feelingNames.filter((v, i, s) => s.indexOf(v) === i);
+        const feelData = feelingNames.map(label => uniqueF.indexOf(label) + 1);
 
         const feelCtx = document.getElementById('detailFeelingChart');
         if (feelingChart) feelingChart.destroy();
         if (feelCtx && feelData.length > 0) {
             feelingChart = new Chart(feelCtx, {
                 type: 'line',
-                data: { datasets: [{ label: 'Perasaan', data: feelData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#10b981', fill: true }] },
+                data: { labels: feelLabels, datasets: [{ label: 'Perasaan', data: feelData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#10b981', fill: true }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => uniqueF[ctx.parsed.y - 1] || '' } } }, scales: { y: { min: 1, max: Math.max(uniqueF.length, 2), ticks: { stepSize: 1, callback: v => uniqueF[v - 1] || '', font: { size: 9 } }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
             });
         } else if (feelCtx) {

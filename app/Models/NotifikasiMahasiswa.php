@@ -13,7 +13,6 @@ class NotifikasiMahasiswa extends Model
         'nim',
         'pesan',
         'status', // 'belum', 'dibaca'
-        'sql_notifikasi_id',
     ];
 
     public function student()

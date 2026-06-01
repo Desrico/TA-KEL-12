@@ -593,13 +593,13 @@
                 </div>
 
                 <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                    <a href="{{ route('counselor.prioritas') }}" class="btn-risk-list">
+                    <a href="{{ route('counselor.semua-mahasiswa', ['level' => 3]) }}" class="btn-risk-list">
                         <i class="ti ti-alert-triangle"></i>
                         Lihat Semua Risiko Tinggi
                     </a>
 
                     @if($countL3 > 0)
-                    <a href="{{ route('counselor.prioritas') ?? '#' }}" class="btn-report">
+                    <a href="{{ route('counselor.prioritas') }}" class="btn-report">
                         <i class="ti ti-file-analytics"></i>
                         Buat Laporan Prioritas
                     </a>
@@ -620,12 +620,12 @@
                             <div class="card-subtitle">Perkembangan psikologis kolektif mingguan</div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <select class="filter-dropdown" onchange="loadChartData(this.value)">
+                            <select class="filter-dropdown chart-range-select" onchange="loadChartData(this.value)">
                                 <option value="14d">14 Hari terakhir</option>
                                 <option value="1m">1 Bulan terakhir</option>
                                 <option value="4m">4 Bulan terakhir</option>
                             </select>
-                            <button class="btn-icon" title="Ekspor PDF" onclick="window.print()">
+                            <button class="btn-icon" title="Cetak Laporan Tren Resmi" onclick="printMentalHealthTrendReport()">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                             </button>
                         </div>
@@ -643,12 +643,12 @@
                             <div class="card-subtitle">Distribusi emosi dari waktu ke waktu</div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <select class="filter-dropdown" onchange="loadChartData(this.value)">
+                            <select class="filter-dropdown chart-range-select" onchange="loadChartData(this.value)">
                                 <option value="14d">14 Hari terakhir</option>
                                 <option value="1m">1 Bulan terakhir</option>
                                 <option value="4m">4 Bulan terakhir</option>
                             </select>
-                            <button class="btn-icon" title="Ekspor PDF" onclick="window.print()">
+                            <button class="btn-icon" title="Cetak Laporan Tren Resmi" onclick="printMentalHealthTrendReport()">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                             </button>
                         </div>
@@ -1093,7 +1093,21 @@
         });
     }
 
+    let currentChartRange = '14d';
+
+    function printMentalHealthTrendReport() {
+        const url = `{{ route('counselor.laporan-tren') }}?range=${currentChartRange}`;
+        window.open(url, '_blank');
+    }
+
     function loadChartData(range) {
+        currentChartRange = range;
+
+        // Sinkronisasi semua select dropdown di dashboard
+        document.querySelectorAll('.chart-range-select').forEach(select => {
+            select.value = range;
+        });
+
         fetch(`{{ route('counselor.chart-data') }}?range=${range}`)
             .then(res => res.json())
             .then(data => {
