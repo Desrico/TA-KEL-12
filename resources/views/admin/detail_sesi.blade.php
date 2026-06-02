@@ -113,7 +113,7 @@
         'berlangsung' => 'Sedang Berlangsung',
         'selesai' => 'Selesai',
         'ditolak', 'dibatalkan' => 'Ditolak',
-        default => ucfirst($jadwal->status ?? 'Menunggu'),
+        default => ucwords(str_replace('_', ' ', $jadwal->status ?? 'Menunggu')),
     };
 
     $topik = $jadwal->topik ?? null;
@@ -211,7 +211,7 @@
                 </a>
             @else
                 <button type="button" class="btn-terima" style="min-width:220px;text-align:center;opacity:.6;cursor:not-allowed;" disabled>
-                    Menunggu Jadwal Sesi{{ $scheduledStartLabel ? ' - '.$scheduledStartLabel : '' }}
+                    Menunggu Jadwal Sesi
                 </button>
             @endif
         </div>

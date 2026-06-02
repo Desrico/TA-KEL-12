@@ -310,6 +310,67 @@
     font-size:15px;
 }
 
+.detail-action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-detail {
+    min-width: 260px;
+    height: 56px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-back {
+    background: #047857;
+    color: #ffffff;
+    border: 1px solid #047857;
+    box-shadow: 0 10px 24px rgba(4, 120, 87, 0.18);
+}
+
+.btn-back:hover {
+    background: #065f46;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.btn-reschedule {
+    background: #ffffff;
+    color: #064e3b;
+    border: 2px solid #064e3b;
+}
+
+.btn-reschedule:hover {
+    background: #ecfdf5;
+    border-color: #10b981;
+    color: #065f46;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .detail-action-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-detail {
+        width: 100%;
+        min-width: unset;
+    }
+}
+
 @media (max-width:1200px){
     .detail-hero h1{
         font-size:54px;
@@ -514,7 +575,7 @@
 
                 <div class="detail-row">
                     <span>Status</span>
-                    <strong>{{ ucwords($jadwal->status ?? '-') }}</strong>
+                    <strong>{{ ucwords(str_replace('_', ' ', $jadwal->status ?? '-')) }}</strong>
                 </div>
 
                 <div class="section-label mt-4">
@@ -534,11 +595,17 @@
                     </div>
                 @endif
 
-                <div class="detail-action">
-                <a href="{{ route('riwayat') }}" class="btn-back-riwayat">
-                    Kembali ke Riwayat
-                </a>
-            </div>
+                <div class="detail-action-buttons">
+    <a href="{{ route('riwayat') }}" class="btn-detail btn-back">
+        Kembali ke Riwayat
+    </a>
+
+    @if ($jadwal->status === 'perlu_penjadwalan_ulang')
+        <a href="{{ route('konseling.jadwal_ulang.edit', $jadwal->id) }}" class="btn-detail btn-reschedule">
+            Jadwalkan Ulang
+        </a>
+    @endif
+</div>
             </main>
 
         </div>

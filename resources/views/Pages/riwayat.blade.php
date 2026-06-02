@@ -18,49 +18,68 @@
         <div class="riwayat-list">
 
            @foreach($riwayat as $item)
-    @php
-        $status = strtolower($item->status ?? '');
+@php
+    $status = strtolower(trim($item->status ?? ''));
+    $status = str_replace(' ', '_', $status);
 
-        $statusLabel = match($status) {
-            'selesai' => 'Selesai',
-            'ditolak' => 'Ditolak',
-            'dibatalkan' => 'Dibatalkan',
-            'disetujui', 'diterima' => 'Diterima',
-            'menunggu', 'menunggu konfirmasi' => 'Menunggu Konfirmasi',
-            'berlangsung', 'sedang berlangsung' => 'Sedang Berlangsung',
-            default => ucfirst($item->status ?? '-')
-        };
+    $statusLabel = match($status) {
+        'selesai' => 'Selesai',
+        'ditolak' => 'Ditolak',
+        'dibatalkan' => 'Dibatalkan',
+        'disetujui', 'diterima' => 'Diterima',
+        'menunggu', 'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
+        'berlangsung', 'sedang_berlangsung' => 'Sedang Berlangsung',
+        'perlu_penjadwalan_ulang' => 'Perlu Penjadwalan Ulang',
+        default => ucfirst(str_replace('_', ' ', $item->status ?? '-'))
+    };
 
-        $statusClass = match($status) {
-            'selesai' => 'status-selesai',
-            'ditolak' => 'status-ditolak',
-            'dibatalkan' => 'status-dibatalkan',
-            'disetujui', 'diterima' => 'status-diterima',
-            'menunggu', 'menunggu konfirmasi' => 'status-menunggu',
-            'berlangsung', 'sedang berlangsung' => 'status-berlangsung',
-            default => 'status-default'
-        };
+    $statusClass = match($status) {
+        'selesai' => 'status-selesai',
+        'ditolak' => 'status-ditolak',
+        'dibatalkan' => 'status-dibatalkan',
+        'disetujui', 'diterima' => 'status-diterima',
+        'menunggu', 'menunggu_konfirmasi' => 'status-menunggu',
+        'berlangsung', 'sedang_berlangsung' => 'status-berlangsung',
+        'perlu_penjadwalan_ulang' => 'status-reschedule',
+        default => 'status-default'
+    };
 
-        $topikText = '-';
+    $topikText = '-';
 
-        if (!empty($item->topik)) {
-            $topikText = $item->topik;
-        } elseif (!empty($item->catatan) && str_contains($item->catatan, 'Topik:')) {
-            $parts = explode('|', $item->catatan);
-            $topikText = trim(str_replace('Topik:', '', $parts[0]));
-        }
+    if (!empty($item->topik)) {
+        $topikText = $item->topik;
+    } elseif (!empty($item->catatan) && str_contains($item->catatan, 'Topik:')) {
+        $parts = explode('|', $item->catatan);
+        $topikText = trim(str_replace('Topik:', '', $parts[0]));
+    }
 
-        $jenis = strtolower($item->jenis ?? '');
-        $metodeText = $jenis == 'offline' ? 'Tatap Muka' : 'Video Call';
-    @endphp
+    $jenis = strtolower($item->jenis ?? '');
+    $metodeText = $jenis == 'offline' ? 'Tatap Muka' : 'Video Call';
+@endphp
 
     <div class="riwayat-card">
         <div class="card-left">
+            @php
+    $namaMahasiswa =
+        $item->mahasiswa?->user?->name
+        ?? $item->mahasiswa?->user?->nama
+        ?? $item->mahasiswa?->user?->nama_lengkap
+        ?? $item->mahasiswa?->nama
+        ?? $item->mahasiswa?->nama_lengkap
+        ?? auth()->user()->name
+        ?? auth()->user()->nama
+        ?? auth()->user()->nama_lengkap
+        ?? 'Mahasiswa';
+
+    $inisialMahasiswa = strtoupper(substr($namaMahasiswa, 0, 1));
+@endphp
+
             <div class="avatar">
-                {{ strtoupper(substr($item->mahasiswa->nama ?? 'M', 0, 1)) }}
+                {{ $inisialMahasiswa }}
             </div>
+
             <div class="info">
-                <h3>{{ $item->mahasiswa->nama ?? 'Mahasiswa' }}</h3>
+                <h3>{{ $namaMahasiswa }}</h3>
                 <p>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }} • {{ substr($item->waktu ?? '00:00', 0, 5) }} WIB</p>
             </div>
         </div>
@@ -340,6 +359,15 @@
 .status-berlangsung {
     background: #C8BEF4;
     color: #7B6DFF;
+}
+
+.status-reschedule {
+    background: #FFF0D6;
+    color: #B45309;
+}
+
+.status-pill.status-reschedule {
+    min-width: 190px;
 }
 
 .status-default {

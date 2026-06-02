@@ -239,16 +239,16 @@
     animation: modalFadeIn 0.22s ease;
   }
 
-  @keyframes modalFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(12px) scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
+@keyframes detailModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.98);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 
   .modal-top {
     display: flex;
@@ -414,63 +414,139 @@
     overflow: hidden;
   }
 
-  .modal-detail {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.35);
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-  }
+.modal-detail {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.35);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
 
-  .modal-detail.show {
-    display: flex;
-  }
+.modal-detail.show {
+  display: flex;
+}
 
-  .modal-detail-box {
-    background: white;
-    width: 420px;
-    border-radius: 18px;
-    padding: 28px;
-    position: relative;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-  }
+.modal-detail-box {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px 30px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+}
 
-  .modal-close {
-    position: absolute;
-    top: 14px;
-    right: 18px;
-    border: none;
-    background: transparent;
-    font-size: 28px;
-    cursor: pointer;
-  }
+.modal-detail-box h3 {
+  margin: 0 45px 18px 0;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1F2937;
+  line-height: 1.3;
+}
+.modal-detail-box p {
+  margin: 0 0 14px;
+  font-size: .98rem;
+  color: #374151;
+  line-height: 1.6;
+}
 
-  .modal-action {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-  }
 
-  .btn-edit,
-  .btn-hapus {
-    padding: 10px 22px;
-    border-radius: 10px;
-    border: none;
-    text-decoration: none;
-    cursor: pointer;
-  }
+.modal-detail-box p b {
+  font-weight: 700;
+  color: #111827;
+}
 
-  .btn-edit {
-    background: #0b5d46;
-    color: white;
-  }
+.modal-detail-box p span {
+  color: #374151;
+}
 
-  .btn-hapus {
-    background: #dc2626;
-    color: white;
-  }
+
+  
+.modal-close {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: #F3F4F6;
+  color: #374151;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: .2s ease;
+}
+
+.modal-close:hover {
+  background: #E5E7EB;
+  color: #111827;
+}
+
+.modal-action {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.modal-action form {
+  margin: 0;
+}
+
+.btn-edit,
+.btn-hapus {
+  min-width: 92px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 10px;
+  border: none;
+  font-size: .95rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: .2s ease;
+}
+
+.btn-edit {
+  background: var(--admin-primary);
+  color: #ffffff !important;
+}
+
+.btn-edit:hover {
+  background: #09553F;
+  color: #ffffff;
+}
+
+.btn-hapus {
+  background: #DC2626;
+  color: #ffffff;
+}
+
+.btn-hapus:hover {
+  background: #B91C1C;
+  color: #ffffff;
+}
+
+.btn-edit:hover,
+.btn-edit:focus,
+.btn-edit:visited {
+  color: #ffffff;
+}
 
   /* ==============================
      TOOLBAR KALENDER CUSTOM FIXED
@@ -563,6 +639,26 @@
     }
   }
 
+  @media (max-width: 576px) {
+  .modal-detail-box {
+    max-width: 100%;
+    padding: 24px 22px;
+  }
+
+  .modal-detail-box h3 {
+    font-size: 1.25rem;
+  }
+
+  .modal-action {
+    justify-content: flex-start;
+  }
+
+  .btn-edit,
+  .btn-hapus {
+    min-width: 88px;
+  }
+}
+
   @media (max-width: 991.98px) {
     .jadwal-page-wrap {
       grid-template-columns: 1fr;
@@ -587,7 +683,7 @@
         + Atur Ketidaktersediaan
     </button>
 </div>
-<div id="unavailableDetailModal" class="modal-detail">
+<div id="unavailableDetailModal" class="modal-detail" onclick="handleDetailModalClick(event)">
     <div class="modal-detail-box">
         <button type="button" class="modal-close" onclick="closeUnavailableDetail()">×</button>
 
@@ -750,6 +846,12 @@
         document.body.classList.add('modal-open');
     }
 
+    function handleDetailModalClick(event) {
+    if (event.target.id === 'unavailableDetailModal') {
+        closeUnavailableDetail();
+    }
+}
+
     function closeUnavailableModal() {
         const modal = document.getElementById('unavailableModal');
 
@@ -879,78 +981,40 @@
         }
     },
 
-    eventClick: function(info) {
-        const data = info.event.extendedProps;
+   eventClick: function(info) {
+    info.jsEvent.preventDefault();
 
-        if (data.status === 'Tidak Tersedia') {
-            document.getElementById('detailTanggal').textContent =
-                info.event.start.toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                });
+    const data = info.event.extendedProps;
 
-            document.getElementById('detailWaktu').textContent = data.waktu ?? '-';
-            document.getElementById('detailAlasan').textContent = data.alasan ?? '-';
+    if (data.status === 'Tidak Tersedia') {
+        document.getElementById('detailTanggal').textContent =
+            info.event.start.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
 
-            document.getElementById('btnEditUnavailable').onclick = function () {
-                editUnavailable(data);
-            };
+        document.getElementById('detailWaktu').textContent = data.waktu ?? '-';
+        document.getElementById('detailAlasan').textContent = data.alasan ?? '-';
 
-            document.getElementById('formDeleteUnavailable').action =
-                `/konselor/ketidaktersediaan/${data.id}`;
-
-            document.getElementById('unavailableDetailModal').classList.add('show');
-            return;
-        }
-
-        const statusStyle = statusMap[data.status] || {
-            bg: '#F3F4F6',
-            color: '#374151'
+        document.getElementById('btnEditUnavailable').onclick = function () {
+            editUnavailable(data);
         };
 
-        detailEl.innerHTML = `
-            <div class="detail-list">
-                <div class="detail-row">
-                    <div class="detail-label">Mahasiswa</div>
-                    <div class="detail-value">${data.nama ?? '-'}</div>
-                </div>
+        document.getElementById('formDeleteUnavailable').action =
+            `/konselor/ketidaktersediaan/${data.id}`;
 
-                <div class="detail-row">
-                    <div class="detail-label">Tanggal</div>
-                    <div class="detail-value">${info.event.start.toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                    })}</div>
-                </div>
-
-                <div class="detail-row">
-                    <div class="detail-label">Waktu</div>
-                    <div class="detail-value">${data.waktu ?? '-'} WIB</div>
-                </div>
-
-                <div class="detail-row">
-                    <div class="detail-label">Jenis Layanan</div>
-                    <div class="detail-value">${data.jenis ?? '-'}</div>
-                </div>
-
-                <div class="detail-row">
-                    <div class="detail-label">Topik</div>
-                    <div class="detail-value">${data.topik ?? '-'}</div>
-                </div>
-
-                <div class="detail-row">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value">
-                        <span class="status-pill" style="background:${statusStyle.bg}; color:${statusStyle.color};">
-                            ${data.status ?? '-'}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        `;
+        document.getElementById('unavailableDetailModal').classList.add('show');
+        return;
     }
+
+    if (data.detail_url) {
+        window.location.href = data.detail_url;
+        return;
+    }
+
+    alert('Detail sesi belum tersedia untuk jadwal ini.');
+}
 });
 
 calendar.render();

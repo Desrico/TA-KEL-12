@@ -52,18 +52,34 @@ class LaporanController extends Controller
         };
     }
 
-    public function riwayat()
-    {
-        $mahasiswa = auth()->user()->mahasiswa;
+  public function riwayat()
+{
+    $mahasiswa = auth()->user()->mahasiswa;
 
-        $riwayat = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
-            ->where('mahasiswa_id', optional($mahasiswa)->id)
-            ->orderBy('tanggal', 'desc')
-            ->orderBy('waktu', 'desc')
-            ->get();
-
-        return view('Pages.riwayat', compact('riwayat'));
+    if (!$mahasiswa) {
+        abort(403, 'Data mahasiswa tidak ditemukan.');
     }
+
+    $query = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
+        ->where('mahasiswa_id', $mahasiswa->id);
+
+    $totalSesi = (clone $query)->count();
+
+    $sesiSelesai = (clone $query)
+        ->where('status', 'selesai')
+        ->count();
+
+    $riwayat = $query
+        ->orderBy('tanggal', 'desc')
+        ->orderBy('waktu', 'desc')
+        ->paginate(5);
+
+    return view('Pages.riwayat', compact(
+        'riwayat',
+        'totalSesi',
+        'sesiSelesai'
+    ));
+}
 
     public function detailRiwayat($id)
     {

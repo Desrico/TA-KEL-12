@@ -2,16 +2,72 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\JadwalKonseling;
+use App\Models\KetidaktersediaanKonselor;
+use App\Models\Konselor;
+use App\Models\Notifikasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Konselor;
-use App\Models\KetidaktersediaanKonselor;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
 
 class KetidaktersediaanKonselorController extends Controller
 {
-    public function store(Request $request)
+  public function store(Request $request)
+{
+    $validated = $request->validate([
+        'tanggal_mulai' => 'required|date',
+        'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
+        'jam_mulai' => 'nullable|required_with:jam_selesai|date_format:H:i',
+        'jam_selesai' => 'nullable|required_with:jam_mulai|date_format:H:i|after:jam_mulai',
+        'alasan' => 'nullable|string|max:255',
+    ]);
+
+    $konselor = $this->getKonselorAktif();
+
+    if (!$konselor) {
+        return back()->with('error', 'Data konselor tidak ditemukan.');
+    }
+
+    $validated['tanggal_selesai'] = $validated['tanggal_selesai'] ?? $validated['tanggal_mulai'];
+    $validated['jam_mulai'] = $validated['jam_mulai'] ?? null;
+    $validated['jam_selesai'] = $validated['jam_selesai'] ?? null;
+
+    $jumlahJadwalTerdampak = 0;
+
+    DB::transaction(function () use ($validated, $konselor, &$jumlahJadwalTerdampak) {
+        KetidaktersediaanKonselor::create([
+            'konselor_id' => $konselor->id,
+            'tanggal_mulai' => $validated['tanggal_mulai'],
+            'tanggal_selesai' => $validated['tanggal_selesai'],
+            'jam_mulai' => $validated['jam_mulai'],
+            'jam_selesai' => $validated['jam_selesai'],
+            'alasan' => $validated['alasan'] ?? null,
+        ]);
+
+        $jumlahJadwalTerdampak = $this->tandaiJadwalTerdampak(
+            $konselor->id,
+            $validated
+        );
+    });
+
+    if ($jumlahJadwalTerdampak > 0) {
+        return back()->with(
+            'success',
+            'Jadwal ketidaktersediaan berhasil ditambahkan. ' .
+            $jumlahJadwalTerdampak .
+            ' jadwal yang bentrok telah ditandai perlu penjadwalan ulang dan mahasiswa telah diberi notifikasi.'
+        );
+    }
+
+    return back()->with('success', 'Jadwal ketidaktersediaan berhasil ditambahkan.');
+}
+
+
+    public function update(Request $request, $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
             'jam_mulai' => 'nullable|required_with:jam_selesai|date_format:H:i',
@@ -19,27 +75,48 @@ class KetidaktersediaanKonselorController extends Controller
             'alasan' => 'nullable|string|max:255',
         ]);
 
-        $konselor = Auth::user()->konselor ?? Konselor::where('user_id', Auth::id())->first();
+        $konselor = $this->getKonselorAktif();
 
         if (!$konselor) {
             return back()->with('error', 'Data konselor tidak ditemukan.');
         }
 
-        KetidaktersediaanKonselor::create([
-            'konselor_id' => $konselor->id,
-            'tanggal_mulai' => $request->tanggal_mulai,
-            'tanggal_selesai' => $request->tanggal_selesai ?? $request->tanggal_mulai,
-            'jam_mulai' => $request->jam_mulai,
-            'jam_selesai' => $request->jam_selesai,
-            'alasan' => $request->alasan,
-        ]);
+        $jumlahJadwalTerdampak = 0;
 
-        return back()->with('success', 'Jadwal ketidaktersediaan berhasil ditambahkan.');
+        DB::transaction(function () use ($validated, $id, $konselor, &$jumlahJadwalTerdampak) {
+            $data = KetidaktersediaanKonselor::where('id', $id)
+                ->where('konselor_id', $konselor->id)
+                ->firstOrFail();
+
+            $data->update([
+                'tanggal_mulai' => $validated['tanggal_mulai'],
+                'tanggal_selesai' => $validated['tanggal_selesai'] ?? $validated['tanggal_mulai'],
+                'jam_mulai' => $validated['jam_mulai'] ?? null,
+                'jam_selesai' => $validated['jam_selesai'] ?? null,
+                'alasan' => $validated['alasan'] ?? null,
+            ]);
+
+            $jumlahJadwalTerdampak = $this->tandaiJadwalTerdampak(
+                $konselor->id,
+                $validated
+            );
+        });
+
+        if ($jumlahJadwalTerdampak > 0) {
+            return back()->with(
+                'success',
+                'Ketidaktersediaan berhasil diperbarui. ' .
+                $jumlahJadwalTerdampak .
+                ' jadwal yang sudah disetujui telah ditandai perlu penjadwalan ulang.'
+            );
+        }
+
+        return back()->with('success', 'Ketidaktersediaan berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
-        $konselor = Auth::user()->konselor ?? Konselor::where('user_id', Auth::id())->first();
+        $konselor = $this->getKonselorAktif();
 
         if (!$konselor) {
             return back()->with('error', 'Data konselor tidak ditemukan.');
@@ -54,34 +131,149 @@ class KetidaktersediaanKonselorController extends Controller
         return back()->with('success', 'Jadwal ketidaktersediaan berhasil dihapus.');
     }
 
-    public function update(Request $request, $id)
+    private function getKonselorAktif()
     {
-        $request->validate([
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
-            'jam_mulai' => 'nullable|required_with:jam_selesai|date_format:H:i',
-            'jam_selesai' => 'nullable|required_with:jam_mulai|date_format:H:i|after:jam_mulai',
-            'alasan' => 'nullable|string|max:255',
+        return Auth::user()->konselor ?? Konselor::where('user_id', Auth::id())->first();
+    }
+
+private function tandaiJadwalTerdampak($konselorId, array $data)
+{
+    $tanggalMulai = $data['tanggal_mulai'];
+    $tanggalSelesai = $data['tanggal_selesai'] ?? $data['tanggal_mulai'];
+    $jamMulai = $data['jam_mulai'] ?? null;
+    $jamSelesai = $data['jam_selesai'] ?? null;
+
+    $jadwalAktif = JadwalKonseling::with(['mahasiswa.user'])
+        ->where('konselor_id', $konselorId)
+        ->whereDate('tanggal', '>=', $tanggalMulai)
+        ->whereDate('tanggal', '<=', $tanggalSelesai)
+        ->where(function ($query) {
+            $query->whereNull('status')
+                ->orWhereNotIn('status', [
+                    'selesai',
+                    'ditolak',
+                    'dibatalkan',
+                    'perlu_penjadwalan_ulang',
+                ]);
+        })
+        ->get();
+
+    $jadwalTerdampak = $jadwalAktif->filter(function ($jadwal) use ($jamMulai, $jamSelesai) {
+        return $this->isWaktuBentrok(
+            $jadwal->waktu,
+            $jamMulai,
+            $jamSelesai
+        );
+    });
+
+    if ($jadwalTerdampak->isEmpty()) {
+        return 0;
+    }
+
+    JadwalKonseling::whereIn('id', $jadwalTerdampak->pluck('id'))
+        ->update([
+            'status' => 'perlu_penjadwalan_ulang',
+            'updated_at' => now(),
         ]);
 
-        $konselor = Auth::user()->konselor ?? Konselor::where('user_id', Auth::id())->first();
+    foreach ($jadwalTerdampak as $jadwal) {
+        if ($jadwal->mahasiswa && $jadwal->mahasiswa->user) {
+            Notifikasi::create([
+                'user_id' => $jadwal->mahasiswa->user->id,
+                'pesan' => 'Jadwal konseling Anda pada ' .
+                    Carbon::parse($jadwal->tanggal)->translatedFormat('d F Y') .
+                    ' pukul ' .
+                    Carbon::parse($jadwal->waktu)->format('H:i') .
+                    ' perlu dijadwalkan ulang karena konselor tidak tersedia.',
+                'status' => 'belum_dibaca',
+            ]);
+        }
+    }
 
-        if (!$konselor) {
-            return back()->with('error', 'Data konselor tidak ditemukan.');
+    return $jadwalTerdampak->count();
+}
+
+private function isWaktuBentrok($waktuJadwal, $jamMulai, $jamSelesai)
+{
+    // Jika ketidaktersediaan dibuat tanpa jam, berarti tidak tersedia seharian
+    if (!$jamMulai || !$jamSelesai) {
+        return true;
+    }
+
+    $waktuJadwal = date('H:i', strtotime($waktuJadwal));
+    $jamMulai = date('H:i', strtotime($jamMulai));
+    $jamSelesai = date('H:i', strtotime($jamSelesai));
+
+    return $waktuJadwal >= $jamMulai && $waktuJadwal < $jamSelesai;
+}
+
+    private function pecahWaktuJadwal($waktuJadwal)
+    {
+        if (empty($waktuJadwal)) {
+            return [null, null];
         }
 
-        $data = KetidaktersediaanKonselor::where('id', $id)
-            ->where('konselor_id', $konselor->id)
-            ->firstOrFail();
+        $waktuJadwal = trim($waktuJadwal);
 
-        $data->update([
-            'tanggal_mulai' => $request->tanggal_mulai,
-            'tanggal_selesai' => $request->tanggal_selesai ?? $request->tanggal_mulai,
-            'jam_mulai' => $request->jam_mulai,
-            'jam_selesai' => $request->jam_selesai,
-            'alasan' => $request->alasan,
-        ]);
+        /*
+         * Supaya format seperti:
+         * 10.00 - 14.00
+         * 10:00 - 14:00
+         * 10:00–14:00
+         * tetap bisa dibaca.
+         */
+        $waktuJadwal = str_replace(['.', '–', '—'], [':', '-', '-'], $waktuJadwal);
 
-        return back()->with('success', 'Ketidaktersediaan berhasil diperbarui.');
+        if (str_contains($waktuJadwal, '-')) {
+            [$mulai, $selesai] = array_map('trim', explode('-', $waktuJadwal, 2));
+
+            $jadwalMulai = $this->jamKeMenit($mulai);
+            $jadwalSelesai = $this->jamKeMenit($selesai);
+
+            return [$jadwalMulai, $jadwalSelesai];
+        }
+
+        /*
+         * Jika waktu jadwal hanya satu jam, misalnya 10:00,
+         * maka diasumsikan durasi konseling 1 jam.
+         */
+        $jadwalMulai = $this->jamKeMenit($waktuJadwal);
+
+        if ($jadwalMulai === null) {
+            return [null, null];
+        }
+
+        $jadwalSelesai = min($jadwalMulai + 60, 1440);
+
+        return [$jadwalMulai, $jadwalSelesai];
+    }
+
+    private function jamKeMenit($jam)
+    {
+        if (empty($jam)) {
+            return null;
+        }
+
+        $jam = trim($jam);
+        $jam = str_replace('.', ':', $jam);
+
+        /*
+         * Mendukung format:
+         * 10:00
+         * 10:00:00
+         * 9:30
+         */
+        if (!preg_match('/^(\d{1,2}):(\d{2})(?::\d{2})?$/', $jam, $matches)) {
+            return null;
+        }
+
+        $hour = (int) $matches[1];
+        $minute = (int) $matches[2];
+
+        if ($hour < 0 || $hour > 23 || $minute < 0 || $minute > 59) {
+            return null;
+        }
+
+        return ($hour * 60) + $minute;
     }
 }
