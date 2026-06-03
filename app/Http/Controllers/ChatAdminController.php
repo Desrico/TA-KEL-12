@@ -50,7 +50,7 @@ class ChatAdminController extends Controller
 
         $conversationSchedules = $this->resolveConversationSchedules($user, $selectedJadwal);
         $conversationSessionIds = SesiKonseling::query()
-            ->whereIn('jadwal_id', $conversationSchedules->pluck('id')->filter()->values())
+            ->whereIn('jadwal_konseling_id', $conversationSchedules->pluck('id')->filter()->values())
             ->pluck('id')
             ->push($sesi->id)
             ->unique()

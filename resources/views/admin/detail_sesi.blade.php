@@ -231,8 +231,8 @@
         </div>
     @elseif($status === 'selesai')
         <div class="detail-actions">
-            <a href="{{ route('admin.laporan.laporan', $jadwal->id) }}" class="btn-laporan" style="min-width:220px;text-align:center;">
-                {{ $sudahAdaLaporan ? 'Lihat Laporan' : 'Buat Laporan' }}
+            <a href="{{ url('/admin/sesi') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
+                Kembali
             </a>
         </div>
     @endif

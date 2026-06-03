@@ -1090,7 +1090,7 @@
               <span class="mode-badge"><i class="bi bi-wifi"></i> Online</span>
             </div>
             <h2>Konseling Online</h2>
-            <p>Gunakan layanan ini bila kamu ingin memulai percakapan dari tempat yang tenang. Data yang disimpan adalah jenis online, tanggal, waktu, dan topik.</p>
+            <p>Gunakan layanan ini bila kamu membutuhkan ruang bercerita yang tenang tanpa harus datang ke kampus. Kerahasiaan jadwal, topik, dan riwayat sesimu akan selalu terjaga.</p>
             <div class="mode-facts">
               <div class="mode-fact">
                 <i class="bi bi-clock"></i>
@@ -1103,9 +1103,9 @@
                 <span>Media sesi</span>
               </div>
               <div class="mode-fact">
-                <i class="bi bi-hourglass-split"></i>
-                <strong>Fleksibel</strong>
-                <span>Dari Tempat Pilihanmu</span>
+                <i class="bi bi-geo-alt-fill"></i>
+                <strong>Jarak Jauh</strong>
+                <span>Akses dari ruang personalmu</span>
               </div>
             </div>
             <a href="#booking" class="mode-action" data-mode-action="online">Pilih Online <i class="bi bi-arrow-right"></i></a>
@@ -1133,7 +1133,7 @@
               <div class="mode-fact">
                 <i class="bi bi-geo-alt-fill"></i>
                 <strong>Gedung 5, Lt. 2</strong>
-                <span>Area GD 525-GD 526</span>
+                <span>Area GD 525 & GD 526</span>
               </div>
             </div>
             <a href="#booking" class="mode-action" data-mode-action="offline">Pilih Offline <i class="bi bi-arrow-right"></i></a>
@@ -1226,7 +1226,7 @@
             </div>
           </div>
 
-          <div class="anonim-toggle-card">
+           <div class="anonim-toggle-card" id="anonim-toggle-card">
             <div class="anonim-toggle-row">
               <div class="anonim-toggle-copy">
                 <p class="anonim-toggle-title">Mode Anonim</p>
@@ -1424,6 +1424,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const submitBtn = document.getElementById('submit-booking');
   const tanggalNote = document.getElementById('tanggal-note');
   const waktuNote = document.getElementById('waktu-note');
+  const anonimToggleCardEl = document.getElementById('anonim-toggle-card');
   const anonimToggleEl = document.getElementById('anonim-toggle');
   const anonimStatusEl = document.getElementById('anonim-toggle-status');
   const profileNimEl = document.getElementById('profile-nim');
@@ -1456,7 +1457,7 @@ document.addEventListener('DOMContentLoaded', function () {
       icon: 'bi-geo-alt',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling offline.',
       sideMedia: 'Tatap Muka',
-      sideLocation: 'Gedung 5, Lt. 2<br>Area GD 525-GD 526',
+      sideLocation: 'Gedung 5, Lt. 2<br>Antara GD 525 & 526',
       noteClass: '',
       note: 'Harap tiba 10 menit lebih awal sebagai persiapan awal.',
       submit: 'Jadwalkan Offline'
@@ -1587,9 +1588,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function syncAnonimSection() {
+    const isOnlineMode = selectedService === 'online';
+    const useAnonimIdentity = isOnlineMode && isAnonim;
+
+    if (anonimToggleCardEl) {
+      anonimToggleCardEl.hidden = !isOnlineMode;
+    }
+
+    if (anonimToggleEl) {
+      anonimToggleEl.checked = isAnonim;
+      anonimToggleEl.disabled = !isOnlineMode || !isLoggedIn;
+    }
+
+    profileNimEl.value = useAnonimIdentity ? '********' : profileDisplay.nim;
+    profileNamaEl.value = useAnonimIdentity ? profileDisplay.anonimName : profileDisplay.nama;
+  }
+
   function updateAnonimUI(active) {
     isAnonim = active;
-
     if (profileNimEl) {
       profileNimEl.value = active ? '********' : profileDisplay.nim;
     }
@@ -1602,12 +1619,22 @@ document.addEventListener('DOMContentLoaded', function () {
       anonimStatusEl.textContent = active ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
       anonimStatusEl.classList.remove('is-error');
     }
+
+    syncAnonimSection();
+    anonimStatusEl.textContent = active ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
+    anonimStatusEl.classList.remove('is-error');
+
   }
 
   async function toggleAnonimMode(checkbox) {
     if (!isLoggedIn) {
       checkbox.checked = false;
       window.location.href = '/login';
+      return;
+    }
+
+    if (selectedService !== 'online') {
+      checkbox.checked = isAnonim;
       return;
     }
 
@@ -1811,6 +1838,10 @@ document.addEventListener('DOMContentLoaded', function () {
         ? 'Ubah tanggal, waktu, atau topik untuk menjadwalkan ulang sesi konseling Anda.'
         : config.subtitle;
     }
+
+    submitBtn.textContent = config.submit;
+    submitBtn.classList.toggle('online', mode === 'online');
+    syncAnonimSection();
 
     if (selectedModePillEl) {
       selectedModePillEl.className = `selected-mode-pill ${mode === 'online' ? 'online' : ''}`;

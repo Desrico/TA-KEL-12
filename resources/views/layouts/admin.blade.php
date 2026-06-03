@@ -888,11 +888,7 @@
             <div class="dropdown">
                 <a href="#" class="admin-sidebar-profile-trigger" data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="admin-sidebar-avatar">
-                        @if(optional(Auth::user()->profil)->foto)
-                            <img src="{{ Storage::url(Auth::user()->profil->foto) }}" alt="Profil">
-                        @else
-                            {{ strtoupper(substr(Auth::user()->nama ?? 'A', 0, 1)) }}
-                        @endif
+                        {{ strtoupper(substr(Auth::user()->nama ?? 'A', 0, 1)) }}
                     </div>
 
                     <div class="admin-sidebar-user">
@@ -904,7 +900,7 @@
                 </a>
 
                 <div class="dropdown-menu admin-sidebar-menu">
-                    <a href="{{ route('admin.dashboard') }}" class="dropdown-item d-flex align-items-center gap-2">
+                    <a href="{{ route('profil') }}" class="dropdown-item d-flex align-items-center gap-2">
                         <i class="ti ti-user" style="font-size:1rem;"></i> Profil Saya
                     </a>
 

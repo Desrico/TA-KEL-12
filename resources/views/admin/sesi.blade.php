@@ -489,12 +489,6 @@
                         <td style="text-align:center;">
                             <div class="action-stack">
                                 <a href="{{ route('admin.sesi.detail', $item->id) }}" class="btn-lihat">Lihat</a>
-
-                                @if($bisaBuatLaporan)
-                                    <a href="{{ route('admin.laporan.laporan', $item->id) }}" class="btn-lihat btn-buat-laporan">
-                                        Buat Laporan
-                                    </a>
-                                @endif
                             </div>
                         </td>
                     </tr>

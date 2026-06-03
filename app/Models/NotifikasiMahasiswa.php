@@ -12,7 +12,8 @@ class NotifikasiMahasiswa extends Model
     protected $fillable = [
         'nim',
         'pesan',
-        'status', // 'belum', 'dibaca'
+        'status',
+        'sql_notifikasi_id',
     ];
 
     public function student()

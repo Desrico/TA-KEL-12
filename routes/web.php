@@ -48,6 +48,15 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+// ═══════════════════════════════
+// PROFIL UMUM MAHASISWA / KONSELOR
+// ═══════════════════════════════
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
+    Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
+    Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
+});
+
 
 // ═══════════════════════════════
 // MAHASISWA
@@ -56,11 +65,10 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::get('/dashboard', function () {
         return view('Pages.beranda');
     })->name('dashboard');
-
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
-
+    
     Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
     Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('detail.riwayat');
 
