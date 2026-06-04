@@ -38,15 +38,6 @@
         flex-wrap: wrap;
     }
 
-    .mi-header-left h1 {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 1.45rem;
-        font-weight: 800;
-        color: var(--mi-text-1);
-        margin: 0 0 4px;
-        letter-spacing: -0.02em;
-    }
-
     .mi-header-left p {
         font-size: 0.82rem;
         color: var(--mi-text-2);
@@ -493,19 +484,10 @@
 @section('konten')
 <div class="mi-wrap">
 
-    <div style="padding-top:20px;">
-        <a href="{{ route('counselor.education.index') }}" class="mi-back">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"/>
-                <polyline points="12 19 5 12 12 5"/>
-            </svg>
-            Edukasi & Intervensi
-        </a>
-    </div>
+    
 
     <div class="mi-header">
         <div class="mi-header-left">
-            <h1>Konten Edukasi Web</h1>
             <p>
                 Kelola artikel dan video yang akan tampil pada halaman Edukasi Mental di website.
             </p>
@@ -563,7 +545,6 @@
                         <th>Konten Edukasi</th>
                         <th style="width:170px;">Topik</th>
                         <th style="width:120px;">Jenis</th>
-                        <th style="width:130px;">Estimasi</th>
                         <th style="width:110px;">Status</th>
                         <th style="width:100px;">Aksi</th>
                     </tr>
@@ -600,10 +581,6 @@
                                     {{ strtolower($item->type) === 'video' ? '▶' : '▤' }}
                                     {{ $item->type }}
                                 </span>
-                            </td>
-
-                            <td>
-                                <span class="mi-time">{{ $item->reading_time }}</span>
                             </td>
 
                             <td>
@@ -646,7 +623,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6">
+                            <td colspan="5">
                                 <div class="mi-empty">
                                     <div class="emoji">📭</div>
                                     <p>Belum ada konten edukasi web yang dibuat.</p>

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\AboutPageContent;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 
 class EducationController extends Controller
 {
@@ -259,9 +260,9 @@ class EducationController extends Controller
         return view('admin.education.web-contents.form');
     }
 
-    public function webContentStore(Request $request)
+   public function webContentStore(Request $request)
 {
-    $validated = $request->validate([
+    $validator = Validator::make($request->all(), [
         'title'      => 'required|string|max:255',
         'topic'      => 'required|string|max:100',
         'type'       => 'required|string|max:100',
@@ -270,6 +271,27 @@ class EducationController extends Controller
         'excerpt'    => 'required|string',
         'status'     => 'required|boolean',
     ]);
+
+    $validator->after(function ($validator) use ($request) {
+        $type = strtolower(trim($request->type));
+        $url  = $request->source_url;
+
+        if ($type === 'video') {
+            if (!$url) {
+                $validator->errors()->add('source_url', 'Link video wajib diisi jika jenis konten adalah Video.');
+            } elseif (!$this->isValidVideoUrl($url)) {
+                $validator->errors()->add('source_url', 'Jika jenis konten adalah Video, maka link harus berupa link video seperti YouTube, Vimeo, atau file video.');
+            }
+        }
+
+        if ($type === 'artikel') {
+            if ($url && $this->isValidVideoUrl($url)) {
+                $validator->errors()->add('source_url', 'Jika jenis konten adalah Artikel, maka link tidak boleh berupa link video.');
+            }
+        }
+    });
+
+    $validated = $validator->validate();
 
     EducationContent::create([
         'judul'       => $validated['title'],
@@ -299,7 +321,7 @@ class EducationController extends Controller
 {
     $webContent = EducationContent::findOrFail($id);
 
-    $validated = $request->validate([
+    $validator = Validator::make($request->all(), [
         'title'      => 'required|string|max:255',
         'topic'      => 'required|string|max:100',
         'type'       => 'required|string|max:100',
@@ -308,6 +330,27 @@ class EducationController extends Controller
         'excerpt'    => 'required|string',
         'status'     => 'required|boolean',
     ]);
+
+    $validator->after(function ($validator) use ($request) {
+        $type = strtolower(trim($request->type));
+        $url  = $request->source_url;
+
+        if ($type === 'video') {
+            if (!$url) {
+                $validator->errors()->add('source_url', 'Link video wajib diisi jika jenis konten adalah Video.');
+            } elseif (!$this->isValidVideoUrl($url)) {
+                $validator->errors()->add('source_url', 'Jika jenis konten adalah Video, maka link harus berupa link video seperti YouTube, Vimeo, atau file video.');
+            }
+        }
+
+        if ($type === 'artikel') {
+            if ($url && $this->isValidVideoUrl($url)) {
+                $validator->errors()->add('source_url', 'Jika jenis konten adalah Artikel, maka link tidak boleh berupa link video.');
+            }
+        }
+    });
+
+    $validated = $validator->validate();
 
     $webContent->update([
         'judul'       => $validated['title'],
@@ -342,7 +385,6 @@ class EducationController extends Controller
 }
 
 
-    // --- ABOUT PAGE CONTENT CRUD ---
 
 public function show()
 {
@@ -387,6 +429,45 @@ protected function extractYoutubeId($url)
     );
 
     return $matches[1] ?? null;
+}
+
+private function isValidVideoUrl(?string $url): bool
+{
+    if (!$url || !filter_var($url, FILTER_VALIDATE_URL)) {
+        return false;
+    }
+
+    $host  = strtolower(parse_url($url, PHP_URL_HOST) ?? '');
+    $path  = strtolower(parse_url($url, PHP_URL_PATH) ?? '');
+    $query = parse_url($url, PHP_URL_QUERY) ?? '';
+
+    // YouTube
+    if (str_contains($host, 'youtube.com')) {
+        parse_str($query, $params);
+
+        return (
+            ($path === '/watch' && !empty($params['v'])) ||
+            str_starts_with($path, '/embed/') ||
+            str_starts_with($path, '/shorts/')
+        );
+    }
+
+    // YouTube short link
+    if (str_contains($host, 'youtu.be')) {
+        return trim($path, '/') !== '';
+    }
+
+    // Vimeo
+    if (str_contains($host, 'vimeo.com')) {
+        return preg_match('/^\/\d+/', $path);
+    }
+
+    // Direct video file
+    if (preg_match('/\.(mp4|webm|ogg|mov)(\?.*)?$/i', $url)) {
+        return true;
+    }
+
+    return false;
 }
 
 protected function resolveThumbnail($item)

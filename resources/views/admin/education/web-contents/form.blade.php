@@ -691,22 +691,23 @@
 
             <div class="f-row">
                 <div class="f-group">
-                    <label class="f-label" for="source_url">Link Video / Referensi</label>
-                    <input id="source_url"
-                           class="f-input"
-                           type="url"
-                           name="source_url"
-                           value="{{ old('source_url', $webContent->source_url ?? '') }}"
-                           placeholder="https://youtube.com/... atau link artikel referensi">
+    <label class="f-label" for="source_url">Link Video / Referensi</label>
 
-                    <div class="f-help">
-                        Opsional. Gunakan jika konten berupa video YouTube, sumber artikel, atau referensi eksternal.
-                    </div>
+    <input id="source_url"
+           class="f-input @error('source_url') is-invalid @enderror"
+           type="url"
+           name="source_url"
+           value="{{ old('source_url', $webContent->url_sumber ?? '') }}"
+           placeholder="https://youtube.com/... atau link artikel referensi">
 
-                    @error('source_url')
-                        <div class="f-error">⚠ {{ $message }}</div>
-                    @enderror
-                </div>
+    <div class="f-help">
+        Gunakan link YouTube/Vimeo jika konten berupa video, atau link artikel jika konten berupa artikel.
+    </div>
+
+    @error('source_url')
+        <div class="f-error">⚠ {{ $message }}</div>
+    @enderror
+</div>
 
                 <div class="f-group">
                     <label class="f-label" for="thumbnail">URL Thumbnail / Cover</label>

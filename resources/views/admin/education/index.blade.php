@@ -333,10 +333,10 @@
                 <span class="edu-badge blue">{{ $webContentCount ?? 0 }} Terdaftar</span>
             </div>
 
-            <h2 class="edu-card-title">Trend Topik Edukasi Web</h2>
+            <h2 class="edu-card-title">Konten Edukasi Web</h2>
 
             <p class="edu-card-desc">
-                Kelola trend topik, artikel, atau berita edukatif yang akan ditampilkan
+                Kelola video, artikel, atau berita edukatif yang akan ditampilkan
                 pada halaman Edukasi Mental di website, seperti akademik, intrapersonal,
                 keluarga, asrama, dan relasi.
             </p>
