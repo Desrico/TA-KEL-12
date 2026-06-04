@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Module;
-use App\Models\Challenge;
 use App\Models\EducationContent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -20,12 +19,10 @@ class EducationController extends Controller
     public function index()
     {
         $moduleCount = Module::count();
-        $challengeCount = Challenge::count();
         $webContentCount = EducationContent::count();
 
         return view('admin.education.index', compact(
             'moduleCount',
-            'challengeCount',
             'webContentCount'
         ));
     }
@@ -164,64 +161,6 @@ class EducationController extends Controller
         return redirect()->route('counselor.education.modules.index')
             ->with('success', 'Modul berhasil dihapus.');
     }
-
-    // --- CHALLENGE CRUD ---
-
-    public function challengeIndex()
-    {
-        $challenges = Challenge::latest()->get();
-        return view('admin.education.challenges.index', compact('challenges'));
-    }
-
-    public function challengeCreate()
-    {
-        return view('admin.education.challenges.form');
-    }
-
-    public function challengeStore(Request $request)
-    {
-        $validated = $request->validate([
-            'title'           => 'required|string|max:255',
-            'description'     => 'required|string',
-            'total_questions' => 'required|integer|min:1',
-            'reward_point'    => 'required|integer|min:0',
-            'status'          => 'required|boolean',
-        ]);
-
-        Challenge::create($validated);
-
-        return redirect()->route('counselor.education.challenges.index')
-            ->with('success', 'Challenge berhasil ditambahkan.');
-    }
-
-    public function challengeEdit(Challenge $challenge)
-    {
-        return view('admin.education.challenges.form', compact('challenge'));
-    }
-
-    public function challengeUpdate(Request $request, Challenge $challenge)
-    {
-        $validated = $request->validate([
-            'title'           => 'required|string|max:255',
-            'description'     => 'required|string',
-            'total_questions' => 'required|integer|min:1',
-            'reward_point'    => 'required|integer|min:0',
-            'status'          => 'required|boolean',
-        ]);
-
-        $challenge->update($validated);
-
-        return redirect()->route('counselor.education.challenges.index')
-            ->with('success', 'Challenge berhasil diperbarui.');
-    }
-
-    public function challengeDestroy(Challenge $challenge)
-    {
-        $challenge->delete();
-        return redirect()->route('counselor.education.challenges.index')
-            ->with('success', 'Challenge berhasil dihapus.');
-    }
-
     // --- WEB EDUCATION CONTENT / TREND TOPIK WEB ---
 
     public function webContentIndex(Request $request)

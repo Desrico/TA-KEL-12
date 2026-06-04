@@ -250,13 +250,6 @@ Route::prefix('konselor/edukasi')
         Route::put('/modules/{module}', [EducationController::class, 'moduleUpdate'])->name('modules.update');
         Route::delete('/modules/{module}', [EducationController::class, 'moduleDestroy'])->name('modules.destroy');
 
-        // CHALLENGES MOBILE
-        Route::get('/challenges', [EducationController::class, 'challengeIndex'])->name('challenges.index');
-        Route::get('/challenges/create', [EducationController::class, 'challengeCreate'])->name('challenges.create');
-        Route::post('/challenges', [EducationController::class, 'challengeStore'])->name('challenges.store');
-        Route::get('/challenges/{challenge}/edit', [EducationController::class, 'challengeEdit'])->name('challenges.edit');
-        Route::put('/challenges/{challenge}', [EducationController::class, 'challengeUpdate'])->name('challenges.update');
-        Route::delete('/challenges/{challenge}', [EducationController::class, 'challengeDestroy'])->name('challenges.destroy');
 
         // TREND TOPIK / KONTEN EDUKASI WEB
         Route::get('/web-contents', [EducationController::class, 'webContentIndex'])->name('web-contents.index');

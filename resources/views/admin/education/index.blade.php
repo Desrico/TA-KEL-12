@@ -61,7 +61,7 @@
 
     .edu-card-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 24px;
     }
 
@@ -287,34 +287,6 @@
             <div class="edu-card-footer">
                 <a href="{{ route('counselor.education.modules.index') }}" class="edu-cta">
                     Kelola Modul
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                        <polyline points="12 5 19 12 12 19"/>
-                    </svg>
-                </a>
-            </div>
-        </div>
-
-        {{-- Manajemen Challenge --}}
-        <div class="edu-card">
-            <div class="edu-card-bg-icon">🏆</div>
-
-            <div class="edu-card-top">
-                <div class="edu-card-icon red">🏆</div>
-                <span class="edu-badge red">{{ $challengeCount ?? 0 }} Terdaftar</span>
-            </div>
-
-            <h2 class="edu-card-title">Manajemen Challenge</h2>
-
-            <p class="edu-card-desc">
-                Rancang tantangan harian atau mingguan yang mendorong kebiasaan positif,
-                meditasi, dan aktivitas sosial untuk meningkatkan resiliensi mahasiswa.
-            </p>
-
-            <div class="edu-card-footer">
-                <a href="{{ route('counselor.education.challenges.index') }}" class="edu-cta">
-                    Kelola Tantangan
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"/>
