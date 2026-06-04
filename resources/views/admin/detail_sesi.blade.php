@@ -198,10 +198,16 @@
         </div>
 
     @elseif($status === 'ditolak')
-        <div class="detail-section-title">Alasan Penolakan</div>
-        <div class="alasan-box">
-            {{ $jadwal->alasan_penolakan ?? '-' }}
-        </div>
+    <div class="detail-section-title">Alasan Penolakan</div>
+    <div class="alasan-box">
+        {{ $jadwal->alasan_penolakan ?? '-' }}
+    </div>
+
+    <div class="detail-actions">
+        <a href="{{ url('/admin/sesi') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
+            Kembali
+        </a>
+    </div>
 
     @elseif($status === 'disetujui')
         <div class="detail-actions">

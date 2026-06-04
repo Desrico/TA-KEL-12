@@ -109,23 +109,24 @@ class SesiKonselingController extends Controller
     public function kirimTolak(Request $request, $id)
     {
         $request->validate([
-            'alasan_penolakan' => 'required|string'
+            'alasan_penolakan' => 'required|string',
         ]);
 
-        $jadwal = JadwalKonseling::findOrFail($id);
         $konselor = $this->resolveAuthenticatedKonselor();
+
         $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
             ->findOrFail($id);
 
-        $jadwal->status = 'ditolak';
-        $jadwal->alasan_penolakan = $request->alasan_penolakan;
-        $jadwal->save();
+        $jadwal->update([
+            'status' => 'ditolak',
+            'alasan_penolakan' => $request->alasan_penolakan,
+        ]);
 
         return redirect()
-            ->route('admin.sesi.detail', $id)
+            ->route('admin.sesi')
             ->with('success', 'Penjadwalan berhasil ditolak.');
     }
-
+    
     public function selesai($id)
     {
         $konselor = $this->resolveAuthenticatedKonselor();

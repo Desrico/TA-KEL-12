@@ -1627,6 +1627,55 @@
   display: block;
 }
 
+.profile-fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #A7F3D0;
+    color: #064E3B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.pd-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #D1FAE5;
+}
+
+.pd-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #A7F3D0;
+    color: #064E3B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.pd-info {
+    min-width: 0;
+}
+
+.pd-name {
+    max-width: 180px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.pd-nim {
+    max-width: 190px;
+    white-space: normal;
+    word-break: break-word;
+}
+
 .pd-name {
   font-weight: 700;
   font-size: .92rem;
@@ -2083,67 +2132,114 @@ footer a:hover {
       <div class="d-flex align-items-center ms-lg-3 mt-3 mt-lg-0">
         {{-- Jika SUDAH LOGIN --}}
        @auth
-      <div class="profile-wrap">
-          <div class="profile-btn" id="profileBtn" onclick="toggleProfile()">
-              <img 
-                  src="{{ optional(Auth::user()->profil)->foto 
-                          ? Storage::url(Auth::user()->profil->foto) 
-                          : asset('img/default-avatar.png') }}"
-                  alt="Profile"
-                  class="profile-img"
-              >
-              <div class="online-dot"></div>
-          </div>
+@php
+    $user = Auth::user();
+    $mahasiswa = $user?->mahasiswa;
 
-          <div class="profile-dropdown" id="profileDropdown">
-              <div class="pd-header">
-                  <div class="pd-avatar">
-                      <img 
-                          src="{{ optional(Auth::user()->profil)->foto 
-                                  ? Storage::url(Auth::user()->profil->foto) 
-                                  : asset('img/default-avatar.png') }}"
-                          alt="Profile"
-                          class="pd-avatar-img"
-                      >
-                  </div>
+    $namaUser = $user?->getNamaDisplay()
+        ?? $user?->nama
+        ?? $user?->name
+        ?? 'Mahasiswa';
 
-                    <div>
-                      <div class="pd-name">{{ Auth::user()->getNamaDisplay() }}</div>
-                      <div class="pd-nim">
-                        @if(Auth::user()->isAnonim())
-                          {{ optional(Auth::user()->mahasiswa)->jurusan ?? '' }}
-                          {{ optional(Auth::user()->mahasiswa)->angkatan ?? '' }}
-                        @else
-                          {{ optional(Auth::user()->mahasiswa)->nim ?? '' }}
-                          · {{ optional(Auth::user()->mahasiswa)->jurusan ?? '' }}
-                          {{ optional(Auth::user()->mahasiswa)->angkatan ?? '' }}
-                        @endif
-                      </div>
-                    </div>
-              </div>
+    $namaAsliUser = $user?->nama
+        ?? $user?->name
+        ?? 'Mahasiswa';
 
-              <a href="{{ route('profil') }}" class="pd-item">
-                  <i class="bi bi-person-circle"></i>
-                  <span>Profil Saya</span>
-              </a>
+    $inisialUser = strtoupper(substr($namaAsliUser, 0, 1));
 
-              <a href="{{ route('riwayat') }}" class="pd-item">
-                  <i class="bi bi-calendar2-check"></i>
-                  <span>Riwayat Konseling</span>
-              </a>
+    $nimUser = $mahasiswa?->nim ?? '-';
 
-              <div class="pd-divider"></div>
+    $prodiUser = $mahasiswa?->program_studi
+        ?? $mahasiswa?->prodi
+        ?? $mahasiswa?->jurusan
+        ?? '-';
 
-              <form action="{{ route('logout') }}" method="POST" class="m-0">
-                  @csrf
-                  <button type="submit" class="pd-item danger w-100 text-start bg-transparent border-0">
-                      <i class="bi bi-box-arrow-right"></i>
-                      <span>Keluar</span>
-                  </button>
-              </form>
-          </div>
-      </div>
-        @endauth
+    $angkatanUser = $mahasiswa?->angkatan
+        ?? $mahasiswa?->tahun_masuk
+        ?? '';
+
+    $fotoProfil = optional($user?->profil)->foto
+        ? \Illuminate\Support\Facades\Storage::url($user->profil->foto)
+        : null;
+@endphp
+
+<div class="profile-wrap">
+    <button type="button" class="profile-btn" id="profileBtn" onclick="toggleProfile()">
+        @if($fotoProfil)
+            <img 
+                src="{{ $fotoProfil }}"
+                alt="Profile"
+                class="profile-img"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            >
+            <span class="profile-fallback" style="display:none;">
+                {{ $inisialUser }}
+            </span>
+        @else
+            <span class="profile-fallback">
+                {{ $inisialUser }}
+            </span>
+        @endif
+
+        <div class="online-dot"></div>
+    </button>
+
+    <div class="profile-dropdown" id="profileDropdown">
+        <div class="pd-header">
+            <div class="pd-avatar">
+                @if($fotoProfil)
+                    <img 
+                        src="{{ $fotoProfil }}"
+                        alt="Profile"
+                        class="pd-avatar-img"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                    >
+                    <span class="pd-avatar-fallback" style="display:none;">
+                        {{ $inisialUser }}
+                    </span>
+                @else
+                    <span class="pd-avatar-fallback">
+                        {{ $inisialUser }}
+                    </span>
+                @endif
+            </div>
+
+            <div class="pd-info">
+                <div class="pd-name">{{ $namaUser }}</div>
+                <div class="pd-nim">
+                    {{ $nimUser }}
+                    @if($prodiUser !== '-')
+                        · {{ $prodiUser }}
+                    @endif
+                    @if($angkatanUser)
+                        {{ $angkatanUser }}
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <a href="{{ route('profil') }}" class="pd-item">
+            <i class="bi bi-person-circle"></i>
+            <span>Profil Saya</span>
+        </a>
+
+        <a href="{{ route('riwayat') }}" class="pd-item">
+            <i class="bi bi-calendar2-check"></i>
+            <span>Riwayat Konseling</span>
+        </a>
+
+        <div class="pd-divider"></div>
+
+        <form action="{{ route('logout') }}" method="POST" class="m-0">
+            @csrf
+            <button type="submit" class="pd-item danger w-100 text-start bg-transparent border-0">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Keluar</span>
+            </button>
+        </form>
+    </div>
+</div>
+@endauth
 
 
         {{-- Jika BELUM LOGIN --}}
