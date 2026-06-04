@@ -6,7 +6,6 @@ use App\Events\GroupChatMessageSent;
 use App\Models\GroupChatMember;
 use App\Models\GroupChatMessage;
 use App\Models\GroupChatRoom;
-use App\Models\Student;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -14,7 +13,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class GroupChatMahasiswaController extends Controller
@@ -337,27 +335,19 @@ class GroupChatMahasiswaController extends Controller
     private function resolveUserDisplayName(?User $user): string
     {
         if (! $user) {
-            return 'Pengguna';
-        }
-
-        if ($user->isAnonim()) {
             return 'Mahasiswa Anonim';
         }
 
-        $nim = optional($user->mahasiswa)->nim;
-        static $studentNameCache = [];
-        $studentName = $nim
-            ? ($studentNameCache[$nim] ??= Student::query()->where('nim', $nim)->value('name'))
-            : null;
-
-        return $studentName ?: ($user->nama ?: 'Pengguna');
+        return $user->getAnonimDisplayName();
     }
 
     private function resolveUserAvatarUrl(?User $user): string
     {
-        $profilePhoto = optional($user?->profil)->foto;
+        if (! $user) {
+            return asset('img/default-avatar.png');
+        }
 
-        return $profilePhoto ? Storage::url($profilePhoto) : asset('img/default-avatar.png');
+        return $user->getAnonimAvatarSvg();
     }
 
     private function resolveMemberNames(GroupChatRoom $room): array
@@ -409,23 +399,21 @@ class GroupChatMahasiswaController extends Controller
             ->all();
     }
 
-    private function transformMessage(GroupChatMessage $message, User $viewer): array
+   private function transformMessage(GroupChatMessage $message, User $viewer): array
     {
         $message->loadMissing([
-            'sender.profil',
-            'sender.mahasiswa',
+            'sender',
         ]);
 
         $sender = $message->sender;
-        $profil = optional($sender)->profil;
 
         return [
             'id' => $message->id,
             'room_id' => $message->room_id,
             'sender_id' => $message->user_id,
-            'sender_name' => $message->user_id === $viewer->id ? 'Anda' : $this->resolveUserDisplayName($sender),
+            'sender_name' => $this->resolveUserDisplayName($sender),
             'sender_role' => $sender?->role ?? 'pengguna',
-            'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
+            'avatar_url' => $this->resolveUserAvatarUrl($sender),
             'text' => $message->pesan,
             'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),

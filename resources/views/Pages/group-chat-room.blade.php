@@ -807,7 +807,6 @@
   }
 
   const renderMembers = () => {
-    // Daftar anggota dirender dari payload supaya isi dropdown konsisten dengan header.
     memberList.innerHTML = '';
 
     memberProfiles.forEach((member) => {
@@ -815,14 +814,24 @@
       const avatar = document.createElement('div');
       const image = document.createElement('img');
       const label = document.createElement('div');
-      const name = member?.name || 'Pengguna';
+
+      const name = member?.name || 'Mahasiswa Anonim';
+      const avatarUrl = member?.avatar_url || '{{ asset('img/default-avatar.png') }}';
+
       item.className = 'group-member-item';
       item.dataset.memberName = String(name).toLowerCase();
+
       avatar.className = 'group-member-avatar';
-      image.src = member?.avatar_url || '{{ asset('img/default-avatar.png') }}';
+
+      image.src = avatarUrl;
       image.alt = name;
+      image.onerror = function () {
+        this.src = '{{ asset('img/default-avatar.png') }}';
+      };
+
       label.className = 'group-member-name';
       label.textContent = name;
+
       avatar.appendChild(image);
       item.appendChild(avatar);
       item.appendChild(label);

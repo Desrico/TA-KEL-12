@@ -36,10 +36,20 @@ class ProfilController extends Controller
 
     public function toggleAnonim(Request $request)
     {
+        $request->validate([
+            'anonim' => 'required|boolean',
+        ]);
+
+        $user = auth()->user();
+
+        $user->update([
+            'is_anonim' => $request->boolean('anonim'),
+        ]);
+
         return response()->json([
             'success' => true,
-            'anonim'  => false,
-            'message' => 'Mode anonim tidak lagi diatur dari profil. Mode anonim digunakan saat membuat jadwal konseling.',
+            'message' => 'Mode anonim berhasil diperbarui.',
+            'anonim' => (bool) $user->fresh()->is_anonim,
         ]);
     }
 

@@ -648,11 +648,32 @@
       padding: .7rem 1rem .8rem;
     }
   }
+
+  .chat-page.is-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 96px);
+    padding: 2rem 1rem;
+}
+
+.chat-page.is-empty-state .chat-page-inner {
+    width: 100%;
+    min-height: calc(100vh - 160px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-page.is-empty-state .chat-empty {
+    width: min(100%, 880px);
+    margin: 0 auto;
+}
 </style>
 @endpush
 
 @section('konten')
-<section class="chat-page">
+<section class="chat-page {{ !$activeSession ? 'is-empty-state' : '' }}">
   <div class="chat-page-inner">
     @if(session('success'))
       <div style="max-width:880px;margin:0 auto 1rem;background:#e8fff1;border:1px solid #bbf7d0;color:#166534;padding:1rem 1.15rem;border-radius:18px;font-weight:600;">
@@ -696,7 +717,6 @@
                 </p>
               </div>
             </div>
-            <div class="chat-badge">{{ $statusLabel }}</div>
           </div>
 
           <div class="chat-gate">
@@ -828,9 +848,7 @@
                 <i class="bi bi-send-fill"></i>
               </button>
             </form>
-            <div class="chat-hint" id="chatHint">
-              Ruang ini dipakai untuk percakapan konseling online Anda dengan konselor.
-            </div>
+
           </div>
         </div>
 
@@ -1089,8 +1107,33 @@
         });
 
         scrollToBottom();
+      })                          // ← pakai koma, BUKAN titik koma
+      .listen('.sesi.selesai', (event) => {
+        input.disabled = true;
+        input.placeholder = 'Sesi konseling telah selesai.';
+        sendBtn.disabled = true;
+
+        const chatForm = document.getElementById('chatForm');
+        if (chatForm) {
+            chatForm.classList.add('is-disabled');
+        }
+
+        const badge = document.querySelector('.chat-badge');
+        if (badge) {
+            badge.textContent = 'Selesai';
+            badge.style.background = '#f1f5f9';
+            badge.style.color = '#475569';
+        }
+
+        const composer = document.querySelector('.chat-composer');
+        if (composer) {
+            const notice = document.createElement('div');
+            notice.style.cssText = 'margin-top:.5rem;padding:.65rem .9rem;background:#f1f5f9;border-radius:12px;color:#475569;font-size:.78rem;font-weight:600;text-align:center;';
+            notice.textContent = 'Sesi konseling telah diselesaikan oleh konselor. Terima kasih.';
+            composer.appendChild(notice);
+        }
       });
-  }
+}
 
   syncMessages();
   window.setInterval(syncMessages, 10000);

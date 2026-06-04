@@ -948,9 +948,9 @@
           </div>
         </div>
       </div>
+
     </div>
   </section>
-
   <section class="section-block trust-strip">
     <div class="container">
       <div class="row align-items-center g-5">
@@ -994,6 +994,202 @@
     </div>
   </section>
 
+  <style>
+  .feedback-section {
+    padding-top: 2rem;
+  }
+
+  .feedback-header {
+    max-width: 760px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .feedback-header .section-kicker {
+    display: inline-flex;
+    margin-bottom: .65rem;
+  }
+
+  .feedback-header .section-title {
+    margin-bottom: .6rem;
+  }
+
+  .feedback-header .section-desc {
+    max-width: 680px;
+    margin-bottom: 0;
+  }
+
+  .feedback-carousel {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding: 14px 6px 18px;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+  }
+
+  .feedback-card {
+    min-width: 340px;
+    max-width: 380px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,255,253,.98)),
+      #ffffff;
+    border-radius: 22px;
+    padding: 20px;
+    border: 1px solid rgba(209,250,229,.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    scroll-snap-align: start;
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+
+  .feedback-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .feedback-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .feedback-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+    color: #065F46;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .feedback-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .feedback-author {
+    display: block;
+    color: #064E3B;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  .feedback-label {
+    display: block;
+    margin-top: 2px;
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .feedback-mark {
+    color: #F59E0B;
+    font-size: 1.1rem;
+    margin-left: auto;
+  }
+
+  .feedback-text {
+    color: #334155;
+    line-height: 1.7;
+    margin: 0;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .feedback-card-foot {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 18px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .feedback-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: #ECFDF5;
+    color: #065F46;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .feedback-carousel:focus { outline: none; }
+  </style>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var carousel = document.querySelector('.feedback-carousel');
+    if (!carousel) return;
+
+    var isPaused = false;
+    var scrollStep = 1;
+    var rafId = null;
+
+    function autoScroll() {
+      if (!isPaused) {
+        carousel.scrollLeft += scrollStep;
+
+        if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 1) {
+          carousel.scrollLeft = 0;
+        }
+      }
+
+      rafId = window.requestAnimationFrame(autoScroll);
+    }
+
+    carousel.addEventListener('mouseenter', function () {
+      isPaused = true;
+    });
+
+    carousel.addEventListener('mouseleave', function () {
+      isPaused = false;
+    });
+
+    carousel.addEventListener('focusin', function () {
+      isPaused = true;
+    });
+
+    carousel.addEventListener('focusout', function () {
+      isPaused = false;
+    });
+
+    carousel.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') {
+        carousel.scrollBy({ left: 340, behavior: 'smooth' });
+        e.preventDefault();
+      } else if (e.key === 'ArrowLeft') {
+        carousel.scrollBy({ left: -340, behavior: 'smooth' });
+        e.preventDefault();
+      }
+    });
+
+    rafId = window.requestAnimationFrame(autoScroll);
+
+    window.addEventListener('beforeunload', function () {
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+    });
+  });
+  </script>
+
   <section class="section-block steps-section">
     <div class="container">
       <div class="text-center mb-5">
@@ -1036,13 +1232,241 @@
     </div>
   </section>
 
-  <section class="section-block dmhi-section">
+  <section class="section-block feedback-section">
+    <div class="container">
+      @if(!empty($feedbacks) && $feedbacks->count())
+      <div class="feedback-header mb-4">
+        <h2 class="section-title text-center">Cerita Nyata dari <span>Mahasiswa</span></h2>
+        <p class="section-desc mx-auto text-center">Ringkasan pengalaman singkat dari sesi konseling yang sudah dijalani.</p>
+      </div>
+
+      <div class="feedback-carousel" tabindex="0">
+        @foreach($feedbacks as $fb)
+          @php
+            $author = $fb->mahasiswa?->user?->nama ?? $fb->mahasiswa?->nama ?? 'Mahasiswa';
+            $excerpt = \Illuminate\Support\Str::limit(strip_tags($fb->isi_feedback), 160, '...');
+          @endphp
+          <div class="feedback-card">
+            <div class="feedback-card-top">
+              <span class="feedback-avatar">{{ strtoupper(substr($author, 0, 1)) }}</span>
+              <div class="feedback-meta">
+                <span class="feedback-author">{{ $author }}</span>
+              </div>
+            </div>
+            <div class="feedback-card-body">
+              <p class="feedback-text">{{ $excerpt }}</p>
+            </div>
+         </div>
+        @endforeach
+      </div>
+      @endif
+    </div>
+  </section>
+
+  <style>
+  .feedback-section {
+    padding-top: 2rem;
+  }
+
+  .feedback-header {
+    max-width: 760px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .feedback-header .section-kicker {
+    display: inline-flex;
+    margin-bottom: .65rem;
+  }
+
+  .feedback-header .section-title {
+    margin-bottom: .6rem;
+  }
+
+  .feedback-header .section-desc {
+    max-width: 680px;
+    margin-bottom: 0;
+  }
+
+  .feedback-carousel {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding: 14px 6px 18px;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+  }
+
+  .feedback-card {
+    min-width: 340px;
+    max-width: 380px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,255,253,.98)),
+      #ffffff;
+    border-radius: 22px;
+    padding: 20px;
+    border: 1px solid rgba(209,250,229,.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    scroll-snap-align: start;
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+
+  .feedback-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .feedback-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .feedback-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+    color: #065F46;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .feedback-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .feedback-author {
+    display: block;
+    color: #064E3B;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  .feedback-label {
+    display: block;
+    margin-top: 2px;
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .feedback-mark {
+    color: #F59E0B;
+    font-size: 1.1rem;
+    margin-left: auto;
+  }
+
+  .feedback-text {
+    color: #334155;
+    line-height: 1.7;
+    margin: 0;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .feedback-card-foot {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 18px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .feedback-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: #ECFDF5;
+    color: #065F46;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .feedback-carousel:focus { outline: none; }
+  </style>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var carousel = document.querySelector('.feedback-carousel');
+    if (!carousel) return;
+
+    var isPaused = false;
+    var scrollStep = 1;
+    var rafId = null;
+
+    function autoScroll() {
+      if (!isPaused) {
+        carousel.scrollLeft += scrollStep;
+
+        if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 1) {
+          carousel.scrollLeft = 0;
+        }
+      }
+
+      rafId = window.requestAnimationFrame(autoScroll);
+    }
+
+    carousel.addEventListener('mouseenter', function () {
+      isPaused = true;
+    });
+
+    carousel.addEventListener('mouseleave', function () {
+      isPaused = false;
+    });
+
+    carousel.addEventListener('focusin', function () {
+      isPaused = true;
+    });
+
+    carousel.addEventListener('focusout', function () {
+      isPaused = false;
+    });
+
+    carousel.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') {
+        carousel.scrollBy({ left: 340, behavior: 'smooth' });
+        e.preventDefault();
+      } else if (e.key === 'ArrowLeft') {
+        carousel.scrollBy({ left: -340, behavior: 'smooth' });
+        e.preventDefault();
+      }
+    });
+
+    rafId = window.requestAnimationFrame(autoScroll);
+
+    window.addEventListener('beforeunload', function () {
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+    });
+  });
+  </script>
+
+  <section class="section-block ">
     <div class="container">
       <div class="row align-items-end g-4 mb-4">
         <div class="col-lg-7">
-          <div class="section-kicker mb-3">Konsep DMHI</div>
-          <h2 class="section-title">Mengarah pada pendekatan <span>Digital Mental Health Intervention</span></h2><br>
+          <div class="section-kicker mb-3">Konsep DMHIs</div>
+          <h2 class="section-title">Ruang Digital <span>untuk Mendukung Kesehatan Mental Mahasiswa</span></h2><br>
         <p class="section-desc">
+            Digital Mental Health Interventions atau DMHIs adalah pendekatan dukungan kesehatan mental berbasis teknologi yang membantu mahasiswa mengakses informasi, pemantauan, dan layanan konseling secara lebih mudah, aman, terstruktur, dan berkelanjutan.
             Campus Care dirancang sebagai langkah awal bantuan psikologis digital yang lebih mudah diakses, aman, terstruktur, dan berkelanjutan bagi mahasiswa.
           </p>
         </div>

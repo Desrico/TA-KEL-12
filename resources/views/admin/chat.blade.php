@@ -12,6 +12,10 @@
         $topik = trim($match[1]);
     }
 
+    $statusJadwal = strtolower(str_replace(' ', '_', $jadwal?->status ?? ''));
+    $statusSesi = strtolower(str_replace(' ', '_', optional($activeSession)->status ?? ''));
+
+    $chatSelesai = $statusJadwal === 'selesai' || $statusSesi === 'selesai';
 @endphp
 
 @section('page-title', 'Chat Konseling')
@@ -215,7 +219,7 @@
   }
 
   .admin-chat-card {
-    overflow: hidden;
+    overflow: visible;
     min-height: 760px;
     display: flex;
     flex-direction: column;
@@ -268,6 +272,7 @@
     border-bottom: 1px solid #edf7f1;
     background: rgba(255,255,255,.88);
     backdrop-filter: blur(10px);
+    overflow: visible;
   }
 
   .admin-chat-person {
@@ -716,6 +721,135 @@
     box-shadow: none;
   }
 
+  .admin-session-menu {
+    position: relative;
+}
+
+.admin-session-menu-toggle {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 14px;
+    background: #F0FDF4;
+    color: #064E3B;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    cursor: pointer;
+    transition: background .18s ease, transform .18s ease;
+}
+
+.admin-session-menu-toggle:hover {
+    background: #D1FAE5;
+    transform: translateY(-1px);
+}
+
+.admin-session-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 220px;
+    padding: .65rem;
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px solid #DCEEE4;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, .14);
+    display: none;
+    z-index: 9999;
+}
+
+.admin-session-menu.is-open .admin-session-menu-dropdown {
+    display: grid;
+    gap: .45rem;
+}
+
+.admin-session-menu-item {
+    width: 100%;
+    border: none;
+    text-decoration: none;
+    border-radius: 14px;
+    padding: .85rem 1rem;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    color: #064E3B;
+    font-size: .86rem;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
+}
+
+.admin-session-menu-item:hover {
+    background: #ECFDF5;
+    color: #064E3B;
+}
+
+.finish-session-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.finish-session-modal.is-open {
+    display: flex;
+}
+
+.finish-session-box {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.2);
+}
+
+.finish-session-box h3 {
+    margin: 0 0 10px;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #064E3B;
+}
+
+.finish-session-box p {
+    margin: 0;
+    color: #64748B;
+    font-size: .92rem;
+    line-height: 1.6;
+}
+
+.finish-session-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.btn-finish-cancel,
+.btn-finish-confirm {
+    border: none;
+    border-radius: 14px;
+    padding: .75rem 1rem;
+    font-weight: 800;
+    font-size: .88rem;
+    cursor: pointer;
+}
+
+.btn-finish-cancel {
+    background: #F1F5F9;
+    color: #334155;
+}
+
+.btn-finish-confirm {
+    background: #064E3B;
+    color: #ffffff;
+}
+
   @media (max-width: 1199.98px) {
     .admin-chat-page {
       grid-template-columns: 1fr;
@@ -780,9 +914,20 @@
         $itemUser = optional(optional($item)->mahasiswa)->user;
         $isSelected = optional($activeJadwal)->id === $item->id;
         $itemScheduledAt = $item->scheduledAt('Asia/Jakarta');
-        $itemIsBlockedBySchedule = $itemScheduledAt ? now('Asia/Jakarta')->lt($itemScheduledAt) : false;
-        $itemStatusKey = $itemIsBlockedBySchedule ? 'terjadwal' : strtolower($item->status ?? '');
-        $itemStatusLabel = $itemIsBlockedBySchedule ? 'Terjadwal' : ucfirst($item->status ?? '-');
+        $itemRawStatus = strtolower(str_replace(' ', '_', $item->status ?? ''));
+        $itemIsFinished = $itemRawStatus === 'selesai';
+
+        $itemIsBlockedBySchedule = !$itemIsFinished && $itemScheduledAt
+            ? now('Asia/Jakarta')->lt($itemScheduledAt)
+            : false;
+
+        $itemStatusKey = $itemIsFinished
+            ? 'selesai'
+            : ($itemIsBlockedBySchedule ? 'terjadwal' : $itemRawStatus);
+
+        $itemStatusLabel = $itemIsFinished
+            ? 'Selesai'
+            : ($itemIsBlockedBySchedule ? 'Terjadwal' : ucfirst($item->status ?? '-'));
         $itemTopik = $item->catatan && preg_match('/Topik:\s*([^|]+)/i', $item->catatan, $match) ? trim($match[1]) : 'Topik belum tersedia';
         $sessionSearchText = strtolower(trim(implode(' ', [
             $itemUser?->getNamaDisplay() ?? 'Mahasiswa',
@@ -837,6 +982,27 @@
           </p>
         </div>
       </div>
+
+      @elseif($chatSelesai)
+      <div class="admin-chat-gate">
+          <div class="admin-chat-gate-card">
+              <div class="admin-chat-gate-icon">
+                  <i class="ti ti-circle-check"></i>
+              </div>
+
+              <h3>Sesi Konseling Telah Selesai</h3>
+              <p>
+                  Sesi konseling online dengan 
+                  <strong>{{ $studentUser?->getNamaDisplay() ?? 'Mahasiswa' }}</strong>
+                  telah diselesaikan. Riwayat percakapan tetap dapat dilihat, tetapi pesan baru tidak dapat dikirim.
+              </p>
+
+              <a href="{{ route('admin.sesi.detail', $activeSession->id) }}" class="admin-chat-start">
+                  <i class="ti ti-file-description"></i>
+                  <span>Lihat Detail Sesi</span>
+              </a>
+          </div>
+      </div>
     @elseif($isBlockedBySchedule)
       <div class="admin-chat-gate">
         <div class="admin-chat-gate-card">
@@ -882,23 +1048,45 @@
         </div>
       </div>
     @else
-      <div class="admin-chat-head">
-        <div class="admin-chat-person">
-          <div class="admin-chat-avatar">
-            <img src="{{ $chatPayload['studentAvatar'] }}" alt="{{ $chatPayload['studentName'] }}">
-          </div>
-          <div>
-            <div class="admin-chat-title">{{ $chatPayload['studentName'] }}</div>
-            <p class="admin-chat-subtitle">
-              {{ $topik ?: 'Konseling online aktif' }}<br>
-              {{ \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('j F Y') }} &bull; {{ substr($activeJadwal->waktu, 0, 5) }} WIB
-            </p>
-          </div>
-        </div>
-        </div>
+  <div class="admin-chat-head">
+    <div class="admin-chat-person">
+      <div class="admin-chat-avatar">
+        <img src="{{ $chatPayload['studentAvatar'] }}" alt="{{ $chatPayload['studentName'] }}">
       </div>
 
-      <div class="admin-chat-thread" id="adminChatThread"></div>
+      <div>
+        <div class="admin-chat-title">{{ $chatPayload['studentName'] }}</div>
+        <p class="admin-chat-subtitle">
+          {{ $topik ?: 'Konseling online aktif' }}<br>
+          {{ \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('j F Y') }} &bull; {{ substr($activeJadwal->waktu, 0, 5) }} WIB
+        </p>
+      </div>
+    </div>
+
+    <div class="admin-chat-head-actions">
+      <div class="admin-session-menu" id="adminSessionMenu">
+          <button type="button" class="admin-session-menu-toggle" id="adminSessionMenuToggle">
+              <i class="ti ti-dots-vertical"></i>
+          </button>
+
+          <div class="admin-session-menu-dropdown" id="adminSessionMenuDropdown">
+              <button 
+                  type="button" 
+                  class="admin-session-menu-item"
+                  id="openFinishSessionModal"
+              >
+                  Selesaikan Sesi
+              </button>
+
+              <a href="{{ route('admin.sesi.detail', $activeSession->id) }}" class="admin-session-menu-item">
+                  Lihat Detail Sesi
+              </a>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-chat-thread" id="adminChatThread"></div>
 
       <div class="admin-chat-compose">
         <form id="adminChatForm" class="admin-chat-form">
@@ -917,6 +1105,29 @@
           Pesan akan langsung terkirim ke ruang chat mahasiswa yang sesuai secara realtime.
         </div>
       </div>
+
+      <div class="finish-session-modal" id="finishSessionModal">
+      <div class="finish-session-box">
+          <h3>Selesaikan Sesi Konseling?</h3>
+          <p>
+              Apakah Anda yakin ingin menyelesaikan sesi konseling ini?
+              Setelah diselesaikan, status sesi akan berubah menjadi selesai.
+          </p>
+
+          <div class="finish-session-actions">
+              <button type="button" class="btn-finish-cancel" id="closeFinishSessionModal">
+                  Batal
+              </button>
+
+              <form action="{{ route('admin.sesi.selesai', $activeJadwal->id) }}" method="POST">
+                  @csrf
+                  <button type="submit" class="btn-finish-confirm">
+                      Ya, Selesaikan
+                  </button>
+              </form>
+          </div>
+      </div>
+  </div>
     @endif
   </section>
 </div>
@@ -956,7 +1167,7 @@
 </script>
 @endpush
 
-@if($activeSession && $chatPayload && $chatAccessGranted)
+@if($activeSession && $chatPayload && $chatAccessGranted && ! $chatSelesai)
 @push('scripts')
 <script>
 (() => {
@@ -1417,6 +1628,58 @@
     }
   });
 })();
+
+document.addEventListener('DOMContentLoaded', function () {
+    const menu = document.getElementById('adminSessionMenu');
+    const toggle = document.getElementById('adminSessionMenuToggle');
+
+    const openFinishBtn = document.getElementById('openFinishSessionModal');
+    const closeFinishBtn = document.getElementById('closeFinishSessionModal');
+    const finishModal = document.getElementById('finishSessionModal');
+
+    if (menu && toggle) {
+        toggle.addEventListener('click', function (event) {
+            event.stopPropagation();
+            menu.classList.toggle('is-open');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!menu.contains(event.target)) {
+                menu.classList.remove('is-open');
+            }
+        });
+    }
+
+    if (openFinishBtn && finishModal) {
+        openFinishBtn.addEventListener('click', function () {
+            finishModal.classList.add('is-open');
+
+            if (menu) {
+                menu.classList.remove('is-open');
+            }
+        });
+    }
+
+    if (closeFinishBtn && finishModal) {
+        closeFinishBtn.addEventListener('click', function () {
+            finishModal.classList.remove('is-open');
+        });
+    }
+
+    if (finishModal) {
+        finishModal.addEventListener('click', function (event) {
+            if (event.target === finishModal) {
+                finishModal.classList.remove('is-open');
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && finishModal) {
+            finishModal.classList.remove('is-open');
+        }
+    });
+});
 </script>
 @endpush
 @endif

@@ -52,34 +52,38 @@ class LaporanController extends Controller
         };
     }
 
-  public function riwayat()
-{
-    $mahasiswa = auth()->user()->mahasiswa;
+    public function riwayat()
+    {
+        $mahasiswa = auth()->user()->mahasiswa;
 
-    if (!$mahasiswa) {
-        abort(403, 'Data mahasiswa tidak ditemukan.');
+        if (!$mahasiswa) {
+            abort(403, 'Data mahasiswa tidak ditemukan.');
+        }
+
+        $query = JadwalKonseling::with([
+                'mahasiswa.user',
+                'konselor.user',
+                'sesiKonseling.feedback',
+            ])
+            ->where('mahasiswa_id', $mahasiswa->id);
+
+        $totalSesi = (clone $query)->count();
+
+        $sesiSelesai = (clone $query)
+            ->where('status', 'selesai')
+            ->count();
+
+        $riwayat = $query
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('waktu', 'desc')
+            ->paginate(5);
+
+        return view('Pages.riwayat', compact(
+            'riwayat',
+            'totalSesi',
+            'sesiSelesai'
+        ));
     }
-
-    $query = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
-        ->where('mahasiswa_id', $mahasiswa->id);
-
-    $totalSesi = (clone $query)->count();
-
-    $sesiSelesai = (clone $query)
-        ->where('status', 'selesai')
-        ->count();
-
-    $riwayat = $query
-        ->orderBy('tanggal', 'desc')
-        ->orderBy('waktu', 'desc')
-        ->paginate(5);
-
-    return view('Pages.riwayat', compact(
-        'riwayat',
-        'totalSesi',
-        'sesiSelesai'
-    ));
-}
 
     public function detailRiwayat($id)
     {
@@ -89,7 +93,7 @@ class LaporanController extends Controller
             abort(403, 'Data mahasiswa tidak ditemukan.');
         }
 
-        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'konselor.user', 'sesiKonseling'])
+        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'konselor.user', 'sesiKonseling.feedback'])
             ->where('id', $id)
             ->where('mahasiswa_id', $mahasiswa->id)
             ->firstOrFail();
@@ -104,6 +108,9 @@ class LaporanController extends Controller
         $metode = strtolower(trim((string) $jadwal->jenis)) === 'offline'
             ? 'Tatap Muka'
             : 'Video Call';
+
+        $feedback = $jadwal->sesiKonseling?->feedback;
+        $bisaFeedback = $jadwal->status === 'selesai' && $jadwal->sesiKonseling && !$feedback;
 
         $catatanRingkasan = trim((string) ($jadwal->ringkasan_masalah ?? ''));
         if ($catatanRingkasan === '') {
@@ -124,6 +131,8 @@ class LaporanController extends Controller
             'statusInfo',
             'topik',
             'metode',
+            'feedback',
+            'bisaFeedback',
             'catatanRingkasan',
             'observasi',
             'progress',

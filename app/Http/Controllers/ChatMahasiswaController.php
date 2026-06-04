@@ -62,6 +62,15 @@ class ChatMahasiswaController extends Controller
         $chatAccessGranted = ! $isBlockedBySchedule && $this->isSessionActive($sesi);
         $messages = $this->resolveConversationMessages($sesi, $user)->all();
 
+        $chatSelesai = in_array($sesi->status, ['selesai'], true)
+            || in_array($sesi->jadwalKonseling?->status, ['selesai'], true);
+
+        if ($chatSelesai) {
+            $isBlockedBySchedule = false;
+            $isReadyToStart = false;
+            $chatAccessGranted = false;
+        }
+
         return view('Pages.chat', [
             'activeSession' => $sesi,
             'isBlockedBySchedule' => $isBlockedBySchedule,
@@ -92,10 +101,7 @@ class ChatMahasiswaController extends Controller
                     ->with('error', 'Undangan sesi tidak ditemukan.');
             }
 
-            $sesi = SesiKonseling::firstOrCreate(
-                ['jadwal_id' => $jadwal->id],
-                ['status' => $jadwal->status === 'berlangsung' ? 'berlangsung' : 'disetujui']
-            );
+            $sesi = $this->resolveSessionFromSchedule($jadwal);
 
             if (! $this->canStartSessionNow($sesi)) {
                 return redirect()
@@ -107,7 +113,9 @@ class ChatMahasiswaController extends Controller
                 $this->activateSessionIfNeeded($sesi);
             }
 
-            return redirect()->route('mahasiswa.chat');
+            return redirect()
+                ->route('mahasiswa.chat', ['jadwal' => $jadwal->id])
+                ->with('success', 'Sesi konseling berhasil dimulai.');
         }
 
         $sesi = $this->resolveActiveSession($request->user());
@@ -138,8 +146,6 @@ class ChatMahasiswaController extends Controller
         }
 
         $this->activateSessionIfNeeded($sesi);
-
-        return redirect()->route('mahasiswa.chat');
 
         return redirect()
             ->route('mahasiswa.chat', ['jadwal' => $jadwal?->id])
@@ -196,6 +202,18 @@ class ChatMahasiswaController extends Controller
                 'success' => false,
                 'message' => 'Belum ada sesi konseling online aktif.',
             ], 404);
+        }
+
+        $sesi->load('jadwalKonseling');
+
+        $statusSesi = strtolower(str_replace(' ', '_', $sesi->status ?? ''));
+        $statusJadwal = strtolower(str_replace(' ', '_', $sesi->jadwalKonseling?->status ?? ''));
+
+        if ($statusSesi === 'selesai' || $statusJadwal === 'selesai') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi konseling sudah selesai. Anda tidak dapat mengirim pesan lagi.',
+            ], 403);
         }
 
         if (! $this->canStartSessionNow($sesi)) {
@@ -331,7 +349,7 @@ class ChatMahasiswaController extends Controller
 
         $sesi = $this->resolveSessionFromSchedule($jadwal);
 
-        if (in_array($sesi->status, ['selesai', 'dibatalkan'], true)) {
+        if ($sesi->status === 'dibatalkan') {
             return null;
         }
 
@@ -442,6 +460,8 @@ class ChatMahasiswaController extends Controller
             'threadDateKey' => $this->resolveThreadDateKey($sesi),
             'threadDateLabel' => $this->resolveThreadDateLabel($sesi),
             'messages' => $messages,
+            'chatSelesai' => in_array($jadwal?->status, ['selesai'], true)
+            || in_array($sesi->status, ['selesai'], true),
         ];
     }
 

@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\SesiKonseling;
 
 class JadwalKonseling extends Model
 {
@@ -51,7 +52,7 @@ class JadwalKonseling extends Model
 
     public function sesiKonseling(): HasOne
     {
-        return $this->hasOne(SesiKonseling::class, SesiKonseling::jadwalForeignKey());
+        return $this->hasOne(SesiKonseling::class, SesiKonseling::jadwalForeignKey(), 'id');
     }
 
     public static function sessionTimezone(): string

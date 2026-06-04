@@ -454,25 +454,6 @@
         Halaman ini difokuskan untuk melihat grup yang sudah kamu ikuti dan membuka kembali ruang chat saat diperlukan.
         Jika ingin topik baru, gunakan tombol tambah grup dari kartu daftar grupmu.
       </p>
-      <div class="anonim-toggle-card">
-        <div class="anonim-toggle-row">
-          <div class="anonim-toggle-copy">
-            <p class="anonim-toggle-title">Mode Anonim</p>
-            <div class="anonim-toggle-status" id="anonim-toggle-status">
-              {{ $isAnonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.' }}
-            </div>
-          </div>
-          <label class="anonim-toggle-switch" aria-label="Toggle mode anonim">
-            <input
-              type="checkbox"
-              id="anonim-toggle"
-              {{ $isAnonim ? 'checked' : '' }}
-              {{ Auth::check() ? '' : 'disabled' }}
-            >
-            <span class="anonim-toggle-slider"></span>
-          </label>
-        </div>
-      </div>
     </div>
 
     <div class="group-lobby-grid">
@@ -532,20 +513,22 @@
                     <div class="group-member-preview">
                       <div class="group-member-avatars">
                         @forelse($previewMembers as $member)
-                          @php
-                            $memberUser = $member->user;
-                            $memberProfile = optional($memberUser)->profil;
-                          @endphp
-                          <div class="group-member-avatar">
-                            @if($memberProfile?->foto)
-                              <img src="{{ Storage::url($memberProfile->foto) }}" alt="{{ $memberUser?->getNamaDisplay() ?? 'Pengguna' }}">
-                            @else
-                              <div class="group-member-fallback">
-                                <i class="bi bi-person-fill"></i>
-                              </div>
-                            @endif
-                          </div>
-                        @empty
+                            @php
+                              $memberUser = $member->user;
+                              $memberName = $memberUser?->getAnonimDisplayName() ?? 'Mahasiswa Anonim';
+                              $memberAvatar = $memberUser?->getAnonimAvatarSvg();
+                            @endphp
+
+                            <div class="group-member-avatar">
+                              @if($memberAvatar)
+                                <img src="{{ $memberAvatar }}" alt="{{ $memberName }}">
+                              @else
+                                <div class="group-member-fallback">
+                                  <i class="bi bi-person-fill"></i>
+                                </div>
+                              @endif
+                            </div>
+                          @empty
                           <div class="group-member-avatar">
                             <div class="group-member-fallback">
                               <i class="bi bi-people-fill"></i>
@@ -555,7 +538,7 @@
                       </div>
                       <div class="group-member-text">
                         <strong>
-                          {{ $previewMembers->pluck('user')->filter()->map(fn ($user) => $user->getNamaDisplay())->take(2)->implode(', ') ?: 'Belum ada anggota tampil' }}
+                         {{ $previewMembers->pluck('user')->filter()->map(fn ($user) => $user->getAnonimDisplayName())->take(2)->implode(', ') ?: 'Belum ada anggota tampil' }}
                         </strong>
                         <span>
                           @if($remainingMembers > 0)
@@ -583,57 +566,5 @@
 @endsection
 
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const isLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
-  const anonimToggleEl = document.getElementById('anonim-toggle');
-  const anonimStatusEl = document.getElementById('anonim-toggle-status');
 
-  async function toggleAnonimMode(checkbox) {
-    if (!isLoggedIn) {
-      checkbox.checked = false;
-      window.location.href = '/login';
-      return;
-    }
-
-    const previousState = !checkbox.checked;
-    checkbox.disabled = true;
-    anonimStatusEl.textContent = 'Menyimpan perubahan mode anonim...';
-    anonimStatusEl.classList.remove('is-error');
-
-    try {
-      const response = await fetch('{{ route('profil.anonim') }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ anonim: checkbox.checked }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        checkbox.checked = previousState;
-        anonimStatusEl.textContent = data.message || 'Gagal memperbarui mode anonim.';
-        anonimStatusEl.classList.add('is-error');
-        return;
-      }
-
-      anonimStatusEl.textContent = data.anonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
-    } catch (error) {
-      checkbox.checked = previousState;
-      anonimStatusEl.textContent = 'Gagal memperbarui mode anonim.';
-      anonimStatusEl.classList.add('is-error');
-    } finally {
-      checkbox.disabled = false;
-    }
-  }
-
-  anonimToggleEl?.addEventListener('change', function () {
-    toggleAnonimMode(this);
-  });
-});
-</script>
 @endpush

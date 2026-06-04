@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>BK Connect - IT Del Mental Health</title>
+  <title>Campus Care - IT Del Mental Health</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -114,10 +114,15 @@
     justify-content: center;
     width: 38px;
     height: 38px;
+    padding: 0;
     border-radius: 999px;
+    border: none;
+    background: transparent;
     color: var(--text-mid);
     text-decoration: none;
+    cursor: pointer;
     transition: all .2s ease;
+    z-index: 1001;
   }
 
   .notif-link:hover {
@@ -145,6 +150,9 @@
 
   .notif-dropdown {
     min-width: 320px;
+    right: 0 !important;
+    left: auto !important;
+    transform: none !important;
     border: 1px solid var(--border) !important;
     border-radius: 14px;
     box-shadow: var(--shadow-md);
@@ -154,6 +162,11 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     background: var(--white);
+    z-index: 2051;
+  }
+
+  .notif-dropdown.show {
+    display: block;
   }
 
   .notif-header {
@@ -1794,6 +1807,7 @@ footer a:hover {
 }
 </style>
   @vite(['resources/js/app.js'])
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   @stack('styles')
 </head>
 <body>
@@ -1996,7 +2010,7 @@ footer a:hover {
         <li class="nav-item"><a class="nav-link nav-link-custom {{ request()->is('/') ? 'active' : '' }}" href="/">Beranda</a></li>
         <li class="nav-item">
           <a class="nav-link nav-link-custom {{ request()->is('edukasi-mental') ? 'active' : '' }}" href="/edukasi-mental">
-            Edukasi Mental
+            Ruang Edukasi
           </a>
         </li>
         <li class="nav-item">
@@ -2031,10 +2045,10 @@ footer a:hover {
 
         @auth
         <li class="nav-item dropdown ms-1">
-          <a class="notif-link" href="#" id="notifDropdownBtn" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifikasi">
+          <button type="button" class="notif-link" id="notifDropdownBtn" aria-expanded="false" title="Notifikasi" aria-label="Notifikasi">
             <i class="bi bi-bell" style="font-size:1rem;"></i>
             <span id="notifBadge" class="notif-badge {{ $unreadNotif > 0 ? '' : 'd-none' }}">{{ $unreadNotif > 9 ? '9+' : $unreadNotif }}</span>
-          </a>
+          </button>
           <div class="dropdown-menu dropdown-menu-end notif-dropdown" aria-labelledby="notifDropdownBtn">
             <div class="notif-header">Notifikasi</div>
             @forelse($notifItems as $notif)
@@ -2242,7 +2256,7 @@ footer a:hover {
   <div class="container">
     <div class="row g-4">
       <div class="col-lg-4">
-        <div class="footer-brand-txt mb-2"><i class="bi bi-heart-pulse-fill me-2" style="color:var(--accent)"></i>BK Connect</div>
+        <div class="footer-brand-txt mb-2"><i class="bi bi-heart-pulse-fill me-2" style="color:var(--accent)"></i>Campus Care</div>
         <p style="font-size:.86rem;line-height:1.75;margin-bottom:1.5rem">Platform Bimbingan dan Konseling digital IT Del — mendukung kesehatan mental mahasiswa dengan layanan profesional, aman, dan mudah diakses.</p>
         <div class="footer-social">
           <a href="#"><i class="bi bi-instagram"></i></a>
@@ -2272,7 +2286,7 @@ footer a:hover {
         </div>
       </div>
     </div>
-    <div class="footer-copy">© 2024 BK Connect · Institut Teknologi Del — Pengembangan Digital Mental Health Intervention</div>
+    <div class="footer-copy">© 2024 Campus Care Connect · Institut Teknologi Del — Pengembangan Digital Mental Health Intervention</div>
   </div>
 </footer>
 
@@ -2290,9 +2304,38 @@ document.addEventListener('click',(e)=>{
   }
 });
 
+document.addEventListener('click', (e) => {
+  if (document.getElementById('notifDropdownBtn')?.contains(e.target)) {
+    return;
+  }
+
+  document.querySelectorAll('.notif-dropdown.show').forEach((menu) => {
+    menu.classList.remove('show');
+  });
+
+  document.getElementById('notifDropdownBtn')?.setAttribute('aria-expanded', 'false');
+});
+
 const notifDropdownBtn = document.getElementById('notifDropdownBtn');
 const notifBadge = document.getElementById('notifBadge');
 let notifMarkedRead = false;
+
+if (notifDropdownBtn) {
+  notifDropdownBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const notifDropdownMenu = notifDropdownBtn.parentElement?.querySelector('.notif-dropdown');
+    if (!notifDropdownMenu) return;
+
+    const isOpen = notifDropdownMenu.classList.contains('show');
+    document.querySelectorAll('.notif-dropdown.show').forEach((menu) => menu.classList.remove('show'));
+
+    notifDropdownMenu.classList.toggle('show', !isOpen);
+    notifDropdownBtn.setAttribute('aria-expanded', String(!isOpen));
+  });
+}
+
 const letterModal = document.getElementById('letterModal');
 const letterEnvelope = document.getElementById('letterEnvelope');
 const envelopeStage = letterModal?.querySelector('.envelope-stage');
@@ -2741,42 +2784,6 @@ if (letterEnvelope) {
   letterEnvelope.addEventListener('pointerdown', handleEnvelopePointerDown);
   letterEnvelope.addEventListener('pointerup', handleEnvelopePointerUp);
   letterSpeech?.addEventListener('click', handleSpeechClick);
-}
-
-if (letterActionForm) {
-  letterActionForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    if (letterActionButton?.disabled) {
-      return;
-    }
-
-    const redirectToChat = "{{ route('mahasiswa.chat') }}";
-    const formData = new FormData(letterActionForm);
-
-    letterActionButton.disabled = true;
-
-    fetch(letterActionForm.action, {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'text/html,application/xhtml+xml',
-      },
-      credentials: 'same-origin',
-      body: formData,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
-        }
-
-        window.location.assign(redirectToChat);
-      })
-      .catch(() => {
-        letterActionButton.disabled = false;
-      });
-  });
 }
 
 document.querySelectorAll('[data-letter-close]').forEach((element) => {

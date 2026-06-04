@@ -19,12 +19,22 @@ class User extends Authenticatable
         'username_cis',
         'password',
         'role',
+        'is_anonim',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_anonim' => 'boolean',
+        ];
+    }
 
     public function mahasiswa(): HasOne
     {
@@ -39,14 +49,6 @@ class User extends Authenticatable
     public function notifikasi(): HasMany
     {
         return $this->hasMany(Notifikasi::class);
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
     }
 
     public function profil()
@@ -71,15 +73,53 @@ class User extends Authenticatable
 
     public function isAnonim(): bool
     {
-        return optional($this->profil)->anonim ?? false;
+        return (bool) $this->is_anonim;
+    }
+
+    public function getAnonimAnimal(): array
+    {
+        $animals = [
+            ['name' => 'Kelelawar', 'emoji' => '🦇'],
+            ['name' => 'Kucing', 'emoji' => '🐱'],
+            ['name' => 'Kelinci', 'emoji' => '🐰'],
+            ['name' => 'Rubah', 'emoji' => '🦊'],
+            ['name' => 'Panda', 'emoji' => '🐼'],
+            ['name' => 'Koala', 'emoji' => '🐨'],
+            ['name' => 'Beruang', 'emoji' => '🐻'],
+            ['name' => 'Harimau', 'emoji' => '🐯'],
+            ['name' => 'Singa', 'emoji' => '🦁'],
+            ['name' => 'Burung Hantu', 'emoji' => '🦉'],
+            ['name' => 'Kura-kura', 'emoji' => '🐢'],
+            ['name' => 'Paus', 'emoji' => '🐳'],
+        ];
+
+        $seed = (string) ($this->id ?? $this->username_cis ?? $this->email ?? $this->nama ?? 'anon');
+        $index = abs(crc32($seed)) % count($animals);
+
+        return $animals[$index];
     }
 
     public function getAnonimDisplayName(): string
     {
-        $seed = (string) ($this->id ?? $this->username_cis ?? $this->email ?? $this->nama ?? 'anon');
-        $code = strtoupper(substr(hash('crc32b', $seed), 0, 4));
+        $animal = $this->getAnonimAnimal();
 
-        return 'Anonim-' . $code;
+        return $animal['name'] . ' Anonim';
+    }
+
+    public function getAnonimAvatarSvg(): string
+    {
+        $animal = $this->getAnonimAnimal();
+        $emoji = $animal['emoji'];
+
+        $svg = <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+    <rect width="160" height="160" rx="80" fill="#D1FAE5"/>
+    <circle cx="80" cy="80" r="58" fill="#ECFDF5"/>
+    <text x="80" y="100" text-anchor="middle" font-size="68" font-family="Arial, sans-serif">{$emoji}</text>
+</svg>
+SVG;
+
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 
     public function getNamaDisplay(): string
@@ -90,5 +130,15 @@ class User extends Authenticatable
 
         return $this->nama;
     }
-}
 
+    public function getFotoDisplay(): ?string
+    {
+        if ($this->isAnonim()) {
+            return $this->getAnonimAvatarSvg();
+        }
+
+        return optional($this->profil)->foto
+            ? asset('storage/' . $this->profil->foto)
+            : null;
+    }
+}

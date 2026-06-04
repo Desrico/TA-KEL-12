@@ -6,7 +6,6 @@ use App\Events\GroupChatMessageSent;
 use App\Models\GroupChatMember;
 use App\Models\GroupChatMessage;
 use App\Models\GroupChatRoom;
-use App\Models\Student;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -246,27 +245,37 @@ class GroupChatAdminController extends Controller
     private function resolveUserDisplayName(?User $user): string
     {
         if (! $user) {
-            return 'Pengguna';
+            return 'Anonim';
         }
 
-        if ($user->isAnonim()) {
-            return 'Mahasiswa Anonim';
+        // Di grup chat, mahasiswa selalu tampil anonim dengan nama hewan.
+        if ($user->role === 'mahasiswa') {
+            return method_exists($user, 'getAnonimDisplayName')
+                ? $user->getAnonimDisplayName()
+                : 'Mahasiswa Anonim';
         }
 
-        $nim = optional($user->mahasiswa)->nim;
-        static $studentNameCache = [];
-        $studentName = $nim
-            ? ($studentNameCache[$nim] ??= Student::query()->where('nim', $nim)->value('name'))
-            : null;
-
-        return $studentName ?: ($user->nama ?: 'Pengguna');
+        return $user->nama ?? $user->name ?? 'Admin';
     }
 
     private function resolveUserAvatarUrl(?User $user): string
     {
-        $profilePhoto = optional($user?->profil)->foto;
+        if (! $user) {
+            return asset('img/default-avatar.png');
+        }
 
-        return $profilePhoto ? Storage::url($profilePhoto) : asset('img/default-avatar.png');
+        // Di grup chat, mahasiswa selalu pakai avatar anonim hewan.
+        if ($user->role === 'mahasiswa') {
+            return method_exists($user, 'getAnonimAvatarSvg')
+                ? $user->getAnonimAvatarSvg()
+                : asset('img/default-avatar.png');
+        }
+
+        $profilePhoto = optional($user->profil)->foto;
+
+        return $profilePhoto
+            ? Storage::url($profilePhoto)
+            : asset('img/default-avatar.png');
     }
 
     private function resolveMemberNames(GroupChatRoom $room): array
@@ -326,7 +335,6 @@ class GroupChatAdminController extends Controller
         ]);
 
         $sender = $message->sender;
-        $profil = optional($sender)->profil;
 
         return [
             'id' => $message->id,
@@ -334,7 +342,7 @@ class GroupChatAdminController extends Controller
             'sender_id' => $message->user_id,
             'sender_name' => $message->user_id === $viewer->id ? 'Anda' : $this->resolveUserDisplayName($sender),
             'sender_role' => $sender?->role ?? 'pengguna',
-            'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
+            'avatar_url' => $this->resolveUserAvatarUrl($sender),
             'text' => $message->pesan,
             'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),

@@ -133,11 +133,8 @@ class SesiKonselingController extends Controller
         $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
             ->findOrFail($id);
 
-        $jadwal->update([
-            'status' => 'selesai',
-        ]);
+        $jadwal->update(['status' => 'selesai']);
 
-        // Pastikan sesi terkait ada saat jadwal ditandai selesai.
         $sesi = $jadwal->sesiKonseling ?: $jadwal->sesiKonseling()->create([
             'status' => 'selesai',
             'waktu_mulai' => now()->subHour(),
@@ -145,13 +142,16 @@ class SesiKonselingController extends Controller
 
         $sesi->update(['status' => 'selesai']);
 
-        // Simpan waktu selesai jika kolom tersedia.
-        if ($sesi && Schema::hasColumn('sesi_konseling', 'waktu_selesai')) {
+        if (Schema::hasColumn('sesi_konseling', 'waktu_selesai')) {
             $sesi->update(['waktu_selesai' => now()]);
         }
 
+        // Broadcast ke mahasiswa agar chat otomatis terkunci
+        broadcast(new \App\Events\SesiSelesai($sesi))->toOthers();
+
+        // Redirect kembali ke halaman chat, BUKAN detail sesi
         return redirect()
-            ->route('admin.sesi.detail', $id)
-            ->with('success', 'Sesi berhasil ditandai selesai.');
+            ->route('admin.chat', ['jadwal' => $jadwal->id])
+            ->with('success', 'Sesi konseling telah diselesaikan.');
     }
 }

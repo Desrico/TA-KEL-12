@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Feedback;
 
 class SesiKonseling extends Model
 {
@@ -62,6 +63,11 @@ class SesiKonseling extends Model
     public function laporan(): HasOne
     {
         return $this->hasOne(Laporan::class, 'sesi_id');
+    }
+
+    public function feedback()
+    {
+        return $this->hasOne(Feedback::class, 'sesi_id');
     }
 }
 

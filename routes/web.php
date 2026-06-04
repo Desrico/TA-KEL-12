@@ -19,6 +19,8 @@ use App\Http\Controllers\SesiKonselingController;
 use App\Http\Controllers\KetidaktersediaanKonselorController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RiwayatController;
+use App\Http\Controllers\FeedbackMahasiswaController;
+use App\Models\Feedback;
 
 // ═══════════════════════════════
 // NOTIFIKASI WEB PUSH
@@ -29,7 +31,11 @@ Route::post('/subscriptions/delete', [PushSubscriptionController::class, 'destro
 // HALAMAN PUBLIK
 // ═══════════════════════════════
 Route::get('/', function () {
-    return view('Pages.beranda');
+    $feedbacks = Feedback::with(['mahasiswa.user'])->latest()->take(12)->get();
+
+    return view('Pages.beranda', [
+        'feedbacks' => $feedbacks,
+    ]);
 })->name('beranda');
 
 Route::get('/edukasi-mental', [EducationController::class, 'show'])
@@ -48,29 +54,28 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// ═══════════════════════════════
-// PROFIL UMUM MAHASISWA / KONSELOR
-// ═══════════════════════════════
-Route::middleware(['auth'])->group(function () {
-    Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
-    Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
-    Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
-});
-
 
 // ═══════════════════════════════
 // MAHASISWA
 // ═══════════════════════════════
 Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::get('/dashboard', function () {
-        return view('Pages.beranda');
-    })->name('dashboard');
+    $feedbacks = Feedback::with(['mahasiswa.user'])
+        ->latest()
+        ->take(10)
+        ->get();
+
+    return view('Pages.beranda', compact('feedbacks'));
+})->name('dashboard');
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
-    
+
     Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
     Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('detail.riwayat');
+
+    Route::post('/riwayat/feedback', [FeedbackMahasiswaController::class, 'store'])
+    ->name('mahasiswa.feedback.store');
 
     Route::get('/konseling/jadwal-ulang/{id}', [JadwalController::class, 'editJadwalUlang'])
     ->name('konseling.jadwal_ulang.edit');

@@ -359,6 +359,204 @@
     transform: translateY(-1px);
 }
 
+/* ── Feedback Modal ── */
+#feedbackModal {
+    z-index: 10050 !important;
+}
+
+.modal-backdrop {
+    z-index: 10049 !important;
+}
+
+#feedbackModal .modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+}
+
+.fm-header {
+    background: #1a4731;
+    padding: 22px 24px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: none;
+}
+
+.fm-header-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    border: 1.5px solid rgba(255,255,255,.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.fm-header-icon i {
+    color: #fff;
+    font-size: 16px;
+}
+
+.fm-header-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 2px;
+}
+
+.fm-header-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,.65);
+    margin: 0;
+}
+
+#feedbackModal .modal-body {
+    padding: 20px 24px 0;
+}
+
+.fm-desc {
+    font-size: 13px;
+    color: #607b6a;
+    line-height: 1.65;
+    margin: 0 0 16px;
+}
+
+/* Star rating */
+.fm-stars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 18px;
+}
+
+.fm-stars .star-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 26px;
+    color: #d1d5db;
+    line-height: 1;
+    transition: color .12s, transform .1s;
+}
+
+.fm-stars .star-btn:hover,
+.fm-stars .star-btn.active {
+    color: #f59e0b;
+}
+
+.fm-stars .star-btn:active {
+    transform: scale(.88);
+}
+
+.fm-star-label {
+    font-size: 12.5px;
+    color: #607b6a;
+    margin-left: 6px;
+    min-width: 80px;
+}
+
+/* Textarea */
+.fm-label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: #2d6a4f;
+    margin-bottom: 8px;
+}
+
+.fm-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #c3dccb;
+    border-radius: 12px;
+    padding: 11px 13px;
+    font-size: 13.5px;
+    color: #1a2e22;
+    background: #f8fdf9;
+    resize: none;
+    outline: none;
+    line-height: 1.65;
+    transition: border-color .15s, background .15s;
+}
+
+.fm-textarea:focus {
+    border-color: #2d6a4f;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(45,106,79,.1);
+}
+
+.fm-textarea::placeholder {
+    color: #9ab5a3;
+}
+
+.fm-char-count {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 5px;
+    font-size: 11px;
+    color: #9ab5a3;
+}
+
+.fm-char-count.near-limit {
+    color: #e24b4a;
+}
+
+/* Footer */
+#feedbackModal .modal-footer {
+    border-top: 1px solid #eef3f0;
+    padding: 14px 24px 20px;
+    gap: 10px;
+}
+
+.fm-btn-cancel {
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    background: transparent;
+    border: 1px solid #c3dccb;
+    color: #607b6a;
+    transition: background .12s;
+    cursor: pointer;
+}
+
+.fm-btn-cancel:hover {
+    background: #f0f7f3;
+}
+
+.fm-btn-submit {
+    height: 38px;
+    padding: 0 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    background: #1a4731;
+    border: none;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .12s, opacity .15s;
+    cursor: pointer;
+}
+
+.fm-btn-submit:hover:not(:disabled) {
+    background: #143a27;
+}
+
+.fm-btn-submit:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
 @media (max-width: 768px) {
     .detail-action-buttons {
         flex-direction: column;
@@ -454,7 +652,9 @@
 
     $metode = $jadwal->metode ?? $jadwal->jenis ?? 'Online';
 
-    // Tampilkan tanggal lanjutan hanya jika admin memilih perlu sesi lanjutan.
+    $feedback = $feedback ?? optional($jadwal->sesiKonseling)->feedback;
+    $bisaFeedback = $bisaFeedback ?? ($jadwal->status === 'selesai' && $jadwal->sesiKonseling && !$feedback);
+
     $tanggalLanjutLabel = $tanggalLanjut
         ? Carbon::parse($tanggalLanjut)->translatedFormat('d F Y')
         : '-';
@@ -462,10 +662,6 @@
 
 <section class="detail-riwayat-page">
     <div class="detail-wrapper">
-
-        <a href="{{ route('riwayat') }}" class="back-icon">
-            <i class="bi bi-arrow-left"></i>
-        </a>
 
         <div class="detail-hero">
             <h1>
@@ -596,22 +792,87 @@
                 @endif
 
                 <div class="detail-action-buttons">
-    <a href="{{ route('riwayat') }}" class="btn-detail btn-back">
-        Kembali ke Riwayat
-    </a>
+                    @if($bisaFeedback)
+                        <button
+                            type="button"
+                            class="btn-detail btn-back"
+                            data-bs-toggle="modal"
+                            data-bs-target="#feedbackModal"
+                        >
+                            Berikan Ulasan
+                        </button>
+                    @else
+                        <a href="{{ route('riwayat') }}" class="btn-detail btn-back">
+                            Kembali ke Riwayat
+                        </a>
+                    @endif
 
-    @if ($jadwal->status === 'perlu_penjadwalan_ulang')
-        <a href="{{ route('konseling.jadwal_ulang.edit', $jadwal->id) }}" class="btn-detail btn-reschedule">
-            Jadwalkan Ulang
-        </a>
-    @endif
-</div>
+                    @if ($jadwal->status === 'perlu_penjadwalan_ulang')
+                        <a href="{{ route('konseling.jadwal_ulang.edit', $jadwal->id) }}" class="btn-detail btn-reschedule">
+                            Jadwalkan Ulang
+                        </a>
+                    @endif
+                </div>
             </main>
 
         </div>
     </div>
 </section>
 @endsection
+
+@if($bisaFeedback)
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true" aria-labelledby="feedbackModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="{{ route('mahasiswa.feedback.store') }}" method="POST" id="feedbackForm">
+                @csrf
+                <input type="hidden" name="sesi_id" value="{{ $jadwal->sesiKonseling->id }}">
+                <input type="hidden" name="rating" id="rating-input" value="0">
+
+                {{-- Header --}}
+                <div class="modal-header border-0 fm-header">
+                    <div>
+                        <p class="fm-header-title" id="feedbackModalLabel">Berikan Ulasan Konseling</p>
+                        <p class="fm-header-sub">Sesi selesai · {{ $tanggal }}</p>
+                    </div>
+                </div>
+
+                {{-- Body --}}
+                <div class="modal-body">
+                    <p class="fm-desc">
+                        Ceritakan pengalamanmu setelah mengikuti sesi konseling ini.
+                        Ulasanmu membantu kami meningkatkan layanan.
+                    </p>
+
+                    {{-- Textarea --}}
+                    <textarea
+                        id="isi_feedback"
+                        name="isi_feedback"
+                        class="fm-textarea"
+                        rows="4"
+                        maxlength="500"
+                        placeholder="Tuliskan ulasan kamu di sini..."
+                        required
+                    ></textarea>
+                    <div class="fm-char-count" id="fm-char-wrap">
+                       <span id="fm-char">0 / 500</span> 
+                    </div>
+                </div>
+
+                {{-- Footer --}}
+                <div class="modal-footer">
+                    <button type="button" class="fm-btn-cancel" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+                    <button type="submit" class="fm-btn-submit" id="fm-submit" disabled>
+                        <i class="bi bi-send"></i> Kirim Ulasan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 
 @push('scripts')
 <script>
@@ -634,6 +895,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setAvatarEditState(false);
     isEditMode = false;
+
+    // Feedback modal logic
+    const textarea  = document.getElementById('isi_feedback');
+    const charEl    = document.getElementById('fm-char');
+    const charWrap  = document.getElementById('fm-char-wrap');
+    const submitBtn = document.getElementById('fm-submit');
+    const modal     = document.getElementById('feedbackModal');
+
+    function checkReady() {
+        if (!textarea || !submitBtn) return;
+
+        const isiFeedback = textarea.value.trim();
+
+        // Tombol aktif kalau ulasan tidak kosong
+        submitBtn.disabled = isiFeedback.length === 0;
+    }
+
+    if (textarea) {
+        textarea.addEventListener('input', function () {
+            const len = Math.min(textarea.value.length, 500);
+
+            if (charEl) {
+                charEl.textContent = len + ' / 500';
+            }
+
+            if (charWrap) {
+                charWrap.classList.toggle('near-limit', len >= 480);
+            }
+
+            checkReady();
+        });
+    }
+
+    if (modal) {
+        modal.addEventListener('hidden.bs.modal', function () {
+            if (textarea) textarea.value = '';
+            if (charEl) charEl.textContent = '0 / 500';
+            if (charWrap) charWrap.classList.remove('near-limit');
+            if (submitBtn) submitBtn.disabled = true;
+        });
+    }
 });
 
 function toggleEdit() {
@@ -650,8 +952,16 @@ function toggleEdit() {
     const saveBtn = document.getElementById('save-btn-wrap');
     if (saveBtn) saveBtn.style.display = isEditMode ? 'flex' : 'none';
 
-    document.getElementById('edit-icon').className = isEditMode ? 'bi bi-x-lg me-1' : 'bi bi-pencil-fill me-1';
-    document.getElementById('edit-btn-text').textContent = isEditMode ? 'Batal Edit' : 'Edit Profil';
+    const editIcon = document.getElementById('edit-icon');
+    const editText = document.getElementById('edit-btn-text');
+
+    if (editIcon) {
+        editIcon.className = isEditMode ? 'bi bi-x-lg me-1' : 'bi bi-pencil-fill me-1';
+    }
+
+    if (editText) {
+        editText.textContent = isEditMode ? 'Batal Edit' : 'Edit Profil';
+    }
 
     setAvatarEditState(isEditMode);
 }
@@ -681,6 +991,9 @@ function previewFoto(input) {
 
     reader.onload = function(e) {
         const wrap = document.getElementById('avatar-preview-wrap');
+
+        if (!wrap) return;
+
         wrap.innerHTML = `
             <img src="${e.target.result}" alt="Preview Foto Profil">
             <div class="profil-avatar-overlay" id="avatar-overlay">

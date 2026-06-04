@@ -202,8 +202,7 @@
     display: none;
   }
 
-  .booking-shell.is-visible,
-  .booking-shell:target {
+  .booking-shell.is-visible {
     display: block;
   }
 
@@ -1447,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', function () {
       icon: 'bi-chat-dots',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling online.',
       sideMedia: 'Chat',
-      sideLocation: 'Online<br>Link sesi menyusul setelah disetujui',
+      sideLocation: 'Jarak Jauh<br>Akses dari ruang personalmu',
       noteClass: 'online',
       note: 'Pastikan kamu berada di tempat yang tenang dan memiliki koneksi internet stabil sebelum sesi dimulai.',
       submit: 'Jadwalkan Online'
@@ -1606,24 +1605,22 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function updateAnonimUI(active) {
-    isAnonim = active;
+    isAnonim = Boolean(active);
+
     if (profileNimEl) {
-      profileNimEl.value = active ? '********' : profileDisplay.nim;
+      profileNimEl.value = isAnonim ? '********' : profileDisplay.nim;
     }
 
     if (profileNamaEl) {
-      profileNamaEl.value = active ? profileDisplay.anonimName : profileDisplay.nama;
+      profileNamaEl.value = isAnonim ? profileDisplay.anonimName : profileDisplay.nama;
     }
 
     if (anonimStatusEl) {
-      anonimStatusEl.textContent = active ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
+      anonimStatusEl.textContent = isAnonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
       anonimStatusEl.classList.remove('is-error');
     }
 
     syncAnonimSection();
-    anonimStatusEl.textContent = active ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
-    anonimStatusEl.classList.remove('is-error');
-
   }
 
   async function toggleAnonimMode(checkbox) {
@@ -1638,7 +1635,9 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    const previousState = !checkbox.checked;
+    const previousState = isAnonim;
+    const requestedState = checkbox.checked;
+
     checkbox.disabled = true;
 
     if (anonimStatusEl) {
@@ -1654,7 +1653,7 @@ document.addEventListener('DOMContentLoaded', function () {
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ anonim: checkbox.checked }),
+        body: JSON.stringify({ anonim: requestedState }),
       });
 
       const data = await response.json();
@@ -1671,7 +1670,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      updateAnonimUI(Boolean(data.anonim));
+      const newAnonimState = typeof data.anonim !== 'undefined'
+        ? Boolean(data.anonim)
+        : requestedState;
+
+      checkbox.checked = newAnonimState;
+      updateAnonimUI(newAnonimState);
+
     } catch (error) {
       checkbox.checked = previousState;
       updateAnonimUI(previousState);
@@ -2288,7 +2293,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (isJadwalUlang && jadwalUlangData) {
       initializeJadwalUlangMode();
     } else {
-      setServiceMode(selectedService, false);
+      bookingEl?.classList.remove('is-visible');
+
+      document.querySelectorAll('[data-panel]').forEach(panel => {
+        panel.classList.remove('active');
+      });
+
       renderTimeOptions();
     }
   });
