@@ -256,18 +256,23 @@ class EducationController extends Controller
 
    public function webContentStore(Request $request)
 {
+    $request->merge([
+        'type' => strtolower(str_replace(' ', '_', trim($request->type))),
+    ]);
+
     $validator = Validator::make($request->all(), [
-        'title'      => 'required|string|max:255',
-        'topic'      => 'required|string|max:100',
-        'type'       => 'required|string|max:100',
-        'source_url' => 'nullable|url|max:1000',
-        'thumbnail'  => 'nullable|url|max:1000',
-        'excerpt'    => 'required|string',
-        'status'     => 'required|boolean',
+        'title'       => 'required|string|max:255',
+        'topic'       => 'required|string|max:100',
+        'type'        => 'required|in:artikel,video,materi_edukasi',
+        'source_url'  => 'nullable|url|max:1000',
+        'thumbnail'   => 'nullable|url|max:1000',
+        'file_materi' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        'excerpt'     => 'required|string',
+        'status'      => 'required|boolean',
     ]);
 
     $validator->after(function ($validator) use ($request) {
-        $type = strtolower(trim($request->type));
+        $type = $request->type;
         $url  = $request->source_url;
 
         if ($type === 'video') {
@@ -283,20 +288,39 @@ class EducationController extends Controller
                 $validator->errors()->add('source_url', 'Jika jenis konten adalah Artikel, maka link tidak boleh berupa link video.');
             }
         }
+
+        if ($type === 'materi_edukasi') {
+            if (!$request->hasFile('file_materi')) {
+                $validator->errors()->add('file_materi', 'Materi edukasi wajib diunggah dalam bentuk JPG, PNG, atau PDF.');
+            }
+        }
     });
 
     $validated = $validator->validate();
 
+    $fileMateriPath = null;
+
+    if ($request->hasFile('file_materi')) {
+        $fileMateriPath = $request->file('file_materi')->store('materi-edukasi', 'public');
+    }
+
+    $typeLabel = match ($validated['type']) {
+        'artikel' => 'Artikel',
+        'video' => 'Video',
+        'materi_edukasi' => 'Materi Edukasi',
+    };
+
     EducationContent::create([
-        'judul'       => $validated['title'],
-        'topik'       => $validated['topic'],
-        'tipe_konten' => $validated['type'],
-        'ringkasan'   => $validated['excerpt'],
-        'isi_konten'  => $validated['excerpt'],
-        'nama_sumber' => null,
-        'url_sumber'  => $validated['source_url'] ?? null,
-        'thumbnail'   => $validated['thumbnail'] ?? null,
-        'status'      => $validated['status'],
+        'judul'        => $validated['title'],
+        'topik'        => $validated['topic'],
+        'tipe_konten'  => $typeLabel,
+        'ringkasan'    => $validated['excerpt'],
+        'isi_konten'   => $validated['excerpt'],
+        'nama_sumber'  => null,
+        'url_sumber'   => $validated['type'] === 'materi_edukasi' ? null : ($validated['source_url'] ?? null),
+        'thumbnail'    => $validated['thumbnail'] ?? null,
+        'file_materi'  => $fileMateriPath,
+        'status'       => $validated['status'],
     ]);
 
     return redirect()
@@ -315,18 +339,23 @@ class EducationController extends Controller
 {
     $webContent = EducationContent::findOrFail($id);
 
-    $validator = Validator::make($request->all(), [
-        'title'      => 'required|string|max:255',
-        'topic'      => 'required|string|max:100',
-        'type'       => 'required|string|max:100',
-        'source_url' => 'nullable|url|max:1000',
-        'thumbnail'  => 'nullable|url|max:1000',
-        'excerpt'    => 'required|string',
-        'status'     => 'required|boolean',
+    $request->merge([
+        'type' => strtolower(str_replace(' ', '_', trim($request->type))),
     ]);
 
-    $validator->after(function ($validator) use ($request) {
-        $type = strtolower(trim($request->type));
+    $validator = Validator::make($request->all(), [
+        'title'       => 'required|string|max:255',
+        'topic'       => 'required|string|max:100',
+        'type'        => 'required|in:artikel,video,materi_edukasi',
+        'source_url'  => 'nullable|url|max:1000',
+        'thumbnail'   => 'nullable|url|max:1000',
+        'file_materi' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        'excerpt'     => 'required|string',
+        'status'      => 'required|boolean',
+    ]);
+
+    $validator->after(function ($validator) use ($request, $webContent) {
+        $type = $request->type;
         $url  = $request->source_url;
 
         if ($type === 'video') {
@@ -342,20 +371,51 @@ class EducationController extends Controller
                 $validator->errors()->add('source_url', 'Jika jenis konten adalah Artikel, maka link tidak boleh berupa link video.');
             }
         }
+
+        if ($type === 'materi_edukasi') {
+            if (!$request->hasFile('file_materi') && !$webContent->file_materi) {
+                $validator->errors()->add('file_materi', 'Materi edukasi wajib diunggah dalam bentuk JPG, PNG, atau PDF.');
+            }
+        }
     });
 
     $validated = $validator->validate();
 
+    $fileMateriPath = $webContent->file_materi;
+
+    if ($request->hasFile('file_materi')) {
+        if ($webContent->file_materi && Storage::disk('public')->exists($webContent->file_materi)) {
+            Storage::disk('public')->delete($webContent->file_materi);
+        }
+
+        $fileMateriPath = $request->file('file_materi')->store('materi-edukasi', 'public');
+    }
+
+    if ($validated['type'] !== 'materi_edukasi') {
+        if ($webContent->file_materi && Storage::disk('public')->exists($webContent->file_materi)) {
+            Storage::disk('public')->delete($webContent->file_materi);
+        }
+
+        $fileMateriPath = null;
+    }
+
+    $typeLabel = match ($validated['type']) {
+        'artikel' => 'Artikel',
+        'video' => 'Video',
+        'materi_edukasi' => 'Materi Edukasi',
+    };
+
     $webContent->update([
-        'judul'       => $validated['title'],
-        'topik'       => $validated['topic'],
-        'tipe_konten' => $validated['type'],
-        'ringkasan'   => $validated['excerpt'],
-        'isi_konten'  => $validated['excerpt'],
-        'nama_sumber' => null,
-        'url_sumber'  => $validated['source_url'] ?? null,
-        'thumbnail'   => $validated['thumbnail'] ?? null,
-        'status'      => $validated['status'],
+        'judul'        => $validated['title'],
+        'topik'        => $validated['topic'],
+        'tipe_konten'  => $typeLabel,
+        'ringkasan'    => $validated['excerpt'],
+        'isi_konten'   => $validated['excerpt'],
+        'nama_sumber'  => null,
+        'url_sumber'   => $validated['type'] === 'materi_edukasi' ? null : ($validated['source_url'] ?? null),
+        'thumbnail'    => $validated['thumbnail'] ?? null,
+        'file_materi'  => $fileMateriPath,
+        'status'       => $validated['status'],
     ]);
 
     return redirect()

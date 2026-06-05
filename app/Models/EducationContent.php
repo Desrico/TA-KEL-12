@@ -12,12 +12,14 @@ class EducationContent extends Model
         'judul',
         'topik',
         'tipe_konten',
+        'file_materi',
         'ringkasan',
         'isi_konten',
         'nama_sumber',
         'url_sumber',
         'thumbnail',
         'status',
+
     ];
 
     protected $casts = [

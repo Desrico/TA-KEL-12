@@ -512,6 +512,13 @@
         width: 100%;
     }
 
+    .is-disabled-field,
+.f-input:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
     /* =========================
        RESPONSIVE
     ========================= */
@@ -603,9 +610,10 @@
     </div>
 
     <form action="{{ isset($webContent) ? route('counselor.education.web-contents.update', $webContent->id) : route('counselor.education.web-contents.store') }}"
-          method="POST"
-          id="webContentForm"
-          novalidate>
+      method="POST"
+      id="webContentForm"
+      enctype="multipart/form-data"
+      novalidate>
 
         @csrf
 
@@ -681,6 +689,15 @@
                                    {{ old('type', $webContent->type ?? '') === 'Video' ? 'checked' : '' }}>
                             <span>Video</span>
                         </label>
+                        <label class="f-radio-simple">
+                            <input
+                                type="radio"
+                                name="type"
+                                value="materi_edukasi"
+                                {{ old('type', $webContent->type ?? '') == 'materi_edukasi' ? 'checked' : '' }}
+                            >
+                            <span>Materi Edukasi</span>
+                        </label>
                     </div>
 
                     @error('type')
@@ -688,6 +705,26 @@
                     @enderror
                 </div>
             </div>
+
+<div class="f-group" id="materi-upload-group">
+    <label class="f-label" for="file_materi">Upload Materi Edukasi</label>
+
+    <input
+        id="file_materi"
+        class="f-input"
+        type="file"
+        name="file_materi"
+        accept=".jpg,.jpeg,.png,.pdf"
+    >
+
+    <div class="f-help">
+        Gunakan untuk mengunggah materi edukasi dalam bentuk JPG, PNG, atau PDF.
+    </div>
+
+    @error('file_materi')
+        <div class="f-error">⚠ {{ $message }}</div>
+    @enderror
+</div>
 
             <div class="f-row">
                 <div class="f-group">
@@ -729,6 +766,8 @@
             </div>
         </div>
 
+        
+
         {{-- Isi Konten --}}
         <div class="f-section">
             <div class="f-section-title">Isi Konten</div>
@@ -766,58 +805,127 @@
 @endsection
 
 @push('scripts')
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('webContentForm');
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('webContentForm');
 
-        if (!form) {
-            return;
-        }
+    if (!form) {
+        return;
+    }
 
-        const statusInput = document.getElementById('status');
-const statusButtons = document.querySelectorAll('[data-status-submit]');
+    const statusInput = document.getElementById('status');
+    const statusButtons = document.querySelectorAll('[data-status-submit]');
 
-statusButtons.forEach(button => {
-    button.addEventListener('click', function () {
-        if (statusInput) {
-            statusInput.value = this.dataset.statusSubmit;
-        }
-    });
-});
+    const typeRadios = document.querySelectorAll('input[name="type"]');
+    const sourceUrlInput = document.getElementById('source_url');
+    const thumbnailInput = document.getElementById('thumbnail');
+    const fileMateriInput = document.getElementById('file_materi');
 
-        form.addEventListener('submit', function (e) {
-            if (!this.checkValidity()) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const invalidFields = this.querySelectorAll(':invalid');
-
-                if (invalidFields.length > 0) {
-                    const firstInvalid = invalidFields[0];
-                    let fieldName = 'Kolom ini';
-
-                    if (firstInvalid.id) {
-                        const label = document.querySelector(`label[for="${firstInvalid.id}"]`);
-
-                        if (label) {
-                            fieldName = label.innerText;
-                        }
-                    }
-
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Data Belum Lengkap!',
-                        text: `Mohon isi atau perbaiki bagian: ${fieldName}`,
-                        confirmButtonColor: '#059669',
-                        confirmButtonText: 'Baik, lengkapi'
-                    });
-
-                    firstInvalid.focus();
-                }
+    statusButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            if (statusInput) {
+                statusInput.value = this.dataset.statusSubmit;
             }
         });
     });
+
+    function setDisabled(input, isDisabled, placeholderText = null) {
+        if (!input) return;
+
+        input.disabled = isDisabled;
+
+        if (isDisabled) {
+            input.value = '';
+            input.classList.add('is-disabled-field');
+        } else {
+            input.classList.remove('is-disabled-field');
+        }
+
+        if (placeholderText !== null) {
+            input.placeholder = placeholderText;
+        }
+    }
+
+    function toggleContentFields() {
+        const selectedType = document.querySelector('input[name="type"]:checked')?.value;
+
+        if (selectedType === 'materi_edukasi') {
+            setDisabled(
+                sourceUrlInput,
+                true,
+                'Tidak digunakan untuk Materi Edukasi'
+            );
+
+            setDisabled(
+                thumbnailInput,
+                true,
+                'Tidak digunakan untuk Materi Edukasi'
+            );
+
+            if (fileMateriInput) {
+                fileMateriInput.disabled = false;
+                fileMateriInput.classList.remove('is-disabled-field');
+            }
+        } else {
+            setDisabled(
+                sourceUrlInput,
+                false,
+                'https://youtube.com/... atau link artikel referensi'
+            );
+
+            setDisabled(
+                thumbnailInput,
+                false,
+                'https://.../thumbnail.jpg'
+            );
+
+            if (fileMateriInput) {
+                fileMateriInput.value = '';
+                fileMateriInput.disabled = true;
+                fileMateriInput.classList.add('is-disabled-field');
+            }
+        }
+    }
+
+    typeRadios.forEach(radio => {
+        radio.addEventListener('change', toggleContentFields);
+    });
+
+    toggleContentFields();
+
+    form.addEventListener('submit', function (e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const invalidFields = this.querySelectorAll(':invalid');
+
+            if (invalidFields.length > 0) {
+                const firstInvalid = invalidFields[0];
+                let fieldName = 'Kolom ini';
+
+                if (firstInvalid.id) {
+                    const label = document.querySelector(`label[for="${firstInvalid.id}"]`);
+
+                    if (label) {
+                        fieldName = label.innerText;
+                    }
+                }
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap!',
+                    text: `Mohon isi atau perbaiki bagian: ${fieldName}`,
+                    confirmButtonColor: '#059669',
+                    confirmButtonText: 'Baik, lengkapi'
+                });
+
+                firstInvalid.focus();
+            }
+        }
+    });
+});
 </script>
 @endpush
