@@ -10,6 +10,7 @@ use App\Models\AboutPageContent;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class EducationController extends Controller
 {
@@ -74,14 +75,16 @@ class EducationController extends Controller
 
         // Handle Thumbnail
         if ($request->hasFile('thumbnail_file')) {
-            $data['thumbnail'] = $request->file('thumbnail_file')->store('modules/thumbnails', 'public');
+            $result = Cloudinary::uploadApi()->upload($request->file('thumbnail_file')->getRealPath(), ['folder' => 'modules/thumbnails']);
+            $data['thumbnail'] = $result['secure_url'];
         } else {
             $data['thumbnail'] = $request->thumbnail_url;
         }
 
         // Handle Content
         if ($request->hasFile('content_file')) {
-            $data['content_url'] = $request->file('content_file')->store('modules/content', 'public');
+            $result = Cloudinary::uploadApi()->upload($request->file('content_file')->getRealPath(), ['folder' => 'modules/content', 'resource_type' => 'raw']);
+            $data['content_url'] = $result['secure_url'];
         } else {
             $data['content_url'] = $request->content_url;
         }
@@ -116,27 +119,44 @@ class EducationController extends Controller
 
         // Handle Thumbnail Update
         if ($request->hasFile('thumbnail_file')) {
-            if ($module->thumbnail && Storage::disk('public')->exists($module->thumbnail)) {
-                Storage::disk('public')->delete($module->thumbnail);
+            if ($module->thumbnail) {
+                if (Str::contains($module->thumbnail, 'res.cloudinary.com')) {
+                    $this->deleteFromCloudinary($module->thumbnail);
+                } elseif (Storage::disk('public')->exists($module->thumbnail)) {
+                    Storage::disk('public')->delete($module->thumbnail);
+                }
             }
-            $data['thumbnail'] = $request->file('thumbnail_file')->store('modules/thumbnails', 'public');
+            $result = Cloudinary::uploadApi()->upload($request->file('thumbnail_file')->getRealPath(), ['folder' => 'modules/thumbnails']);
+            $data['thumbnail'] = $result['secure_url'];
         } elseif ($request->filled('thumbnail_url')) {
-            // Jika user memilih memasukkan URL baru, hapus file lama jika ada
-            if ($module->thumbnail && Storage::disk('public')->exists($module->thumbnail)) {
-                Storage::disk('public')->delete($module->thumbnail);
+            if ($module->thumbnail) {
+                if (Str::contains($module->thumbnail, 'res.cloudinary.com')) {
+                    $this->deleteFromCloudinary($module->thumbnail);
+                } elseif (Storage::disk('public')->exists($module->thumbnail)) {
+                    Storage::disk('public')->delete($module->thumbnail);
+                }
             }
             $data['thumbnail'] = $request->thumbnail_url;
         }
 
         // Handle Content Update
         if ($request->hasFile('content_file')) {
-            if ($module->content_url && Storage::disk('public')->exists($module->content_url)) {
-                Storage::disk('public')->delete($module->content_url);
+            if ($module->content_url) {
+                if (Str::contains($module->content_url, 'res.cloudinary.com')) {
+                    $this->deleteFromCloudinary($module->content_url);
+                } elseif (Storage::disk('public')->exists($module->content_url)) {
+                    Storage::disk('public')->delete($module->content_url);
+                }
             }
-            $data['content_url'] = $request->file('content_file')->store('modules/content', 'public');
+            $result = Cloudinary::uploadApi()->upload($request->file('content_file')->getRealPath(), ['folder' => 'modules/content', 'resource_type' => 'raw']);
+            $data['content_url'] = $result['secure_url'];
         } elseif ($request->filled('content_url')) {
-            if ($module->content_url && Storage::disk('public')->exists($module->content_url)) {
-                Storage::disk('public')->delete($module->content_url);
+            if ($module->content_url) {
+                if (Str::contains($module->content_url, 'res.cloudinary.com')) {
+                    $this->deleteFromCloudinary($module->content_url);
+                } elseif (Storage::disk('public')->exists($module->content_url)) {
+                    Storage::disk('public')->delete($module->content_url);
+                }
             }
             $data['content_url'] = $request->content_url;
         }
@@ -150,16 +170,51 @@ class EducationController extends Controller
     public function moduleDestroy(Module $module)
     {
         // Delete files if exist
-        if ($module->thumbnail && Storage::disk('public')->exists($module->thumbnail)) {
-            Storage::disk('public')->delete($module->thumbnail);
+        if ($module->thumbnail) {
+            if (Str::contains($module->thumbnail, 'res.cloudinary.com')) {
+                $this->deleteFromCloudinary($module->thumbnail);
+            } elseif (Storage::disk('public')->exists($module->thumbnail)) {
+                Storage::disk('public')->delete($module->thumbnail);
+            }
         }
-        if ($module->content_url && Storage::disk('public')->exists($module->content_url)) {
-            Storage::disk('public')->delete($module->content_url);
+        if ($module->content_url) {
+            if (Str::contains($module->content_url, 'res.cloudinary.com')) {
+                $this->deleteFromCloudinary($module->content_url);
+            } elseif (Storage::disk('public')->exists($module->content_url)) {
+                Storage::disk('public')->delete($module->content_url);
+            }
         }
 
         $module->delete();
         return redirect()->route('counselor.education.modules.index')
             ->with('success', 'Modul berhasil dihapus.');
+    }
+    
+    protected function deleteFromCloudinary($url)
+    {
+        if (!$url || !str_contains($url, 'res.cloudinary.com')) return;
+        
+        try {
+            $parts = explode('/upload/', parse_url($url, PHP_URL_PATH));
+            if (count($parts) > 1) {
+                $path = $parts[1];
+                $segments = explode('/', $path);
+                if (preg_match('/^v\d+$/', $segments[0])) {
+                    array_shift($segments);
+                }
+                $publicIdWithExt = implode('/', $segments);
+                $publicId = preg_replace('/\.[^.]+$/', '', $publicIdWithExt);
+                
+                // Cek apakah video
+                if (str_contains($url, '/video/upload/')) {
+                    Cloudinary::adminApi()->deleteAssets([$publicId], ['resource_type' => 'video']);
+                } else {
+                    Cloudinary::uploadApi()->destroy($publicId);
+                }
+            }
+        } catch (\Exception $e) {
+            // Abaikan error jika gagal hapus
+        }
     }
     // --- WEB EDUCATION CONTENT / TREND TOPIK WEB ---
 

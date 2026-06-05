@@ -60,7 +60,8 @@ class DashboardController extends Controller
     public function getChartData(Request $request)
     {
         $range = $request->query('range', '14d');
-        $query = DailyCheckin::query();
+        // ✅ Eager load 'feeling' dan 'mood' sekaligus untuk menghindari N+1 query
+        $query = DailyCheckin::with(['feeling', 'mood']);
         if ($range === '14d') {
             $query->where('created_at', '>=', now()->subDays(14));
         } elseif ($range === '1m') {
@@ -103,7 +104,8 @@ class DashboardController extends Controller
         $distribution = [];
         if ($totalCheckins > 0) {
             $topFeelingIds = $feelingsCount->sortDesc()->take(5)->keys();
-            $feelings = Feeling::whereIn('_id', $topFeelingIds)->get()->keyBy('_id');
+            // ✅ Feelings sudah ter-eager-load, ambil dari koleksi yang ada (tanpa query baru)
+            $feelings = $rawEntries->pluck('feeling')->filter()->keyBy('_id');
             foreach ($topFeelingIds as $fid) {
                 $count = $feelingsCount[$fid];
                 $feeling = $feelings[$fid] ?? null;
@@ -111,12 +113,12 @@ class DashboardController extends Controller
                 $fName = $feeling->feeling_name;
                 $meta = $this->getFeelingMeta($fName);
                 $distribution[] = [
-                    'name' => $fName,
+                    'name'       => $fName,
                     'percentage' => round(($count / $totalCheckins) * 100),
-                    'count' => $count,
-                    'icon' => $meta['icon'],
-                    'color' => $meta['color'],
-                    'desc' => $meta['desc']
+                    'count'      => $count,
+                    'icon'       => $meta['icon'],
+                    'color'      => $meta['color'],
+                    'desc'       => $meta['desc']
                 ];
             }
         }
@@ -134,17 +136,14 @@ class DashboardController extends Controller
             });
             return round($scores->average(), 2);
         });
-        $feelingsTrend = [];
-        foreach ($feelingsTrendData as $key => $val) {
-            $feelingsTrend[] = $val;
-        }
-        $allCheckins = DailyCheckin::with('mood')->get();
-        $totalAll = $allCheckins->count();
+        $feelingsTrend = array_values($feelingsTrendData->toArray());
+
+        // ✅ Gunakan $rawEntries yang sudah ada, bukan query baru seluruh tabel
         $moodDist = [];
-        if ($totalAll > 0) {
-            $counts = $allCheckins->groupBy('mood.mood_name')->map->count();
+        if ($totalCheckins > 0) {
+            $counts = $rawEntries->groupBy('mood.mood_name')->map->count();
             foreach ($counts as $moodName => $count) {
-                $moodDist[$moodName] = round(($count / $totalAll) * 100);
+                $moodDist[$moodName] = round(($count / $totalCheckins) * 100);
             }
         }
         return response()->json([
@@ -462,7 +461,8 @@ class DashboardController extends Controller
             $allText = $student->journalTexts->pluck('description')->implode(' ');
 
             try {
-                $response = Http::timeout(30)->post('http://127.0.0.1:8001/api/classify', [
+                $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+                $response = Http::timeout(30)->post("{$aiUrl}/api/classify", [
                     'nim'                     => $student->nim,
                     'text'                    => $allText,
                     'mood_history'            => $historyInput,
@@ -536,7 +536,8 @@ class DashboardController extends Controller
             ]);
         }
 
-        $response = Http::timeout(120)->post('http://127.0.0.1:8001/api/summarize', [
+        $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+        $response = Http::timeout(120)->post("{$aiUrl}/api/summarize", [
             'nim'           => $nim,
             'journal_texts' => $journals,
         ]);
@@ -711,7 +712,8 @@ class DashboardController extends Controller
             $daysSinceLastJournal = $lastJournal ? now()->diffInDays($lastJournal->created_at) : 99;
             $allText = $student->journalTexts->pluck('description')->implode(' ');
 
-            $response = Http::timeout(20)->post('http://127.0.0.1:8001/api/classify', [
+            $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+            $response = Http::timeout(20)->post("{$aiUrl}/api/classify", [
                 'nim'                     => $nim,
                 'text'                    => $allText,
                 'mood_history'            => $historyInput,
