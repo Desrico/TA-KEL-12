@@ -245,8 +245,11 @@
                 <p>Belum ada mahasiswa yang masuk dalam rekam data AI.</p>
             </div>
         @else
+            <div class="top-scrollbar-wrapper" id="topScroll" data-html2canvas-ignore="true" style="overflow-x: auto; overflow-y: hidden; height: 14px; margin-bottom: 6px; border-radius: 8px;">
+                <div id="topScrollSpacer" style="height: 1px;"></div>
+            </div>
             <div id="printLevel3Area" style="background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: auto;">
-                <table class="premium-table">
+                <table class="premium-table" id="mainStudentTable" style="min-width: 900px;">
                     <thead>
                         <tr>
                             <th>MAHASISWA</th>
@@ -324,6 +327,32 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const topScroll = document.getElementById('topScroll');
+        const mainScroll = document.getElementById('printLevel3Area');
+        const spacer = document.getElementById('topScrollSpacer');
+        const table = document.getElementById('mainStudentTable');
+
+        if (topScroll && mainScroll && table && spacer) {
+            function syncWidth() {
+                spacer.style.width = table.offsetWidth + 'px';
+            }
+            syncWidth();
+            window.addEventListener('resize', syncWidth);
+
+            if (window.ResizeObserver) {
+                new ResizeObserver(syncWidth).observe(table);
+            }
+
+            topScroll.addEventListener('scroll', function() {
+                mainScroll.scrollLeft = topScroll.scrollLeft;
+            });
+            mainScroll.addEventListener('scroll', function() {
+                topScroll.scrollLeft = mainScroll.scrollLeft;
+            });
+        }
+    });
+
     function liveFilterTable(query) {
         const q = query.toLowerCase().trim();
         const rows = document.querySelectorAll('#studentTableBody tr');

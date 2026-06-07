@@ -4,13 +4,16 @@
 
 @push('styles')
     <style>
+        * { box-sizing: border-box; }
         .pc-container {
             background: #f8fafc;
+            max-width: 100%;
+            overflow-x: hidden;
         }
-        .container-fluid { padding: 32px; }
+        .container-fluid { padding: 32px; max-width: 100%; box-sizing: border-box; }
 
-        .grid-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
-        @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
+        .grid-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; margin-bottom: 24px; width: 100%; }
+        @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
 
         /* ── Profile Card ── */
         .profile-card {
@@ -33,9 +36,9 @@
 
         /* ── Cards ── */
         .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .card-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .card-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; }
         .stat-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 4px; }
         .stat-card .label { font-size: 0.85rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
         .stat-card .value { font-size: 1.5rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px; }
@@ -72,9 +75,23 @@
         }
         .print-only { display: none; }
 
+        @media (max-width: 1024px) {
+            .profile-info-row { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .profile-info-row > div { flex-wrap: wrap; gap: 12px !important; }
+            .v-divider { display: none; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .table-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .card-title { flex-wrap: wrap; }
+            .card-title > div { margin-left: 0 !important; width: 100%; justify-content: flex-start; }
+            .custom-modal-body { padding: 20px 10px; }
+            .profile-card { padding: 20px 16px !important; }
+            .container-fluid { padding: 16px; }
+            .btn-outline, .btn-white { padding: 8px 12px; font-size: 0.8rem; }
+        }
+
         /* ── Table Area ── */
-        .table-area { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px;margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .table-area { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px;margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 100%; box-sizing: border-box; }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
         
         .premium-table { width: 100%; border-collapse: collapse; text-align: left; }
         .premium-table th {
@@ -200,7 +217,7 @@
         .custom-modal-header h2 { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0; }
         .custom-modal-close-btn { background: none; border: none; font-size: 1.8rem; color: #94a3b8; cursor: pointer; line-height: 1; padding: 0; }
         .custom-modal-close-btn:hover { color: #dc2626; }
-        .custom-modal-body { overflow-y: auto; background: #cbd5e1; display: flex; align-items: flex-start; justify-content: center; padding: 40px 20px; }
+        .custom-modal-body { overflow: auto; background: #cbd5e1; display: flex; align-items: flex-start; justify-content: flex-start; padding: 40px 20px; }
         .custom-modal-footer { padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; background: #f8fafc; }
         .paper-preview-box { background: #fff; width: 1050px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); flex-shrink: 0; }
     </style>
@@ -208,7 +225,7 @@
 @endpush
 
 @section('konten')
-    <div class="container-fluid">
+    <div class="container-fluid" style="padding: 24px; width: 100%; max-width: 100%; box-sizing: border-box;">
         <a href="{{ route('counselor.dashboard') }}" class="btn-back-link">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Kembali ke Dashboard Mahasiswa
@@ -249,8 +266,8 @@
                     </div>
 
                     <!-- Action Controls (Sejajar dengan Info) -->
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="display: flex; align-items: center; gap: 16px; background: #f8fafc; padding: 8px 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 16px; background: #f8fafc; padding: 8px 16px; border-radius: 12px; border: 1px solid #e2e8f0; flex-wrap: wrap;">
                             <div style="display: flex; flex-direction: column; gap: 2px;">
                                 <span class="info-label" style="text-align: right;">Koreksi Status</span>
                                 <select id="statusSelect" style="border: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: #1e293b; outline: none; cursor: pointer; padding: 0;">
@@ -299,7 +316,7 @@
                 <div class="card" style="padding: 12px 20px;">
                     <div class="card-title">
                         Grafik Tren Mood Mahasiswa
-                        <div style="display: flex; gap: 8px; margin-left: auto;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <select id="chartRange" onchange="updateCharts(this.value)" style="background: #f8fafc; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1px solid #e2e8f0; color: #475569; outline: none; cursor: pointer;">
                                 <option value="14">14 Hari Terakhir</option>
                                 <option value="30">30 Hari Terakhir</option>
@@ -312,7 +329,7 @@
                             </button>
                         </div>
                     </div>
-                    <div style="height: 200px; position: relative;">
+                    <div style="height: 200px; position: relative; width: 100%;">
                         <canvas id="detailMoodChart"></canvas>
                     </div>
                 </div>
@@ -322,7 +339,7 @@
                         Tren Perasaan
                             <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;" id="feelingRangeText">14 Hari Terakhir</span>
                     </div>
-                    <div style="height: 200px; position: relative;">
+                    <div style="height: 200px; position: relative; width: 100%;">
                         <canvas id="detailFeelingChart"></canvas>
                     </div>
                 </div>
@@ -400,7 +417,7 @@
 
             <div class="table-header">
                 <span style="font-weight: 600; font-size: 1rem; color: #1e293b;">Riwayat Log Jurnal</span>
-                <div style="display: flex; gap: 8px;" class="no-print">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;" class="no-print">
                     <!-- Tombol Urutkan (Ikon Saja) -->
                     <button onclick="toggleSort()" class="btn-outline" style="padding: 8px 10px; transition: transform 0.3s ease;" title="Urutkan Waktu" id="sortButton">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="6" x2="3" y2="6"></line><line x1="17" y1="12" x2="7" y2="12"></line><line x1="14" y1="18" x2="10" y2="18"></line></svg>
@@ -426,8 +443,9 @@
                     <p>Mahasiswa ini belum memiliki riwayat aktivitas.</p>
                 </div>
             @else
-                <table class="premium-table">
-                    <thead>
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; max-width: 100%;">
+                    <table class="premium-table" style="min-width: 800px;">
+                        <thead>
                         <tr>
                             <th style="width: 40px; text-align: center;">#</th>
                             <th style="width: 160px;">Tanggal & Waktu</th>
@@ -520,6 +538,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             @endif
         </div>
     </div>

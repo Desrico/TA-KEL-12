@@ -32,8 +32,11 @@
         }
 
         /* ── Layout Override for dashboard ── */
+        * { box-sizing: border-box; }
         .pc-container {
             background: var(--bg-base);
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         /* ── Alert Banner ── */
@@ -60,7 +63,7 @@
 
         /* ── Priority Cards ── */
         .priority-cards {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 16px; margin-bottom: 24px;
         }
         .p-card {
@@ -94,8 +97,8 @@
 
         /* ── Charts & Stats Layout ── */
         .charts-stats-grid {
-            display: grid; grid-template-columns: 2fr 1fr;
-            gap: 24px; margin-bottom: 32px;
+            display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+            gap: 24px; margin-bottom: 32px; width: 100%;
         }
 
         .chart-column { display: flex; flex-direction: column; gap: 24px; }
@@ -109,7 +112,7 @@
         }
 
         .card-header {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
             margin-bottom: 20px;
         }
         .card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-1); }
@@ -269,12 +272,14 @@
             padding: 24px;
             box-shadow: var(--shadow-sm);
             margin-bottom: 40px;
+            max-width: 100%;
+            box-sizing: border-box;
         }
-        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .table-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
         .btn-link { color: var(--accent); font-size: 0.95rem; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 6px; }
         .btn-link:hover { color: var(--accent); }
         
-        .premium-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .premium-table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
         .premium-table th {
             padding: 14px 16px; font-size: 0.85rem; font-weight: 700; text-transform: uppercase;
             color: var(--text-3); border-bottom: 1px solid var(--border);
@@ -311,6 +316,22 @@
 
         @media (max-width: 1024px) {
             .charts-stats-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .alert-header { flex-direction: column; align-items: flex-start; }
+            .dashboard-heading-row { flex-direction: column; align-items: flex-start; }
+            .dashboard-tabs { flex-wrap: wrap; }
+            .topik-wrapper { flex-direction: column; height: auto; align-items: stretch; }
+            .topik-chart-container { width: 100%; height: 220px; margin-bottom: 16px; }
+            .topik-legend-container { width: 100%; }
+            #feelingFilter { max-width: 100% !important; margin-top: 10px; }
+            .table-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+        
+        .table-responsive-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* ── Print Styles ── */
@@ -523,7 +544,7 @@
         $topL3ForCards = $scanned->where('mental_level', 3)->sortBy('mental_scanned_at')->take(3);
     @endphp
 
-    <div class="container-fluid p-0">
+    <div class="container-fluid" style="padding: 24px; width: 100%; max-width: 100%; box-sizing: border-box;">
         <!-- Alert Banner -->
          <div class="dashboard-heading-row">
 
@@ -630,7 +651,7 @@
                             </button>
                         </div>
                     </div>
-                    <div style="height: 250px; position: relative;">
+                    <div style="height: 250px; position: relative; width: 100%;">
                         <canvas id="moodTrendChart"></canvas>
                     </div>
                 </div>
@@ -653,7 +674,7 @@
                             </button>
                         </div>
                     </div>
-                    <div style="height: 200px; position: relative;">
+                    <div style="height: 200px; position: relative; width: 100%;">
                         <canvas id="feelingsTrendChart"></canvas>
                     </div>
                 </div>
@@ -766,19 +787,21 @@
                     <a href="{{ route('counselor.semua-mahasiswa') }}" class="btn-link">Lihat Selengkapnya <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
                 </div>
             </div>
-            <table class="premium-table">
-                <thead>
-                    <tr>
-                        <th>NAME</th>
-                        <th>PROGRAM STUDI</th>
-                        <th>TINGKATAN</th>
-                        <th>AKSI</th>
-                    </tr>
-                </thead>
-                <tbody id="topStudentsBody">
-                    <tr><td colspan="4" style="text-align:center; padding: 32px;"><div class="spin" style="margin:0 auto; border-top-color:var(--accent);"></div></td></tr>
-                </tbody>
-            </table>
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>NAME</th>
+                            <th>PROGRAM STUDI</th>
+                            <th>TINGKATAN</th>
+                            <th>AKSI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topStudentsBody">
+                        <tr><td colspan="4" style="text-align:center; padding: 32px;"><div class="spin" style="margin:0 auto; border-top-color:var(--accent);"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </div>
@@ -1005,9 +1028,19 @@
                             display: false
                         },
                         ticks: {
-                            font: { size: 11, family: 'Inter' },
-                            color: 'var(--text-2)'
+                            font: { size: 10, family: 'Inter' },
+                            color: 'var(--text-2)',
+                            maxRotation: 45,
+                            minRotation: 0
                         }
+                    }
+                },
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 10,
+                        top: 0,
+                        bottom: 0
                     }
                 }
             }

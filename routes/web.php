@@ -308,3 +308,9 @@ Route::get('/debug/seed-if001', function () {
 
     return "Data dummy if001 (14 Hari Negatif) berhasil dibuat. Jurnal diset 'Aman'. Silakan cek Dashboard Konselor.";
 });
+
+
+//PREVIEW ERROR PAGES
+Route::get('/preview-error/{code}', function ($code) {
+    abort($code);
+});

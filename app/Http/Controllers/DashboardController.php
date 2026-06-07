@@ -405,6 +405,7 @@ class DashboardController extends Controller
             'mental_label'      => $levelMap[$level],
             'mental_confidence' => 100, // Manual override
             'mental_red_flag'   => $level == 3 ? '[KOREKSI KONSELOR] Diperbarui secara manual' : null,
+            'mental_updated_manual_at' => now(),
         ]);
 
         return response()->json([
@@ -456,9 +457,25 @@ class DashboardController extends Controller
                 })
                 ->toArray();
 
-            $lastJournal = $student->journalTexts->first();
+            $journals = $student->journalTexts;
+
+            if ($student->mental_updated_manual_at) {
+                $manualUpdateDate = \Carbon\Carbon::parse($student->mental_updated_manual_at);
+                $journals = $journals->filter(function($j) use ($manualUpdateDate) {
+                    return \Carbon\Carbon::parse($j->created_at)->gt($manualUpdateDate);
+                });
+            }
+
+            // Jika jurnal kosong setelah difilter (tidak ada jurnal baru sejak update manual),
+            // maka TIDAK PERLU di-scan lagi. Lewati.
+            if ($student->mental_updated_manual_at && $journals->isEmpty()) {
+                $skipped++;
+                continue;
+            }
+
+            $lastJournal = $journals->first();
             $daysSinceLastJournal = $lastJournal ? now()->diffInDays($lastJournal->created_at) : 99;
-            $allText = $student->journalTexts->pluck('description')->implode(' ');
+            $allText = $journals->pluck('description')->implode(' ');
 
             try {
                 $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
@@ -708,9 +725,22 @@ class DashboardController extends Controller
                 })
                 ->toArray();
 
-            $lastJournal = $student->journalTexts->first();
+            $journals = $student->journalTexts;
+
+            if ($student->mental_updated_manual_at) {
+                $manualUpdateDate = \Carbon\Carbon::parse($student->mental_updated_manual_at);
+                $journals = $journals->filter(function($j) use ($manualUpdateDate) {
+                    return \Carbon\Carbon::parse($j->created_at)->gt($manualUpdateDate);
+                });
+            }
+
+            if ($student->mental_updated_manual_at && $journals->isEmpty()) {
+                return;
+            }
+
+            $lastJournal = $journals->first();
             $daysSinceLastJournal = $lastJournal ? now()->diffInDays($lastJournal->created_at) : 99;
-            $allText = $student->journalTexts->pluck('description')->implode(' ');
+            $allText = $journals->pluck('description')->implode(' ');
 
             $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
             $response = Http::timeout(20)->post("{$aiUrl}/api/classify", [

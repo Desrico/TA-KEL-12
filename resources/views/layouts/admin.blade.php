@@ -1180,6 +1180,7 @@
         // 3. Gabungkan mahasiswa urgent ke daftar teratas jika ada
         const urgentItems = urgentStudents.map(student => ({
           id: 'urgent-' + student.nim,
+          nim: student.nim,
           pesan: `⚠️ KRITIS: ${student.name} (${student.nim}) berada di Level ${student.mental_level}!`,
           created_at_human: 'Sekarang',
           status: 'urgent',
@@ -1197,15 +1198,17 @@
           let bgColor = 'transparent';
           let textColor = 'var(--admin-text)';
           let link = notif.link || '{{ route('admin.jadwal') }}';
+          let onclickAttr = '';
 
           if (notif.status === 'urgent') {
             dotColor = '#EF4444';
             bgColor = '#FEF2F2';
             textColor = '#B91C1C';
+            onclickAttr = `onclick="markUrgentRead('${notif.nim}', event, this.href)"`;
           }
 
           return `
-            <a class="dropdown-item admin-notif-item" href="${link}" style="background-color: ${bgColor}">
+            <a class="dropdown-item admin-notif-item" href="${link}" ${onclickAttr} style="background-color: ${bgColor}">
               <div class="d-flex gap-2 align-items-start">
                 <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};margin-top:5px;flex-shrink:0;"></div>
                 <div style="min-width:0;">
@@ -1227,7 +1230,7 @@
         await fetch('{{ route('admin.notifikasi.baca') }}', {
           method: 'POST',
           headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'X-Requested-With': 'XMLHttpRequest'
           }
         });
@@ -1235,6 +1238,22 @@
         console.error('Gagal menandai notifikasi dibaca:', err);
       }
     }
+
+    window.markUrgentRead = async function(nim, event, url) {
+      event.preventDefault();
+      try {
+        await fetch(`{{ url('/konselor/notifications') }}/${nim}/read`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+      } catch (err) {
+        console.error('Failed to mark urgent read:', err);
+      }
+      window.location.href = url;
+    };
 
     notifTrigger.addEventListener('click', function () {
       setTimeout(async function () {

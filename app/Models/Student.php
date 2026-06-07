@@ -15,7 +15,7 @@ class Student extends Model
 
     protected $fillable = [
         'nim', 'name', 'jenis_kelamin', 'prodi', 'password', 'point', 'energy_score', 'phone_number',
-        'mental_level', 'mental_label', 'mental_confidence', 'mental_red_flag', 'mental_insight', 'mental_scanned_at',
+        'mental_level', 'mental_label', 'mental_confidence', 'mental_red_flag', 'mental_insight', 'mental_scanned_at', 'mental_updated_manual_at',
         'tingkatan', 'angkatan',
     ];
 
@@ -28,6 +28,7 @@ class Student extends Model
 
     protected $casts = [
         'mental_scanned_at' => 'datetime',
+        'mental_updated_manual_at' => 'datetime',
     ];
 
     protected $hidden = ['password'];
