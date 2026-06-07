@@ -650,7 +650,8 @@ class CounselorController extends Controller
             $allText = $journals->pluck('description')->implode(' ');
 
             try {
-                $response = Http::timeout(30)->post('http://127.0.0.1:8001/api/classify', [
+                $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+                $response = Http::timeout(30)->post("{$aiUrl}/api/classify", [
                     'nim'                     => $student->nim,
                     'text'                    => $allText,
                     'mood_history'            => $historyInput,
@@ -746,7 +747,8 @@ class CounselorController extends Controller
             $daysSinceLastJournal = $lastJournal ? now()->diffInDays($lastJournal->created_at) : 99;
             $allText = $journals->pluck('description')->implode(' ');
 
-            $response = Http::timeout(20)->post('http://127.0.0.1:8001/api/classify', [
+            $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+            $response = Http::timeout(20)->post("{$aiUrl}/api/classify", [
                 'nim'                     => $nim,
                 'text'                    => $allText,
                 'mood_history'            => $historyInput,
@@ -785,7 +787,8 @@ class CounselorController extends Controller
             ]);
         }
 
-        $response = Http::timeout(120)->post('http://127.0.0.1:8001/api/summarize', [
+        $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+        $response = Http::timeout(120)->post("{$aiUrl}/api/summarize", [
             'nim'           => $nim,
             'journal_texts' => $journals,
         ]);
@@ -793,7 +796,7 @@ class CounselorController extends Controller
         if ($response->failed()) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Gagal menghubungi server AI. Pastikan Python berjalan di port 8001.',
+                'message' => 'Gagal menghubungi server AI. Pastikan AI Engine berjalan dengan benar.',
             ], 502);
         }
 
