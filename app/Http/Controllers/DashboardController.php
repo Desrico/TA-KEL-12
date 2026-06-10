@@ -693,8 +693,9 @@ class DashboardController extends Controller
             })
             ->orderBy('mental_level', 'desc')
             ->orderBy('name')
-            ->get()
-            ->map(function ($student) {
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function ($student) {
                 $student->journal_texts_count = $student->journalTexts->count();
                 return $student;
             });

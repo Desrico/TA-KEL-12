@@ -159,6 +159,42 @@
             gap: 8px;
             margin-bottom: 20px;
         }
+
+        /* Custom Pagination */
+        .custom-pagination {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .custom-pagination .page-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+            padding: 0 8px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            text-decoration: none;
+            transition: 0.2s;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+        .custom-pagination .page-link:hover:not(.disabled):not(.active) {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .custom-pagination .page-link.active {
+            background: #047857;
+            color: #ffffff;
+        }
+        .custom-pagination .page-link.disabled {
+            color: #cbd5e1;
+            cursor: not-allowed;
+        }
     </style>
 @endpush
 
@@ -170,8 +206,9 @@
                     <i class="ti ti-arrow-left" style="font-size: 1.2rem;"></i>
                     Dashboard
                 </a>
+                <span style="color: #94a3b8; font-size: 1.2rem; font-weight: 300;">/</span>
                 <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 999px; padding: 3px 12px; font-size: 0.8rem; font-weight: 700;">
-                    {{ $students->count() }} mahasiswa
+                    {{ $students->total() }} mahasiswa
                 </span>
             </div>
 
@@ -317,6 +354,16 @@
                         </tr>
                     </tbody>
                 </table>
+                @if ($students->count() > 0)
+                <div style="padding: 16px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                    <div style="font-size: 0.85rem; color: #64748b; font-weight: 500;">
+                        Menampilkan {{ $students->firstItem() }}&ndash;{{ $students->lastItem() }} dari {{ $students->total() }} mahasiswa
+                    </div>
+                    @if ($students->hasPages())
+                        {{ $students->links('vendor.pagination.custom') }}
+                    @endif
+                </div>
+                @endif
             </div>
         @endif
     </div>

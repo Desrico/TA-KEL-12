@@ -37,8 +37,15 @@ class EducationController extends Controller
 
         $query = Module::query();
 
-        if ($filter === 'aktif')  $query->where('status', true);
-        if ($filter === 'draft')  $query->where('status', false);
+        if ($filter === 'aktif') {
+            $query->whereIn('status', [true, 1, '1']);
+        }
+        if ($filter === 'draft') {
+            $query->where(function($q) {
+                $q->whereIn('status', [false, 0, '0'])
+                  ->orWhereNull('status');
+            });
+        }
 
         match ($sort) {
             'terlama' => $query->oldest(),
@@ -47,7 +54,7 @@ class EducationController extends Controller
             default   => $query->latest(),
         };
 
-        $modules = $query->paginate(8)->withQueryString();
+        $modules = $query->paginate(5)->withQueryString();
         return view('admin.education.modules.index', compact('modules', 'filter', 'sort'));
     }
 
@@ -72,6 +79,7 @@ class EducationController extends Controller
         ]);
 
         $data = $validated;
+        $data['status'] = filter_var($validated['status'], FILTER_VALIDATE_BOOLEAN);
 
         // Handle Thumbnail
         if ($request->hasFile('thumbnail_file')) {
@@ -116,6 +124,7 @@ class EducationController extends Controller
         ]);
 
         $data = $validated;
+        $data['status'] = filter_var($validated['status'], FILTER_VALIDATE_BOOLEAN);
 
         // Handle Thumbnail Update
         if ($request->hasFile('thumbnail_file')) {
