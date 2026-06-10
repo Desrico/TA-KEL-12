@@ -52,6 +52,30 @@ class LaporanController extends Controller
         };
     }
 
+    private function getIdentitasMahasiswaTampil(JadwalKonseling $jadwal): array
+    {
+        $mahasiswa = $jadwal->mahasiswa;
+        $userMahasiswa = $mahasiswa?->user;
+
+        $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $namaAnonim = 'Anonim';
+
+        if ($userMahasiswa && method_exists($userMahasiswa, 'getAnonimDisplayName')) {
+            $namaAnonim = trim($userMahasiswa->getAnonimDisplayName()) ?: 'Anonim';
+        }
+
+        return [
+            'is_anonim' => $isAnonim,
+            'nama' => $isAnonim
+                ? $namaAnonim
+                : ($userMahasiswa->nama ?? '-'),
+            'nim' => $isAnonim
+                ? '-'
+                : ($mahasiswa->nim ?? '-'),
+        ];
+    }
+
     public function riwayat()
     {
         $mahasiswa = auth()->user()->mahasiswa;
@@ -61,11 +85,11 @@ class LaporanController extends Controller
         }
 
         $query = JadwalKonseling::with([
-                'mahasiswa.user',
-                'konselor.user',
-                'sesiKonseling.feedback',
-            ])
-            ->where('mahasiswa_id', $mahasiswa->id);
+            'mahasiswa.user.profil',
+            'konselor.user',
+            'sesiKonseling.feedback',
+        ])
+        ->where('mahasiswa_id', $mahasiswa->id);
 
         $totalSesi = (clone $query)->count();
 
@@ -77,6 +101,16 @@ class LaporanController extends Controller
             ->orderBy('tanggal', 'desc')
             ->orderBy('waktu', 'desc')
             ->paginate(5);
+
+        $riwayat->getCollection()->transform(function (JadwalKonseling $jadwal) {
+            $identitas = $this->getIdentitasMahasiswaTampil($jadwal);
+
+            $jadwal->nama_tampil = $identitas['nama'];
+            $jadwal->nim_tampil = $identitas['nim'];
+            $jadwal->is_anonim_tampil = $identitas['is_anonim'];
+
+            return $jadwal;
+        });
 
         return view('Pages.riwayat', compact(
             'riwayat',
@@ -93,10 +127,12 @@ class LaporanController extends Controller
             abort(403, 'Data mahasiswa tidak ditemukan.');
         }
 
-        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'konselor.user', 'sesiKonseling.feedback'])
+        $jadwal = JadwalKonseling::with(['mahasiswa.user.profil', 'konselor.user', 'sesiKonseling.feedback'])
             ->where('id', $id)
             ->where('mahasiswa_id', $mahasiswa->id)
             ->firstOrFail();
+
+        $identitasMahasiswa = $this->getIdentitasMahasiswaTampil($jadwal);
 
         $laporan = null;
         if ($jadwal->sesiKonseling) {
@@ -128,6 +164,7 @@ class LaporanController extends Controller
         return view('Pages.detail-riwayat', compact(
             'jadwal',
             'laporan',
+            'identitasMahasiswa',
             'statusInfo',
             'topik',
             'metode',

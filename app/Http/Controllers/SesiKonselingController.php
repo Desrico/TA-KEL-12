@@ -21,6 +21,30 @@ class SesiKonselingController extends Controller
         return $user->konselor;
     }
 
+    private function getIdentitasMahasiswaTampil(JadwalKonseling $jadwal): array
+    {
+        $mahasiswa = $jadwal->mahasiswa;
+        $userMahasiswa = $mahasiswa?->user;
+
+        $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $namaAnonim = 'Anonim';
+
+        if ($userMahasiswa && method_exists($userMahasiswa, 'getAnonimDisplayName')) {
+            $namaAnonim = trim($userMahasiswa->getAnonimDisplayName()) ?: 'Anonim';
+        }
+
+        return [
+            'is_anonim' => $isAnonim,
+            'nama' => $isAnonim
+                ? $namaAnonim
+                : ($userMahasiswa->nama ?? '-'),
+            'nim' => $isAnonim
+                ? '-'
+                : ($mahasiswa->nim ?? '-'),
+        ];
+    }
+
     public function index(Request $request)
     {
         $konselor = $this->resolveAuthenticatedKonselor();
@@ -59,12 +83,16 @@ class SesiKonselingController extends Controller
         $jadwal->getCollection()->each(function (JadwalKonseling $item) {
             $item->syncExpiredSessionStatus();
 
-            // If a sesi exists and is active, ensure the jadwal status reflects it.
             if ($item->relationLoaded('sesiKonseling') && $item->sesiKonseling?->status === 'berlangsung' && ($item->status ?? '') !== 'berlangsung') {
                 $item->forceFill(['status' => 'berlangsung'])->save();
             }
-        });
 
+            $identitas = $this->getIdentitasMahasiswaTampil($item);
+
+            $item->nama_tampil = $identitas['nama'];
+            $item->nim_tampil = $identitas['nim'];
+            $item->is_anonim_tampil = $identitas['is_anonim'];
+        });
         return view('admin.sesi', compact('jadwal'));
     }
 
@@ -72,11 +100,13 @@ class SesiKonselingController extends Controller
     {
         $konselor = $this->resolveAuthenticatedKonselor();
 
-        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'sesiKonseling.laporan'])
+        $jadwal = JadwalKonseling::with(['mahasiswa.user.profil', 'sesiKonseling.laporan'])
             ->where('konselor_id', $konselor->id)
             ->findOrFail($id);
 
-        return view('admin.detail_sesi', compact('jadwal'));
+        $identitasMahasiswa = $this->getIdentitasMahasiswaTampil($jadwal);
+
+        return view('admin.detail_sesi', compact('jadwal', 'identitasMahasiswa'));
     }
 
     public function terima($id)
@@ -92,7 +122,7 @@ class SesiKonselingController extends Controller
 
         return redirect()
             ->route('admin.sesi.detail', $jadwal->id)
-            ->with('success', 'Jadwal berhasil diterima.');
+            ->with('terima_success', true);
     }
 
     public function tolak($id)

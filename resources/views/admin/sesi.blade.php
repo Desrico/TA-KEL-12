@@ -400,9 +400,25 @@
                         $mahasiswa = optional($item)->mahasiswa;
                         $user = optional($mahasiswa)->user;
 
-                        $nama = optional($user)->nama ?? 'Mahasiswa';
-                        $nim = optional($mahasiswa)->nim ?? '-';
-                        $foto = optional(optional($user)->profil)->foto ?? null;
+                        $isAnonim = filter_var($item->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+
+                        $namaAnonim = 'Anonim';
+
+                        if ($user && method_exists($user, 'getAnonimDisplayName')) {
+                            $namaAnonim = trim($user->getAnonimDisplayName()) ?: 'Anonim';
+                        }
+
+                        $nama = $isAnonim
+                            ? $namaAnonim
+                            : (optional($user)->nama ?? 'Mahasiswa');
+
+                        $nim = $isAnonim
+                            ? '-'
+                            : (optional($mahasiswa)->nim ?? '-');
+
+                        $foto = $isAnonim
+                            ? null
+                            : (optional(optional($user)->profil)->foto ?? null);
 
                         $tanggal = optional($item)->tanggal
                             ? \Carbon\Carbon::parse($item->tanggal)->translatedFormat('j F Y')

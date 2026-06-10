@@ -38,8 +38,8 @@
 }
 
 .detail-hero h1{
-    font-size:64px;
-    line-height:1.04;
+     font-size: clamp(42px, 4.5vw, 52px);
+    line-height:1.08;
     font-weight:900;
     color:#202020;
     max-width:760px;
@@ -53,7 +53,7 @@
 
 .detail-hero p{
     max-width:540px;
-    font-size:18px;
+    font-size:16px;
     line-height:1.8;
     color:#6b7280;
     margin:0;
@@ -163,7 +163,7 @@
 }
 
 .main-card h3{
-    font-size:42px;
+    font-size 32px;
     font-weight:900;
     color:#202020;
     margin-bottom:28px;
@@ -176,7 +176,7 @@
     gap:12px;
     margin-top:26px;
     margin-bottom:10px;
-    font-size:28px;
+    font-size:22px;
     font-weight:800;
     color:#111827;
 }
@@ -205,12 +205,12 @@
 
 .detail-row span{
     color:#505050;
-    font-size:18px;
+    font-size:16px;
 }
 
 .detail-row strong{
     color:#202020;
-    font-size:18px;
+    font-size:16px;
     font-weight:700;
     text-align:right;
 }
@@ -642,6 +642,22 @@
     $userMahasiswa = optional($mahasiswa)->user;
     $konselorUser = optional(optional($jadwal->konselor)->user);
 
+    $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+
+    $namaTampil = $isAnonim
+        ? (
+            $userMahasiswa && method_exists($userMahasiswa, 'getAnonimDisplayName')
+                ? trim($userMahasiswa->getAnonimDisplayName())
+                : 'Anonim'
+          )
+        : ($userMahasiswa->nama ?? 'Mahasiswa');
+
+    $namaTampil = $namaTampil ?: 'Anonim';
+
+    $nimTampil = $isAnonim
+        ? '-'
+        : ($mahasiswa->nim ?? '-');
+
     $tanggal = $jadwal->tanggal
         ? Carbon::parse($jadwal->tanggal)->translatedFormat('d F Y')
         : '-';
@@ -721,12 +737,12 @@
 
                 <div class="detail-row">
                     <span>NIM</span>
-                    <strong>{{ $mahasiswa->nim ?? '-' }}</strong>
+                    <strong>{{ $nimTampil }}</strong>
                 </div>
 
                 <div class="detail-row">
                     <span>Nama</span>
-                    <strong>{{ $userMahasiswa->nama ?? 'Mahasiswa' }}</strong>
+                    <strong>{{ $namaTampil }}</strong>
                 </div>
 
                 <div class="detail-row">

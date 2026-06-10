@@ -24,6 +24,9 @@
             default => 'Menunggu Persetujuan',
         },
     };
+
+    $namaKonselorTampil = 'Konselor';
+    $inisialKonselorTampil = 'K';
 @endphp
 
 @push('styles')
@@ -171,6 +174,37 @@
     text-transform: uppercase;
   }
 
+  .chat-avatar-fallback {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #b7ebc9;
+    color: #065f46;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    border: 3px solid #ffffff;
+    box-shadow: 0 8px 22px rgba(6, 78, 59, 0.14);
+    flex-shrink: 0;
+}
+
+.message-avatar-fallback {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    border-radius: 50%;
+    background: #b7ebc9;
+    color: #065f46;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
   .message-row {
     display: flex;
     gap: .65rem;
@@ -182,6 +216,10 @@
     justify-content: flex-end;
   }
 
+  .message-row.other {
+      justify-content: flex-start;
+  }
+
   .message-row.mine .message-meta {
     justify-content: flex-end;
   }
@@ -190,7 +228,7 @@
     background: linear-gradient(135deg, #047857, #059669);
     color: #fff;
     border-bottom-right-radius: 10px;
-    box-shadow: 0 16px 34px rgba(5, 150, 105, 0.2);
+    box-shadow: 0 10px 24px rgba(5, 150, 105, 0.16);
   }
 
   .message-row.other .message-bubble {
@@ -217,9 +255,31 @@
   }
 
   .message-content {
-    max-width: min(88%, 920px);
+    max-width: min(72%, 420px);
+    width: fit-content;
     position: relative;
-  }
+}
+
+.message-row.mine .message-content {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: min(70%, 420px);
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+
+.message-row.other .message-content {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: min(70%, 420px);
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
 
   .message-meta {
     display: flex;
@@ -236,12 +296,16 @@
   }
 
   .message-bubble {
-    padding: .72rem .92rem .78rem;
-    border-radius: 20px;
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
+    padding: .62rem .9rem;
+    border-radius: 18px;
     font-size: .88rem;
-    line-height: 1.58;
+    line-height: 1.45;
     word-break: break-word;
-  }
+    white-space: pre-wrap;
+}
 
   .message-bubble-shell {
     position: relative;
@@ -409,83 +473,81 @@
     color: #fff;
   }
 
-  .chat-composer {
-    position: sticky;
-    bottom: 0;
-    z-index: 3;
-    padding: .7rem 1.5rem .8rem;
-    border-top: 1px solid rgba(221, 239, 231, 0.95);
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-  }
+ .chat-composer {
+    padding: 1rem 1.35rem;
+    border-top: 1px solid #dceee4;
+    background: #ffffff;
+    flex-shrink: 0;
+}
 
-  .chat-composer.is-locked {
-    background: linear-gradient(180deg, rgba(248, 255, 251, 0.96), rgba(255, 255, 255, 0.96));
-  }
-
-  .chat-form {
+.chat-form {
+    width: 100%;
     display: flex;
-    align-items: flex-end;
-    gap: .75rem;
-    padding: .62rem;
-    border-radius: 20px;
-    border: 1px solid rgba(209, 250, 229, 0.96);
-    background: linear-gradient(180deg, #ffffff, #f8fffb);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
-  }
+    align-items: center;
+    gap: .9rem;
+    border: 1.5px solid #d1fae5;
+    border-radius: 22px;
+    padding: .55rem .65rem .55rem 1rem;
+    background: #ffffff;
+}
 
-  .chat-form.is-disabled {
+.chat-form.is-disabled {
     opacity: .78;
     border-style: dashed;
-  }
+}
 
-  .chat-input {
+.chat-input {
     flex: 1;
+    height: 44px;
+    min-height: 44px;
+    max-height: 100px;
+    padding: .65rem 0;
     border: none;
-    resize: none;
-    background: transparent;
-    min-height: 46px;
-    max-height: 140px;
-    padding: .45rem .25rem;
-    color: #0f172a;
-    font-size: .88rem;
     outline: none;
-  }
+    resize: none;
+    overflow-y: auto;
+    font-size: .95rem;
+    line-height: 1.35;
+    background: transparent;
+}
 
-  .chat-input:disabled {
+.chat-input:disabled {
     color: #94a3b8;
     cursor: not-allowed;
-  }
+}
 
-  .chat-send {
-    width: 48px;
-    height: 48px;
+.chat-send {
+    width: 52px;
+    height: 52px;
     border: none;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #065f46, #10b981);
-    color: #fff;
-    font-size: 1.18rem;
-    box-shadow: 0 12px 24px rgba(6, 95, 70, 0.22);
-    transition: transform .18s ease, box-shadow .18s ease;
-  }
+    border-radius: 18px;
+    background: #10b981;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
 
-  .chat-send:hover:not(:disabled) {
+.chat-send:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 20px 36px rgba(6, 95, 70, 0.3);
-  }
+}
 
-  .chat-send:disabled {
-    opacity: .5;
+.chat-send:disabled {
+    opacity: .65;
     cursor: not-allowed;
-    box-shadow: none;
-  }
+}
 
-  .chat-hint {
-    margin-top: .5rem;
+.chat-hint {
+    min-height: 16px;
+    margin-top: .35rem;
     color: #64748b;
     font-size: .72rem;
     padding: 0 .2rem;
-  }
+}
 
   .chat-empty {
     max-width: 880px;
@@ -639,7 +701,10 @@
     }
 
     .message-row {
-      align-items: flex-start;
+        display: flex;
+        align-items: flex-end;
+        gap: .45rem;
+        margin-bottom: .9rem;
     }
 
     .message-avatar {
@@ -725,14 +790,14 @@
         <div class="chat-main">
           <div class="chat-topbar">
             <div class="chat-counselor">
-              <div class="chat-avatar">
-                <img src="{{ $chatPayload['counselorAvatar'] }}" alt="{{ $chatPayload['counselorName'] }}">
+              <div class="chat-avatar-fallback">
+                  {{ $inisialKonselorTampil }}
               </div>
               <div>
-                <div class="chat-title">{{ $chatPayload['counselorName'] }}</div>
-                <p class="chat-subtitle">
-                  {{ $topik ?: 'Konseling online terjadwal' }}
-                </p>
+                  <div class="chat-title">{{ $namaKonselorTampil }}</div>
+                  <p class="chat-subtitle">
+                      Konseling online aktif
+                  </p>
               </div>
             </div>
           </div>
@@ -755,7 +820,7 @@
             </div>
           </div>
 
-          <div class="chat-composer is-locked">
+          <!-- <div class="chat-composer is-locked">
             <form class="chat-form is-disabled">
               <textarea
                 class="chat-input"
@@ -771,7 +836,7 @@
               Demi menjaga alur konseling, Anda belum bisa masuk ke kolom chat sebelum jadwal sesi dimulai.
             </div>
           </div>
-        </div>
+        </div> -->
 
       </div>
     @elseif($startReady)
@@ -779,18 +844,16 @@
         <div class="chat-main">
           <div class="chat-topbar">
             <div class="chat-counselor">
-              <div class="chat-avatar">
-                <img src="{{ $chatPayload['counselorAvatar'] }}" alt="{{ $chatPayload['counselorName'] }}">
+              <div class="chat-avatar-fallback">
+                  {{ $inisialKonselorTampil }}
               </div>
               <div>
-                <div class="chat-title">{{ $chatPayload['counselorName'] }}</div>
-                <p class="chat-subtitle">
-                  {{ $topik ?: 'Konseling online terjadwal' }}
-                </p>
+                  <div class="chat-title">{{ $namaKonselorTampil }}</div>
+                  <p class="chat-subtitle">
+                      Konseling online aktif
+                  </p>
               </div>
-            </div>
-            <div class="chat-badge">{{ $statusLabel }}</div>
-          </div>
+</div>
 
           <div class="chat-gate">
             <div class="chat-gate-card">
@@ -814,7 +877,7 @@
             </div>
           </div>
 
-          <div class="chat-composer is-locked">
+          <!-- <div class="chat-composer is-locked">
             <form class="chat-form is-disabled">
               <textarea
                 class="chat-input"
@@ -829,7 +892,7 @@
             <div class="chat-hint">
               {{ $canStartNow ? 'Chat akan aktif sesaat setelah Anda memulai sesi.' : 'Demi menjaga alur konseling, chat baru aktif saat waktu sesi sudah tiba.' }}
             </div>
-          </div>
+          </div> -->
         </div>
 
       </div>
@@ -838,36 +901,36 @@
         <div class="chat-main">
           <div class="chat-topbar">
             <div class="chat-counselor">
-              <div class="chat-avatar">
-                <img src="{{ $chatPayload['counselorAvatar'] }}" alt="{{ $chatPayload['counselorName'] }}">
+              <div class="chat-avatar-fallback">
+                  {{ $inisialKonselorTampil }}
               </div>
               <div>
-                <div class="chat-title">{{ $chatPayload['counselorName'] }}</div>
-                <p class="chat-subtitle">
-                  {{ $topik ?: 'Konseling online aktif' }}
-                </p>
+                  <div class="chat-title">{{ $namaKonselorTampil }}</div>
+                  <p class="chat-subtitle">
+                      Konseling online aktif
+                  </p>
               </div>
             </div>
-            <div class="chat-badge">{{ $statusLabel }}</div>
           </div>
 
           <div class="chat-thread" id="chatThread"></div>
 
           <div class="chat-composer">
             <form id="chatForm" class="chat-form">
-              <textarea
-                id="chatInput"
-                class="chat-input"
-                rows="1"
-                maxlength="2000"
-                placeholder="Tulis pesan Anda di sini..."
-              ></textarea>
-              <button type="submit" class="chat-send" id="chatSendBtn">
-                <i class="bi bi-send-fill"></i>
-              </button>
+                <textarea
+                    id="chatInput"
+                    class="chat-input"
+                    rows="1"
+                    maxlength="2000"
+                    placeholder="Tulis pesan Anda di sini..."
+                ></textarea>
+                <button type="submit" class="chat-send" id="chatSendBtn">
+                    <i class="bi bi-send-fill"></i>
+                </button>
             </form>
 
-          </div>
+            <div id="chatHint" class="chat-hint"></div>
+        </div>
         </div>
 
       </div>
@@ -881,7 +944,19 @@
 <script>
 (() => {
   const payload = @json($chatPayload);
+  const currentUserName = @json(
+      filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN)
+          ? (
+              method_exists(auth()->user(), 'getAnonimDisplayName')
+                  ? trim(auth()->user()->getAnonimDisplayName())
+                  : 'Anonim'
+            )
+          : (auth()->user()->nama ?? auth()->user()->name ?? 'Mahasiswa')
+  );
+
+  const currentUserAvatar = @json(asset('img/default-avatar.png'));
   const currentUserId = {{ auth()->id() }};
+  let isSending = false;
   const thread = document.getElementById('chatThread');
   const form = document.getElementById('chatForm');
   const input = document.getElementById('chatInput');
@@ -928,9 +1003,16 @@
     });
   };
 
+  const resetInputHeight = () => {
+    input.style.height = '44px';
+  };
+
   const autoResize = () => {
-    input.style.height = 'auto';
-    input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
+      input.style.height = '44px';
+
+      if (input.value.trim() !== '') {
+          input.style.height = `${Math.min(input.scrollHeight, 100)}px`;
+      }
   };
 
   const lastRenderedDateKey = () => Array.from(thread.querySelectorAll('[data-date-key]')).pop()?.dataset.dateKey || null;
@@ -963,7 +1045,7 @@
   // Bubble dan editor inline dipisah supaya mode edit terasa seperti chat modern, bukan popup.
   const buildMessageBubbleMarkup = (message, isMine) => `
     <div class="message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
-    ${isMine ? `
+    ${isMine && !message.is_pending ? `
       <div class="message-actions">
         <button type="button" class="message-action-toggle" data-action="toggle-menu" aria-label="Opsi pesan">
           <i class="bi bi-three-dots"></i>
@@ -1036,23 +1118,39 @@
     row.dataset.messageText = message.text ?? '';
     row.dataset.messageEdited = message.is_edited ? '1' : '0';
 
+    const senderRole = (message.sender_role || '').toLowerCase();
+
+    const isCounselorMessage = !message.is_mine && (
+        senderRole === 'konselor' ||
+        senderRole === 'admin' ||
+        (message.sender_name || '').toLowerCase() === 'admin'
+    );
+
+    const displaySenderName = isCounselorMessage
+        ? 'Konselor'
+        : (message.sender_name || 'Mahasiswa');
+
+    const avatarInitial = isCounselorMessage
+        ? 'K'
+        : (displaySenderName || 'M').charAt(0).toUpperCase();
+
     row.innerHTML = `
       ${isMine ? '' : `
-        <div class="message-avatar">
-          <img src="${escapeHtml(message.avatar_url)}" alt="${escapeHtml(message.sender_name)}">
+        <div class="message-avatar-fallback">
+          ${escapeHtml(avatarInitial)}
         </div>
       `}
       <div class="message-content">
         <div class="message-meta">
-          <span class="message-name">${escapeHtml(message.sender_name)}</span>
+          <span class="message-name">${escapeHtml(displaySenderName)}</span>
           <span>${escapeHtml(message.time)}</span>
-          ${message.is_edited ? '<span class="message-edited">telah diedit</span>' : ''}
+          ${message.is_pending ? '<span class="admin-message-edited">mengirim...</span>' : (message.is_edited ? '<span class="admin-message-edited">telah diedit</span>' : '')}
         </div>
         <div class="message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
       </div>
       ${isMine ? `
-        <div class="message-avatar">
-          <img src="${escapeHtml(message.avatar_url)}" alt="${escapeHtml(message.sender_name)}">
+        <div class="message-avatar-fallback">
+          ${escapeHtml(avatarInitial)}
         </div>
       ` : ''}
     `;
@@ -1159,10 +1257,13 @@
   input.addEventListener('input', autoResize);
 
   input.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      form.requestSubmit();
-    }
+      if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+
+          if (!isSending) {
+              form.requestSubmit();
+          }
+      }
   });
 
   document.addEventListener('click', (event) => {
@@ -1320,54 +1421,123 @@
     }
   });
 
-  form.addEventListener('submit', async (event) => {
+form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    const pesan = input.value.trim();
-    if (!pesan) {
-      return;
+    if (isSending) {
+        return;
     }
 
+    const pesan = input.value.trim();
+
+    if (!pesan) {
+        input.value = '';
+        resetInputHeight();
+        return;
+    }
+
+    isSending = true;
     sendBtn.disabled = true;
-    hint.textContent = 'Mengirim pesan...';
+
+    if (hint) {
+        hint.textContent = '';
+    }
+
+    const tempId = 'temp-' + Date.now();
+    const now = new Date();
+
+    const tempMessage = {
+        id: tempId,
+        sesi_id: payload.sessionId,
+        sender_id: currentUserId,
+        sender_name: currentUserName,
+        sender_role: 'pengguna',
+        avatar_url: currentUserAvatar,
+        text: pesan,
+        time: now.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit'
+        }),
+        sent_at: now.toISOString(),
+        updated_at: now.toISOString(),
+        is_edited: false,
+        is_mine: true,
+        is_pending: true,
+    };
+
+    renderMessage(tempMessage);
+    scrollToBottom();
+
+    input.value = '';
+    resetInputHeight();
 
     try {
-      const response = await fetch(payload.sendUrl, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-Socket-ID': window.Echo?.socketId?.() ?? '',
-        },
-        body: JSON.stringify({
-          sesi_id: payload.sessionId,
-          jadwal_id: payload.jadwalId,
-          pesan,
-        }),
-      });
+        const response = await fetch(payload.sendUrl, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Socket-ID': window.Echo?.socketId?.() ?? '',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                sesi_id: payload.sessionId,
+                jadwal_id: payload.jadwalId,
+                pesan,
+            }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
+        const tempRow = thread.querySelector(`[data-message-id="${tempId}"]`);
 
-      if (!response.ok || !data.success) {
-        hint.textContent = data.message ?? 'Pesan gagal dikirim.';
-        sendBtn.disabled = false;
-        return;
-      }
+        if (!response.ok || !data.success) {
+            if (tempRow) {
+                tempRow.remove();
+            }
 
-      renderMessage(data.message);
-      scrollToBottom();
-      input.value = '';
-      autoResize();
-      hint.textContent = 'Pesan terkirim. Konselor akan menerima pembaruan secara realtime.';
+            input.value = pesan;
+            autoResize();
+
+            if (hint) {
+                hint.textContent = data.message ?? 'Pesan gagal dikirim.';
+            }
+
+            return;
+        }
+
+        if (tempRow) {
+            tempRow.remove();
+        }
+
+        renderMessage(data.message);
+        scrollToBottom();
+
+        if (hint) {
+            hint.textContent = '';
+        }
     } catch (error) {
-      console.error(error);
-      hint.textContent = 'Terjadi kendala saat mengirim pesan.';
+        console.error(error);
+
+        const tempRow = thread.querySelector(`[data-message-id="${tempId}"]`);
+
+        if (tempRow) {
+            tempRow.remove();
+        }
+
+        input.value = pesan;
+        autoResize();
+
+        if (hint) {
+            hint.textContent = 'Terjadi kendala saat mengirim pesan.';
+        }
     } finally {
-      sendBtn.disabled = false;
+        isSending = false;
+        sendBtn.disabled = false;
+        input.focus();
     }
-  });
+});
 })();
 </script>
 @endpush

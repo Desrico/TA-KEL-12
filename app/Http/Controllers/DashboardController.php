@@ -15,6 +15,7 @@ use App\Models\Feeling;
 use App\Models\User;
 use App\Models\JadwalKonseling;
 use App\Models\Konselor;
+use App\Models\Feedback;
 
 class DashboardController extends Controller
 {
@@ -47,13 +48,19 @@ class DashboardController extends Controller
         $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
 
         // Daftar angkatan unik dari MongoDB untuk filter dropdown
-        $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
+        $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();$angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
+
+        $feedbacks = Feedback::with(['mahasiswa.user'])
+            ->latest()
+            ->take(6)
+            ->get();
 
         return view('admin.dashboard', [
             'students'     => $students,
             'lastScan'     => $lastScan,
             'todayJadwals' => $todayJadwals,
             'angkatanList' => $angkatanList,
+            'feedbacks'    => $feedbacks,
         ]);
     }
 

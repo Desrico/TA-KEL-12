@@ -418,6 +418,10 @@ class ChatMahasiswaController extends Controller
             ? $this->resolveScheduleForStudent($user, $requestedJadwalId)
             : null;
 
+        if ($requestedSchedule) {
+            return $requestedSchedule;
+        }
+
         $query = JadwalKonseling::query()
             ->with([
                 'konselor.user.profil',
@@ -493,64 +497,24 @@ class ChatMahasiswaController extends Controller
 
     private function resolveConversationMessages(SesiKonseling $activeSession, User $viewer): Collection
     {
-        $jadwal = $activeSession->jadwalKonseling;
+        $activeSession->loadMissing([
+            'chats.pengirim.profil',
+            'chats.pengirim.mahasiswa',
+        ]);
 
-        if (! $jadwal) {
-            return collect();
-        }
-
-        $schedules = JadwalKonseling::query()
-            ->with([
-                'sesiKonseling.chats.pengirim.profil',
-                'sesiKonseling.chats.pengirim.mahasiswa',
-            ])
-            ->where('mahasiswa_id', $jadwal->mahasiswa_id)
-            ->where('konselor_id', $jadwal->konselor_id)
-            ->where('jenis', 'online')
-            ->whereIn('status', ['disetujui', 'berlangsung', 'selesai'])
-            ->orderBy('tanggal')
-            ->orderBy('waktu')
-            ->get();
-
-        $messages = collect();
-
-        foreach ($schedules as $schedule) {
-            $session = null;
-
-            if ((int) $schedule->id === (int) $jadwal->id) {
-                $session = $activeSession;
-            } elseif ($schedule->sesiKonseling) {
-                $session = $schedule->sesiKonseling;
-                $session->setRelation('jadwalKonseling', $schedule);
-                $session = $this->synchronizeSessionState($session);
-            }
-
-            if (! $session) {
-                continue;
-            }
-
-            $session->loadMissing([
-                'chats.pengirim.profil',
-                'chats.pengirim.mahasiswa',
-            ]);
-
-            $messages = $messages->merge($session->chats);
-        }
-
-        return $messages
+        return $activeSession->chats
             ->sortBy('created_at')
             ->values()
             ->map(fn (Chat $chat) => $this->transformMessage($chat, $viewer));
     }
-
-    private function synchronizeCandidateSchedules(Collection $jadwalCollection): Collection
-    {
-        return $jadwalCollection
-            ->map(function (JadwalKonseling $jadwal) {
-                return $this->resolveSessionFromSchedule($jadwal)->jadwalKonseling;
-            })
-            ->filter();
-    }
+        private function synchronizeCandidateSchedules(Collection $jadwalCollection): Collection
+        {
+            return $jadwalCollection
+                ->map(function (JadwalKonseling $jadwal) {
+                    return $this->resolveSessionFromSchedule($jadwal)->jadwalKonseling;
+                })
+                ->filter();
+        }
 
     private function resolveThreadDateKey(SesiKonseling $sesi): string
     {

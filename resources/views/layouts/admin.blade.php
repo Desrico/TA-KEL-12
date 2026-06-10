@@ -39,15 +39,15 @@
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* SIDEBAR */
-    .pc-sidebar {
-    width: 300px !important;
-    min-width: 300px !important;
-    max-width: 300px !important;
+ /* SIDEBAR */
+.pc-sidebar {
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
     height: 100vh !important;
-    min-height: 100vh !important;
     overflow: hidden !important;
     background: var(--admin-soft) !important;
+    transition: width .15s ease !important;
 }
 
 .pc-sidebar.pc-sidebar-hide {
@@ -59,7 +59,8 @@
 
 .pc-sidebar.pc-sidebar-hide .navbar-wrapper,
 .pc-sidebar.pc-sidebar-hide .m-header,
-.pc-sidebar.pc-sidebar-hide .navbar-content {
+.pc-sidebar.pc-sidebar-hide .navbar-content,
+.pc-sidebar.pc-sidebar-hide .admin-sidebar-profile {
     width: 0 !important;
     min-width: 0 !important;
     max-width: 0 !important;
@@ -76,10 +77,6 @@
     margin-left: 0 !important;
 }
 
-.pc-sidebar {
-    transition: width .15s ease !important;
-}
-
 .pc-sidebar ~ .pc-header,
 .pc-sidebar ~ .pc-footer,
 .pc-sidebar ~ .pc-container {
@@ -87,7 +84,7 @@
 }
 
 .pc-sidebar .navbar-wrapper {
-    width: 300px !important;
+    width: 280px !important;
     height: 100vh !important;
     min-height: 100vh !important;
     background: var(--admin-soft) !important;
@@ -95,22 +92,21 @@
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
-    position: relative !important;
 }
 
-    .pc-sidebar .m-header {
+/* Logo */
+.pc-sidebar .m-header {
     width: 100% !important;
-    height: 260px !important;
-    min-height: 260px !important;
-    max-height: 260px !important;
-    padding: 28px 18px !important;
-    border-bottom: 0 !important;
-    flex: 0 0 260px !important;
+    height: 175px !important;
+    min-height: 175px !important;
+    max-height: 175px !important;
+    flex: 0 0 175px !important;
+    padding: 20px 16px 8px !important;
     background: var(--admin-soft) !important;
+    border-bottom: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    position: relative !important;
 }
 
 .pc-sidebar .m-header .b-brand {
@@ -123,189 +119,230 @@
 }
 
 .admin-sidebar-logo-full {
-    width: 215px !important;
-    max-width: 100% !important;
+    width: 145px !important;
+    max-width: 145px !important;
     height: auto !important;
     object-fit: contain !important;
     display: block !important;
 }
 
-    .pc-sidebar .navbar-content {
+/* Menu */
+.pc-sidebar .navbar-content {
     width: 100% !important;
-    flex: 0 0 auto !important;
-    padding: 0 20px 10px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    padding: 0 18px !important;
     overflow: hidden !important;
-    overflow-y: hidden !important;
     background: var(--admin-soft) !important;
-}
-
-.pc-sidebar .navbar-content::-webkit-scrollbar {
-    display: none !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .pc-sidebar .pc-navbar {
+    width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
 }
 
-    /* Stronger overrides to ensure the sidebar uses the requested color */
-    .pc-sidebar .navbar-wrapper,
-    .pc-sidebar .navbar-content,
-    .admin-sidebar-profile,
-    .admin-sidebar-menu {
-        background-color: var(--admin-soft) !important;
-        border-color: var(--admin-border) !important;
-    }
+.pc-sidebar .pc-caption {
+    display: none !important;
+}
 
-    .pc-navbar .pc-caption label {
-        font-size: .67rem;
-        font-weight: 700;
-        color: #9AA8B5;
-        text-transform: uppercase;
-        letter-spacing: .07em;
-        padding: 4px 13px 4px;
-        display: block;
-    }
+.pc-sidebar .pc-item {
+    width: 100% !important;
+    margin: 0 0 7px 0 !important;
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 
-    .pc-navbar .pc-item {
-        outline: none !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
+.pc-sidebar .pc-item:last-child {
+    margin-bottom: 0 !important;
+}
 
-    .pc-navbar .pc-item * {
-        outline: none !important;
-        border: none !important;
-    }
+.pc-sidebar .pc-link {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-height: 44px !important;
+    height: auto !important;
+    padding: 10px 1rem !important;
+    border-radius: 13px !important;
+    color: var(--admin-text-mid) !important;
+    font-size: .88rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: all .18s ease !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    grid-template-columns: unset !important;
+    column-gap: unset !important;
+}
 
-    .pc-navbar .pc-item .pc-link {
-        border-radius: 12px;
-        font-size: .88rem;
-        font-weight: 600;
-        color: var(--admin-text-mid);
-        padding: 10px 14px;
-        margin-bottom: 4px;
-        transition: all .18s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        outline: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        -webkit-box-shadow: none !important;
-    }
+.pc-sidebar .pc-link:hover {
+    background: rgba(255, 255, 255, 0.45) !important;
+    color: var(--admin-primary) !important;
+}
 
-    .pc-navbar .pc-item .pc-link:focus,
-    .pc-navbar .pc-item .pc-link:focus-visible,
-    .pc-navbar .pc-item.active > .pc-link {
-        outline: none !important;
-        box-shadow: none !important;
-        border-right: none !important;
-    }
+.pc-sidebar .pc-item.active > .pc-link {
+    background: var(--admin-primary) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
 
-    .pc-navbar .pc-item .pc-link::before,
-    .pc-navbar .pc-item .pc-link::after {
-        outline: none !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
+.pc-sidebar .pc-navbar > .pc-item.active:not(.pc-hasmenu) > .pc-link::after,
+.pc-sidebar .pc-navbar > .pc-item.active > .pc-link::before {
+    display: none !important;
+    content: none !important;
+    opacity: 0 !important;
+    background: none !important;
+}
 
-    .pc-navbar .pc-item .pc-link:focus {
-        outline: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        -webkit-box-shadow: none !important;
-        -webkit-appearance: none !important;
-    }
+.pc-sidebar .pc-micon {
+    width: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    height: 20px !important;
+    flex: 0 0 20px !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    top: unset !important;
+    left: unset !important;
+}
 
-    .pc-navbar .pc-item .pc-link:active {
-      outline: none !important;
-      border: none !important;
-      box-shadow: none !important;
-    }
+.pc-sidebar .pc-micon i,
+.pc-sidebar .pc-micon svg {
+    font-size: 1rem !important;
+    width: 1rem !important;
+    height: 1rem !important;
+    color: #9AA8B5 !important;
+    transition: color .18s ease !important;
+    display: block !important;
+    line-height: 1 !important;
+}
 
-    .pc-navbar .pc-item .pc-link:hover {
-      background: var(--admin-soft-2);
-      color: var(--admin-primary);
-      outline: none !important;
-      border: none !important;
-      box-shadow: none !important;
-    }
+.pc-sidebar .pc-link:hover .pc-micon i,
+.pc-sidebar .pc-link:hover .pc-micon svg {
+    color: var(--admin-primary) !important;
+}
 
-    .pc-navbar .pc-item .pc-link:hover .pc-micon i {
-      color: var(--admin-primary);
-    }
+.pc-sidebar .pc-item.active > .pc-link .pc-micon i,
+.pc-sidebar .pc-item.active > .pc-link .pc-micon svg {
+    color: #ffffff !important;
+}
 
-    .pc-navbar .pc-item.active > .pc-link {
-      background: var(--admin-primary);
-      color: white !important;
-      outline: none !important;
-      border: none !important;
-      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3) !important;
-      -webkit-box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3) !important;
-    }
+.pc-sidebar .pc-mtext {
+    flex: 1 1 auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+}
 
-    .pc-navbar .pc-item.active {
-      outline: none !important;
-      border: none !important;
-      box-shadow: none !important;
-    }
+/* Custom nav - bypasses pcoded entirely */
+.cc-nav {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
 
-    /* Override template's ::after pseudo-element that creates the blue line */
-    .pc-sidebar .pc-navbar > .pc-item.active:not(.pc-hasmenu) > .pc-link::after {
-      display: none !important;
-      content: none !important;
-      width: 0 !important;
-      height: 0 !important;
-      background: none !important;
-    }
+.cc-nav-link {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 16px;
+    border-radius: 13px;
+    color: var(--admin-text-mid);
+    font-size: .88rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: all .18s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
 
-    /* Override template's ::before pseudo-element */
-    .pc-sidebar .pc-navbar > .pc-item.active > .pc-link:before {
-      opacity: 0 !important;
-      background: none !important;
-    }
+.cc-nav-link i {
+    font-size: 1.1rem;
+    width: 20px;
+    min-width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    color: #9AA8B5;
+    line-height: 1;
+    transition: color .18s ease;
+    /* ensure icon doesnt shift */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    .pc-navbar .pc-item.active > .pc-link .pc-micon i {
-      color: white !important;
-    }
+.cc-nav-link span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.2;
+}
 
-    .pc-navbar .pc-micon {
-      width: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
+.cc-nav-link:hover {
+    background: rgba(255, 255, 255, 0.45);
+    color: var(--admin-primary);
+}
 
-    .pc-navbar .pc-micon i {
-      font-size: 1.08rem;
-      color: #9AA8B5;
-      transition: color .18s ease;
-    }
+.cc-nav-link:hover i {
+    color: var(--admin-primary);
+}
 
-    /* SIDEBAR PROFILE BOTTOM */
-    /* SIDEBAR PROFILE BOTTOM */
+.cc-nav-link.cc-active {
+    background: var(--admin-primary);
+    color: #ffffff;
+}
+
+.cc-nav-link.cc-active i {
+    color: #ffffff;
+}
+
+/* Profil admin */
 .admin-sidebar-profile {
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    padding: 16px 20px 18px !important;
+    position: relative !important;
+    flex: 0 0 auto !important;
+    padding: 14px 18px 16px !important;
+    margin-top: 8px !important;
     border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
     background: var(--admin-soft) !important;
-    z-index: 20 !important;
+    z-index: 5 !important;
 }
 
 .admin-sidebar-profile-trigger {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
-    padding: 12px 10px;
+    padding: 10px 8px;
     text-decoration: none;
     background: transparent;
     border: 0;
@@ -318,8 +355,8 @@
 }
 
 .admin-sidebar-avatar {
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     overflow: hidden;
     background: #d9e6df;
@@ -329,7 +366,7 @@
     justify-content: center;
     color: var(--admin-primary);
     font-weight: 800;
-    font-size: 1rem;
+    font-size: .95rem;
 }
 
 .admin-sidebar-avatar img {
@@ -345,7 +382,7 @@
 }
 
 .admin-sidebar-name {
-    font-size: 1rem;
+    font-size: .95rem;
     font-weight: 800;
     color: var(--admin-text);
     line-height: 1.2;
@@ -356,45 +393,58 @@
 }
 
 .admin-sidebar-role {
-    font-size: .8rem;
+    font-size: .78rem;
     color: var(--admin-text-mid);
     line-height: 1.2;
 }
 
 .admin-sidebar-arrow {
-    font-size: .9rem;
+    font-size: .85rem;
     color: var(--admin-text-light);
     flex-shrink: 0;
 }
 
-    .admin-sidebar-menu {
-      width: calc(100% - 4px);
-      min-width: unset;
-      margin: 8px 2px 0;
-      border-radius: 14px;
-      border: 2px solid var(--admin-border);
-      box-shadow: var(--admin-shadow-md);
-      overflow: hidden;
-      padding: 6px 0;
-    }
+.admin-sidebar-menu {
+    width: calc(100% - 4px);
+    min-width: unset;
+    margin: 10px 2px 0;
+    border-radius: 18px;
+    border: 1px solid rgba(6, 95, 70, 0.16);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.14);
+    overflow: hidden;
+    padding: 8px;
+    background: #ffffff !important;
+}
 
-    .admin-sidebar-menu .dropdown-item {
-      transition: all .18s ease;
-      font-size: .84rem;
-      color: var(--admin-text-mid);
-      margin: 0;
-      padding: .72rem 1rem;
-    }
+.admin-sidebar-menu .dropdown-item {
+    transition: all .18s ease;
+    font-size: .84rem;
+    color: #334155;
+    margin: 0;
+    padding: .78rem .9rem;
+    border-radius: 13px;
+    font-weight: 700;
+    background: transparent !important;
+}
 
-    .admin-sidebar-menu .dropdown-item:hover {
-      background: var(--admin-soft-2);
-      color: var(--admin-primary);
-    }
+.admin-sidebar-menu .dropdown-item:hover {
+    background: #ecfdf5 !important;
+    color: #065f46 !important;
+}
 
-    .admin-sidebar-menu .dropdown-divider {
-      margin: .35rem 0;
-    }
+.admin-sidebar-menu .dropdown-divider {
+    margin: .45rem .25rem;
+    border-top: 1px solid #e5e7eb;
+}
 
+.admin-sidebar-menu .dropdown-logout {
+    color: #dc2626 !important;
+}
+
+.admin-sidebar-menu .dropdown-logout:hover {
+    background: #fef2f2 !important;
+    color: #b91c1c !important;
+}
     /* HEADER */
     .pc-header {
       background: rgba(255,255,255,.96);
@@ -419,12 +469,7 @@
     @media (min-width: 1025px) {
       /* hide any leftover desktop header toggle */
       .pc-h-item.pc-sidebar-collapse { display: none !important; }
-      .pc-header .pc-h-item.pc-sidebar-popup { display: none !important; }
 
-      .pc-container { margin-left: 300px !important; }
-      .pc-sidebar.pc-sidebar-hide ~ .pc-container { margin-left: 0 !important; }
-
-      /* sidebar-edge-toggle: place button at sidebar right edge */
       .sidebar-edge-toggle {
         position: absolute;
         left: 16px;
@@ -551,9 +596,82 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
+   .pc-content {
+      padding: 2rem 2rem 2.5rem !important;
+    }
+
+    .admin-page-inner {
+      width: 100%;
+      max-width: 1180px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .admin-page-inner > .card,
+    .admin-page-inner > .kons-card,
+    .admin-page-inner > .admin-card,
+    .admin-page-inner > .sesi-card,
+    .admin-page-inner > .session-card,
+    .admin-page-inner > .table-card {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+
+    .admin-page-inner > .container,
+    .admin-page-inner > .container-fluid,
+    .admin-page-inner .container,
+    .admin-page-inner .container-fluid {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
     .page-header {
-      margin-bottom: 1rem;
-      padding: 0 1.5rem;
+      margin-bottom: 1.25rem;
+      padding: 0 !important;
+    }
+
+    .admin-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      margin: 0 0 1.5rem 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      font-size: .9rem;
+    }
+
+    .admin-breadcrumb a {
+      color: var(--admin-primary-600);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .admin-breadcrumb a:hover {
+      color: var(--admin-primary);
+    }
+
+    .admin-breadcrumb .breadcrumb-separator {
+      color: #94A3B8;
+      font-weight: 600;
+    }
+
+    .admin-breadcrumb .breadcrumb-current {
+      color: var(--admin-text-mid);
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .admin-breadcrumb {
+        margin: 0 0 1rem;
+        font-size: .82rem;
+        padding: .75rem .85rem;
+      }
     }
 
     .page-header .page-header-title h5 {
@@ -806,7 +924,6 @@
       margin-top: .1rem;
       color: #FDE68A;
     }
-
   </style>
 
   @vite(['resources/js/app.js'])
@@ -858,66 +975,54 @@
             </a>
         </div>
 
-        {{-- MENU --}}
-        <div class="navbar-content">
-            <ul class="pc-navbar">
-                <li class="pc-item pc-caption"><label>Menu</label></li>
+        {{-- MENU: completely outside .navbar-content so pcoded.js cannot touch it --}}
+        <div class="navbar-content" style="display:none!important;height:0!important;overflow:hidden!important;"></div>
+        <div id="cc-sidebar-menu" style="flex:1 1 auto;min-height:0;padding:0 18px;overflow-y:auto;overflow-x:hidden;display:flex;align-items:center;">
+            <nav style="width:100%;display:flex;flex-direction:column;gap:4px;">
+                @php
+                    $lnk = 'display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:10px 16px;border-radius:13px;text-decoration:none;font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;transition:background .18s;';
+                    $ico = 'display:inline-flex;align-items:center;justify-content:center;width:20px;min-width:20px;height:20px;flex-shrink:0;';
+                    $txt = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;';
+                    $active   = fn($r) => request()->routeIs($r) ? 'background:var(--admin-primary);color:#fff;' : 'background:transparent;color:#475569;';
+                    $activeIco = fn($r) => request()->routeIs($r) ? 'color:#fff;' : 'color:#9AA8B5;';
+                @endphp
 
-                <li class="pc-item {{ request()->routeIs('counselor.dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('counselor.dashboard') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-home"></i></span>
-                        <span class="pc-mtext">Dashboard</span>
-                    </a>
-                </li>
-
-                <li class="pc-item {{ request()->routeIs('admin.jadwal*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.jadwal') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-calendar-event"></i></span>
-                        <span class="pc-mtext">Penjadwalan</span>
-                    </a>
-                </li>
-
-                <li class="pc-item {{ request()->routeIs('admin.chat*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.chat') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-message-circle"></i></span>
-                        <span class="pc-mtext">Chat</span>
-                    </a>
-                </li>
-
-                <li class="pc-item {{ request()->routeIs('admin.sesi*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.sesi') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-stethoscope"></i></span>
-                        <span class="pc-mtext">Sesi Konseling</span>
-                    </a>
-                </li>
-
-                <li class="pc-item {{ request()->routeIs('admin.laporan*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.laporan') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-file-report"></i></span>
-                        <span class="pc-mtext">Laporan Konseling</span>
-                    </a>
-                </li>
-
-                <li class="pc-item {{ request()->routeIs('counselor.education.*') ? 'active' : '' }}">
-                    <a href="{{ route('counselor.education.index') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-book"></i></span>
-                        <span class="pc-mtext">Edukasi</span>
-                    </a>
-                </li>
-            </ul>
+                <a href="{{ route('admin.dashboard') }}" style="{{ $active('admin.dashboard') }}{{ $lnk }}">
+                    <span style="{{ $ico }}"><i class="ti ti-home" style="{{ $activeIco('admin.dashboard') }}font-size:1.1rem;"></i></span>
+                    <span style="{{ $txt }}">Dashboard</span>
+                </a>
+                <a href="{{ route('admin.jadwal') }}" style="{{ $active('admin.jadwal*') }}{{ $lnk }}">
+                    <span style="{{ $ico }}"><i class="ti ti-calendar-event" style="{{ $activeIco('admin.jadwal*') }}font-size:1.1rem;"></i></span>
+                    <span style="{{ $txt }}">Penjadwalan</span>
+                </a>
+                <a href="{{ route('admin.chat') }}" style="{{ $active('admin.chat*') }}{{ $lnk }}">
+                    <span style="{{ $ico }}"><i class="ti ti-message-circle" style="{{ $activeIco('admin.chat*') }}font-size:1.1rem;"></i></span>
+                    <span style="{{ $txt }}">Chat</span>
+                </a>
+                <a href="{{ route('admin.sesi') }}" style="{{ $active('admin.sesi*') }}{{ $lnk }}">
+                    <span style="{{ $ico }}"><i class="ti ti-stethoscope" style="{{ $activeIco('admin.sesi*') }}font-size:1.1rem;"></i></span>
+                    <span style="{{ $txt }}">Sesi Konseling</span>
+                </a>
+                <a href="{{ route('admin.laporan') }}" style="{{ $active('admin.laporan*') }}{{ $lnk }}">
+                    <span style="{{ $ico }}"><i class="ti ti-file-report" style="{{ $activeIco('admin.laporan*') }}font-size:1.1rem;"></i></span>
+                    <span style="{{ $txt }}">Laporan Konseling</span>
+                </a>
+                <a href="{{ route('counselor.education.index') }}" style="{{ $active('counselor.education.*') }}{{ $lnk }}">
+                    <span style="{{ $ico }}"><i class="ti ti-book" style="{{ $activeIco('counselor.education.*') }}font-size:1.1rem;"></i></span>
+                    <span style="{{ $txt }}">Edukasi</span>
+                </a>
+            </nav>
         </div>
-
         {{-- PROFIL ADMIN --}}
         <div class="admin-sidebar-profile">
             <div class="dropdown">
                 <a href="#" class="admin-sidebar-profile-trigger" data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="admin-sidebar-avatar">
-                        {{ strtoupper(substr(Auth::user()->nama ?? 'A', 0, 1)) }}
+                        K
                     </div>
 
                     <div class="admin-sidebar-user">
-                        <div class="admin-sidebar-name">{{ Auth::user()->nama ?? 'Admin' }}</div>
-                        <div class="admin-sidebar-role">Konselor Utama</div>
+                        <div class="admin-sidebar-name">Konselor</div>
                     </div>
 
                     <i class="ti ti-chevron-up admin-sidebar-arrow"></i>
@@ -932,7 +1037,7 @@
 
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2" style="color: var(--admin-danger);">
+                        <button type="submit" class="dropdown-item dropdown-logout d-flex align-items-center gap-2">
                             <i class="ti ti-logout" style="font-size:1rem;"></i> Keluar
                         </button>
                     </form>
@@ -1029,21 +1134,56 @@
 
     <div class="pc-container">
   <div class="pc-content">
-    @hasSection('page-hero')
-      @yield('page-hero')
-    @else
-      <div class="page-header">
-        <div class="page-block">
-          <div class="row align-items-center">
-            <div class="col-md-12">
-              <div class="page-header-title">
-                <h5 class="m-b-10">@yield('page-title', 'Dashboard')</h5>
-              </div>
-            </div>
+    <div class="admin-page-inner">
+     @php
+    $currentTitle = trim($__env->yieldContent('page-title', 'Dashboard'));
+    $breadcrumbParent = trim($__env->yieldContent('breadcrumb-parent', ''));
+    $breadcrumbParentUrl = trim($__env->yieldContent('breadcrumb-parent-url', ''));
+@endphp
+
+@if(!request()->routeIs('admin.dashboard'))
+    <nav class="admin-breadcrumb" aria-label="breadcrumb">
+        <a href="{{ route('admin.dashboard') }}">
+            Dashboard
+        </a>
+
+        <span class="breadcrumb-separator">/</span>
+
+        @if($breadcrumbParent !== '')
+            @if($breadcrumbParentUrl !== '')
+                <a href="{{ $breadcrumbParentUrl }}">
+                    {{ $breadcrumbParent }}
+                </a>
+            @else
+                <span class="breadcrumb-current">
+                    {{ $breadcrumbParent }}
+                </span>
+            @endif
+
+            <span class="breadcrumb-separator">/</span>
+        @endif
+
+        <span class="breadcrumb-current">
+            {{ $currentTitle }}
+        </span>
+    </nav>
+@endif
+
+@hasSection('page-hero')
+  @yield('page-hero')
+@else
+  <div class="page-header {{ request()->routeIs('admin.dashboard') ? 'page-header-dashboard' : '' }}">
+    <div class="page-block">
+      <div class="row align-items-center">
+        <div class="col-md-12">
+          <div class="page-header-title">
+            <h5 class="m-b-10">@yield('page-title', 'Dashboard')</h5>
           </div>
         </div>
       </div>
-    @endif
+    </div>
+  </div>
+@endif
 
     @if(session('success') && !session()->has('admin_success_modal'))
       <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
@@ -1059,7 +1199,8 @@
       </div>
     @endif
 
-    @yield('konten')
+     @yield('konten')
+    </div>
   </div>
 </div>
 
@@ -1333,5 +1474,6 @@
 
 <script src="{{ asset('js/webpush.js') }}"></script>
 @stack('scripts')
+
 </body>
 </html>

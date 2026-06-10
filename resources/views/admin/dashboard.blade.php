@@ -314,6 +314,106 @@
         #toast.show { display: flex; }
         @keyframes slideInUp { from { transform:translateY(16px);opacity:0 } to { transform:none;opacity:1 } }
 
+        .feedback-dashboard-card {
+    margin-top: 22px;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.feedback-dashboard-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.feedback-dashboard-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #212529;
+}
+
+.feedback-dashboard-header p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.feedback-dashboard-list {
+    display: grid;
+    gap: 12px;
+}
+
+.feedback-dashboard-item {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    background: #fbfefc;
+}
+
+.feedback-dashboard-avatar {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 50%;
+    background: #d1fae5;
+    color: #065f46;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.feedback-dashboard-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.feedback-dashboard-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.feedback-dashboard-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1f2937;
+}
+
+.feedback-dashboard-date {
+    font-size: 12px;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+.feedback-dashboard-text {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #475569;
+}
+
+.feedback-dashboard-empty {
+    padding: 22px;
+    text-align: center;
+    border: 1px dashed #d1d5db;
+    border-radius: 12px;
+    color: #6c757d;
+    background: #ffffff;
+    font-size: 13px;
+}
+
         @media (max-width: 1024px) {
             .charts-stats-grid { grid-template-columns: 1fr; }
         }
@@ -898,6 +998,60 @@
                         <ul id="topikLegend"></ul>
                     </div>
                 </div>
+
+            </div>
+        </div>
+
+                <!-- Ulasan Mahasiswa - Di bawah grafik -->
+        <div class="feedback-dashboard-card">
+            <div class="feedback-dashboard-header">
+                <div>
+                    <h4>Ulasan Mahasiswa</h4>
+                    <p>Ulasan yang diberikan mahasiswa setelah mengikuti layanan konseling.</p>
+                </div>
+            </div>
+
+            <div class="feedback-dashboard-list">
+                @forelse(($feedbacks ?? collect()) as $feedback)
+                    @php
+                        $namaFeedback = optional(optional($feedback->mahasiswa)->user)->nama ?? 'Mahasiswa';
+
+                        $isiFeedback = $feedback->isi_feedback
+                            ?? $feedback->feedback
+                            ?? $feedback->ulasan
+                            ?? $feedback->komentar
+                            ?? $feedback->pesan
+                            ?? '-';
+
+                        $inisialFeedback = strtoupper(substr($namaFeedback, 0, 1));
+                    @endphp
+
+                    <div class="feedback-dashboard-item">
+                        <div class="feedback-dashboard-avatar">
+                            {{ $inisialFeedback }}
+                        </div>
+
+                        <div class="feedback-dashboard-content">
+                            <div class="feedback-dashboard-top">
+                                <div class="feedback-dashboard-name">
+                                    {{ $namaFeedback }}
+                                </div>
+
+                                <div class="feedback-dashboard-date">
+                                    {{ $feedback->created_at ? $feedback->created_at->diffForHumans() : '-' }}
+                                </div>
+                            </div>
+
+                            <p class="feedback-dashboard-text">
+                                {{ $isiFeedback }}
+                            </p>
+                        </div>
+                    </div>
+                @empty
+                    <div class="feedback-dashboard-empty">
+                        Belum ada ulasan dari mahasiswa.
+                    </div>
+                @endforelse
             </div>
         </div>
 
