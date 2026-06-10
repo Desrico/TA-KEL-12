@@ -128,6 +128,7 @@ class LoginController extends Controller
         if ($localUser) {
             Auth::login($localUser, $request->boolean('ingat'));
             $request->session()->regenerate();
+            $request->session()->forget('cis');
 
             return $this->redirectByRole($localUser->role);
         }
@@ -180,6 +181,11 @@ class LoginController extends Controller
 
             Auth::login($user, $request->boolean('ingat'));
             $request->session()->regenerate();
+            $request->session()->put('cis', [
+                'access_token' => $token,
+                'username' => $validated['username'],
+                'logged_in_at' => now()->toIso8601String(),
+            ]);
 
             return $this->redirectByRole($user->role);
         } catch (\Throwable $e) {
@@ -195,6 +201,7 @@ class LoginController extends Controller
     {
         Auth::logout();
 
+        $request->session()->forget('cis');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

@@ -35,6 +35,7 @@ return [
     'base_url' => env('KAMPUS_API_BASE_URL'),
     'username' => env('KAMPUS_API_USERNAME'),
     'password' => env('KAMPUS_API_PASSWORD'),
+    'static_token' => env('KAMPUS_API_STATIC_TOKEN'),
     'timeout'  => env('KAMPUS_API_TIMEOUT', 20),
     ],
 

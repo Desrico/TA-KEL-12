@@ -1093,7 +1093,7 @@
             <div class="mode-facts">
               <div class="mode-fact">
                 <i class="bi bi-clock"></i>
-                <strong>60 menit</strong>
+                <strong>24 jam</strong>
                 <span>Durasi sesi</span>
               </div>
               <div class="mode-fact">
@@ -1160,7 +1160,7 @@
             <div class="info-row">
               <i class="bi bi-clock"></i>
               <div class="info-label">Durasi</div>
-              <div class="info-value">60 Menit</div>
+              <div class="info-value" id="side-duration">60 menit</div>
             </div>
             <div class="info-row">
               <i class="bi bi-headset"></i>
@@ -1209,7 +1209,7 @@
           <div class="row g-4">
             <div class="col-md-6">
               <label class="field-label" for="profile-nim">NIM</label>
-              <input type="text" class="schedule-input" id="profile-nim" value="{{ $isAnonim ? '********' : $nimMahasiswa }}" disabled>
+              <input type="text" class="schedule-input" id="profile-nim" value="{{ $nimMahasiswa }}" disabled>
             </div>
             <div class="col-md-6">
               <label class="field-label" for="profile-jurusan">Program Studi</label>
@@ -1217,20 +1217,22 @@
             </div>
             <div class="col-md-6">
               <label class="field-label" for="profile-nama">Nama</label>
-              <input type="text" class="schedule-input" id="profile-nama" value="{{ $isAnonim ? $anonimDisplayName : $namaMahasiswa }}" disabled>
+              <input type="text" class="schedule-input" id="profile-nama" value="{{ $namaMahasiswa }}" disabled>
             </div>
             <div class="col-md-6">
               <label class="field-label" for="profile-angkatan">Angkatan</label>
               <input type="text" class="schedule-input" id="profile-angkatan" value="{{ $angkatanMahasiswa }}" disabled>
             </div>
           </div>
+          <div class="anonim-toggle-card" id="anonim-toggle-card">
 
-           <div class="anonim-toggle-card" id="anonim-toggle-card">
+          <!-- Mode anonim hanya dipakai untuk pengajuan konseling online agar offline selalu memakai identitas asli. -->
+          <div class="anonim-toggle-card" id="anonim-toggle-card" hidden>
             <div class="anonim-toggle-row">
               <div class="anonim-toggle-copy">
                 <p class="anonim-toggle-title">Mode Anonim</p>
                 <div class="anonim-toggle-status" id="anonim-toggle-status">
-                  {{ $isAnonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.' }}
+                  {{ $isAnonim ? 'Mode anonim aktif untuk konseling online.' : 'Mode anonim nonaktif untuk konseling online.' }}
                 </div>
               </div>
               <label class="anonim-toggle-switch" aria-label="Toggle mode anonim">
@@ -1243,6 +1245,7 @@
                 <span class="anonim-toggle-slider"></span>
               </label>
             </div>
+            <div class="form-note">Alias anonim akan memakai nama karakter/hewan yang konsisten untuk sesi online Anda.</div>
           </div>
 
           <div class="form-section-title">
@@ -1406,6 +1409,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const bookedSlots = new Map();
   const serviceTimes = ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00'];
 
+  // Slot layanan dimulai sejak 08.00 agar pilihan awal pagi tersedia juga di detail jadwal.
+  const serviceTimes = ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00'];
   const profileDisplay = {
     nim: @js($nimMahasiswa),
     nama: @js($namaMahasiswa),
@@ -1424,6 +1429,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const tanggalNote = document.getElementById('tanggal-note');
   const waktuNote = document.getElementById('waktu-note');
   const anonimToggleCardEl = document.getElementById('anonim-toggle-card');
+  const anonimCardEl = document.getElementById('anonim-toggle-card');
   const anonimToggleEl = document.getElementById('anonim-toggle');
   const anonimStatusEl = document.getElementById('anonim-toggle-status');
   const profileNimEl = document.getElementById('profile-nim');
@@ -1445,6 +1451,7 @@ document.addEventListener('DOMContentLoaded', function () {
       label: 'Online',
       icon: 'bi-chat-dots',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling online.',
+      sideDuration: '24 jam',
       sideMedia: 'Chat',
       sideLocation: 'Jarak Jauh<br>Akses dari ruang personalmu',
       noteClass: 'online',
@@ -1455,6 +1462,7 @@ document.addEventListener('DOMContentLoaded', function () {
       label: 'Offline',
       icon: 'bi-geo-alt',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling offline.',
+      sideDuration: '60 menit',
       sideMedia: 'Tatap Muka',
       sideLocation: 'Gedung 5, Lt. 2<br>Antara GD 525 & 526',
       noteClass: '',
@@ -1621,9 +1629,39 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     syncAnonimSection();
+  // Informasi identitas mengikuti mode layanan: offline selalu asli, online boleh anonim.
+  function syncIdentityPanel() {
+    const allowAnonim = selectedService === 'online';
+    const useAnonimIdentity = allowAnonim && isAnonim;
+
+    profileNimEl.value = useAnonimIdentity ? '********' : profileDisplay.nim;
+    profileNamaEl.value = useAnonimIdentity ? profileDisplay.anonimName : profileDisplay.nama;
+
+    if (anonimCardEl) {
+      anonimCardEl.hidden = !allowAnonim;
+    }
+
+    if (!anonimStatusEl) {
+      return;
+    }
+
+    anonimStatusEl.classList.remove('is-error');
+    anonimStatusEl.textContent = allowAnonim
+      ? (useAnonimIdentity ? 'Mode anonim aktif untuk konseling online.' : 'Mode anonim nonaktif untuk konseling online.')
+      : 'Mode anonim tidak digunakan untuk konseling offline.';
+  }
+
+  function updateAnonimUI(active) {
+    isAnonim = active;
+    syncIdentityPanel();
   }
 
   async function toggleAnonimMode(checkbox) {
+    if (selectedService !== 'online') {
+      checkbox.checked = isAnonim;
+      return;
+    }
+
     if (!isLoggedIn) {
       checkbox.checked = false;
       window.location.href = '/login';
@@ -1662,11 +1700,11 @@ document.addEventListener('DOMContentLoaded', function () {
         checkbox.checked = previousState;
         updateAnonimUI(previousState);
 
+
         if (anonimStatusEl) {
           anonimStatusEl.textContent = data.message || 'Gagal memperbarui mode anonim.';
           anonimStatusEl.classList.add('is-error');
         }
-
         return;
       }
 
@@ -1847,6 +1885,18 @@ document.addEventListener('DOMContentLoaded', function () {
     submitBtn.textContent = config.submit;
     submitBtn.classList.toggle('online', mode === 'online');
     syncAnonimSection();
+    document.getElementById('schedule-subtitle').textContent = config.subtitle;
+    document.getElementById('selected-mode-pill').className = `selected-mode-pill ${mode === 'online' ? 'online' : ''}`;
+    document.getElementById('selected-mode-pill').innerHTML = `<i class="bi ${config.icon}"></i> ${config.label}`;
+    document.getElementById('side-duration').textContent = config.sideDuration;
+    document.getElementById('side-media').innerHTML = config.sideMedia;
+    document.getElementById('side-location').innerHTML = config.sideLocation;
+    document.getElementById('session-note').className = `session-note ${config.noteClass}`;
+    document.getElementById('session-note-text').textContent = config.note;
+
+    submitBtn.textContent = config.submit;
+    submitBtn.classList.toggle('online', mode === 'online');
+    syncIdentityPanel();
 
     if (selectedModePillEl) {
       selectedModePillEl.className = `selected-mode-pill ${mode === 'online' ? 'online' : ''}`;
@@ -2286,6 +2336,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Initialize
+  setServiceMode(selectedService, false);
   updateAnonimUI(isAnonim);
   handleTopikChange();
 

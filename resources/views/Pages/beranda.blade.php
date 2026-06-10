@@ -576,8 +576,7 @@
   }
 
   .dmhi-item {
-    transition: transform .35s ease;
-    will-change: transform;
+    transform: none;
   }
 
   .dmhi-card {
@@ -586,33 +585,8 @@
     padding: 1.25rem 1.15rem 1.15rem;
     border: 1px solid var(--line);
     border-radius: 24px;
-    background: rgba(255,255,255,.84);
-    box-shadow: 0 18px 38px rgba(10, 82, 58, .06);
-    backdrop-filter: blur(12px);
-    transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease, background .28s ease;
-    animation: dmhiFloat 6s ease-in-out infinite;
-  }
-
-  .dmhi-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(126, 240, 160, .08));
-    opacity: 0;
-    transition: opacity .28s ease;
-    pointer-events: none;
-  }
-
-  .dmhi-card:hover {
-    transform: translateY(-8px) rotate(-.4deg);
-    border-color: rgba(15, 184, 122, .22);
-    background: rgba(255,255,255,.94);
-    box-shadow: 0 24px 48px rgba(10, 82, 58, .12);
-  }
-
-  .dmhi-card:hover::before {
-    opacity: 1;
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(10, 82, 58, .08);
   }
 
   .dmhi-card-head {
@@ -633,17 +607,10 @@
     background: var(--primary-soft);
     color: var(--primary);
     box-shadow: inset 0 0 0 1px rgba(10, 82, 58, .05);
-    transition: transform .28s ease, background .28s ease, color .28s ease;
   }
 
   .dmhi-icon i {
     font-size: 1.35rem;
-  }
-
-  .dmhi-card:hover .dmhi-icon {
-    transform: scale(1.06) rotate(-6deg);
-    background: #DDF7E8;
-    color: var(--primary-600);
   }
 
   .dmhi-card h4 {
@@ -659,76 +626,6 @@
     color: var(--muted);
     font-size: .86rem;
     line-height: 1.7;
-  }
-
-  .dmhi-item:nth-child(1) {
-    transform: translate3d(0, 6px, 0);
-  }
-
-  .dmhi-item:nth-child(2) {
-    transform: translate3d(0, -14px, 0);
-  }
-
-  .dmhi-item:nth-child(3) {
-    transform: translate3d(0, 10px, 0);
-  }
-
-  .dmhi-item:nth-child(4) {
-    transform: translate3d(0, 14px, 0);
-  }
-
-  .dmhi-item:nth-child(5) {
-    transform: translate3d(0, -10px, 0);
-  }
-
-  .dmhi-item:nth-child(6) {
-    transform: translate3d(0, 12px, 0);
-  }
-
-  .dmhi-item:nth-child(1) .dmhi-card {
-    animation-duration: 6.8s;
-    animation-delay: .2s;
-  }
-
-  .dmhi-item:nth-child(2) .dmhi-card {
-    animation-duration: 5.8s;
-    animation-delay: .8s;
-  }
-
-  .dmhi-item:nth-child(3) .dmhi-card {
-    animation-duration: 7.3s;
-    animation-delay: 1.1s;
-  }
-
-  .dmhi-item:nth-child(4) .dmhi-card {
-    animation-duration: 6.2s;
-    animation-delay: 1.6s;
-  }
-
-  .dmhi-item:nth-child(5) .dmhi-card {
-    animation-duration: 7s;
-    animation-delay: 2s;
-  }
-
-  .dmhi-item:nth-child(6) .dmhi-card {
-    animation-duration: 5.9s;
-    animation-delay: 2.4s;
-  }
-
-  .dmhi-item:hover {
-    transform: translate3d(0, -4px, 0);
-  }
-
-  @keyframes dmhiFloat {
-    0%, 100% {
-      transform: translate3d(0, 0, 0);
-    }
-    35% {
-      transform: translate3d(0, -5px, 0);
-    }
-    70% {
-      transform: translate3d(0, 3px, 0);
-    }
   }
 
   @keyframes ambientGlowOne {

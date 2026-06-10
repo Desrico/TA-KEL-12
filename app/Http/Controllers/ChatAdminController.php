@@ -52,6 +52,8 @@ class ChatAdminController extends Controller
         $conversationSessionIds = SesiKonseling::query()
             ->whereIn('jadwal_konseling_id', $conversationSchedules->pluck('id')->filter()->values())
             ->pluck('id')
+            ->whereIn('jadwal_konseling_id', $conversationSchedules->pluck('jadwal_konseling_id')->filter()->values())
+            ->pluck('jadwal_konseling_id')
             ->push($sesi->id)
             ->unique()
             ->values();
@@ -65,7 +67,7 @@ class ChatAdminController extends Controller
             ->orderBy('created_at')
             ->get()
             ->values()
-            ->map(fn (Chat $chat) => $this->transformMessage($chat, $user))
+            ->map(fn(Chat $chat) => $this->transformMessage($chat, $user))
             ->all();
 
         $messages = $this->resolveConversationMessages($sesi, $user)->all();
@@ -94,7 +96,7 @@ class ChatAdminController extends Controller
 
     public function start(Request $request): RedirectResponse
     {
-        $jadwal = $this->resolveScheduleForCounselor($request->user(), $request->integer('jadwal_id'));
+        $jadwal = $this->resolveScheduleForCounselor($request->user(), $request->integer('jadwal_konseling_id'));
 
         if (! $jadwal) {
             return redirect()
@@ -360,7 +362,7 @@ class ChatAdminController extends Controller
                     ->values();
 
                 $selected->conversation_dates_label = $historyLabels->isNotEmpty()
-                    ? 'Riwayat: '.$historyLabels->take(2)->implode(', ').($historyLabels->count() > 2 ? ' +'.($historyLabels->count() - 2).' lagi' : '')
+                    ? 'Riwayat: ' . $historyLabels->take(2)->implode(', ') . ($historyLabels->count() > 2 ? ' +' . ($historyLabels->count() - 2) . ' lagi' : '')
                     : null;
 
                 $displayState = $this->getScheduleDisplayState($selected);
@@ -449,7 +451,7 @@ class ChatAdminController extends Controller
 
     private function resolveSessionFromRequest(User $user, Request $request): ?SesiKonseling
     {
-        $jadwalId = $request->integer('jadwal_id');
+        $jadwalId = $request->integer('jadwal_konseling_id');
 
         if ($jadwalId) {
             $jadwal = $this->resolveScheduleForCounselor($user, $jadwalId);
@@ -543,7 +545,7 @@ class ChatAdminController extends Controller
         return [
             'sessionId' => $sesi->id,
             'jadwalId' => $jadwal?->id,
-            'channel' => 'chat.sesi.'.$sesi->id,
+            'channel' => 'chat.sesi.' . $sesi->id,
             'startUrl' => route('admin.chat.start'),
             'sendUrl' => route('admin.chat.store'),
             'messagesUrl' => route('admin.chat.messages'),
@@ -689,12 +691,12 @@ class ChatAdminController extends Controller
             return 'Sesi konseling online ini sudah melewati batas 24 jam dan dinyatakan selesai.';
         }
 
-        return 'Sesi konseling online ini akan dimulai pada '.$this->getScheduledStartLabel($sesi).'. Sebelum itu, ruang chat belum bisa diakses.';
+        return 'Sesi konseling online ini akan dimulai pada ' . $this->getScheduledStartLabel($sesi) . '. Sebelum itu, ruang chat belum bisa diakses.';
     }
 
     private function buildVideoCallUrl(SesiKonseling $sesi): string
     {
-        return 'https://meet.jit.si/campus-care-sesi-'.$sesi->id;
+        return 'https://meet.jit.si/campus-care-sesi-' . $sesi->id;
     }
 
     private function resolveConversationMessages(SesiKonseling $activeSession, User $viewer): Collection
@@ -746,7 +748,7 @@ class ChatAdminController extends Controller
         return $messages
             ->sortBy('created_at')
             ->values()
-            ->map(fn (Chat $chat) => $this->transformMessage($chat, $viewer));
+            ->map(fn(Chat $chat) => $this->transformMessage($chat, $viewer));
     }
 
     private function synchronizeCandidateSchedules(Collection $jadwalCollection): Collection

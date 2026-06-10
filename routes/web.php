@@ -93,6 +93,7 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     
     Route::get('/group-chat', [GroupChatMahasiswaController::class, 'index'])->name('mahasiswa.group-chat');
     Route::get('/group-chat/buat', [GroupChatMahasiswaController::class, 'create'])->name('mahasiswa.group-chat.create');
+    Route::get('/group-chat/undangan/{token}', [GroupChatMahasiswaController::class, 'invitation'])->name('mahasiswa.group-chat.invite');
     Route::post('/group-chat/gabung', [GroupChatMahasiswaController::class, 'join'])->name('mahasiswa.group-chat.join');
     Route::get('/group-chat/room/{group}', [GroupChatMahasiswaController::class, 'room'])->name('mahasiswa.group-chat.room');
     Route::get('/group-chat/pesan', [GroupChatMahasiswaController::class, 'messages'])->name('mahasiswa.group-chat.messages');
@@ -136,6 +137,10 @@ Route::prefix('admin')
         Route::patch('/chat/pesan/{chat}', [ChatAdminController::class, 'update'])->name('chat.update');
         Route::delete('/chat/pesan/{chat}', [ChatAdminController::class, 'destroy'])->name('chat.destroy');
         Route::get('/group-chat', [GroupChatAdminController::class, 'index'])->name('group-chat');
+        Route::get('/group-chat/mahasiswa/cari', [GroupChatAdminController::class, 'searchStudents'])->name('group-chat.students.search');
+        Route::post('/group-chat/grup', [GroupChatAdminController::class, 'createRoom'])->name('group-chat.rooms.store');
+        Route::patch('/group-chat/grup/{group}', [GroupChatAdminController::class, 'renameRoom'])->name('group-chat.rooms.update');
+        Route::post('/group-chat/grup/{group}/undang', [GroupChatAdminController::class, 'inviteMembers'])->name('group-chat.rooms.invite');
         Route::get('/group-chat/pesan', [GroupChatAdminController::class, 'messages'])->name('group-chat.messages');
         Route::post('/group-chat/pesan', [GroupChatAdminController::class, 'store'])->name('group-chat.store');
         Route::patch('/group-chat/pesan/{message}', [GroupChatAdminController::class, 'update'])->name('group-chat.update');

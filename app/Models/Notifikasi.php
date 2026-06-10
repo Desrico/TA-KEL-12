@@ -12,6 +12,8 @@ class Notifikasi extends Model
     protected $fillable = [
         'user_id',
         'pesan',
+        'cta_target',
+        'cta_label',
         'status',
     ];
 
@@ -37,6 +39,8 @@ class Notifikasi extends Model
                     \App\Models\NotifikasiMahasiswa::create([
                         'nim'    => $mahasiswa->nim,
                         'pesan'  => $notifikasi->pesan,
+                        'cta_target' => $notifikasi->cta_target,
+                        'cta_label' => $notifikasi->cta_label,
                         'status' => $notifikasi->status,
                     ]);
                 }

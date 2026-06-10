@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\AnonymousIdentitySupport;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -120,6 +121,7 @@ class User extends Authenticatable
 SVG;
 
         return 'data:image/svg+xml;base64,' . base64_encode($svg);
+        return AnonymousIdentitySupport::buildUserAlias($this);
     }
 
     public function getNamaDisplay(): string

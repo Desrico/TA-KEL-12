@@ -14,6 +14,9 @@ class NotifikasiMahasiswa extends Model
         'pesan',
         'status',
         'sql_notifikasi_id',
+        'cta_target',
+        'cta_label',
+        'status', // 'belum', 'dibaca'
     ];
 
     public function student()

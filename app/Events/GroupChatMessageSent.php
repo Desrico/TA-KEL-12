@@ -3,16 +3,13 @@
 namespace App\Events;
 
 use App\Models\GroupChatMessage;
-use App\Models\Student;
-use App\Models\User;
+use App\Support\GroupChatSupport;
 use Carbon\Carbon;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
-
 class GroupChatMessageSent implements ShouldBroadcastNow
 {
     use Dispatchable;
@@ -43,17 +40,18 @@ class GroupChatMessageSent implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         $sender = $this->message->sender;
-        $profil = optional($sender)->profil;
         $createdAt = $this->toDisplayDateTime($this->message->created_at);
+        $room = $this->message->room;
+        $membership = ($sender && $room) ? GroupChatSupport::resolveRoomMember($sender, $room) : null;
 
         return [
             'message' => [
                 'id' => $this->message->id,
                 'room_id' => $this->message->room_id,
                 'sender_id' => $this->message->user_id,
-                'sender_name' => $this->resolveUserDisplayName($sender),
+                'sender_name' => GroupChatSupport::resolveDisplayName($sender, $room, $membership),
                 'sender_role' => $sender?->role ?? 'pengguna',
-                'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
+                'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
                 'text' => $this->message->pesan,
                 'time' => $createdAt?->format('H:i') ?? Carbon::now($this->displayTimezone())->format('H:i'),
                 'sent_at' => $createdAt?->toIso8601String() ?? Carbon::now($this->displayTimezone())->toIso8601String(),
@@ -79,22 +77,4 @@ class GroupChatMessageSent implements ShouldBroadcastNow
         return 'Asia/Jakarta';
     }
 
-    private function resolveUserDisplayName(?User $user): string
-    {
-        if (! $user) {
-            return 'Pengguna';
-        }
-
-        if ($user->isAnonim()) {
-            return 'Mahasiswa Anonim';
-        }
-
-        $nim = optional($user->mahasiswa)->nim;
-        static $studentNameCache = [];
-        $studentName = $nim
-            ? ($studentNameCache[$nim] ??= Student::query()->where('nim', $nim)->value('name'))
-            : null;
-
-        return $studentName ?: ($user->nama ?: 'Pengguna');
-    }
 }

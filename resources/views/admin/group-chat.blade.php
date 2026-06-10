@@ -11,10 +11,17 @@
 @push('styles')
 <style>
   .admin-chat-page {
+    --admin-chat-shell-height: clamp(640px, calc(100vh - 142px), 900px);
+    --admin-chat-composer-space: 132px;
+    --admin-accent: #0b5d45;
+    --admin-accent-soft: #e4f1eb;
+    --admin-accent-soft-2: #f3f8f5;
+    --admin-accent-border: #cfe2d8;
     display: grid;
     grid-template-columns: 340px minmax(0, 1fr);
     gap: 0;
-    min-height: 760px;
+    min-height: 0;
+    height: var(--admin-chat-shell-height);
     background: #fff;
     border: 1px solid #dceee4;
     border-radius: 28px;
@@ -34,7 +41,7 @@
     overflow: hidden;
     align-self: stretch;
     border-right: 1px solid #edf7f1;
-    background: linear-gradient(180deg, #f7fff9, #ffffff 18%);
+    background: #f7fbf8;
   }
 
   .admin-chat-list-head {
@@ -75,16 +82,16 @@
   }
 
   .admin-chat-tab:hover {
-    background: linear-gradient(180deg, #f7fffb, #f1fcf6);
-    color: #065f46;
+    background: var(--admin-accent-soft-2);
+    color: var(--admin-accent);
     border-color: rgba(16, 185, 129, .12);
   }
 
   .admin-chat-tab.active {
-    background: linear-gradient(180deg, #ffffff, #f4fcf7);
-    color: #065f46;
+    background: #ffffff;
+    color: var(--admin-accent);
     border-color: transparent;
-    box-shadow: inset 0 -3px 0 #10b981;
+    box-shadow: inset 0 -3px 0 var(--admin-accent);
   }
 
   .admin-chat-tab.active::after {
@@ -95,7 +102,7 @@
     bottom: 0;
     height: 3px;
     border-radius: 999px 999px 0 0;
-    background: linear-gradient(135deg, #059669, #34d399);
+    background: var(--admin-accent);
   }
 
   .admin-chat-tab-icon {
@@ -104,8 +111,8 @@
   }
 
   .admin-chat-search {
-    margin-top: .85rem;
     position: relative;
+    flex: 1;
   }
 
   .admin-chat-search i {
@@ -142,6 +149,239 @@
     border-top: 1px solid #f4f8f6;
   }
 
+  .admin-chat-toolbar {
+    display: flex;
+    align-items: stretch;
+    gap: .65rem;
+    margin-top: .85rem;
+  }
+
+  .admin-add-toggle {
+    width: 46px;
+    min-width: 46px;
+    border: 1px solid #dbece3;
+    border-radius: 16px;
+    background: #ffffff;
+    color: var(--admin-accent);
+    font-size: 1.3rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+
+  .admin-add-toggle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 22px rgba(6, 78, 59, .08);
+    background: #ffffff;
+  }
+
+  .admin-add-toggle.is-open {
+    background: var(--admin-accent);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  .admin-private-create {
+    margin-top: .85rem;
+    padding: .9rem;
+    border-radius: 18px;
+    border: 1px solid #dceee4;
+    background: #f8fbf9;
+  }
+
+  .admin-private-create[hidden] {
+    display: none !important;
+  }
+
+  .admin-private-create h3,
+  .admin-invite-panel h3 {
+    margin: 0 0 .3rem;
+    color: #0f172a;
+    font-size: .92rem;
+    font-weight: 800;
+  }
+
+  .admin-private-create p,
+  .admin-invite-panel p {
+    margin: 0 0 .8rem;
+    color: #64748b;
+    font-size: .78rem;
+    line-height: 1.6;
+  }
+
+  .admin-field {
+    width: 100%;
+    border: 1px solid #dbece3;
+    border-radius: 14px;
+    padding: .74rem .85rem;
+    background: #fff;
+    color: #0f172a;
+    font-size: .84rem;
+    outline: none;
+  }
+
+  .admin-field:focus {
+    border-color: #8fd1b0;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, .08);
+  }
+
+  .admin-field + .admin-field,
+  .admin-private-create .admin-inline-note,
+  .admin-private-create .admin-create-actions,
+  .admin-invite-panel .admin-inline-note,
+  .admin-invite-panel .admin-create-actions {
+    margin-top: .7rem;
+  }
+
+  .admin-inline-note {
+    color: #64748b;
+    font-size: .74rem;
+    line-height: 1.6;
+  }
+
+  .admin-student-picker {
+    position: relative;
+    margin-top: .7rem;
+  }
+
+  .admin-student-picker-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    min-height: 44px;
+    padding: .55rem;
+    border: 1px solid #dbece3;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .admin-student-picker-tags.is-empty {
+    display: none;
+  }
+
+  .admin-student-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .42rem .55rem;
+    border-radius: 999px;
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
+    font-size: .74rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .admin-student-tag button {
+    border: none;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .92rem;
+  }
+
+  .admin-student-picker-input {
+    width: 100%;
+    border: 1px solid #dbece3;
+    border-radius: 14px;
+    padding: .74rem .85rem;
+    background: #fff;
+    color: #0f172a;
+    font-size: .84rem;
+    outline: none;
+    margin-top: .55rem;
+  }
+
+  .admin-student-picker-input:focus {
+    border-color: #8fd1b0;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, .08);
+  }
+
+  .admin-student-results {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + .35rem);
+    z-index: 15;
+    border: 1px solid #dbece3;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, .12);
+    overflow: hidden;
+    display: none;
+  }
+
+  .admin-student-results.is-open {
+    display: block;
+  }
+
+  .admin-student-result {
+    width: 100%;
+    border: none;
+    background: #fff;
+    text-align: left;
+    padding: .72rem .85rem;
+    display: grid;
+    gap: .12rem;
+  }
+
+  .admin-student-result:hover {
+    background: #f8fffb;
+  }
+
+  .admin-student-result strong {
+    color: #0f172a;
+    font-size: .8rem;
+  }
+
+  .admin-student-result span {
+    color: #64748b;
+    font-size: .74rem;
+  }
+
+  .admin-student-empty {
+    padding: .72rem .85rem;
+    color: #64748b;
+    font-size: .76rem;
+  }
+
+  .admin-create-actions {
+    display: flex;
+    gap: .65rem;
+    flex-wrap: wrap;
+  }
+
+  .admin-create-btn,
+  .admin-copy-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    border-radius: 14px;
+    padding: .72rem .95rem;
+    font-size: .78rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .admin-create-btn {
+    border: none;
+    color: #fff;
+    background: var(--admin-accent);
+    box-shadow: 0 12px 22px rgba(6, 95, 70, .18);
+  }
+
+  .admin-copy-link {
+    border: 1px solid #dbece3;
+    color: var(--admin-accent);
+    background: #fff;
+  }
+
   .admin-chat-session {
     display: block;
     padding: .95rem 1rem;
@@ -155,7 +395,7 @@
   }
 
   .admin-chat-session.active {
-    background: linear-gradient(135deg, rgba(209, 250, 229, .76), rgba(239, 252, 245, .92));
+    background: #edf6f1;
   }
 
   .admin-chat-session-top {
@@ -189,18 +429,17 @@
     text-transform: uppercase;
     letter-spacing: .04em;
     white-space: nowrap;
-    background: #e8fff1;
-    color: #047857;
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
   }
 
   .admin-chat-card {
     overflow: hidden;
-    min-height: 760px;
+    min-height: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    background:
-      radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 22%),
-      linear-gradient(180deg, #f6fff9 0%, #ffffff 16%, #ffffff 100%);
+    background: #f8fbf9;
   }
 
   .admin-chat-empty {
@@ -217,8 +456,8 @@
     border-radius: 28px;
     display: grid;
     place-items: center;
-    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-    color: #047857;
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
     font-size: 2rem;
     box-shadow: 0 20px 40px rgba(16, 185, 129, .16);
     margin-bottom: 1rem;
@@ -241,14 +480,17 @@
   /* Panel anggota dibuat dropdown agar ruang chat tidak menyusut ke samping. */
   .admin-chat-stage {
     position: relative;
-    min-height: 760px;
+    min-height: 0;
+    height: 100%;
   }
 
   .admin-chat-main {
     min-width: 0;
-    min-height: 760px;
+    min-height: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
   .admin-chat-head {
@@ -271,13 +513,20 @@
     min-width: 0;
   }
 
+  .admin-chat-title-row {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    flex-wrap: wrap;
+  }
+
   .admin-chat-avatar {
     width: 56px;
     height: 56px;
     border-radius: 18px;
     display: grid;
     place-items: center;
-    background: linear-gradient(135deg, #065f46, #10b981);
+    background: var(--admin-accent);
     color: #fff;
     font-size: 1.35rem;
     flex-shrink: 0;
@@ -289,6 +538,44 @@
     font-weight: 800;
     color: #0f172a;
     margin-bottom: .14rem;
+  }
+
+  .admin-room-rename-toggle {
+    border: 1px solid #d8eee2;
+    border-radius: 999px;
+    background: #fff;
+    color: #065f46;
+    padding: .36rem .68rem;
+    font-size: .72rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+  }
+
+  .admin-room-rename-toggle:hover {
+    background: #f8fffb;
+  }
+
+  .admin-room-rename-form {
+    margin-top: .78rem;
+    display: grid;
+    gap: .65rem;
+    padding: .82rem;
+    border: 1px solid #dceee4;
+    border-radius: 16px;
+    background: #f8fbf9;
+    max-width: 520px;
+  }
+
+  .admin-room-rename-form[hidden] {
+    display: none !important;
+  }
+
+  .admin-room-rename-actions {
+    display: flex;
+    gap: .6rem;
+    flex-wrap: wrap;
   }
 
   .admin-chat-subtitle {
@@ -318,7 +605,7 @@
     border-radius: 14px;
     padding: 0;
     background: #fff;
-    color: #065f46;
+    color: var(--admin-accent);
     font-size: 1.16rem;
     font-weight: 800;
     transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
@@ -352,11 +639,12 @@
   }
   .admin-chat-thread {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 1.35rem 1.35rem 0;
-    background:
-      radial-gradient(circle at center, rgba(209, 250, 229, 0.28), transparent 42%),
-      linear-gradient(180deg, rgba(246,255,249,.7), rgba(255,255,255,.98));
+    padding: 1.15rem 1.3rem calc(var(--admin-chat-composer-space) + 1rem);
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    background: #f8fbf9;
   }
 
   .admin-chat-date {
@@ -389,7 +677,7 @@
   }
 
   .admin-message-row.mine .admin-message-bubble {
-    background: linear-gradient(135deg, #065f46, #10b981);
+    background: var(--admin-accent);
     color: #fff;
     border-bottom-right-radius: 10px;
     box-shadow: 0 16px 32px rgba(6, 95, 70, .2);
@@ -434,7 +722,7 @@
 
   .admin-message-name {
     font-weight: 800;
-    color: #064e3b;
+    color: var(--admin-accent);
   }
 
   .admin-message-bubble {
@@ -567,7 +855,7 @@
   }
 
   .admin-message-editor-btn.save {
-    background: #065f46;
+    background: var(--admin-accent);
     color: #fff;
   }
 
@@ -608,19 +896,22 @@
   }
 
   .admin-chat-compose {
-    padding: 1rem 1.2rem 1.2rem;
-    border-top: 1px solid #edf7f1;
-    background: rgba(255,255,255,.95);
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0;
+    border-top: none;
+    background: transparent;
   }
 
   .admin-chat-form {
     display: flex;
     align-items: flex-end;
-    gap: .8rem;
-    padding: .75rem;
-    border-radius: 24px;
+    gap: .72rem;
+    padding: .65rem;
+    border-radius: 22px;
     border: 1px solid #d8eee2;
-    background: linear-gradient(180deg, #ffffff, #f8fffb);
+    background: #ffffff;
+    box-shadow: 0 14px 30px rgba(6, 78, 59, .08);
   }
 
   .admin-chat-input {
@@ -629,22 +920,23 @@
     resize: none;
     outline: none;
     background: transparent;
-    min-height: 56px;
-    max-height: 160px;
-    font-size: .94rem;
+    min-height: 46px;
+    max-height: 128px;
+    font-size: .92rem;
+    line-height: 1.55;
     color: #0f172a;
-    padding: .6rem .3rem;
+    padding: .45rem .25rem;
   }
 
   .admin-chat-send {
-    width: 54px;
-    height: 54px;
+    width: 50px;
+    height: 50px;
     border: none;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #065f46, #10b981);
+    border-radius: 16px;
+    background: var(--admin-accent);
     color: #fff;
-    font-size: 1.28rem;
-    box-shadow: 0 16px 28px rgba(6,95,70,.22);
+    font-size: 1.14rem;
+    box-shadow: 0 14px 26px rgba(6,95,70,.2);
   }
 
   .admin-chat-send:disabled {
@@ -654,10 +946,23 @@
   }
 
   .admin-chat-hint {
-    margin-top: .65rem;
+    max-width: 920px;
+    margin: .55rem auto 0;
     color: #64748b;
     font-size: .78rem;
     padding: 0 .25rem;
+  }
+
+  /* Tray bawah dibuat sticky agar direct add tetap mudah dijangkau saat thread chat sudah panjang. */
+  .admin-chat-bottom-stack {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    flex-shrink: 0;
+    padding: .75rem 1.2rem 1rem;
+    background:
+      linear-gradient(180deg, rgba(248,251,249,0) 0%, rgba(255,255,255,.88) 18%, rgba(255,255,255,.98) 38%, rgba(255,255,255,.98) 100%);
+    backdrop-filter: blur(12px);
   }
 
   /* Dropdown anggota berada di bawah ikon header dan tidak ikut mengambil kolom chat. */
@@ -674,7 +979,7 @@
     overflow: hidden;
     border: 1px solid #dceee4;
     border-radius: 18px;
-    background: linear-gradient(180deg, #fbfffd, #f7fcf9);
+    background: #fbfdfc;
     box-shadow: 0 18px 38px rgba(15, 23, 42, .12);
     transition: max-height .24s ease, opacity .18s ease, transform .18s ease;
     z-index: 30;
@@ -690,9 +995,7 @@
   .admin-chat-profile-head {
     padding: 1rem 1.1rem .85rem;
     border-bottom: 1px solid #edf7f1;
-    background:
-      radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 28%),
-      linear-gradient(180deg, #f6fff9, #ffffff);
+    background: #f6faf8;
   }
 
   .admin-chat-profile-head h3 {
@@ -713,6 +1016,41 @@
     padding: .95rem 1.1rem 1.05rem;
     overflow-y: auto;
     max-height: min(430px, 58vh);
+  }
+
+  .admin-profile-section {
+    margin-top: 1.35rem;
+    padding-top: 1.2rem;
+    padding-bottom: .35rem;
+    border-top: 1px solid #edf7f1;
+  }
+
+  .admin-profile-section form {
+    display: grid;
+    gap: .9rem;
+  }
+
+  .admin-profile-section h4 {
+    margin: 0 0 .28rem;
+    color: #0f172a;
+    font-size: .86rem;
+    font-weight: 800;
+  }
+
+  .admin-profile-section p {
+    margin: 0 0 .8rem;
+    color: #64748b;
+    font-size: .76rem;
+    line-height: 1.6;
+  }
+
+  .admin-profile-section .admin-inline-note {
+    margin-top: .15rem;
+  }
+
+  .admin-profile-section .admin-create-actions {
+    margin-top: .35rem;
+    padding-bottom: .25rem;
   }
 
   .admin-member-search {
@@ -794,6 +1132,7 @@
     .admin-chat-page {
       grid-template-columns: 1fr;
       min-height: 0;
+      height: auto;
     }
 
     .admin-chat-list {
@@ -803,12 +1142,21 @@
   }
 
   @media (max-width: 767.98px) {
+    .admin-chat-page {
+      --admin-chat-shell-height: calc(100vh - 112px);
+      --admin-chat-composer-space: 124px;
+    }
+
     .admin-chat-card {
-      min-height: 680px;
+      height: var(--admin-chat-shell-height);
     }
 
     .admin-chat-main {
-      min-height: 680px;
+      height: 100%;
+    }
+
+    .admin-chat-bottom-stack {
+      padding: .65rem .85rem .85rem;
     }
 
     .admin-chat-head {
@@ -831,6 +1179,10 @@
     .admin-message-content {
       max-width: 100%;
     }
+
+    .admin-chat-thread {
+      padding-inline: 1rem;
+    }
   }
 </style>
 @endpush
@@ -849,21 +1201,61 @@
           <span>Grup Chat</span>
         </a>
       </div>
-      <div class="admin-chat-search">
-        <i class="ti ti-search"></i>
-        <input
-          type="search"
-          id="adminGroupChatSearchInput"
-          placeholder="Cari topik, grup, atau nama anggota..."
-          autocomplete="off"
-        >
+      <div class="admin-chat-toolbar">
+        <div class="admin-chat-search">
+          <i class="ti ti-search"></i>
+          <input
+            type="search"
+            id="adminGroupChatSearchInput"
+            placeholder="Cari topik atau nama grup"
+            autocomplete="off"
+          >
+        </div>
+        <button type="button" class="admin-add-toggle" id="adminPrivateGroupToggle" aria-expanded="false" aria-controls="adminPrivateGroupCreatePanel" title="Tambah grup privat">
+          <i class="ti ti-plus"></i>
+        </button>
       </div>
+
+      <!-- Panel create dibuat inline agar konselor tetap berada di halaman group chat yang sama. -->
+      <form action="{{ route('admin.group-chat.rooms.store') }}" method="POST" class="admin-private-create" id="adminPrivateGroupCreatePanel" {{ old('create_private_group') ? '' : 'hidden' }}>
+        @csrf
+        <input type="hidden" name="create_private_group" value="1">
+        <h3>Buat Grup Privat</h3>
+        <p>Grup privat dipakai untuk undangan terbatas. Mahasiswa yang diundang akan menerima notifikasi, lalu melihat aturan dan consent sebelum resmi bergabung.</p>
+        <input type="text" name="title" class="admin-field" placeholder="Nama grup privat" value="{{ old('title') }}" required>
+
+        <div class="admin-student-picker" data-student-picker data-hidden-input-name="invite_nims">
+          <div class="admin-student-picker-tags is-empty" data-picker-tags></div>
+          <input
+            type="search"
+            class="admin-student-picker-input"
+            data-picker-input
+            placeholder="Cari mahasiswa aktif berdasarkan NIM, misalnya 11S278"
+            autocomplete="off"
+          >
+          <div class="admin-student-results" data-picker-results></div>
+          <input type="hidden" name="invite_nims" value="{{ old('invite_nims') }}" data-picker-hidden>
+          <div class="admin-inline-note">Ketik minimal 3 karakter NIM untuk melihat mahasiswa aktif yang benar-benar bisa diundang.</div>
+        </div>
+
+        <div class="admin-create-actions">
+          <button type="button" class="admin-copy-link" id="adminPrivateGroupCancelBtn">
+            <i class="ti ti-x"></i>
+            <span>Batal</span>
+          </button>
+          <button type="submit" class="admin-create-btn">
+            <i class="ti ti-lock-plus"></i>
+            <span>Buat Grup Privat</span>
+          </button>
+        </div>
+      </form>
     </div>
 
     @forelse($groupList as $room)
       @php
         $isSelected = optional($activeRoom)->id === $room->id;
-        $memberNames = $room->members->map(fn ($member) => $member->user?->getNamaDisplay())->filter()->values();
+        $memberNames = $room->members->map(fn ($member) => $member->anonymous_name ?: 'Mahasiswa Anonim')->filter()->values();
+        $roomMemberCount = (int) ($room->active_members_count ?? $room->members_count ?? $room->members->count());
         $latestMessagePreview = optional($room->latestMessage)->pesan
             ? \Illuminate\Support\Str::limit($room->latestMessage->pesan, 56)
             : 'Belum ada pesan pada grup ini.';
@@ -877,10 +1269,14 @@
       <a href="{{ route('admin.group-chat', ['group' => $room->id]) }}" class="admin-chat-session {{ $isSelected ? 'active' : '' }}" data-session-search="{{ $sessionSearchText }}">
         <div class="admin-chat-session-top">
           <div class="admin-chat-session-name">{{ $room->title }}</div>
-          <span class="admin-chat-session-status">{{ $room->topicLabel() }}</span>
+          <span class="admin-chat-session-status">{{ $room->visibilityLabel() }}</span>
         </div>
         <div class="admin-chat-session-meta">
-          {{ $room->members_count }} anggota<br>
+          {{ $room->topicLabel() }} &bull; {{ $roomMemberCount }} anggota aktif
+          @if(($room->invited_members_count ?? 0) > 0)
+            &bull; {{ $room->invited_members_count }} undangan
+          @endif
+          <br>
           {{ $latestMessagePreview }}
         </div>
       </a>
@@ -917,11 +1313,63 @@
                 <i class="ti ti-users-group"></i>
               </div>
               <div>
-                <div class="admin-chat-title">{{ $chatPayload['roomTitle'] }}</div>
+                <div class="admin-chat-title-row">
+                  <div class="admin-chat-title">{{ $chatPayload['roomTitle'] }}</div>
+                  @if(!empty($chatPayload['canRenameRoom']))
+                    <button
+                      type="button"
+                      class="admin-room-rename-toggle"
+                      id="adminRoomRenameToggle"
+                      aria-expanded="{{ old('rename_room_id') == $activeRoom->id ? 'true' : 'false' }}"
+                      aria-controls="adminRoomRenameForm"
+                    >
+                      <i class="ti ti-pencil"></i>
+                      <span>Ubah Nama</span>
+                    </button>
+                  @endif
+                </div>
                 <p class="admin-chat-subtitle">
-                  {{ $chatPayload['topicLabel'] }} &bull; {{ $chatPayload['memberCount'] }} anggota<br>
+                  {{ $chatPayload['visibilityLabel'] }} &bull; {{ $chatPayload['topicLabel'] }} &bull; {{ $chatPayload['memberCount'] }} anggota aktif
+                  @if(($chatPayload['pendingInviteCount'] ?? 0) > 0)
+                    &bull; {{ $chatPayload['pendingInviteCount'] }} undangan menunggu
+                  @endif
+                  <br>
                   {{ implode(', ', array_slice($chatPayload['memberNames'], 0, 5)) }}{{ count($chatPayload['memberNames']) > 5 ? ' dan lainnya' : '' }}
                 </p>
+                @if(!empty($chatPayload['canRenameRoom']))
+                  <!-- Rename grup privat dibuat inline agar konselor tetap berada di room yang sama saat memperbarui judul grup. -->
+                  <form
+                    action="{{ route('admin.group-chat.rooms.update', ['group' => $activeRoom->id]) }}"
+                    method="POST"
+                    class="admin-room-rename-form"
+                    id="adminRoomRenameForm"
+                    {{ old('rename_room_id') == $activeRoom->id ? '' : 'hidden' }}
+                  >
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="rename_room_id" value="{{ $activeRoom->id }}">
+                    <input
+                      type="text"
+                      name="title"
+                      class="admin-field"
+                      value="{{ old('title', $chatPayload['roomTitle']) }}"
+                      maxlength="120"
+                      placeholder="Masukkan nama grup privat"
+                      required
+                    >
+                    <div class="admin-inline-note">Gunakan nama grup yang singkat dan mudah dipahami anggota.</div>
+                    <div class="admin-room-rename-actions">
+                      <button type="button" class="admin-copy-link" id="adminRoomRenameCancelBtn">
+                        <i class="ti ti-x"></i>
+                        <span>Batal</span>
+                      </button>
+                      <button type="submit" class="admin-create-btn">
+                        <i class="ti ti-check"></i>
+                        <span>Simpan Nama</span>
+                      </button>
+                    </div>
+                  </form>
+                @endif
               </div>
             </div>
             <div class="admin-chat-head-actions">
@@ -930,11 +1378,11 @@
                 <i class="ti ti-chevron-down admin-chat-toggle-chevron"></i>
                 <span class="admin-chat-toggle-text">Lihat anggota grup</span>
               </button>
-
               {{-- Dropdown anggota dibuka dari ikon agar ruang chat tetap penuh. --}}
               <aside class="admin-chat-profile" id="adminGroupChatProfile">
                 <div class="admin-chat-profile-head">
                   <h3>Anggota Grup</h3>
+                  <p>Semua mahasiswa tampil sebagai alias anonim per grup.</p>
                 </div>
 
                 <div class="admin-chat-profile-body">
@@ -959,6 +1407,36 @@
                     @endforeach
                   </div>
                   <div class="admin-member-empty" id="adminGroupMemberEmpty">Anggota tidak ditemukan.</div>
+
+                  @if(!empty($chatPayload['canInviteMembers']))
+                    <!-- Direct add ditempatkan di panel profil grup agar ruang chat tetap fokus untuk membaca dan mengirim pesan. -->
+                    <div class="admin-profile-section">
+                      <h4>Undang Mahasiswa</h4>
+                      <p>Pilih mahasiswa aktif berdasarkan NIM. Undangan hanya ditampilkan untuk akun mahasiswa aktif yang memang bisa menerima invite.</p>
+
+                      <form action="{{ route('admin.group-chat.rooms.invite', ['group' => $activeRoom->id]) }}" method="POST">
+                        @csrf
+                        <div class="admin-student-picker" data-student-picker data-hidden-input-name="invite_nims">
+                          <div class="admin-student-picker-tags is-empty" data-picker-tags></div>
+                          <input
+                            type="search"
+                            class="admin-student-picker-input"
+                            data-picker-input
+                            placeholder="Cari mahasiswa aktif berdasarkan NIM, misalnya 11S278"
+                            autocomplete="off"
+                          >
+                          <div class="admin-student-results" data-picker-results></div>
+                          <input type="hidden" name="invite_nims" value="" data-picker-hidden>
+                        </div>
+                        <div class="admin-create-actions">
+                          <button type="submit" class="admin-create-btn">
+                            <i class="ti ti-user-plus"></i>
+                            <span>Kirim Undangan</span>
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  @endif
                 </div>
               </aside>
             </div>
@@ -966,21 +1444,24 @@
 
           <div class="admin-chat-thread" id="adminGroupChatThread"></div>
 
-          <div class="admin-chat-compose">
-            <form id="adminGroupChatForm" class="admin-chat-form">
-              <textarea
-                id="adminGroupChatInput"
-                class="admin-chat-input"
-                rows="1"
-                maxlength="2000"
-                placeholder="Tulis pesan untuk grup konseling ini..."
-              ></textarea>
-              <button type="submit" class="admin-chat-send" id="adminGroupChatSendBtn">
-                <i class="ti ti-send"></i>
-              </button>
-            </form>
-            <div class="admin-chat-hint" id="adminGroupChatHint">
-              Pesan akan langsung tampil untuk seluruh anggota grup dan konselor lain yang membuka ruang ini.
+          <!-- Tray bawah dibuat tetap terlihat agar kolom pesan selalu mudah dijangkau saat thread chat sudah panjang. -->
+          <div class="admin-chat-bottom-stack">
+            <div class="admin-chat-compose">
+              <form id="adminGroupChatForm" class="admin-chat-form">
+                <textarea
+                  id="adminGroupChatInput"
+                  class="admin-chat-input"
+                  rows="1"
+                  maxlength="2000"
+                  placeholder="Tulis pesan untuk grup konseling ini..."
+                ></textarea>
+                <button type="submit" class="admin-chat-send" id="adminGroupChatSendBtn">
+                  <i class="ti ti-send"></i>
+                </button>
+              </form>
+              <div class="admin-chat-hint" id="adminGroupChatHint">
+                Pesan akan langsung tampil untuk seluruh anggota grup aktif dan konselor lain yang membuka ruang ini. Nama mahasiswa tetap tampil sebagai alias anonim.
+              </div>
             </div>
           </div>
         </div>
@@ -996,8 +1477,255 @@
   const searchInput = document.getElementById('adminGroupChatSearchInput');
   const searchEmpty = document.getElementById('adminGroupChatSearchEmpty');
   const sessionItems = Array.from(document.querySelectorAll('[data-session-search]'));
+  const addToggleBtn = document.getElementById('adminPrivateGroupToggle');
+  const createPanel = document.getElementById('adminPrivateGroupCreatePanel');
+  const cancelCreateBtn = document.getElementById('adminPrivateGroupCancelBtn');
+  const renameToggleBtn = document.getElementById('adminRoomRenameToggle');
+  const renameForm = document.getElementById('adminRoomRenameForm');
+  const cancelRenameBtn = document.getElementById('adminRoomRenameCancelBtn');
+  const pickerNodes = Array.from(document.querySelectorAll('[data-student-picker]'));
+  const searchStudentsUrl = @json(route('admin.group-chat.students.search'));
+
+  // Toggle panel create tetap dibuat inline agar admin tidak perlu pindah halaman.
+  const syncCreatePanelState = (isOpen) => {
+    if (!addToggleBtn || !createPanel) {
+      return;
+    }
+
+    createPanel.hidden = !isOpen;
+    addToggleBtn.classList.toggle('is-open', isOpen);
+    addToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  };
+
+  addToggleBtn?.addEventListener('click', () => {
+    syncCreatePanelState(createPanel?.hidden ?? true);
+  });
+
+  cancelCreateBtn?.addEventListener('click', () => {
+    syncCreatePanelState(false);
+  });
+
+  if (createPanel && !createPanel.hidden && addToggleBtn) {
+    syncCreatePanelState(true);
+  }
+
+  // Rename grup privat dibuka inline agar konselor tidak keluar dari room aktif saat mengganti judul grup.
+  const syncRenameFormState = (isOpen) => {
+    if (!renameToggleBtn || !renameForm) {
+      return;
+    }
+
+    renameForm.hidden = !isOpen;
+    renameToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  };
+
+  renameToggleBtn?.addEventListener('click', () => {
+    syncRenameFormState(renameForm?.hidden ?? true);
+  });
+
+  cancelRenameBtn?.addEventListener('click', () => {
+    syncRenameFormState(false);
+  });
+
+  if (renameForm && !renameForm.hidden && renameToggleBtn) {
+    syncRenameFormState(true);
+  }
+
+  // Autocomplete direct add menerima NIM alfanumerik agar pola kampus seperti 11S278 tetap bisa dicari.
+  const initStudentPicker = (root) => {
+    const tagsEl = root.querySelector('[data-picker-tags]');
+    const inputEl = root.querySelector('[data-picker-input]');
+    const resultsEl = root.querySelector('[data-picker-results]');
+    const hiddenEl = root.querySelector('[data-picker-hidden]');
+
+    if (!tagsEl || !inputEl || !resultsEl || !hiddenEl) {
+      return;
+    }
+
+    let items = [];
+    let debounceTimer = null;
+    let emptyResultMessage = 'Mahasiswa aktif tidak ditemukan.';
+    let latestResults = [];
+
+    const eventCameFrom = (event, element) => {
+      if (!event || !element) {
+        return false;
+      }
+
+      if (typeof event.composedPath === 'function') {
+        return event.composedPath().includes(element);
+      }
+
+      return element.contains(event.target);
+    };
+
+    const syncHiddenValue = () => {
+      hiddenEl.value = items.map((item) => item.nim).join(',');
+    };
+
+    const renderTags = () => {
+      tagsEl.innerHTML = '';
+      tagsEl.classList.toggle('is-empty', items.length === 0);
+
+      if (items.length === 0) {
+        syncHiddenValue();
+        return;
+      }
+
+      items.forEach((item) => {
+        const tag = document.createElement('span');
+        const removeBtn = document.createElement('button');
+        tag.className = 'admin-student-tag';
+        tag.textContent = item.label || item.nim;
+        removeBtn.type = 'button';
+        removeBtn.setAttribute('aria-label', `Hapus ${item.nim}`);
+        removeBtn.innerHTML = '&times;';
+        removeBtn.addEventListener('click', () => {
+          items = items.filter((current) => current.nim !== item.nim);
+          renderTags();
+          if (resultsEl.classList.contains('is-open')) {
+            renderResults(latestResults);
+          }
+          inputEl.focus();
+        });
+        tag.appendChild(removeBtn);
+        tagsEl.appendChild(tag);
+      });
+
+      syncHiddenValue();
+    };
+
+    const closeResults = () => {
+      resultsEl.innerHTML = '';
+      resultsEl.classList.remove('is-open');
+    };
+
+    const renderResults = (results) => {
+      latestResults = Array.isArray(results) ? results : [];
+      resultsEl.innerHTML = '';
+
+      if (!latestResults.length) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'admin-student-empty';
+        emptyState.textContent = emptyResultMessage;
+        resultsEl.appendChild(emptyState);
+        resultsEl.classList.add('is-open');
+        return;
+      }
+
+      latestResults.forEach((item) => {
+        if (items.some((selected) => selected.nim === item.nim)) {
+          return;
+        }
+
+        const resultBtn = document.createElement('button');
+        const title = document.createElement('strong');
+        const meta = document.createElement('span');
+
+        resultBtn.type = 'button';
+        resultBtn.className = 'admin-student-result';
+        title.textContent = item.nim;
+        meta.textContent = item.name || 'Mahasiswa';
+        resultBtn.appendChild(title);
+        resultBtn.appendChild(meta);
+        resultBtn.addEventListener('click', () => {
+          items.push(item);
+          renderTags();
+          renderResults(latestResults);
+          inputEl.focus();
+        });
+
+        resultsEl.appendChild(resultBtn);
+      });
+
+      if (resultsEl.children.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'admin-student-empty';
+        emptyState.textContent = 'Semua hasil sudah dipilih.';
+        resultsEl.appendChild(emptyState);
+      }
+
+      resultsEl.classList.add('is-open');
+    };
+
+    const normalizeKeyword = (value) => String(value || '').replace(/\s+/g, '').trim();
+
+    const fetchStudents = async (nim) => {
+      try {
+        const response = await fetch(`${searchStudentsUrl}?nim=${encodeURIComponent(nim)}`, {
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+
+        if (!response.ok) {
+          emptyResultMessage = 'Pencarian mahasiswa aktif sedang tidak tersedia.';
+          closeResults();
+          return;
+        }
+
+        const data = await response.json();
+        // Pesan kosong dari backend dipakai agar admin tahu apakah hasil kosong karena mapping lokal atau CIS belum siap.
+        emptyResultMessage = String(data.message || 'Mahasiswa aktif tidak ditemukan.');
+        renderResults(Array.isArray(data.items) ? data.items : []);
+      } catch (error) {
+        console.error(error);
+        emptyResultMessage = 'Pencarian mahasiswa aktif sedang tidak tersedia.';
+        renderResults([]);
+      }
+    };
+
+    const hydrateInitialTags = () => {
+      const initialNims = String(hiddenEl.value || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+      if (!initialNims.length) {
+        renderTags();
+        return;
+      }
+
+      items = initialNims.map((nim) => ({
+        nim,
+        name: '',
+        label: nim,
+      }));
+
+      renderTags();
+    };
+
+    inputEl.addEventListener('input', () => {
+      const nim = normalizeKeyword(inputEl.value);
+
+      if (inputEl.value !== nim) {
+        inputEl.value = nim;
+      }
+
+      window.clearTimeout(debounceTimer);
+
+      if (nim.length < 3) {
+        closeResults();
+        return;
+      }
+
+      debounceTimer = window.setTimeout(() => {
+        fetchStudents(nim);
+      }, 350);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!eventCameFrom(event, root)) {
+        closeResults();
+      }
+    });
+
+    hydrateInitialTags();
+  };
 
   if (!searchInput || sessionItems.length === 0) {
+    pickerNodes.forEach(initStudentPicker);
     return;
   }
 
@@ -1020,6 +1748,8 @@
   };
 
   searchInput.addEventListener('input', syncSearch);
+
+  pickerNodes.forEach(initStudentPicker);
 })();
 </script>
 @endpush
@@ -1039,6 +1769,18 @@
   if (!stage || !toggle || !profile || !memberList) {
     return;
   }
+
+  const eventCameFrom = (event, element) => {
+    if (!event || !element) {
+      return false;
+    }
+
+    if (typeof event.composedPath === 'function') {
+      return event.composedPath().includes(element);
+    }
+
+    return element.contains(event.target);
+  };
 
   const renderMembers = () => {
     // Daftar anggota dirender dari payload yang sama dengan header agar tidak kosong saat relasi Blade belum stabil.
@@ -1108,7 +1850,7 @@
       return;
     }
 
-    if (toggle.contains(event.target) || profile.contains(event.target)) {
+    if (eventCameFrom(event, toggle) || eventCameFrom(event, profile)) {
       return;
     }
 
@@ -1175,7 +1917,7 @@
 
   const autoResize = () => {
     input.style.height = 'auto';
-    input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
+    input.style.height = `${Math.min(input.scrollHeight, 128)}px`;
   };
   const lastRenderedDateKey = () => Array.from(thread.querySelectorAll('[data-date-key]')).pop()?.dataset.dateKey || null;
   const renderDateSeparator = (label, key) => {

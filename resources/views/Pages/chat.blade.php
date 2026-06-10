@@ -29,19 +29,20 @@
 @push('styles')
 <style>
   .chat-page {
-    min-height: calc(100vh - 96px);
+    min-height: calc(100vh - 82px);
     background:
       radial-gradient(circle at top left, rgba(16, 185, 129, 0.18), transparent 30%),
       radial-gradient(circle at top right, rgba(110, 231, 183, 0.18), transparent 24%),
-      linear-gradient(180deg, #effcf5 0%, #f8fffb 20%, #ffffff 60%);
+      linear-gradient(180deg, #effcf5 0%, #eefbf4 26%, #e2f7ec 100%);
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    padding: 0;
+    padding: 1.2rem 0 2.4rem;
   }
 
   .chat-page-inner {
     width: 100%;
+    min-height: inherit;
     padding: 0;
   }
 
@@ -488,9 +489,17 @@
 
   .chat-empty {
     max-width: 880px;
-    margin: 1.25rem auto;
+    min-height: calc(100vh - 220px);
+    margin: 0 auto;
     padding: 3.2rem 2rem;
     text-align: center;
+    display: grid;
+    align-content: center;
+  }
+
+  /* Footer tidak diberi jarak ekstra agar background chat menyatu penuh ke bawah. */
+  .page-in:has(.chat-page) + footer {
+    margin-top: 0;
   }
 
   .chat-empty-icon {
@@ -523,8 +532,11 @@
   .chat-empty .btn-empty {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: .55rem;
     padding: .9rem 1.3rem;
+    width: fit-content;
+    margin: 0 auto;
     border-radius: 16px;
     text-decoration: none;
     font-weight: 700;
@@ -608,6 +620,7 @@
   @media (max-width: 767.98px) {
     .chat-page {
       min-height: calc(100vh - 78px);
+      padding: .95rem 0 2rem;
     }
 
     .chat-main,
@@ -646,6 +659,11 @@
 
     .chat-composer {
       padding: .7rem 1rem .8rem;
+    }
+
+    .chat-empty {
+      min-height: calc(100vh - 170px);
+      padding-inline: 1.15rem;
     }
   }
 

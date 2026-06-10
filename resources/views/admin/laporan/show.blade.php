@@ -412,16 +412,6 @@
     @enderror
 
     <div class="laporan-card">
-        <div class="laporan-head">
-            <div>
-                <h5>{{ $namaMahasiswa }}</h5>
-                <div class="student-meta">
-                    <span>NIM: {{ $mahasiswa->nim ?? '-' }}</span>
-                    <span>Prodi: {{ $mahasiswa->jurusan ?? '-' }}</span>
-                    <span>Angkatan: {{ $mahasiswa->angkatan ?? '-' }}</span>
-                </div>
-            </div>
-        </div>
 
         <div class="laporan-table-wrap">
             <table class="laporan-table">

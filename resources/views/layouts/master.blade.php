@@ -222,7 +222,7 @@
     cursor: pointer;
   }
 
-  .notif-item-trigger .notif-tag {
+  .notif-tag {
     display: inline-flex;
     align-items: center;
     gap: .35rem;
@@ -1954,13 +1954,20 @@ footer a:hover {
 
               $notifItems = $notifItems->map(function ($notif) use ($jadwalById, $jadwalByApprovedMessage, $chatGuardBlocked, $nextOnlineChatSchedule) {
                 $pesan = $notif->pesan;
-                $notif->cta_target = route('riwayat');
+                $notif->cta_target = $notif->cta_target ?: route('riwayat');
+                $notif->cta_label = $notif->cta_label ?: null;
                 $notif->is_letter_prompt = false;
                 $notif->prompt_title = null;
                 $notif->prompt_message = null;
                 $notif->prompt_cta = null;
                 $notif->prompt_note = null;
                 $notif->prompt_locked = false;
+                // comment: Notifikasi undangan grup privat dipertahankan sebagai CTA langsung ke halaman consent grup.
+                $notif->is_group_invite = filled($notif->cta_target) && str_contains((string) $notif->cta_target, '/group-chat/undangan/');
+                if ($notif->is_group_invite) {
+                  // comment: Label notifikasi lama dinormalisasi agar undangan grup privat selalu tampil konsisten.
+                  $notif->cta_label = 'Buka Undangan Grup';
+                }
                 $notifText = strtolower((string) $pesan);
                 $matchedApprovedJadwal = $jadwalByApprovedMessage->get($pesan);
 
@@ -2120,6 +2127,9 @@ footer a:hover {
               <a href="{{ $notif->cta_target ?? route('riwayat') }}" class="notif-item">
                 <p>{{ $notif->pesan }}</p>
                 <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
+                @if(!empty($notif->cta_label))
+                  <span class="notif-tag"><i class="bi bi-arrow-up-right-circle"></i> {{ $notif->cta_label }}</span>
+                @endif
               </a>
               @endif
             @empty
