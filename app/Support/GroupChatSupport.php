@@ -23,11 +23,11 @@ class GroupChatSupport
     public static function rules(): array
     {
         return [
-            'Gunakan bahasa yang sopan, baik, dan saling menghormati.',
             'Dilarang spam, flooding, atau mengirim pesan berulang yang tidak relevan.',
-            'Hindari membagikan data pribadi sensitif seperti nomor telepon, alamat, atau kata sandi.',
-            'Fokuskan percakapan pada topik grup dan kebutuhan konseling yang relevan.',
-            'Konselor dapat meninjau percakapan dan mengeluarkan anggota jika aturan dilanggar.',
+            'Dilarang mengirim atau menyebarkan informasi yang tidak benar, menyesatkan, atau hoaks.',
+            'Gunakan bahasa yang sopan dan saling menghormati. Hindari kata-kata kasar, menyerang, atau merendahkan anggota lain.',
+            'Jangan membagikan data pribadi sensitif milik diri sendiri atau orang lain tanpa kebutuhan yang jelas.',
+            'Fokuskan percakapan pada dukungan dan topik konseling yang relevan. Konselor dapat meninjau percakapan dan mengeluarkan anggota jika aturan dilanggar.',
         ];
     }
 

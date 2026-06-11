@@ -286,6 +286,13 @@ class GroupChatAdminController extends Controller
             ], 404);
         }
 
+        if ($message->isSystemMessage()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan sistem tidak dapat diedit.',
+            ], 422);
+        }
+
         // Konselor hanya dapat mengubah pesan grup yang dia kirim sendiri.
         $message->update([
             'pesan' => trim($validated['pesan']),
@@ -311,6 +318,13 @@ class GroupChatAdminController extends Controller
                 'success' => false,
                 'message' => 'Pesan tidak ditemukan atau tidak bisa dihapus.',
             ], 404);
+        }
+
+        if ($message->isSystemMessage()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan sistem tidak dapat dihapus.',
+            ], 422);
         }
 
         $message->delete();
@@ -564,14 +578,15 @@ class GroupChatAdminController extends Controller
                 ? 'Anda'
                 : GroupChatSupport::resolveDisplayName($sender, $room, $membership),
             'sender_role' => $sender?->role ?? 'pengguna',
-            'avatar_url' => $this->resolveUserAvatarUrl($sender),
             'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
             'text' => $message->pesan,
+            'is_system' => $message->isSystemMessage(),
+            'system_event' => $message->system_event,
             'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
             'updated_at' => $this->toDisplayDateTime($message->updated_at)?->toIso8601String(),
             'is_edited' => (bool) ($message->updated_at && $message->created_at && $message->updated_at->ne($message->created_at)),
-            'is_mine' => $message->user_id === $viewer->id,
+            'is_mine' => ! $message->isSystemMessage() && $message->user_id === $viewer->id,
         ];
     }
 

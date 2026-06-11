@@ -20,7 +20,7 @@
     <div class="absolute inset-0 bg-white/55 z-10"></div>
 
     <!-- Logo -->
-    <div class="absolute top-6 left-8 z-20 flex items-center gap-3">
+    <a href="{{ route('beranda') }}" class="absolute top-6 left-8 z-30 flex items-center gap-3">
         <img src="{{ asset('img/logo.png') }}" class="w-10 h-10 object-contain">
         <div>
             <h1 class="text-sm font-semibold text-[#064E3B] leading-tight">
@@ -30,19 +30,13 @@
                 Bimbingan & Konseling Digital
             </p>
         </div>
-    </div>
+    </a>
 
     <!-- Login Card -->
     <div class="relative z-20 min-h-screen flex items-center justify-center">
         <div class="w-full max-w-md px-6">
 
             <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 relative">
-                <!-- Tombol Back -->
-                <a href="{{ url('/') }}" class="absolute top-6 left-6 text-gray-400 hover:text-[#5FAF9F] transition-colors" title="Kembali ke Beranda">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                </a>
 
                 <h2 class="text-lg font-semibold text-center mb-5">
                     Masuk ke Akun

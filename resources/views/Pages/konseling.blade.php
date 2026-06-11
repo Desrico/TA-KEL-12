@@ -1224,8 +1224,6 @@
               <input type="text" class="schedule-input" id="profile-angkatan" value="{{ $angkatanMahasiswa }}" disabled>
             </div>
           </div>
-          <div class="anonim-toggle-card" id="anonim-toggle-card">
-
           <!-- Mode anonim hanya dipakai untuk pengajuan konseling online agar offline selalu memakai identitas asli. -->
           <div class="anonim-toggle-card" id="anonim-toggle-card" hidden>
             <div class="anonim-toggle-row">
@@ -1407,7 +1405,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const successRedirectUrl = @js($successRedirectUrl);
 
   const bookedSlots = new Map();
-  const serviceTimes = ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00'];
 
   // Slot layanan dimulai sejak 08.00 agar pilihan awal pagi tersedia juga di detail jadwal.
   const serviceTimes = ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00'];
@@ -1429,7 +1426,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const tanggalNote = document.getElementById('tanggal-note');
   const waktuNote = document.getElementById('waktu-note');
   const anonimToggleCardEl = document.getElementById('anonim-toggle-card');
-  const anonimCardEl = document.getElementById('anonim-toggle-card');
   const anonimToggleEl = document.getElementById('anonim-toggle');
   const anonimStatusEl = document.getElementById('anonim-toggle-status');
   const profileNimEl = document.getElementById('profile-nim');
@@ -1612,24 +1608,6 @@ document.addEventListener('DOMContentLoaded', function () {
     profileNamaEl.value = useAnonimIdentity ? profileDisplay.anonimName : profileDisplay.nama;
   }
 
-  function updateAnonimUI(active) {
-    isAnonim = Boolean(active);
-
-    if (profileNimEl) {
-      profileNimEl.value = isAnonim ? '********' : profileDisplay.nim;
-    }
-
-    if (profileNamaEl) {
-      profileNamaEl.value = isAnonim ? profileDisplay.anonimName : profileDisplay.nama;
-    }
-
-    if (anonimStatusEl) {
-      anonimStatusEl.textContent = isAnonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
-      anonimStatusEl.classList.remove('is-error');
-    }
-
-    syncAnonimSection();
-  // Informasi identitas mengikuti mode layanan: offline selalu asli, online boleh anonim.
   function syncIdentityPanel() {
     const allowAnonim = selectedService === 'online';
     const useAnonimIdentity = allowAnonim && isAnonim;
@@ -1637,8 +1615,8 @@ document.addEventListener('DOMContentLoaded', function () {
     profileNimEl.value = useAnonimIdentity ? '********' : profileDisplay.nim;
     profileNamaEl.value = useAnonimIdentity ? profileDisplay.anonimName : profileDisplay.nama;
 
-    if (anonimCardEl) {
-      anonimCardEl.hidden = !allowAnonim;
+    if (anonimToggleCardEl) {
+      anonimToggleCardEl.hidden = !allowAnonim;
     }
 
     if (!anonimStatusEl) {
@@ -1652,7 +1630,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function updateAnonimUI(active) {
-    isAnonim = active;
+    isAnonim = Boolean(active);
+    syncAnonimSection();
     syncIdentityPanel();
   }
 
@@ -1665,11 +1644,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!isLoggedIn) {
       checkbox.checked = false;
       window.location.href = '/login';
-      return;
-    }
-
-    if (selectedService !== 'online') {
-      checkbox.checked = isAnonim;
       return;
     }
 
@@ -1855,18 +1829,23 @@ document.addEventListener('DOMContentLoaded', function () {
     submitBtn.textContent = serviceConfig[mode]?.submit || 'Jadwalkan Konseling';
   }
 
-  function setServiceMode(mode, shouldScroll = false) {
+  function setServiceMode(mode, shouldScroll = false, options = {}) {
     if (!serviceConfig[mode]) return;
+
+    const {
+      showBooking = true,
+      markActivePanel = true,
+    } = options;
 
     selectedService = mode;
 
     const config = serviceConfig[mode];
 
-    bookingEl?.classList.add('is-visible');
+    bookingEl?.classList.toggle('is-visible', showBooking);
     document.body.classList.toggle('is-jadwal-ulang-mode', isJadwalUlang);
 
     document.querySelectorAll('[data-panel]').forEach(panel => {
-      panel.classList.toggle('active', panel.dataset.panel === mode);
+      panel.classList.toggle('active', markActivePanel && panel.dataset.panel === mode);
     });
 
     const scheduleSubtitleEl = document.getElementById('schedule-subtitle');
@@ -1925,7 +1904,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     submitBtn?.classList.toggle('online', mode === 'online');
 
-    if (shouldScroll && bookingEl) {
+    if (shouldScroll && showBooking && bookingEl) {
+      if (window.location.hash !== '#booking') {
+        history.replaceState(null, '', '#booking');
+      }
       bookingEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
@@ -2336,7 +2318,10 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Initialize
-  setServiceMode(selectedService, false);
+  setServiceMode(selectedService, false, {
+    showBooking: false,
+    markActivePanel: false,
+  });
   updateAnonimUI(isAnonim);
   handleTopikChange();
 
@@ -2344,12 +2329,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (isJadwalUlang && jadwalUlangData) {
       initializeJadwalUlangMode();
     } else {
-      bookingEl?.classList.remove('is-visible');
-
-      document.querySelectorAll('[data-panel]').forEach(panel => {
-        panel.classList.remove('active');
-      });
-
       renderTimeOptions();
     }
   });

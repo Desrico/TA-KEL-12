@@ -235,6 +235,26 @@
     align-items: flex-end;
   }
 
+  .group-message-row.system {
+    justify-content: center;
+    margin-bottom: 1.15rem;
+  }
+
+  .group-message-system {
+    width: fit-content;
+    max-width: min(92%, 520px);
+    padding: .7rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(209, 250, 229, 0.96);
+    background: rgba(236, 253, 245, 0.96);
+    color: #047857;
+    font-size: .82rem;
+    font-weight: 800;
+    line-height: 1.5;
+    text-align: center;
+    box-shadow: 0 10px 22px rgba(6, 78, 59, 0.05);
+  }
+
   .group-message-row.mine {
     justify-content: flex-end;
   }
@@ -648,6 +668,154 @@
     line-height: 1.6;
   }
 
+  .group-room-profile-footer {
+    padding: .95rem 1.1rem 1.1rem;
+    border-top: 1px solid rgba(221, 239, 231, 0.95);
+    background: linear-gradient(180deg, #fdfefe, #f8fbf9);
+  }
+
+  .group-room-leave-trigger {
+    width: 100%;
+    border: 1px solid rgba(185, 28, 28, 0.16);
+    border-radius: 14px;
+    background: #fff5f5;
+    color: #b91c1c;
+    padding: .85rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    font-size: .86rem;
+    font-weight: 800;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+
+  .group-room-leave-trigger:hover {
+    background: #ffe9e9;
+    box-shadow: 0 12px 24px rgba(185, 28, 28, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .group-room-leave-note {
+    margin: .55rem 0 0;
+    color: #7f1d1d;
+    font-size: .76rem;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .group-room-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, .34);
+    backdrop-filter: blur(4px);
+    z-index: 999999;
+  }
+
+  .group-room-modal-overlay.show {
+    display: flex;
+  }
+
+  .group-room-modal {
+    position: relative;
+    width: min(100%, 450px);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #0C7A52 0%, #0A6D4A 100%);
+    color: #fff;
+    padding: 2rem 1.8rem;
+    text-align: center;
+    box-shadow: 0 28px 68px rgba(15, 23, 42, .3);
+  }
+
+  .group-room-modal::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    pointer-events: none;
+  }
+
+  .group-room-modal-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1.1rem;
+    border: 5px solid #FFD18A;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #FFD18A;
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .group-room-modal h3 {
+    margin: 0 0 .85rem;
+    color: #fff;
+    font-size: 1.32rem;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .group-room-modal p {
+    margin: 0 auto;
+    max-width: 360px;
+    color: rgba(255, 255, 255, .96);
+    font-size: .96rem;
+    line-height: 1.6;
+  }
+
+  .group-room-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.8rem;
+  }
+
+  .group-room-modal-btn {
+    min-width: 130px;
+    min-height: 52px;
+    border-radius: 8px;
+    padding: .65rem 1.1rem;
+    font-size: .9rem;
+    font-weight: 800;
+    transition: transform .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
+  }
+
+  .group-room-modal-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .group-room-modal-btn-primary {
+    border: 0;
+    background: #FFE06B;
+    color: #07533A;
+  }
+
+  .group-room-modal-btn-primary:hover {
+    background: #FFD84F;
+    color: #064A34;
+  }
+
+  .group-room-modal-btn-secondary {
+    border: 1px solid rgba(255, 255, 255, .8);
+    background: transparent;
+    color: #fff;
+  }
+
+  .group-room-modal-btn-secondary:hover {
+    border-color: #fff;
+    background: rgba(255, 255, 255, .08);
+    color: #fff;
+  }
+
   @media (max-width: 767.98px) {
     .group-room-page {
       padding-top: 1.25rem;
@@ -681,6 +849,24 @@
 
     .group-message-content {
       max-width: 100%;
+    }
+
+    .group-room-modal {
+      width: min(100%, 340px);
+      padding: 1.65rem 1.25rem;
+      border-radius: 14px;
+    }
+
+    .group-room-modal h3 {
+      font-size: 1.12rem;
+    }
+
+    .group-room-modal p {
+      font-size: .9rem;
+    }
+
+    .group-room-modal-btn {
+      flex: 1 1 100%;
     }
   }
 </style>
@@ -760,6 +946,12 @@
                   </div>
                   <div class="group-member-empty" id="groupRoomMemberEmpty">Anggota tidak ditemukan.</div>
                 </div>
+                <div class="group-room-profile-footer">
+                  <button type="button" class="group-room-leave-trigger" id="groupRoomLeaveTrigger">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Keluar Grup</span>
+                  </button>
+                </div>
               </aside>
             </div>
           </div>
@@ -789,6 +981,26 @@
     </div>
   </div>
 </section>
+
+<div class="group-room-modal-overlay" id="groupRoomLeaveModal" aria-hidden="true">
+  <div class="group-room-modal" role="dialog" aria-modal="true" aria-labelledby="groupRoomLeaveModalTitle">
+    <div class="group-room-modal-icon">!</div>
+    <h3 id="groupRoomLeaveModalTitle">Keluar dari grup ini?</h3>
+    <p>Apakah benar Anda ingin keluar dari grup konseling ini? Setelah keluar, Anda tidak bisa mengirim pesan lagi sampai bergabung kembali.</p>
+
+    <form method="POST" action="{{ route('mahasiswa.group-chat.leave', ['group' => $activeRoom->id]) }}">
+      @csrf
+      <div class="group-room-modal-actions">
+        <button type="button" class="group-room-modal-btn group-room-modal-btn-secondary" id="groupRoomLeaveCancel">
+          Batal
+        </button>
+        <button type="submit" class="group-room-modal-btn group-room-modal-btn-primary">
+          Keluar Grup
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -800,6 +1012,9 @@
   const memberSearch = document.getElementById('groupRoomMemberSearchInput');
   const memberList = document.getElementById('groupRoomMemberList');
   const memberEmpty = document.getElementById('groupRoomMemberEmpty');
+  const leaveTrigger = document.getElementById('groupRoomLeaveTrigger');
+  const leaveModal = document.getElementById('groupRoomLeaveModal');
+  const leaveCancel = document.getElementById('groupRoomLeaveCancel');
   const memberProfiles = @json($chatPayload['memberProfiles']);
 
   if (!stage || !toggle || !profile || !memberList) {
@@ -869,6 +1084,27 @@
     toggle.querySelector('.group-room-toggle-text').textContent = label;
   };
 
+  const openLeaveModal = () => {
+    if (!leaveModal) {
+      return;
+    }
+
+    leaveModal.classList.add('show');
+    leaveModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    syncDropdownState(false);
+  };
+
+  const closeLeaveModal = () => {
+    if (!leaveModal) {
+      return;
+    }
+
+    leaveModal.classList.remove('show');
+    leaveModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  };
+
   toggle.addEventListener('click', (event) => {
     event.stopPropagation();
     renderMembers();
@@ -877,8 +1113,15 @@
   });
 
   memberSearch?.addEventListener('input', syncMemberSearch);
+  leaveTrigger?.addEventListener('click', openLeaveModal);
+  leaveCancel?.addEventListener('click', closeLeaveModal);
 
   document.addEventListener('click', (event) => {
+    if (leaveModal?.classList.contains('show') && event.target === leaveModal) {
+      closeLeaveModal();
+      return;
+    }
+
     if (!stage.classList.contains('is-profile-open')) {
       return;
     }
@@ -892,6 +1135,11 @@
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
+      if (leaveModal?.classList.contains('show')) {
+        closeLeaveModal();
+        return;
+      }
+
       syncDropdownState(false);
     }
   });
@@ -1043,14 +1291,25 @@
   const renderMessage = (message) => {
     const row = document.createElement('div');
     const isMine = Boolean(message.is_mine ?? (message.sender_id === currentUserId));
+    const isSystem = Boolean(message.is_system);
     const dateParts = resolveDateParts(message.sent_at);
 
     ensureDateSeparator(dateParts.key, dateParts.label);
 
-    row.className = `group-message-row ${isMine ? 'mine' : 'other'}`;
+    row.className = `group-message-row ${isSystem ? 'system' : (isMine ? 'mine' : 'other')}`;
     row.dataset.messageId = message.id;
     row.dataset.messageText = message.text ?? '';
     row.dataset.messageEdited = message.is_edited ? '1' : '0';
+    row.dataset.messageSystem = isSystem ? '1' : '0';
+
+    if (isSystem) {
+      row.innerHTML = `
+        <div class="group-message-system">${escapeHtml(message.text)}</div>
+      `;
+
+      thread.appendChild(row);
+      return;
+    }
 
     row.innerHTML = `
       ${isMine ? '' : `
@@ -1133,7 +1392,7 @@
 
         renderMessage({
           ...event.message,
-          is_mine: Number(event.message.sender_id) === currentUserId,
+          is_mine: !event.message.is_system && Number(event.message.sender_id) === currentUserId,
         });
 
         scrollToBottom();

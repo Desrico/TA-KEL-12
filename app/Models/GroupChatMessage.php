@@ -15,10 +15,13 @@ class GroupChatMessage extends Model
     protected $fillable = [
         'room_id',
         'user_id',
+        'is_system',
+        'system_event',
         'pesan',
     ];
 
     protected $casts = [
+        'is_system' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -31,5 +34,10 @@ class GroupChatMessage extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function isSystemMessage(): bool
+    {
+        return (bool) $this->is_system;
     }
 }

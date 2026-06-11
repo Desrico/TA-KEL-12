@@ -273,14 +273,6 @@ class JadwalController extends Controller
         }
 
         $konselor->loadMissing('user');
-        // Konseling offline selalu memakai identitas asli; alias anonim hanya berlaku untuk layanan online.
-        $isAnonim = $validated['jenis'] === 'online' && $user->isAnonim();
-        $namaDisplay = $isAnonim
-            ? $user->getAnonimDisplayName()
-            : $user->nama;
-        $identitasUntukKonselor = $isAnonim
-            ? trim($user->getAnonimDisplayName())
-            : $user->nama;
 
         $normalizedWaktu = Carbon::createFromFormat('H:i', $validated['waktu'])
             ->format('H:i:s');

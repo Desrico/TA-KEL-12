@@ -93,9 +93,11 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     
     Route::get('/group-chat', [GroupChatMahasiswaController::class, 'index'])->name('mahasiswa.group-chat');
     Route::get('/group-chat/buat', [GroupChatMahasiswaController::class, 'create'])->name('mahasiswa.group-chat.create');
+    Route::get('/group-chat/consent', [GroupChatMahasiswaController::class, 'consent'])->name('mahasiswa.group-chat.consent');
     Route::get('/group-chat/undangan/{token}', [GroupChatMahasiswaController::class, 'invitation'])->name('mahasiswa.group-chat.invite');
     Route::post('/group-chat/gabung', [GroupChatMahasiswaController::class, 'join'])->name('mahasiswa.group-chat.join');
     Route::get('/group-chat/room/{group}', [GroupChatMahasiswaController::class, 'room'])->name('mahasiswa.group-chat.room');
+    Route::post('/group-chat/room/{group}/leave', [GroupChatMahasiswaController::class, 'leave'])->name('mahasiswa.group-chat.leave');
     Route::get('/group-chat/pesan', [GroupChatMahasiswaController::class, 'messages'])->name('mahasiswa.group-chat.messages');
     Route::post('/group-chat/pesan', [GroupChatMahasiswaController::class, 'store'])->name('mahasiswa.group-chat.store');
     Route::patch('/group-chat/pesan/{message}', [GroupChatMahasiswaController::class, 'update'])->name('mahasiswa.group-chat.update');

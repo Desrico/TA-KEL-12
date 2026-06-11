@@ -668,6 +668,26 @@
     align-items: flex-end;
   }
 
+  .admin-message-row.system {
+    justify-content: center;
+    margin-bottom: 1.1rem;
+  }
+
+  .admin-message-system {
+    width: fit-content;
+    max-width: min(92%, 540px);
+    padding: .68rem 1rem;
+    border-radius: 999px;
+    border: 1px solid #d8eee1;
+    background: #edf9f2;
+    color: #065f46;
+    font-size: .8rem;
+    font-weight: 800;
+    line-height: 1.5;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(6, 78, 59, .05);
+  }
+
   .admin-message-row.mine {
     justify-content: flex-end;
   }
@@ -2010,14 +2030,25 @@
   const renderMessage = (message) => {
     const row = document.createElement('div');
     const isMine = Boolean(message.is_mine ?? (message.sender_id === currentUserId));
+    const isSystem = Boolean(message.is_system);
     const dateParts = resolveDateParts(message.sent_at);
 
     ensureDateSeparator(dateParts.key, dateParts.label);
 
-    row.className = `admin-message-row ${isMine ? 'mine' : 'other'}`;
+    row.className = `admin-message-row ${isSystem ? 'system' : (isMine ? 'mine' : 'other')}`;
     row.dataset.messageId = message.id;
     row.dataset.messageText = message.text ?? '';
     row.dataset.messageEdited = message.is_edited ? '1' : '0';
+    row.dataset.messageSystem = isSystem ? '1' : '0';
+
+    if (isSystem) {
+      row.innerHTML = `
+        <div class="admin-message-system">${escapeHtml(message.text)}</div>
+      `;
+
+      thread.appendChild(row);
+      return;
+    }
 
     row.innerHTML = `
       ${isMine ? '' : `
@@ -2098,7 +2129,7 @@
 
         renderMessage({
           ...event.message,
-          is_mine: Number(event.message.sender_id) === currentUserId,
+          is_mine: !event.message.is_system && Number(event.message.sender_id) === currentUserId,
         });
 
         scrollToBottom();

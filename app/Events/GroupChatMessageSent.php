@@ -53,6 +53,8 @@ class GroupChatMessageSent implements ShouldBroadcastNow
                 'sender_role' => $sender?->role ?? 'pengguna',
                 'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
                 'text' => $this->message->pesan,
+                'is_system' => (bool) $this->message->is_system,
+                'system_event' => $this->message->system_event,
                 'time' => $createdAt?->format('H:i') ?? Carbon::now($this->displayTimezone())->format('H:i'),
                 'sent_at' => $createdAt?->toIso8601String() ?? Carbon::now($this->displayTimezone())->toIso8601String(),
                 'updated_at' => $this->toDisplayDateTime($this->message->updated_at)?->toIso8601String(),
