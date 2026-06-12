@@ -668,7 +668,6 @@ class DashboardController extends Controller
         ];
 
         $students = Student::with('journalTexts')
-            ->whereNotNull('mental_level')
             ->when($level !== 'Semua', function ($q) use ($level) {
                 $q->whereIn('mental_level', [(int)$level, (string)$level]);
             })
