@@ -1089,6 +1089,20 @@
     gap: .58rem;
   }
 
+  .admin-member-avatar-fallback {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #b7ebc9;
+    color: #065f46;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .9rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
   /* Item anggota menampilkan foto kecil dan nama tanpa metadata tambahan. */
   .admin-member-item {
     display: flex;
@@ -1100,17 +1114,19 @@
   .admin-member-avatar {
     width: 34px;
     height: 34px;
-    border-radius: 12px;
+    border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
     background: #e8fff1;
-  }
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
   .admin-member-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
   }
 
   .admin-member-name {
@@ -1309,9 +1325,6 @@
         <div class="admin-chat-main">
           <div class="admin-chat-head">
             <div class="admin-chat-person">
-              <div class="admin-chat-avatar">
-                <i class="ti ti-users-group"></i>
-              </div>
               <div>
                 <div class="admin-chat-title-row">
                   <div class="admin-chat-title">{{ $chatPayload['roomTitle'] }}</div>
@@ -1397,10 +1410,18 @@
                     >
                   </div>
                   <div class="admin-member-list" id="adminGroupMemberList">
+                    <div class="admin-member-item" data-member-name="konselor">
+                      <div class="admin-member-avatar-fallback">K</div>
+                      <div class="admin-member-name">Konselor</div>
+                    </div>
+
                     @foreach($chatPayload['memberProfiles'] as $memberProfile)
                       <div class="admin-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberProfile['name']) }}">
                         <div class="admin-member-avatar">
-                          <img src="{{ $memberProfile['avatar_url'] }}" alt="{{ $memberProfile['name'] }}">
+                          <img 
+                            src="{{ $memberProfile['avatar_url'] ?? asset('img/default-avatar.png') }}" 
+                            alt="{{ $memberProfile['name'] }}"
+                          >
                         </div>
                         <div class="admin-member-name">{{ $memberProfile['name'] }}</div>
                       </div>
@@ -1764,7 +1785,14 @@
   const memberSearch = document.getElementById('adminGroupMemberSearchInput');
   const memberList = document.getElementById('adminGroupMemberList');
   const memberEmpty = document.getElementById('adminGroupMemberEmpty');
-  const memberProfiles = @json($chatPayload['memberProfiles']);
+  const memberProfiles = [
+  {
+    name: 'Konselor',
+    avatar_initial: 'K',
+    is_counselor: true,
+  },
+  ...@json($chatPayload['memberProfiles'])
+];
 
   if (!stage || !toggle || !profile || !memberList) {
     return;
@@ -1786,24 +1814,35 @@
     // Daftar anggota dirender dari payload yang sama dengan header agar tidak kosong saat relasi Blade belum stabil.
     memberList.innerHTML = '';
 
-    memberProfiles.forEach((member) => {
-      const item = document.createElement('div');
-      const avatar = document.createElement('div');
-      const image = document.createElement('img');
-      const label = document.createElement('div');
-      const name = member?.name || 'Pengguna';
-      item.className = 'admin-member-item';
-      item.dataset.memberName = String(name).toLowerCase();
+   memberProfiles.forEach((member) => {
+    const item = document.createElement('div');
+    const avatar = document.createElement('div');
+    const label = document.createElement('div');
+    const name = member?.name || 'Pengguna';
+
+    item.className = 'admin-member-item';
+    item.dataset.memberName = String(name).toLowerCase();
+
+    if (member?.is_counselor) {
+      avatar.className = 'admin-member-avatar-fallback';
+      avatar.textContent = 'K';
+    } else {
       avatar.className = 'admin-member-avatar';
+
+      const image = document.createElement('img');
       image.src = member?.avatar_url || '{{ asset('img/default-avatar.png') }}';
       image.alt = name;
-      label.className = 'admin-member-name';
-      label.textContent = name;
+
       avatar.appendChild(image);
-      item.appendChild(avatar);
-      item.appendChild(label);
-      memberList.appendChild(item);
-    });
+    }
+
+    label.className = 'admin-member-name';
+    label.textContent = name;
+
+    item.appendChild(avatar);
+    item.appendChild(label);
+    memberList.appendChild(item);
+  });
   };
 
   const syncMemberSearch = () => {

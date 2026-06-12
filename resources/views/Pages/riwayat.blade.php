@@ -72,19 +72,31 @@
     <div class="riwayat-card">
         <div class="card-left">
             @php
-    $namaMahasiswa =
-        $item->mahasiswa?->user?->name
-        ?? $item->mahasiswa?->user?->nama
-        ?? $item->mahasiswa?->user?->nama_lengkap
-        ?? $item->mahasiswa?->nama
-        ?? $item->mahasiswa?->nama_lengkap
-        ?? auth()->user()->name
-        ?? auth()->user()->nama
-        ?? auth()->user()->nama_lengkap
-        ?? 'Mahasiswa';
+    $userMahasiswa = $item->mahasiswa?->user;
+    $isAnonim = filter_var($item->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+
+    if ($isAnonim) {
+        $namaMahasiswa = method_exists($userMahasiswa, 'getAnonimDisplayName')
+            ? trim($userMahasiswa->getAnonimDisplayName())
+            : 'Anonim';
+
+        $namaMahasiswa = $namaMahasiswa ?: 'Anonim';
+    } else {
+        $namaMahasiswa =
+            $userMahasiswa?->name
+            ?? $userMahasiswa?->nama
+            ?? $userMahasiswa?->nama_lengkap
+            ?? $item->mahasiswa?->nama
+            ?? $item->mahasiswa?->nama_lengkap
+            ?? auth()->user()->name
+            ?? auth()->user()->nama
+            ?? auth()->user()->nama_lengkap
+            ?? 'Mahasiswa';
+    }
 
     $inisialMahasiswa = strtoupper(substr($namaMahasiswa, 0, 1));
 @endphp
+    
 
             <div class="avatar">
                 {{ $inisialMahasiswa }}

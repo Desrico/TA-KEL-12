@@ -413,7 +413,7 @@ public function dashboard()
 {
     $konselor = auth()->user()->konselor;
 
-    $jadwal = \App\Models\JadwalKonseling::with(['mahasiswa.user'])
+    $jadwal = \App\Models\JadwalKonseling::with(['mahasiswa.user.profil'])
     ->where('konselor_id', $konselor->id)
     ->where(function ($query) {
         $query->whereNull('status')
@@ -422,6 +422,18 @@ public function dashboard()
     ->get()
     ->map(function ($item) {
         $status = strtolower($item->status ?? 'menunggu');
+
+        $userMahasiswa = optional(optional($item->mahasiswa)->user);
+
+        $isAnonim = filter_var($item->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $namaTampil = $isAnonim
+            ? (
+                method_exists($userMahasiswa, 'getAnonimDisplayName')
+                    ? trim($userMahasiswa->getAnonimDisplayName())
+                    : 'Anonim'
+            )
+            : ($userMahasiswa->nama ?? 'Mahasiswa');
 
         $warna = match ($status) {
             'menunggu', 'menunggu konfirmasi' => '#E9D98B',
@@ -443,7 +455,7 @@ public function dashboard()
 
         return [
             'id' => $item->id,
-            'title' => $item->mahasiswa->user->nama ?? 'Mahasiswa',
+            'title' => $namaTampil,
             'start' => $item->tanggal,
             'backgroundColor' => $warna,
             'borderColor' => $warna,
@@ -451,7 +463,7 @@ public function dashboard()
 
             'extendedProps' => [
                 'id' => $item->id,
-                'nama' => $item->mahasiswa->user->nama ?? '-',
+                'nama' => $namaTampil,
                 'waktu' => $item->waktu ?? '-',
                 'jenis' => $item->jenis ?? '-',
                 'topik' => $item->topik ?? '-',

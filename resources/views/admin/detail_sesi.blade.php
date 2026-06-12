@@ -107,6 +107,20 @@
     $user = optional($mahasiswa)->user;
     $status = strtolower($jadwal->status ?? 'menunggu');
 
+    $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+
+    $namaTampil = $isAnonim
+        ? (
+            method_exists($user, 'getAnonimDisplayName')
+                ? trim($user->getAnonimDisplayName())
+                : 'Anonim'
+        )
+        : ($user->nama ?? '-');
+
+    $nimTampil = $isAnonim
+        ? '-'
+        : ($mahasiswa->nim ?? '-');
+
     $statusLabel = match ($status) {
         'menunggu' => 'Menunggu Konfirmasi',
         'disetujui', 'diterima' => 'Diterima',
@@ -141,11 +155,11 @@
     <table class="detail-table">
         <tr>
             <td>NIM</td>
-            <td>{{ $mahasiswa->nim ?? '-' }}</td>
+            <td>{{ $nimTampil }}</td>
         </tr>
         <tr>
             <td>Nama</td>
-            <td>{{ $user->nama ?? '-' }}</td>
+            <td>{{ $namaTampil }}</td>
         </tr>
         <tr>
             <td>Program Studi</td>
@@ -187,10 +201,10 @@
 
     @if($status === 'menunggu')
         <div class="detail-actions">
-            <form action="{{ route('admin.sesi.terima', $jadwal->id) }}" method="POST">
-                @csrf
-                <button type="submit" class="btn-terima">Terima</button>
-            </form>
+            <form id="formTerimaSesi" action="{{ route('admin.sesi.terima', $jadwal->id) }}" method="POST">
+            @csrf
+            <button type="submit" class="btn-terima">Terima</button>
+        </form>
 
             <a href="{{ route('admin.sesi.tolak', $jadwal->id) }}" class="btn-tolak">
                 Tolak
@@ -244,3 +258,163 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const formTerima = document.getElementById('formTerimaSesi');
+
+    if (formTerima) {
+        formTerima.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            Swal.fire({
+                html: `
+                    <div style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+                        <div style="
+                            width:64px;
+                            height:64px;
+                            border:4px solid #FDE68A;
+                            border-radius:50%;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            color:#FDE68A;
+                            font-size:38px;
+                            font-weight:800;
+                            margin-bottom:18px;
+                        ">?</div>
+
+                        <h3 style="
+                            color:#ffffff;
+                            font-size:26px;
+                            font-weight:800;
+                            margin:0 0 14px;
+                            white-space: nowrap;
+                        ">
+                            Konfirmasi Penerimaan
+                        </h3>
+
+                        <p style="
+                            color:#ffffff;
+                            font-size:14px;
+                            line-height:1.5;
+                            margin:0;
+                            max-width:310px;
+                        ">
+                            Apakah kamu yakin ingin menerima sesi konseling ini?
+                            <br>
+                            Pastikan data jadwal sudah sesuai sebelum dikonfirmasi.
+                        </p>
+                    </div>
+                `,
+                background: '#065F46',
+                showCancelButton: true,
+                confirmButtonText: 'Terima',
+                cancelButtonText: 'Kembali',
+                reverseButtons: false,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'campuscare-swal-popup',
+                    actions: 'campuscare-swal-actions',
+                    confirmButton: 'campuscare-swal-confirm',
+                    cancelButton: 'campuscare-swal-cancel'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    formTerima.submit();
+                }
+            });
+        });
+    }
+
+    @if(session('terima_success'))
+        Swal.fire({
+            html: `
+                <div style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+                    <div style="
+                        width:64px;
+                        height:64px;
+                        border:4px solid #FDE68A;
+                        border-radius:50%;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        color:#FDE68A;
+                        font-size:34px;
+                        font-weight:800;
+                        margin-bottom:18px;
+                    ">✓</div>
+
+                    <h3 style="
+                        color:#ffffff;
+                        font-size:22px;
+                        font-weight:800;
+                        margin:0 0 14px;
+                    ">
+                        Berhasil
+                    </h3>
+
+                    <p style="
+                        color:#ffffff;
+                        font-size:14px;
+                        line-height:1.5;
+                        margin:0;
+                        max-width:310px;
+                    ">
+                        Jadwal berhasil diterima.
+                    </p>
+                </div>
+            `,
+            background: '#065F46',
+                confirmButtonText: 'OK',
+                showConfirmButton: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'campuscare-swal-popup',
+                    confirmButton: 'campuscare-swal-confirm'
+                }
+        }).then(() => {
+            window.location.href = "{{ route('admin.sesi') }}";
+        });
+    @endif
+});
+</script>
+
+<style>
+.campuscare-swal-popup {
+    border-radius: 18px !important;
+    padding: 2rem 1.8rem !important;
+    width: 430px !important;
+}
+
+.campuscare-swal-actions {
+    gap: .75rem !important;
+    margin-top: 1.4rem !important;
+}
+
+.campuscare-swal-confirm {
+    background: #FDE68A !important;
+    color: #065F46 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: .65rem 1.25rem !important;
+    font-weight: 800 !important;
+    font-size: .9rem !important;
+}
+
+.campuscare-swal-cancel {
+    background: transparent !important;
+    color: #ffffff !important;
+    border: 1.5px solid #ffffff !important;
+    border-radius: 8px !important;
+    padding: .65rem 1.25rem !important;
+    font-weight: 700 !important;
+    font-size: .9rem !important;
+}
+</style>
+@endpush

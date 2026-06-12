@@ -506,6 +506,21 @@
     box-shadow: 0 16px 30px rgba(6, 95, 70, 0.24);
   }
 
+  .group-message-avatar-fallback {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #b7ebc9;
+    color: #065f46;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .9rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+}
+
   .group-room-send:disabled {
     opacity: .5;
     cursor: not-allowed;
@@ -608,6 +623,20 @@
     display: grid;
     gap: .58rem;
   }
+
+  .group-member-avatar-fallback {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #b7ebc9;
+    color: #065f46;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .9rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
 
   /* Item anggota menampilkan foto kecil dan nama tanpa metadata tambahan. */
   .group-member-item {
@@ -749,6 +778,11 @@
                     >
                   </div>
                   <div class="group-member-list" id="groupRoomMemberList">
+                    <div class="group-member-item" data-member-name="konselor">
+                      <div class="group-member-avatar-fallback">K</div>
+                      <div class="group-member-name">Konselor</div>
+                    </div>
+
                     @foreach($chatPayload['memberProfiles'] as $memberProfile)
                       <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberProfile['name']) }}">
                         <div class="group-member-avatar">
@@ -800,7 +834,14 @@
   const memberSearch = document.getElementById('groupRoomMemberSearchInput');
   const memberList = document.getElementById('groupRoomMemberList');
   const memberEmpty = document.getElementById('groupRoomMemberEmpty');
-  const memberProfiles = @json($chatPayload['memberProfiles']);
+  const memberProfiles = [
+  {
+    name: 'Konselor',
+    avatar_initial: 'K',
+    is_counselor: true,
+  },
+  ...@json($chatPayload['memberProfiles'])
+];
 
   if (!stage || !toggle || !profile || !memberList) {
     return;
@@ -810,33 +851,40 @@
     memberList.innerHTML = '';
 
     memberProfiles.forEach((member) => {
-      const item = document.createElement('div');
-      const avatar = document.createElement('div');
-      const image = document.createElement('img');
-      const label = document.createElement('div');
+  const item = document.createElement('div');
+  const avatar = document.createElement('div');
+  const label = document.createElement('div');
 
-      const name = member?.name || 'Mahasiswa Anonim';
-      const avatarUrl = member?.avatar_url || '{{ asset('img/default-avatar.png') }}';
+  const name = member?.name || 'Mahasiswa Anonim';
 
-      item.className = 'group-member-item';
-      item.dataset.memberName = String(name).toLowerCase();
+  item.className = 'group-member-item';
+  item.dataset.memberName = String(name).toLowerCase();
 
-      avatar.className = 'group-member-avatar';
+  if (member?.is_counselor) {
+    avatar.className = 'group-member-avatar-fallback';
+    avatar.textContent = 'K';
+  } else {
+    const image = document.createElement('img');
+    const avatarUrl = member?.avatar_url || '{{ asset('img/default-avatar.png') }}';
 
-      image.src = avatarUrl;
-      image.alt = name;
-      image.onerror = function () {
-        this.src = '{{ asset('img/default-avatar.png') }}';
-      };
+    avatar.className = 'group-member-avatar';
 
-      label.className = 'group-member-name';
-      label.textContent = name;
+    image.src = avatarUrl;
+    image.alt = name;
+    image.onerror = function () {
+      this.src = '{{ asset('img/default-avatar.png') }}';
+    };
 
-      avatar.appendChild(image);
-      item.appendChild(avatar);
-      item.appendChild(label);
-      memberList.appendChild(item);
-    });
+    avatar.appendChild(image);
+  }
+
+  label.className = 'group-member-name';
+  label.textContent = name;
+
+  item.appendChild(avatar);
+  item.appendChild(label);
+  memberList.appendChild(item);
+});
   };
 
   const syncMemberSearch = () => {
@@ -1045,6 +1093,24 @@
     const isMine = Boolean(message.is_mine ?? (message.sender_id === currentUserId));
     const dateParts = resolveDateParts(message.sent_at);
 
+    const senderRole = String(message.sender_role || '').toLowerCase();
+
+const isCounselorMessage = senderRole === 'konselor'
+  || senderRole === 'admin'
+  || message.is_counselor === true;
+
+const displaySenderName = isCounselorMessage
+  ? 'Konselor'
+  : (message.sender_name || 'Mahasiswa Anonim');
+
+const displayAvatarUrl = isCounselorMessage
+  ? null
+  : (message.avatar_url || '{{ asset('img/default-avatar.png') }}');
+
+const displayAvatarInitial = isCounselorMessage
+  ? 'K'
+  : String(displaySenderName || 'M').charAt(0).toUpperCase();
+
     ensureDateSeparator(dateParts.key, dateParts.label);
 
     row.className = `group-message-row ${isMine ? 'mine' : 'other'}`;
@@ -1054,22 +1120,30 @@
 
     row.innerHTML = `
       ${isMine ? '' : `
-        <div class="group-message-avatar">
-          <img src="${escapeHtml(message.avatar_url)}" alt="${escapeHtml(message.sender_name)}">
-        </div>
+        ${isCounselorMessage ? `
+  <div class="group-message-avatar-fallback">K</div>
+` : `
+  <div class="group-message-avatar">
+    <img src="${escapeHtml(displayAvatarUrl)}" alt="${escapeHtml(displaySenderName)}">
+  </div>
+`}
       `}
       <div class="group-message-content">
         <div class="group-message-meta">
-          <span class="group-message-name">${escapeHtml(message.sender_name)}</span>
+          <span class="group-message-name">${escapeHtml(displaySenderName)}</span>
           <span>${escapeHtml(message.time)}</span>
           ${message.is_edited ? '<span class="group-message-edited">telah diedit</span>' : ''}
         </div>
         <div class="group-message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
       </div>
       ${isMine ? `
-        <div class="group-message-avatar">
-          <img src="${escapeHtml(message.avatar_url)}" alt="${escapeHtml(message.sender_name)}">
-        </div>
+        ${isCounselorMessage ? `
+  <div class="group-message-avatar-fallback">K</div>
+` : `
+  <div class="group-message-avatar">
+    <img src="${escapeHtml(displayAvatarUrl)}" alt="${escapeHtml(displaySenderName)}">
+  </div>
+`}
       ` : ''}
     `;
 

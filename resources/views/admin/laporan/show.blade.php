@@ -1,6 +1,8 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Detail Laporan Mahasiswa')
+@section('breadcrumb-parent', 'Laporan Konseling')
+@section('breadcrumb-parent-url', route('admin.laporan'))
 
 @push('styles')
 <style>
@@ -8,21 +10,6 @@
         max-width: 1160px;
         margin: 0 auto;
         width: calc(100% - 48px);
-    }
-
-    .btn-back {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        margin-bottom: 16px;
-        color: #475569;
-        text-decoration: none;
-        font-weight: 700;
-        font-size: .86rem;
-    }
-
-    .btn-back:hover {
-        color: #065f46;
     }
 
     .laporan-card {
@@ -48,21 +35,6 @@
         color: #064e3b;
         font-weight: 800;
         font-size: 1.2rem;
-    }
-
-    .student-meta {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        color: #64748b;
-        font-size: .84rem;
-    }
-
-    .student-meta span {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 999px;
-        padding: 5px 10px;
     }
 
     .laporan-table-wrap {
@@ -402,16 +374,17 @@
 @endphp
 
 <div class="laporan-shell">
-    <a href="{{ route('admin.laporan') }}" class="btn-back">
-        <i class="ti ti-arrow-left"></i>
-        Kembali ke daftar laporan
-    </a>
 
     @error('ai_summary')
         <div class="alert alert-error">{{ $message }}</div>
     @enderror
 
     <div class="laporan-card">
+        <div class="laporan-head">
+            <div>
+                <h5>{{ $namaMahasiswa }}</h5>
+            </div>
+        </div>
 
         <div class="laporan-table-wrap">
             <table class="laporan-table">
