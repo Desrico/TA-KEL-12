@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  id="Definitions_Kirim_Notifikasi" 
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_Kirim_Notifikasi">
+    <bpmn:participant id="Participant_Kirim_Notifikasi" name="Proses Pengiriman Notifikasi Kustom ke Mahasiswa" processRef="Process_Kirim_Notifikasi" />
+  </bpmn:collaboration>
+  
+  <bpmn:process id="Process_Kirim_Notifikasi" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Kirim_Notifikasi">
+      <bpmn:lane id="Lane_Konselor_N" name="Konselor (Web Admin)">
+        <bpmn:flowNodeRef>StartEvent_Notif</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenStudent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WriteMessage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ClickSend</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sistem_N" name="Sistem (Laravel &amp; DB)">
+        <bpmn:flowNodeRef>Task_SaveNotif</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Mahasiswa_N" name="Mahasiswa (Mobile App)">
+        <bpmn:flowNodeRef>Task_ReceiveNotif</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReadNotif</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Notif</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    
+    <bpmn:startEvent id="StartEvent_Notif" name="Ingin Mengirim Notifikasi ke Mahasiswa">
+      <bpmn:outgoing>Flow_N_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <bpmn:userTask id="Task_OpenStudent" name="Membuka Halaman Detail Profil Mahasiswa">
+      <bpmn:incoming>Flow_N_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_N_2</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_WriteMessage" name="Menulis Pesan Notifikasi Kustom">
+      <bpmn:incoming>Flow_N_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_N_3</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_ClickSend" name="Klik Tombol Kirim Pesan">
+      <bpmn:incoming>Flow_N_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_N_4</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:serviceTask id="Task_SaveNotif" name="Simpan Notifikasi ke MongoDB (Koleksi notifications)">
+      <bpmn:incoming>Flow_N_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_N_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:userTask id="Task_ReceiveNotif" name="Menerima Notifikasi Push/In-App di Perangkat Mobile">
+      <bpmn:incoming>Flow_N_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_N_6</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_ReadNotif" name="Membuka &amp; Membaca Notifikasi di Layar Mobile">
+      <bpmn:incoming>Flow_N_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_N_7</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:endEvent id="EndEvent_Notif" name="Pesan Notifikasi Berhasil Diterima">
+      <bpmn:incoming>Flow_N_7</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:sequenceFlow id="Flow_N_1" sourceRef="StartEvent_Notif" targetRef="Task_OpenStudent" />
+    <bpmn:sequenceFlow id="Flow_N_2" sourceRef="Task_OpenStudent" targetRef="Task_WriteMessage" />
+    <bpmn:sequenceFlow id="Flow_N_3" sourceRef="Task_WriteMessage" targetRef="Task_ClickSend" />
+    <bpmn:sequenceFlow id="Flow_N_4" sourceRef="Task_ClickSend" targetRef="Task_SaveNotif" />
+    <bpmn:sequenceFlow id="Flow_N_5" sourceRef="Task_SaveNotif" targetRef="Task_ReceiveNotif" />
+    <bpmn:sequenceFlow id="Flow_N_6" sourceRef="Task_ReceiveNotif" targetRef="Task_ReadNotif" />
+    <bpmn:sequenceFlow id="Flow_N_7" sourceRef="Task_ReadNotif" targetRef="EndEvent_Notif" />
+  </bpmn:process>
+  
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Kirim_Notifikasi">
+    <bpmndi:BPMNPlane id="BPMNPlane_Kirim_Notifikasi" bpmnElement="Collaboration_Kirim_Notifikasi">
+      <!-- Participant -->
+      <bpmndi:BPMNShape id="Participant_Kirim_Notifikasi_di" bpmnElement="Participant_Kirim_Notifikasi" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="800" height="430" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Lanes -->
+      <bpmndi:BPMNShape id="Lane_Konselor_N_di" bpmnElement="Lane_Konselor_N" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="770" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Sistem_N_di" bpmnElement="Lane_Sistem_N" isHorizontal="true">
+        <dc:Bounds x="180" y="220" width="770" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Mahasiswa_N_di" bpmnElement="Lane_Mahasiswa_N" isHorizontal="true">
+        <dc:Bounds x="180" y="360" width="770" height="140" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Shapes - Konselor -->
+      <bpmndi:BPMNShape id="StartEvent_Notif_di" bpmnElement="StartEvent_Notif">
+        <dc:Bounds x="210" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenStudent_di" bpmnElement="Task_OpenStudent">
+        <dc:Bounds x="280" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_WriteMessage_di" bpmnElement="Task_WriteMessage">
+        <dc:Bounds x="410" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ClickSend_di" bpmnElement="Task_ClickSend">
+        <dc:Bounds x="540" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Shapes - Sistem -->
+      <bpmndi:BPMNShape id="Task_SaveNotif_di" bpmnElement="Task_SaveNotif">
+        <dc:Bounds x="540" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Shapes - Mahasiswa -->
+      <bpmndi:BPMNShape id="Task_ReceiveNotif_di" bpmnElement="Task_ReceiveNotif">
+        <dc:Bounds x="540" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReadNotif_di" bpmnElement="Task_ReadNotif">
+        <dc:Bounds x="670" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Notif_di" bpmnElement="EndEvent_Notif">
+        <dc:Bounds x="810" y="412" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Edges -->
+      <bpmndi:BPMNEdge id="Flow_N_1_di" bpmnElement="Flow_N_1">
+        <di:waypoint x="246" y="150" />
+        <di:waypoint x="280" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_N_2_di" bpmnElement="Flow_N_2">
+        <di:waypoint x="380" y="150" />
+        <di:waypoint x="410" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_N_3_di" bpmnElement="Flow_N_3">
+        <di:waypoint x="510" y="150" />
+        <di:waypoint x="540" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_N_4_di" bpmnElement="Flow_N_4">
+        <di:waypoint x="590" y="190" />
+        <di:waypoint x="590" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_N_5_di" bpmnElement="Flow_N_5">
+        <di:waypoint x="590" y="330" />
+        <di:waypoint x="590" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_N_6_di" bpmnElement="Flow_N_6">
+        <di:waypoint x="640" y="430" />
+        <di:waypoint x="670" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_N_7_di" bpmnElement="Flow_N_7">
+        <di:waypoint x="770" y="430" />
+        <di:waypoint x="810" y="430" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

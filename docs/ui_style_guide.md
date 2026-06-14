@@ -294,45 +294,45 @@ Seluruh dasbor admin dan manajemen edukasi menggunakan satu keluarga font utama:
 
 ### G. Komponen Utama Halaman Dasbor (Dashboard Components)
 * **Kartu Ringkasan Statistik (`.card-box`):**
-  * *Lebar (Width - W):* Fleksibel (biasanya dibagi dalam grid 3 atau 4 kolom)
-  * *Tinggi (Height - H):* Auto (menyesuaikan isi, tinggi minimum `124px`)
+  * *Lebar (Width - W):* `342px` (acuan standard layout 3-kolom pada desktop `1440px`)
+  * *Tinggi (Height - H):* `124px` (tinggi tetap di dasbor)
   * *Radius:* `16px`
-  * *Padding:* `24px`
+  * *Padding:* `24px` di semua sisi (atas, bawah, kiri, kanan)
   * *Shadow:* `0 1px 3px rgba(0,0,0,0.05)` (Shadow Small)
 * **Kartu Alert Risiko Tinggi (`.alert-banner`):**
-  * *Lebar (Width - W):* `100%` (lebar penuh halaman kontainer)
-  * *Tinggi (Height - H):* Auto (menyesuaikan isi)
+  * *Lebar (Width - W):* `1076px` (lebar penuh halaman kontainer)
+  * *Tinggi (Height - H):* `120px` (tinggi standard representatif)
   * *Radius:* `16px`
-  * *Padding:* `24px`
+  * *Padding:* `24px` di semua sisi (atas, bawah, kiri, kanan)
   * *Shadow:* `0 1px 3px rgba(0,0,0,0.05)` (Shadow Small)
-  * *Lencana Angka Kasus (`.alert-badge`):* `W = Auto`, `H = Auto` (Padding: `8px 16px`), Radius: `999px`
+  * *Lencana Angka Kasus (`.alert-badge`):* `W = Auto`, `H = Auto` (Padding: `8px` atas-bawah, `16px` kiri-kanan), Radius: `999px`
 * **Kartu Mahasiswa Prioritas Risiko Tinggi (`.p-card`):**
-  * *Lebar (Width - W):* Fleksibel (dalam grid minmax `250px` per kolom)
-  * *Tinggi (Height - H):* Auto (menyesuaikan isi)
+  * *Lebar (Width - W):* `257px` (acuan standard layout 4-kolom)
+  * *Tinggi (Height - H):* `160px` (tinggi representatif)
   * *Radius:* `16px`
   * *Border:* `1px` (solid warna `#fca5a5`)
-  * *Padding:* `16px 20px`
+  * *Padding:* `16px` atas-bawah, `20px` kiri-kanan
 * **Wadah Grafik Tren Mood (Chart Container Card Box):**
-  * *Lebar (Width - W):* Fleksibel (mengikuti layout grid `charts-stats-grid` kolom kiri `2fr` atau `100%` di mobile)
-  * *Tinggi (Height - H):* `320px` - `380px` (tinggi area grafik)
+  * *Lebar (Width - W):* `701px` (acuan standard layout 2/3 kolom kiri pada desktop `1440px`)
+  * *Tinggi (Height - H):* `380px` (tinggi standar tetap)
   * *Radius:* `16px`
-  * *Padding:* `24px`
-* **Tabs Navigasi Dasbor (`.dashboard-tabs`):**
+  * *Padding:* `24px` di semua sisi (atas, bawah, kiri, kanan)
+* **Tabs Kontrol Dasbor (`.dashboard-tabs`):**
   * *Lebar (Width - W):* Auto (menyesuaikan isi tombol tab)
   * *Tinggi (Height - H):* Auto (mengikuti tombol tab)
   * *Radius:* `18px`
-  * *Padding:* `8px`
-  * *Tab item (`.dashboard-tab-btn`):* Padding `12px 22px`, Radius `12px`
+  * *Padding:* `8px` di semua sisi (atas, bawah, kiri, kanan)
+  * *Tab item (`.dashboard-tab-btn`):* Padding `12px` atas-bawah, `22px` kiri-kanan, Radius `12px`
 * **Tombol Utama Dasbor (`.btn-primary`):**
   * *Lebar (Width - W):* Auto (menyesuaikan teks label)
   * *Tinggi (Height - H):* `42px`
   * *Radius:* `10px`
-  * *Padding:* `12px 24px`
+  * *Padding:* `12px` atas-bawah, `24px` kiri-kanan
 * **Filter Dropdown Form Dasbor (`.filter-dropdown`):**
   * *Lebar (Width - W):* Auto (menyesuaikan teks opsi terpanjang)
   * *Tinggi (Height - H):* `38px`
   * *Radius:* `6px`
-  * *Padding:* `8px 14px`
+  * *Padding:* `8px` atas-bawah, `14px` kiri-kanan
 
 ### H. Formulir Pembuatan & Penyuntingan Modul (Module Form Components)
 * **Kontainer Formulir / Seksi Input (`.f-section`):**
@@ -343,12 +343,12 @@ Seluruh dasbor admin dan manajemen edukasi menggunakan satu keluarga font utama:
 * **Input Teks, Dropdown Pilihan, & Textarea (`.f-input`, `.f-select`, `.f-textarea`):**
   * *Lebar (Width - W):* `100%` (mengisi penuh lebar seksi form)
   * *Tinggi (Height - H):*
-    * Teks Input & Dropdown: `46px` (Padding: `12px 16px`)
-    * Area Teks (Textarea): Min-height `120px` (Padding: `12px 16px`, resize vertical)
+    * Teks Input & Dropdown: `46px` (Padding: `12px` atas-bawah, `16px` kiri-kanan)
+    * Area Teks (Textarea): Min-height `120px` (Padding: `12px` atas-bawah, `16px` kiri-kanan, resize vertical)
   * *Radius:* `10px`
 * **Area Unggah File Drag & Drop (`.f-upload-area`):**
   * *Lebar (Width - W):* `100%`
-  * *Tinggi (Height - H):* Auto (Padding: `40px 24px` di dalam area putus-putus)
+  * *Tinggi (Height - H):* Auto (Padding: `40px` atas-bawah, `24px` kiri-kanan di dalam area putus-putus)
   * *Radius:* `12px`
   * *Border:* `2px` (dashed/putus-putus warna `#cbd5e1`)
 * **Preview File Unggahan (`.f-file-preview` / `.f-thumb-preview`):**
@@ -359,7 +359,7 @@ Seluruh dasbor admin dan manajemen edukasi menggunakan satu keluarga font utama:
   * *Lebar (Width - W):* Auto (menyesuaikan teks label + ikon)
   * *Tinggi (Height - H):* `48px`
   * *Radius:* `12px`
-  * *Padding:* `14px 28px`
+  * *Padding:* `14px` atas-bawah, `28px` kiri-kanan
   * *Shadow:* `0 4px 14px rgba(5,150,105,0.3)`
 
 ---

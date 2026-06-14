@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  id="Definitions_Laporan_L3" 
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_Laporan_L3">
+    <bpmn:participant id="Participant_Laporan_L3" name="Proses Generate Laporan Mahasiswa Level 3" processRef="Process_Laporan_L3" />
+  </bpmn:collaboration>
+  
+  <bpmn:process id="Process_Laporan_L3" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Laporan_L3">
+      <bpmn:lane id="Lane_Konselor_L3" name="Konselor (Web Admin)">
+        <bpmn:flowNodeRef>StartEvent_L3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenPrioritas</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewStats</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PrintL3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_L3</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sistem_L3" name="Sistem (Laravel &amp; MongoDB)">
+        <bpmn:flowNodeRef>Task_QueryMongo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CalcStats</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GetMoodTrend</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RenderView</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    
+    <bpmn:startEvent id="StartEvent_L3" name="Ingin Melihat Laporan Prioritas">
+      <bpmn:outgoing>Flow_L3_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <bpmn:userTask id="Task_OpenPrioritas" name="Membuka Halaman Laporan Prioritas">
+      <bpmn:incoming>Flow_L3_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_2</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:serviceTask id="Task_QueryMongo" name="Query Mahasiswa Level 3 dari MongoDB">
+      <bpmn:incoming>Flow_L3_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_CalcStats" name="Hitung Statistik Kasus Per Prodi / Angkatan">
+      <bpmn:incoming>Flow_L3_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_GetMoodTrend" name="Tarik Histori Mood 4 Bulan Terakhir">
+      <bpmn:incoming>Flow_L3_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_RenderView" name="Render View admin.prioritas">
+      <bpmn:incoming>Flow_L3_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:userTask id="Task_ReviewStats" name="Meninjau Statistik Sebaran Kasus">
+      <bpmn:incoming>Flow_L3_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_7</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_PrintL3" name="Cetak Laporan / Simpan PDF">
+      <bpmn:incoming>Flow_L3_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3_8</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:endEvent id="EndEvent_L3" name="Laporan Level 3 Diperoleh">
+      <bpmn:incoming>Flow_L3_8</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:sequenceFlow id="Flow_L3_1" sourceRef="StartEvent_L3" targetRef="Task_OpenPrioritas" />
+    <bpmn:sequenceFlow id="Flow_L3_2" sourceRef="Task_OpenPrioritas" targetRef="Task_QueryMongo" />
+    <bpmn:sequenceFlow id="Flow_L3_3" sourceRef="Task_QueryMongo" targetRef="Task_CalcStats" />
+    <bpmn:sequenceFlow id="Flow_L3_4" sourceRef="Task_CalcStats" targetRef="Task_GetMoodTrend" />
+    <bpmn:sequenceFlow id="Flow_L3_5" sourceRef="Task_GetMoodTrend" targetRef="Task_RenderView" />
+    <bpmn:sequenceFlow id="Flow_L3_6" sourceRef="Task_RenderView" targetRef="Task_ReviewStats" />
+    <bpmn:sequenceFlow id="Flow_L3_7" sourceRef="Task_ReviewStats" targetRef="Task_PrintL3" />
+    <bpmn:sequenceFlow id="Flow_L3_8" sourceRef="Task_PrintL3" targetRef="EndEvent_L3" />
+  </bpmn:process>
+  
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Laporan_L3">
+    <bpmndi:BPMNPlane id="BPMNPlane_Laporan_L3" bpmnElement="Collaboration_Laporan_L3">
+      <bpmndi:BPMNShape id="Participant_Laporan_L3_di" bpmnElement="Participant_Laporan_L3" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="900" height="300" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Lane_Konselor_L3_di" bpmnElement="Lane_Konselor_L3" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="870" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Sistem_L3_di" bpmnElement="Lane_Sistem_L3" isHorizontal="true">
+        <dc:Bounds x="180" y="220" width="870" height="140" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="StartEvent_L3_di" bpmnElement="StartEvent_L3">
+        <dc:Bounds x="210" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenPrioritas_di" bpmnElement="Task_OpenPrioritas">
+        <dc:Bounds x="280" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReviewStats_di" bpmnElement="Task_ReviewStats">
+        <dc:Bounds x="670" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PrintL3_di" bpmnElement="Task_PrintL3">
+        <dc:Bounds x="800" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_L3_di" bpmnElement="EndEvent_L3">
+        <dc:Bounds x="950" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Task_QueryMongo_di" bpmnElement="Task_QueryMongo">
+        <dc:Bounds x="280" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CalcStats_di" bpmnElement="Task_CalcStats">
+        <dc:Bounds x="410" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_GetMoodTrend_di" bpmnElement="Task_GetMoodTrend">
+        <dc:Bounds x="540" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RenderView_di" bpmnElement="Task_RenderView">
+        <dc:Bounds x="670" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <di:waypoint x="246" y="150" />
+      <di:waypoint x="280" y="150" />
+      
+      <bpmndi:BPMNEdge id="Flow_L3_1_di" bpmnElement="Flow_L3_1">
+        <di:waypoint x="246" y="150" />
+        <di:waypoint x="280" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L3_2_di" bpmnElement="Flow_L3_2">
+        <di:waypoint x="330" y="190" />
+        <di:waypoint x="330" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L3_3_di" bpmnElement="Flow_L3_3">
+        <di:waypoint x="380" y="290" />
+        <di:waypoint x="410" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L3_4_di" bpmnElement="Flow_L3_4">
+        <di:waypoint x="510" y="290" />
+        <di:waypoint x="540" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L3_5_di" bpmnElement="Flow_L3_5">
+        <di:waypoint x="640" y="290" />
+        <di:waypoint x="670" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L3_6_di" bpmnElement="Flow_L3_6">
+        <di:waypoint x="720" y="250" />
+        <di:waypoint x="720" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L3_7_di" bpmnElement="Flow_L3_7">
+        <di:waypoint x="770" y="150" />
+        <di:waypoint x="800" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L3_8_di" bpmnElement="Flow_L3_8">
+        <di:waypoint x="900" y="150" />
+        <di:waypoint x="950" y="150" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
