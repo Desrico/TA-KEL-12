@@ -467,8 +467,8 @@
     }
 
     @media (min-width: 1025px) {
-      /* hide any leftover desktop header toggle */
-      .pc-h-item.pc-sidebar-collapse { display: none !important; }
+      /* Show desktop header toggle */
+      .pc-h-item.pc-sidebar-collapse { display: inline-flex !important; }
 
       .sidebar-edge-toggle {
         position: absolute;
