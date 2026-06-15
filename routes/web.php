@@ -325,3 +325,15 @@ Route::get('/run-seed', function () {
     \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
     return "Database berhasil di-seed! Silakan coba login dengan admin@gmail.com (password: admin123).";
 });
+
+// TEMPORARY ROUTE TO VIEW LOGS
+Route::get('/logs', function () {
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) {
+        return "No logs found.";
+    }
+    // Get last 100 lines
+    $lines = file($logFile);
+    $lastLines = array_slice($lines, -100);
+    return response("<pre>" . implode("", $lastLines) . "</pre>");
+});
