@@ -13,6 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
+        Schema::connection(config('webpush.database_connection'))->dropIfExists(config('webpush.table_name'));
         Schema::connection(config('webpush.database_connection'))->create(config('webpush.table_name'), function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->morphs('subscribable', 'push_subscriptions_subscribable_morph_idx');
