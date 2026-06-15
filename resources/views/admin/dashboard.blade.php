@@ -797,52 +797,46 @@
                     <div class="stats-section-title" style="margin: 0; white-space: nowrap; flex-shrink: 0;">PERASAAN UMUM</div>
                     <select class="filter-dropdown" id="feelingFilter" style="width: auto; max-width: 55%; text-overflow: ellipsis;" onchange="loadFeelingDistribution(this.value)">
                         <option value="all">Semua Perasaan</option>
-                        <option value="CAT:Positif" style="font-weight: 700; color: #059669; background: #ecfdf5;">📊 SEMUA POSITIF</option>
-                        <optgroup label="Positif">
-                            <option value="Gembira">Gembira</option>
-                            <option value="Bangga">Bangga</option>
-                            <option value="Bersyukur">Bersyukur</option>
-                            <option value="Ceria">Ceria</option>
-                            <option value="Semangat">Semangat</option>
-                            <option value="Energik">Energik</option>
-                            <option value="Kagum">Kagum</option>
-                            <option value="Bergairah">Bergairah</option>
-                        </optgroup>
-                        <option value="CAT:Netral" style="font-weight: 700; color: #64748b; background: #f8fafc;">📊 SEMUA NETRAL / STABIL</option>
-                        <optgroup label="Netral / Stabil">
-                            <option value="Biasa Saja">Biasa Saja</option>
-                            <option value="Stabil">Stabil</option>
-                            <option value="Tenang">Tenang</option>
-                            <option value="Santai">Santai</option>
-                        </optgroup>
-                        <option value="CAT:Penasaran" style="font-weight: 700; color: #f59e0b; background: #fffbeb;">📊 SEMUA PENASARAN / TERKEJUT</option>
-                        <optgroup label="Penasaran / Terkejut">
-                            <option value="Tercengang">Tercengang</option>
-                            <option value="Penasaran">Penasaran</option>
-                            <option value="Tertarik">Tertarik</option>
-                            <option value="Gelagapan">Gelagapan</option>
-                        </optgroup>
-                        <option value="CAT:Sedih" style="font-weight: 700; color: #3b82f6; background: #eff6ff;">📊 SEMUA SEDIH / PUTUS ASA</option>
-                        <optgroup label="Sedih / Putus Asa">
-                            <option value="Pilu">Pilu</option>
-                            <option value="Depresi">Depresi</option>
-                            <option value="Kesepian">Kesepian</option>
-                            <option value="Putus Asa">Putus Asa</option>
-                        </optgroup>
-                        <option value="CAT:Cemas" style="font-weight: 700; color: #8b5cf6; background: #f5f3ff;">📊 SEMUA CEMAS / PANIK</option>
-                        <optgroup label="Cemas / Panik">
-                            <option value="Cemas">Cemas</option>
-                            <option value="Khawatir">Khawatir</option>
-                            <option value="Panik">Panik</option>
-                            <option value="Gelisah">Gelisah</option>
-                        </optgroup>
-                        <option value="CAT:Kesal" style="font-weight: 700; color: #ef4444; background: #fef2f2;">📊 SEMUA KESAL / MARAH</option>
-                        <optgroup label="Kesal / Marah">
-                            <option value="Kesal">Kesal</option>
-                            <option value="Jengkel">Jengkel</option>
-                            <option value="Benci">Benci</option>
-                            <option value="Kecewa">Kecewa</option>
-                        </optgroup>
+                        
+                        <option value="CAT:Positif" style="font-weight: 700; color: #059669; background: #ecfdf5;">KELOMPOK POSITIF (Pilih Semua)</option>
+                        <option value="Gembira">&nbsp;&nbsp;&nbsp;Gembira</option>
+                        <option value="Bangga">&nbsp;&nbsp;&nbsp;Bangga</option>
+                        <option value="Bersyukur">&nbsp;&nbsp;&nbsp;Bersyukur</option>
+                        <option value="Ceria">&nbsp;&nbsp;&nbsp;Ceria</option>
+                        <option value="Semangat">&nbsp;&nbsp;&nbsp;Semangat</option>
+                        <option value="Energik">&nbsp;&nbsp;&nbsp;Energik</option>
+                        <option value="Kagum">&nbsp;&nbsp;&nbsp;Kagum</option>
+                        <option value="Bergairah">&nbsp;&nbsp;&nbsp;Bergairah</option>
+
+                        <option value="CAT:Netral" style="font-weight: 700; color: #64748b; background: #f8fafc;">KELOMPOK NETRAL / STABIL (Pilih Semua)</option>
+                        <option value="Biasa Saja">&nbsp;&nbsp;&nbsp;Biasa Saja</option>
+                        <option value="Stabil">&nbsp;&nbsp;&nbsp;Stabil</option>
+                        <option value="Tenang">&nbsp;&nbsp;&nbsp;Tenang</option>
+                        <option value="Santai">&nbsp;&nbsp;&nbsp;Santai</option>
+
+                        <option value="CAT:Penasaran" style="font-weight: 700; color: #f59e0b; background: #fffbeb;">KELOMPOK PENASARAN (Pilih Semua)</option>
+                        <option value="Tercengang">&nbsp;&nbsp;&nbsp;Tercengang</option>
+                        <option value="Penasaran">&nbsp;&nbsp;&nbsp;Penasaran</option>
+                        <option value="Tertarik">&nbsp;&nbsp;&nbsp;Tertarik</option>
+                        <option value="Gelagapan">&nbsp;&nbsp;&nbsp;Gelagapan</option>
+
+                        <option value="CAT:Sedih" style="font-weight: 700; color: #3b82f6; background: #eff6ff;">KELOMPOK SEDIH (Pilih Semua)</option>
+                        <option value="Pilu">&nbsp;&nbsp;&nbsp;Pilu</option>
+                        <option value="Depresi">&nbsp;&nbsp;&nbsp;Depresi</option>
+                        <option value="Kesepian">&nbsp;&nbsp;&nbsp;Kesepian</option>
+                        <option value="Putus Asa">&nbsp;&nbsp;&nbsp;Putus Asa</option>
+
+                        <option value="CAT:Cemas" style="font-weight: 700; color: #8b5cf6; background: #f5f3ff;">KELOMPOK CEMAS / PANIK (Pilih Semua)</option>
+                        <option value="Cemas">&nbsp;&nbsp;&nbsp;Cemas</option>
+                        <option value="Khawatir">&nbsp;&nbsp;&nbsp;Khawatir</option>
+                        <option value="Panik">&nbsp;&nbsp;&nbsp;Panik</option>
+                        <option value="Gelisah">&nbsp;&nbsp;&nbsp;Gelisah</option>
+
+                        <option value="CAT:Kesal" style="font-weight: 700; color: #ef4444; background: #fef2f2;">KELOMPOK KESAL / MARAH (Pilih Semua)</option>
+                        <option value="Kesal">&nbsp;&nbsp;&nbsp;Kesal</option>
+                        <option value="Jengkel">&nbsp;&nbsp;&nbsp;Jengkel</option>
+                        <option value="Benci">&nbsp;&nbsp;&nbsp;Benci</option>
+                        <option value="Kecewa">&nbsp;&nbsp;&nbsp;Kecewa</option>
                     </select>
                 </div>
                 <div class="feelings-list" id="distList" style="max-height: 500px; overflow-y: auto; padding-right: 8px;">

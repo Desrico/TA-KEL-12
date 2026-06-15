@@ -534,26 +534,7 @@
       border-color: #D7EBDD;
     }
 
-    .btn-notification {
-      background: #ffffff;
-      border: 1px solid var(--admin-border);
-      color: var(--admin-text-mid);
-      padding: 8px 14px;
-      border-radius: 12px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
 
-    .btn-notification:hover {
-      background: var(--admin-soft-2);
-      color: var(--admin-primary);
-      border-color: #D7EBDD;
-    }
 
     .notif-badge {
       position: absolute;
@@ -1064,11 +1045,6 @@
 
     <div class="ms-auto admin-header-actions">
       <ul class="list-unstyled d-flex align-items-center gap-2 mb-0">
-        <li class="pc-h-item">
-          <button class="btn-notification" id="btnWebPush" onclick="togglePush()">
-              <i class="ti ti-bell"></i>
-          </button>
-        </li>
         <li class="dropdown pc-h-item">
           <a href="#" class="admin-notif-btn position-relative"
              id="adminNotifTrigger"
@@ -1460,19 +1436,111 @@
       window.location.href = url;
     };
 
-    notifTrigger.addEventListener('click', function () {
+    // ── Browser Push Notification ──────────────────────────────────────────
+    const VAPID_PUBLIC_KEY = 'BANc9RgVqlg0Oau0kRon4GfLRAU6shEkZVndWOiX_j-c0MsLAWKX3wpLWZZO_P6WTJjS720x8_WKaA2IBSh8DLg';
+    let swRegistration = null;
+    let urgentAlreadyNotified = new Set();
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const output = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) output[i] = rawData.charCodeAt(i);
+      return output;
+    }
+
+    async function registerSW() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+      if (swRegistration) return swRegistration;
+      try {
+        swRegistration = await navigator.serviceWorker.register('/sw.js');
+        return swRegistration;
+      } catch (e) {
+        console.error('SW registration failed', e);
+        return null;
+      }
+    }
+
+    async function requestNotifPermissionAndSubscribe() {
+      if (!('Notification' in window)) return;
+      if (Notification.permission === 'denied') return;
+      if (Notification.permission !== 'granted') {
+        const result = await Notification.requestPermission();
+        if (result !== 'granted') return;
+      }
+      const reg = await registerSW();
+      if (!reg) return;
+      try {
+        const existing = await reg.pushManager.getSubscription();
+        if (existing) return;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        await fetch('/subscriptions', {
+          method: 'POST',
+          body: JSON.stringify(sub),
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': token }
+        });
+      } catch (e) {
+        console.error('Push subscribe failed', e);
+      }
+    }
+
+    function sendUrgentBrowserNotif(student) {
+      if (Notification.permission !== 'granted') return;
+      if (urgentAlreadyNotified.has(student.nim)) return;
+      urgentAlreadyNotified.add(student.nim);
+      const notif = new Notification('⚠️ Mahasiswa Perlu Perhatian!', {
+        body: `${student.name} (${student.nim}) berada di Level Mental ${student.mental_level}. Segera tindak lanjuti!`,
+        icon: '/img/logo.png',
+        badge: '/img/logo.png',
+        tag: 'urgent-' + student.nim,
+        requireInteraction: true
+      });
+      notif.onclick = function() {
+        window.focus();
+        window.location.href = `/konselor/detail/${student.nim}`;
+        notif.close();
+      };
+    }
+
+    // Auto-request izin saat halaman load (jika belum pernah diputuskan)
+    (async function autoInitNotif() {
+      if (Notification.permission === 'default') {
+        // Daftarkan SW di background tanpa langsung minta izin
+        await registerSW();
+      } else if (Notification.permission === 'granted') {
+        await registerSW();
+        await requestNotifPermissionAndSubscribe();
+      }
+    })();
+
+    notifTrigger.addEventListener('click', async function () {
+      // Request izin notifikasi saat bell diklik (jika belum)
+      await requestNotifPermissionAndSubscribe();
       setTimeout(async function () {
         await markAdminNotificationsAsRead();
         await fetchAllNotifications();
       }, 120);
     });
 
-    fetchAllNotifications();
-    setInterval(fetchAllNotifications, 10000);
+    // Override fetchUrgentNotifications agar juga kirim browser push
+    const _origFetchAllNotifications = fetchAllNotifications;
+    async function fetchAllNotificationsWithPush() {
+      const urgentStudents = await fetchUrgentNotifications();
+      if (urgentStudents.length > 0 && Notification.permission === 'granted') {
+        urgentStudents.forEach(student => sendUrgentBrowserNotif(student));
+      }
+      await fetchAllNotifications();
+    }
+
+    fetchAllNotificationsWithPush();
+    setInterval(fetchAllNotificationsWithPush, 10000);
   })();
 </script>
-
-<script src="{{ asset('js/webpush.js') }}"></script>
 @stack('scripts')
 
 </body>
