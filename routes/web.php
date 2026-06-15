@@ -319,3 +319,9 @@ Route::get('/debug/seed-if001', function () {
 Route::get('/preview-error/{code}', function ($code) {
     abort($code);
 });
+
+// TEMPORARY ROUTE TO SEED DATABASE
+Route::get('/run-seed', function () {
+    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+    return "Database berhasil di-seed! Silakan coba login dengan admin@gmail.com (password: admin123).";
+});
