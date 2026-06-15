@@ -21,7 +21,6 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        dd("DEBUG: DashboardController@index is successfully hit and running!");
         try {
             // Data utama dashboard konselor (MongoDB)
             $students = Student::with('journalTexts')
