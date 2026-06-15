@@ -21,47 +21,53 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Data utama dashboard konselor (MongoDB)
-        $students = Student::with('journalTexts')
-            ->whereNotNull('mental_level')
-            ->orderBy('mental_level', 'desc')
-            ->orderBy('name')
-            ->get()
-            ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts->count();
-                return $student;
-            });
+        try {
+            // Data utama dashboard konselor (MongoDB)
+            $students = Student::with('journalTexts')
+                ->whereNotNull('mental_level')
+                ->orderBy('mental_level', 'desc')
+                ->orderBy('name')
+                ->get()
+                ->map(function ($student) {
+                    $student->journal_texts_count = $student->journalTexts ? $student->journalTexts->count() : 0;
+                    return $student;
+                });
 
-        $user = Auth::user();
-        $konselor = $user ? Konselor::where('user_id', $user->id)->first() : null;
+            $user = Auth::user();
+            $konselor = $user ? Konselor::where('user_id', $user->id)->first() : null;
 
-        $baseQuery = $konselor
-            ? JadwalKonseling::where('konselor_id', $konselor->id)
-            : JadwalKonseling::query();
+            $baseQuery = $konselor
+                ? JadwalKonseling::where('konselor_id', $konselor->id)
+                : JadwalKonseling::query();
 
-        $todayJadwals = (clone $baseQuery)
-            ->whereDate('tanggal', Carbon::today())
-            ->with('mahasiswa.user')
-            ->orderBy('waktu')
-            ->get();
+            $todayJadwals = (clone $baseQuery)
+                ->whereDate('tanggal', Carbon::today())
+                ->with('mahasiswa.user')
+                ->orderBy('waktu')
+                ->get();
 
-        $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
+            $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
 
-        // Daftar angkatan unik dari MongoDB untuk filter dropdown
-        $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();$angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
+            // Daftar angkatan unik dari MongoDB untuk filter dropdown
+            $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
 
-        $feedbacks = Feedback::with(['mahasiswa.user'])
-            ->latest()
-            ->take(6)
-            ->get();
+            $feedbacks = Feedback::with(['mahasiswa.user'])
+                ->latest()
+                ->take(6)
+                ->get();
 
-        return view('admin.dashboard', [
-            'students'     => $students,
-            'lastScan'     => $lastScan,
-            'todayJadwals' => $todayJadwals,
-            'angkatanList' => $angkatanList,
-            'feedbacks'    => $feedbacks,
-        ]);
+            $view = view('admin.dashboard', [
+                'students'     => $students,
+                'lastScan'     => $lastScan,
+                'todayJadwals' => $todayJadwals,
+                'angkatanList' => $angkatanList,
+                'feedbacks'    => $feedbacks,
+            ])->render();
+            
+            return response($view);
+        } catch (\Exception $e) {
+            dd("Error found in DashboardController: " . $e->getMessage() . " | Line: " . $e->getLine() . " | File: " . $e->getFile());
+        }
     }
 
     public function getChartData(Request $request)
