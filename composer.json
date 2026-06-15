@@ -12,7 +12,8 @@
         "laravel/reverb": "^1.10",
         "laravel/tinker": "^2.9",
         "mongodb/laravel-mongodb": "5.7",
-        "mongodb/mongodb": "1.21"
+        "mongodb/mongodb": "1.21",
+        "ext-mongodb": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
