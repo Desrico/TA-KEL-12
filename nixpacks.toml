@@ -5,4 +5,4 @@ nixPkgs = []
 cmds = []
 
 [variables]
-NIXPACKS_PHP_EXTENSIONS = "mongodb ctype curl dom fileinfo filter hash mbstring openssl pcre pdo session tokenizer xml"
+NIXPACKS_PHP_EXTENSIONS = "mongodb pdo_mysql ctype curl dom fileinfo filter hash mbstring openssl pcre pdo session tokenizer xml"
