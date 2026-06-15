@@ -471,10 +471,6 @@
       .pc-h-item.pc-sidebar-collapse { display: inline-flex !important; }
 
       .sidebar-edge-toggle {
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
         background: #fff;
         border-radius: 8px;
         width: 36px;
@@ -483,7 +479,6 @@
         align-items: center;
         justify-content: center;
         box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        z-index: 1300;
       }
 
       .pc-h-item.pc-sidebar-popup {
