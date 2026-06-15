@@ -1032,9 +1032,12 @@
 <header class="pc-header">
   <div class="header-wrapper">
     <div class="me-auto pc-mob-drp position-relative">
-      <a href="#" class="pc-head-link sidebar-edge-toggle d-none d-lg-inline-flex" id="sidebar-hide">
-        <i class="ti ti-menu-2"></i>
-      </a>
+      <ul class="list-unstyled d-flex align-items-center mb-0">
+        <li class="pc-h-item pc-sidebar-collapse">
+          <a href="#" class="pc-head-link sidebar-edge-toggle d-none d-lg-inline-flex" id="sidebar-hide">
+            <i class="ti ti-menu-2"></i>
+          </a>
+        </li>
         <li class="pc-h-item pc-sidebar-popup">
           <a href="#" class="pc-head-link ms-0" id="mobile-collapse">
             <i class="ti ti-menu-2"></i>
