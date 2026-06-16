@@ -31,7 +31,7 @@ class JournalText extends Model
         
         // 1. Coba dekripsi dengan kunci backend mobile (karena data dienkripsi dari sana)
         try {
-            $mobileKey = env('MOBILE_APP_KEY');
+            $mobileKey = config('app.mobile_app_key');
             if ($mobileKey) {
                 // Parse the base64 key
                 if (str_starts_with($mobileKey, 'base64:')) {

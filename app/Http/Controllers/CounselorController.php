@@ -541,15 +541,16 @@ class CounselorController extends Controller
             if (!$logs->has($date)) {
                 $logs->put($date, [
                     'created_at' => $journal->created_at,
-                    'journal' => $journal,
-                    'checkin' => null
+                    'journals'   => collect([$journal]),
+                    'checkin'    => null
                 ]);
             } else {
                 $item = $logs->get($date);
-                if (!$item['journal']) {
-                    $item['journal'] = $journal;
-                    $logs->put($date, $item);
+                if (!isset($item['journals'])) {
+                    $item['journals'] = collect();
                 }
+                $item['journals']->push($journal);
+                $logs->put($date, $item);
             }
         }
 
@@ -558,8 +559,8 @@ class CounselorController extends Controller
             if (!$logs->has($date)) {
                 $logs->put($date, [
                     'created_at' => $checkin->created_at,
-                    'journal' => null,
-                    'checkin' => $checkin
+                    'journals'   => collect(),
+                    'checkin'    => $checkin
                 ]);
             } else {
                 $item = $logs->get($date);
@@ -650,7 +651,7 @@ class CounselorController extends Controller
             $allText = $journals->pluck('description')->implode(' ');
 
             try {
-                $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+                $aiUrl = config('services.ai.engine_url');
                 $response = Http::timeout(30)->post("{$aiUrl}/api/classify", [
                     'nim'                     => $student->nim,
                     'text'                    => $allText,
@@ -747,7 +748,7 @@ class CounselorController extends Controller
             $daysSinceLastJournal = $lastJournal ? now()->diffInDays($lastJournal->created_at) : 99;
             $allText = $journals->pluck('description')->implode(' ');
 
-            $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+            $aiUrl = config('services.ai.engine_url');
             $response = Http::timeout(20)->post("{$aiUrl}/api/classify", [
                 'nim'                     => $nim,
                 'text'                    => $allText,
@@ -787,7 +788,7 @@ class CounselorController extends Controller
             ]);
         }
 
-        $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+        $aiUrl = config('services.ai.engine_url');
         $response = Http::timeout(120)->post("{$aiUrl}/api/summarize", [
             'nim'           => $nim,
             'journal_texts' => $journals,

@@ -763,14 +763,6 @@ class GroupChatMahasiswaController extends Controller
             ->all();
     }
 
-   private function transformMessage(GroupChatMessage $message, User $viewer): array
-    {
-        $message->loadMissing([
-            'sender',
-        ]);
-
-        $sender = $message->sender;
-
     private function transformMessage(GroupChatMessage $message, User $viewer, GroupChatRoom $room): array
     {
         $message->loadMissing([

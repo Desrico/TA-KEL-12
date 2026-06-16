@@ -491,7 +491,7 @@ class DashboardController extends Controller
             $allText = $journals->pluck('description')->implode(' ');
 
             try {
-                $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+                $aiUrl = config('services.ai.engine_url');
                 $response = Http::timeout(30)->post("{$aiUrl}/api/classify", [
                     'nim'                     => $student->nim,
                     'text'                    => $allText,
@@ -566,7 +566,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+        $aiUrl = config('services.ai.engine_url');
         $response = Http::timeout(120)->post("{$aiUrl}/api/summarize", [
             'nim'           => $nim,
             'journal_texts' => $journals,
@@ -755,7 +755,7 @@ class DashboardController extends Controller
             $daysSinceLastJournal = $lastJournal ? now()->diffInDays($lastJournal->created_at) : 99;
             $allText = $journals->pluck('description')->implode(' ');
 
-            $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+            $aiUrl = config('services.ai.engine_url');
             $response = Http::timeout(20)->post("{$aiUrl}/api/classify", [
                 'nim'                     => $nim,
                 'text'                    => $allText,
