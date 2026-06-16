@@ -694,11 +694,6 @@ class GroupChatMahasiswaController extends Controller
 
     private function buildPublicConsentContext(array $topicCard): array
     {
-        if (! $user) {
-            return 'Mahasiswa Anonim';
-        }
-
-        return $user->getAnonimDisplayName();
         return [
             'kind' => 'public_topic',
             'headline' => 'Konfirmasi gabung grup publik',
@@ -715,11 +710,6 @@ class GroupChatMahasiswaController extends Controller
 
     private function buildPrivateConsentContext(GroupChatRoom $room, ?GroupChatMember $membership): array
     {
-        if (! $user) {
-            return asset('img/default-avatar.png');
-        }
-
-        return $user->getAnonimAvatarSvg();
         $inviterName = $membership?->inviter?->nama ?: 'Konselor';
         $aliasName = $membership?->anonymous_name ?: 'Disiapkan otomatis';
 
@@ -763,14 +753,6 @@ class GroupChatMahasiswaController extends Controller
             ->all();
     }
 
-   private function transformMessage(GroupChatMessage $message, User $viewer): array
-    {
-        $message->loadMissing([
-            'sender',
-        ]);
-
-        $sender = $message->sender;
-
     private function transformMessage(GroupChatMessage $message, User $viewer, GroupChatRoom $room): array
     {
         $message->loadMissing([
@@ -780,18 +762,20 @@ class GroupChatMahasiswaController extends Controller
         $sender = $message->sender;
         $membership = $sender ? GroupChatSupport::resolveRoomMember($sender, $room) : null;
 
+        $senderRole = strtolower((string) ($sender?->role ?? 'pengguna'));
+        $isCounselorMessage = in_array($senderRole, ['konselor', 'admin'], true);
+
         return [
             'id' => $message->id,
             'room_id' => $message->room_id,
             'sender_id' => $message->user_id,
-            'sender_name' => $this->resolveUserDisplayName($sender),
-            'sender_role' => $sender?->role ?? 'pengguna',
-            'avatar_url' => $this->resolveUserAvatarUrl($sender),
             'sender_name' => $message->user_id === $viewer->id
                 ? 'Anda'
-                : GroupChatSupport::resolveDisplayName($sender, $room, $membership),
+                : ($isCounselorMessage ? 'Konselor' : GroupChatSupport::resolveDisplayName($sender, $room, $membership)),
             'sender_role' => $sender?->role ?? 'pengguna',
             'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
+            'avatar_initial' => $isCounselorMessage ? 'K' : null,
+            'is_counselor' => $isCounselorMessage,
             'text' => $message->pesan,
             'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),

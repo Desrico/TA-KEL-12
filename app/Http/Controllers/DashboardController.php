@@ -63,6 +63,22 @@ class DashboardController extends Controller
             'feedbacks'    => $feedbacks,
         ]);
     }
+    
+    public function publishFeedback(\App\Models\Feedback $feedback)
+    {
+        $feedback->is_published = 1;
+        $feedback->save();
+
+        return back()->with('feedback_success', 'Ulasan berhasil dipublish ke halaman beranda.');
+    }
+
+    public function unpublishFeedback(\App\Models\Feedback $feedback)
+    {
+        $feedback->is_published = 0;
+        $feedback->save();
+
+        return back()->with('feedback_success', 'Ulasan berhasil disembunyikan dari halaman beranda.');
+    }
 
     public function getChartData(Request $request)
     {

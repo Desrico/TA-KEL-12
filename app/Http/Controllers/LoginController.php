@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -143,11 +144,64 @@ class LoginController extends Controller
 
             $token = $cisLogin['token'];
 
+            if ($this->isKnownCounselorLogin($validated['username'])) {
+            $konselorName = env('CIS_KONSELOR_NAME', 'Ibu Laura');
+            $konselorEmail = env('CIS_KONSELOR_EMAIL') ?: ($validated['username'] . '@cis.local');
+
+            $user = User::firstOrNew([
+                'username_cis' => $validated['username'],
+            ]);
+
+            $user->nama = $konselorName;
+            $user->email = $konselorEmail;
+            $user->role = 'konselor';
+
+            if (! $user->exists || empty($user->password)) {
+                $user->password = bcrypt(str()->random(32));
+            }
+
+            $user->save();
+
+            $konselor = Konselor::query()->orderBy('id')->first();
+
+            if (! $konselor) {
+                $konselor = new Konselor();
+            }
+
+            $konselor->user_id = $user->id;
+
+            if (empty($konselor->spesialisasi)) {
+                $konselor->spesialisasi = 'Psikolog / Konselor';
+            }
+
+            $konselor->save();
+
+            DB::commit();
+
+            Auth::login($user, $request->boolean('ingat'));
+            $request->session()->regenerate();
+            $request->session()->put('cis', [
+                'access_token' => $token,
+                'username' => $validated['username'],
+                'logged_in_at' => now()->toIso8601String(),
+            ]);
+
+            return redirect()->route('admin.dashboard');
+        }
+
             try {
                 $mahasiswaResult = $kampusApi->getMahasiswaByUsername($validated['username'], $token);
                 $mahasiswaData = $mahasiswaResult['data']['mahasiswa'][0] ?? null;
             } catch (\Throwable $e) {
                 $mahasiswaData = null;
+            }
+
+            if (! $mahasiswaData) {
+                DB::rollBack();
+
+                return back()->withErrors([
+                    'username' => 'Akun CIS valid, tetapi tidak memiliki akses ke aplikasi Campus Care.',
+                ])->withInput();
             }
 
             $nama = $mahasiswaData['nama'] ?? $validated['username'];
@@ -191,8 +245,15 @@ class LoginController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
+            Log::error('Login gagal', [
+                'username' => $validated['username'] ?? null,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
             return back()->withErrors([
-                'username' => 'Username atau password salah.',
+                'username' => 'Login gagal: ' . $e->getMessage(),
             ])->withInput();
         }
     }
@@ -228,11 +289,11 @@ class LoginController extends Controller
         // Prioritas role: data konselor lokal > daftar username admin > data mahasiswa lokal/CIS.
         $hasCounselorRelation = Konselor::query()->where('user_id', $user->id)->exists();
         $hasMahasiswaRelation = Mahasiswa::query()->where('user_id', $user->id)->exists();
-        $isKnownAdminUsername = in_array(strtolower($username), $this->adminUsernames(), true);
+        $isKnownCounselorUsername = $this->isKnownCounselorLogin($username);
 
         $resolvedRole = match (true) {
             $hasCounselorRelation => 'konselor',
-            $isKnownAdminUsername => 'konselor',
+            $isKnownCounselorUsername => 'konselor',
             $hasMahasiswaData, $hasMahasiswaRelation => 'mahasiswa',
             in_array($user->role, ['konselor', 'mahasiswa'], true) => $user->role,
             default => 'mahasiswa',
@@ -246,28 +307,16 @@ class LoginController extends Controller
         return $user->refresh();
     }
 
-    private function adminUsernames(): array
+    private function isKnownCounselorLogin(string $username): bool
     {
-        return [
-            'johannes',
-            'tennov',
-            'desy.silaban',
-            'oka.simatupang',
-            'albert',
-            'alfriska.silalahi',
-            'humasak',
-            'istas.manalu',
-            'eka',
-            'mario',
-            'yohanssen.pratama',
-            'ike.fitri',
-            'eka.dirgayussa',
-            'ellyas.nainggolan',
-            'christoper.sinaga',
-            'arlinta.barus',
-            'aldo',
-            'chandra.simanjuntak',
-        ];
+        $loginIdentifier = strtolower(trim($username));
+
+        $allowedIdentifiers = array_filter([
+            strtolower(trim((string) env('CIS_KONSELOR_USERNAME', ''))),
+            strtolower(trim((string) env('CIS_KONSELOR_EMAIL', ''))),
+        ]);
+
+        return in_array($loginIdentifier, $allowedIdentifiers, true);
     }
 
     private function redirectByRole(?string $role)

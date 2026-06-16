@@ -392,9 +392,10 @@
 }
 
 .feedback-dashboard-date {
-    font-size: 12px;
+    margin-top: 4px;
+    font-size: 13px;
     color: #94a3b8;
-    white-space: nowrap;
+    font-weight: 600;
 }
 
 .feedback-dashboard-text {
@@ -412,6 +413,248 @@
     color: #6c757d;
     background: #ffffff;
     font-size: 13px;
+}
+
+.feedback-dashboard-content {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 20px;
+    align-items: center;
+}
+
+.feedback-dashboard-main {
+    min-width: 0;
+}
+
+.feedback-dashboard-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1f2937;
+}
+
+.feedback-dashboard-date {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.feedback-dashboard-text {
+    margin: 12px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #475569;
+}
+
+.feedback-action {
+    align-self: center;
+    justify-self: end;
+}
+
+.feedback-action form {
+    margin: 0;
+}
+
+.btn-publish,
+.btn-unpublish {
+    min-width: 120px;
+    height: 46px;
+    border: none;
+    border-radius: 12px;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.btn-publish {
+    background: #047857;
+    color: #ffffff;
+}
+
+.btn-publish:hover {
+    background: #065f46;
+}
+
+.btn-unpublish {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.btn-unpublish:hover {
+    background: #fecaca;
+}
+
+.campus-confirm-popup {
+    border-radius: 18px !important;
+    background: #065f46 !important;
+    color: #ffffff !important;
+    padding: 28px !important;
+}
+
+.campus-confirm-title {
+    color: #ffffff !important;
+    font-size: 22px !important;
+    font-weight: 800 !important;
+}
+
+.campus-confirm-text {
+    color: #d1fae5 !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+}
+
+.campus-confirm-button {
+    border: none !important;
+    border-radius: 10px !important;
+    background: #fde68a !important;
+    color: #064e3b !important;
+    padding: 10px 22px !important;
+    font-weight: 800 !important;
+}
+
+.campus-cancel-button {
+    border: 1px solid #d1fae5 !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    padding: 10px 22px !important;
+    font-weight: 800 !important;
+    margin-right: 10px !important;
+}
+
+@media (max-width: 768px) {
+    .feedback-dashboard-content {
+        display: block;
+    }
+
+    .feedback-action {
+        margin-top: 12px;
+    }
+
+    .btn-publish,
+    .btn-unpublish {
+        width: 100%;
+    }
+}
+
+.feedback-action {
+    margin-top: 12px;
+}
+
+.feedback-action form {
+    margin: 0;
+}
+
+
+.btn-publish,
+.btn-unpublish {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-publish {
+    background: #047857;
+    color: white;
+}
+
+.btn-publish:hover {
+    background: #065f46;
+}
+
+.btn-unpublish {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.btn-unpublish:hover {
+    background: #fecaca;
+}
+
+.feedback-dashboard-content {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 20px;
+    align-items: center;
+}
+
+.feedback-dashboard-top {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.feedback-dashboard-text {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 10px 0 0;
+    line-height: 1.6;
+}
+
+.feedback-action {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    justify-self: end;
+    margin-top: 0 !important;
+}
+
+.feedback-action form {
+    margin: 0;
+}
+
+.btn-publish,
+.btn-unpublish {
+    min-width: 120px;
+    height: 35px;
+    border: none;
+    border-radius: 12px;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.btn-publish {
+    background: #047857;
+    color: #ffffff;
+}
+
+.btn-publish:hover {
+    background: #065f46;
+}
+
+.btn-unpublish {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.btn-unpublish:hover {
+    background: #fecaca;
+}
+
+@media (max-width: 768px) {
+    .feedback-dashboard-content {
+        display: block;
+    }
+
+    .feedback-action {
+        margin-top: 12px !important;
+    }
+
+    .btn-publish,
+    .btn-unpublish {
+        width: 100%;
+    }
 }
 
         @media (max-width: 1024px) {
@@ -1011,7 +1254,7 @@
                 </div>
             </div>
 
-            <div class="feedback-dashboard-list">
+           <div class="feedback-dashboard-list">
                 @forelse(($feedbacks ?? collect()) as $feedback)
                     @php
                         $namaFeedback = optional(optional($feedback->mahasiswa)->user)->nama ?? 'Mahasiswa';
@@ -1032,7 +1275,7 @@
                         </div>
 
                         <div class="feedback-dashboard-content">
-                            <div class="feedback-dashboard-top">
+                            <div class="feedback-dashboard-main">
                                 <div class="feedback-dashboard-name">
                                     {{ $namaFeedback }}
                                 </div>
@@ -1040,11 +1283,43 @@
                                 <div class="feedback-dashboard-date">
                                     {{ $feedback->created_at ? $feedback->created_at->diffForHumans() : '-' }}
                                 </div>
+
+                                <p class="feedback-dashboard-text">
+                                    {{ $isiFeedback }}
+                                </p>
                             </div>
 
-                            <p class="feedback-dashboard-text">
-                                {{ $isiFeedback }}
-                            </p>
+                            <div class="feedback-action">
+                                @if($feedback->is_published)
+                                    <form 
+                                        action="{{ route('admin.feedback.unpublish', $feedback->id) }}" 
+                                        method="POST"
+                                        class="feedback-action-form"
+                                        data-action-type="unpublish"
+                                    >
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <button type="submit" class="btn-unpublish">
+                                            Sembunyikan
+                                        </button>
+                                    </form>
+                                @else
+                                    <form 
+                                        action="{{ route('admin.feedback.publish', $feedback->id) }}" 
+                                        method="POST"
+                                        class="feedback-action-form"
+                                        data-action-type="publish"
+                                    >
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <button type="submit" class="btn-publish">
+                                            Publish
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @empty
@@ -1064,7 +1339,59 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.feedback-action-form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const isPublish = form.dataset.actionType === 'publish';
+
+                Swal.fire({
+                    title: isPublish ? 'Konfirmasi Publish' : 'Konfirmasi Sembunyikan',
+                    html: isPublish
+                        ? 'Apakah Anda yakin ingin mempublish ulasan ini ke halaman beranda?'
+                        : 'Apakah Anda yakin ingin menyembunyikan ulasan ini dari halaman beranda?',
+                    icon: 'question',
+                    iconColor: '#fde68a',
+                    showCancelButton: true,
+                    confirmButtonText: isPublish ? 'Publish' : 'Sembunyikan',
+                    cancelButtonText: 'Batalkan',
+                    reverseButtons: true,
+                    buttonsStyling: false,
+                    customClass: {
+                        popup: 'campus-confirm-popup',
+                        title: 'campus-confirm-title',
+                        htmlContainer: 'campus-confirm-text',
+                        confirmButton: 'campus-confirm-button',
+                        cancelButton: 'campus-cancel-button'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        @if(session('feedback_success'))
+            Swal.fire({
+                title: 'Berhasil',
+                text: "{{ session('feedback_success') }}",
+                icon: 'success',
+                iconColor: '#d1fae5',
+                confirmButtonText: 'OK',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'campus-confirm-popup',
+                    title: 'campus-confirm-title',
+                    htmlContainer: 'campus-confirm-text',
+                    confirmButton: 'campus-confirm-button'
+                }
+            });
+        @endif
+    });
     function showToast(msg, isError = false) {
         const t = document.getElementById('toast');
         if(!t) return;

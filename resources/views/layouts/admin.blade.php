@@ -23,7 +23,7 @@
         --admin-primary-500: #D1FAE5;
         --admin-soft: #D1FAE5;
         --admin-soft-2: #EFFCF5;
-        --admin-bg: z#FFFAF4;
+        --admin-bg: #FFFAF4;
         --admin-border: #DDEFE7;
         --admin-text: #0F172A;
         --admin-text-mid: #475569;
@@ -900,30 +900,6 @@
       border-radius: 10px;
       padding: .45rem .9rem;
     }
-
-    /* Modal sukses grup privat memakai bahasa visual admin yang sama dengan confirm modal. */
-    .modal.modal-confirm .modal-detail-list {
-      margin: 1rem 0 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: .45rem;
-      text-align: left;
-    }
-
-    .modal.modal-confirm .modal-detail-list li {
-      display: flex;
-      gap: .55rem;
-      align-items: flex-start;
-      color: rgba(255,255,255,0.92);
-      font-size: .85rem;
-      line-height: 1.55;
-    }
-
-    .modal.modal-confirm .modal-detail-list i {
-      margin-top: .1rem;
-      color: #FDE68A;
-    }
   </style>
 
   @vite(['resources/js/app.js'])
@@ -1067,6 +1043,7 @@
         <li class="pc-h-item">
           <button class="btn-notification" id="btnWebPush" onclick="togglePush()">
               <i class="ti ti-bell"></i>
+              <span class="d-none d-md-inline">Notifikasi Sistem</span>
           </button>
         </li>
         <li class="dropdown pc-h-item">
@@ -1136,10 +1113,15 @@
   <div class="pc-content">
     <div class="admin-page-inner">
      @php
-    $currentTitle = trim($__env->yieldContent('page-title', 'Dashboard'));
-    $breadcrumbParent = trim($__env->yieldContent('breadcrumb-parent', ''));
-    $breadcrumbParentUrl = trim($__env->yieldContent('breadcrumb-parent-url', ''));
-@endphp
+        $currentTitle = trim($__env->yieldContent('page-title', 'Dashboard'));
+        $breadcrumbParent = trim($__env->yieldContent('breadcrumb-parent', ''));
+        $breadcrumbParentUrl = trim($__env->yieldContent('breadcrumb-parent-url', ''));
+
+        if ($breadcrumbParent === '' && request()->is('admin/laporan/*/laporan')) {
+            $breadcrumbParent = 'Laporan Konseling';
+            $breadcrumbParentUrl = route('admin.laporan');
+        }
+    @endphp
 
 @if(!request()->routeIs('admin.dashboard'))
     <nav class="admin-breadcrumb" aria-label="breadcrumb">
@@ -1185,13 +1167,6 @@
   </div>
 @endif
 
-    @if(session('success') && !session()->has('admin_success_modal'))
-      <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
-        <i class="ti ti-circle-check" style="font-size:1.1rem;"></i>
-        {{ session('success') }}
-      </div>
-    @endif
-
     @if(session('error'))
       <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
         <i class="ti ti-alert-circle" style="font-size:1.1rem;"></i>
@@ -1206,39 +1181,6 @@
 
 @include('components.modal_confirm')
 
-@if(session()->has('admin_success_modal'))
-  @php
-    $adminSuccessModal = session('admin_success_modal');
-  @endphp
-  <!-- comment: Modal ini menampilkan konfirmasi sukses pembuatan atau pemrosesan undangan grup privat di sisi admin. -->
-  <div class="modal fade modal-confirm" id="adminSuccessFlashModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-body">
-          <div class="modal-icon">
-            <i class="ti ti-circle-check"></i>
-          </div>
-          <div class="modal-title">{{ $adminSuccessModal['title'] ?? 'Berhasil' }}</div>
-          <div class="modal-text">{{ $adminSuccessModal['message'] ?? session('success') }}</div>
-          @if(!empty($adminSuccessModal['details']))
-            <ul class="modal-detail-list">
-              @foreach($adminSuccessModal['details'] as $detail)
-                <li>
-                  <i class="ti ti-check"></i>
-                  <span>{{ $detail }}</span>
-                </li>
-              @endforeach
-            </ul>
-          @endif
-          <div class="d-flex justify-content-center mt-4">
-            <button type="button" class="btn-confirm" data-bs-dismiss="modal">Mengerti</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-@endif
-
 <script src="{{ asset('template/dist') }}/assets/js/plugins/popper.min.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/plugins/simplebar.min.js"></script>
 <script src="{{ asset('template/dist') }}/assets/js/plugins/bootstrap.min.js"></script>
@@ -1247,14 +1189,6 @@
 <script src="{{ asset('template/dist') }}/assets/js/plugins/feather.min.js"></script>
 
 <script>
-  @if(session()->has('admin_success_modal'))
-    document.addEventListener('DOMContentLoaded', function () {
-      const modalEl = document.getElementById('adminSuccessFlashModal');
-      if (!modalEl) return;
-      new bootstrap.Modal(modalEl).show();
-    });
-  @endif
-
   // Global confirm modal handler: elements can use data-confirm, data-confirm-title, data-confirm-text, data-confirm-ok, data-confirm-url
   document.addEventListener('click', function (e) {
     const trigger = e.target.closest('[data-confirm]');
@@ -1385,7 +1319,6 @@
         // 3. Gabungkan mahasiswa urgent ke daftar teratas jika ada
         const urgentItems = urgentStudents.map(student => ({
           id: 'urgent-' + student.nim,
-          nim: student.nim,
           pesan: `⚠️ KRITIS: ${student.name} (${student.nim}) berada di Level ${student.mental_level}!`,
           created_at_human: 'Sekarang',
           status: 'urgent',
@@ -1403,17 +1336,15 @@
           let bgColor = 'transparent';
           let textColor = 'var(--admin-text)';
           let link = notif.link || '{{ route('admin.jadwal') }}';
-          let onclickAttr = '';
 
           if (notif.status === 'urgent') {
             dotColor = '#EF4444';
             bgColor = '#FEF2F2';
             textColor = '#B91C1C';
-            onclickAttr = `onclick="markUrgentRead('${notif.nim}', event, this.href)"`;
           }
 
           return `
-            <a class="dropdown-item admin-notif-item" href="${link}" ${onclickAttr} style="background-color: ${bgColor}">
+            <a class="dropdown-item admin-notif-item" href="${link}" style="background-color: ${bgColor}">
               <div class="d-flex gap-2 align-items-start">
                 <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};margin-top:5px;flex-shrink:0;"></div>
                 <div style="min-width:0;">
@@ -1435,7 +1366,7 @@
         await fetch('{{ route('admin.notifikasi.baca') }}', {
           method: 'POST',
           headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
             'X-Requested-With': 'XMLHttpRequest'
           }
         });
@@ -1443,22 +1374,6 @@
         console.error('Gagal menandai notifikasi dibaca:', err);
       }
     }
-
-    window.markUrgentRead = async function(nim, event, url) {
-      event.preventDefault();
-      try {
-        await fetch(`{{ url('/konselor/notifications') }}/${nim}/read`, {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-      } catch (err) {
-        console.error('Failed to mark urgent read:', err);
-      }
-      window.location.href = url;
-    };
 
     notifTrigger.addEventListener('click', function () {
       setTimeout(async function () {
@@ -1470,6 +1385,44 @@
     fetchAllNotifications();
     setInterval(fetchAllNotifications, 10000);
   })();
+
+  function togglePush() {
+    if (Notification.permission === 'granted') {
+      alert('✅ Notifikasi sudah aktif!');
+      return;
+    }
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        if (typeof initWebPush === 'function') initWebPush();
+        const btn = document.getElementById('btnWebPush');
+        if (btn) {
+          btn.style.background = '#ecfdf5';
+          btn.style.color = '#059669';
+          btn.style.borderColor = '#a7f3d0';
+          const span = btn.querySelector('span');
+          if (span) span.innerText = 'Notifikasi Aktif';
+          const i = btn.querySelector('i');
+          if (i) i.className = 'ti ti-bell-filled';
+        }
+        alert('🚀 Notifikasi sistem berhasil diaktifkan!');
+      } else {
+        alert('⚠️ Izin notifikasi ditolak.');
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('btnWebPush');
+    if (btn && Notification.permission === 'granted') {
+      btn.style.background = '#ecfdf5';
+      btn.style.color = '#059669';
+      btn.style.borderColor = '#a7f3d0';
+      const span = btn.querySelector('span');
+      if (span) span.innerText = 'Notifikasi Aktif';
+      const i = btn.querySelector('i');
+      if (i) i.className = 'ti ti-bell-filled';
+    }
+  });
 </script>
 
 <script src="{{ asset('js/webpush.js') }}"></script>

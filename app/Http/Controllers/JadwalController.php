@@ -272,8 +272,6 @@ class JadwalController extends Controller
             ], 404);
         }
 
-        $konselor->loadMissing('user');
-        // Konseling offline selalu memakai identitas asli; alias anonim hanya berlaku untuk layanan online.
         $isAnonim = $validated['jenis'] === 'online' && $user->isAnonim();
         $namaDisplay = $isAnonim
             ? $user->getAnonimDisplayName()
@@ -388,7 +386,7 @@ class JadwalController extends Controller
                     'status'  => 'belum',
                 ]);
 
-                $konselorUserId = optional($konselor->user)->id;
+                $konselorUserId = $konselor->user_id;
 
                 if ($konselorUserId) {
                     Notifikasi::create([

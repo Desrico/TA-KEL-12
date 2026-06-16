@@ -954,6 +954,10 @@
     margin-bottom: 16px;
   }
 
+  .feedback-card-body {
+      margin-top: 0;  
+  }
+
   .feedback-avatar {
     width: 48px;
     height: 48px;
@@ -1205,12 +1209,13 @@
     border: 1px solid rgba(209,250,229,.95);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 20px;
     position: relative;
     overflow: hidden;
     scroll-snap-align: start;
     transition: transform .25s ease, box-shadow .25s ease;
-  }
+}
 
   .feedback-card:hover {
     transform: translateY(-3px);
@@ -1220,8 +1225,8 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 16px;
-  }
+    margin-bottom: 0;
+}
 
   .feedback-avatar {
     width: 48px;

@@ -1,6 +1,8 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Laporan Konseling')
+@section('page-title', 'Laporan Hasil Konseling')
+@section('breadcrumb-parent', 'Laporan Konseling')
+@section('breadcrumb-parent-url', route('admin.laporan'))
 
 @push('styles')
 <style>

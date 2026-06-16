@@ -31,7 +31,11 @@ Route::post('/subscriptions/delete', [PushSubscriptionController::class, 'destro
 // HALAMAN PUBLIK
 // ═══════════════════════════════
 Route::get('/', function () {
-    $feedbacks = Feedback::with(['mahasiswa.user'])->latest()->take(12)->get();
+    $feedbacks = Feedback::with(['mahasiswa.user'])
+    ->where('is_published', true)
+    ->latest()
+    ->take(12)
+    ->get();
 
     return view('Pages.beranda', [
         'feedbacks' => $feedbacks,
@@ -60,10 +64,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 // ═══════════════════════════════
 Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::get('/dashboard', function () {
-    $feedbacks = Feedback::with(['mahasiswa.user'])
-        ->latest()
-        ->take(10)
-        ->get();
+   $feedbacks = Feedback::with(['mahasiswa.user'])
+    ->where('is_published', true)
+    ->latest()
+    ->take(10)
+    ->get();
 
     return view('Pages.beranda', compact('feedbacks'));
 })->name('dashboard');
@@ -164,6 +169,12 @@ Route::prefix('admin')
 
         Route::get('/jadwal/events', [AdminController::class, 'jadwalEvents'])->name('jadwal.events');
         Route::get('/jadwal/data', [CounselorController::class, 'getJadwalData'])->name('jadwal.data');
+
+        Route::patch('/feedback/{feedback}/publish', [DashboardController::class, 'publishFeedback'])
+            ->name('feedback.publish');
+
+        Route::patch('/feedback/{feedback}/unpublish', [DashboardController::class, 'unpublishFeedback'])
+            ->name('feedback.unpublish');
 
         Route::get('/kampus-api/mahasiswa', [KampusApiController::class, 'mahasiswa']);
         Route::get('/kampus-api/mahasiswa/{nim}', [KampusApiController::class, 'mahasiswaByNim']);
