@@ -683,7 +683,7 @@ class DashboardController extends Controller
         $level    = $request->query('level', 'Semua');
 
         // Daftar angkatan unik dari MongoDB
-        $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
+        $angkatanList = Student::pluck('tingkatan')->filter()->unique()->sort()->values();
 
         // Pemetaan Fakultas → daftar Prodi (sama dengan getStudentPreview)
         $fakultasMap = [
@@ -701,7 +701,7 @@ class DashboardController extends Controller
                 $q->whereIn('mental_level', [(int)$level, (string)$level]);
             })
             ->when($angkatan !== 'Semua', function ($q) use ($angkatan) {
-                $q->where('angkatan', $angkatan);
+                $q->where('tingkatan', $angkatan);
             })
             ->when($prodi !== 'Semua', function ($q) use ($prodi, $fakultasMap) {
                 if (array_key_exists($prodi, $fakultasMap)) {

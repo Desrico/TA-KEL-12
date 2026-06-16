@@ -1107,11 +1107,11 @@
         @if($breadcrumbParent !== '')
             @if($breadcrumbParentUrl !== '')
                 <a href="{{ $breadcrumbParentUrl }}">
-                    {{ $breadcrumbParent }}
+                    {!! $breadcrumbParent !!}
                 </a>
             @else
                 <span class="breadcrumb-current">
-                    {{ $breadcrumbParent }}
+                    {!! $breadcrumbParent !!}
                 </span>
             @endif
 
@@ -1119,7 +1119,7 @@
         @endif
 
         <span class="breadcrumb-current">
-            {{ $currentTitle }}
+            {!! $currentTitle !!}
         </span>
     </nav>
 @endif

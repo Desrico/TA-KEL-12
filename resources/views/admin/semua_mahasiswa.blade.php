@@ -230,7 +230,7 @@
                         style="padding: 9px 12px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 500; outline: none; background: white; cursor: pointer; color: #475569; min-width: 160px;">
                         <option value="Semua">🏛️ Semua Fakultas</option>
                         <option value="FAK:Vokasi">Vokasi</option>
-                        <option value="FAK:Informatika & Elektro">Informatika &amp; Elektro</option>
+                        <option value="FAK:Informatika & Elektro">Informatika & Elektro</option>
                         <option value="FAK:Bioteknologi">Bioteknologi</option>
                         <option value="FAK:Teknik Industri">Teknik Industri</option>
                     </select>
