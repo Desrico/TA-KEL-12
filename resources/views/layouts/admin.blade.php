@@ -467,14 +467,10 @@
     }
 
     @media (min-width: 1025px) {
-      /* hide any leftover desktop header toggle */
-      .pc-h-item.pc-sidebar-collapse { display: none !important; }
+      /* Show desktop header toggle */
+      .pc-h-item.pc-sidebar-collapse { display: inline-flex !important; }
 
       .sidebar-edge-toggle {
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
         background: #fff;
         border-radius: 8px;
         width: 36px;
@@ -483,7 +479,6 @@
         align-items: center;
         justify-content: center;
         box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        z-index: 1300;
       }
 
       .pc-h-item.pc-sidebar-popup {
@@ -534,26 +529,7 @@
       border-color: #D7EBDD;
     }
 
-    .btn-notification {
-      background: #ffffff;
-      border: 1px solid var(--admin-border);
-      color: var(--admin-text-mid);
-      padding: 8px 14px;
-      border-radius: 12px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
 
-    .btn-notification:hover {
-      background: var(--admin-soft-2);
-      color: var(--admin-primary);
-      border-color: #D7EBDD;
-    }
 
     .notif-badge {
       position: absolute;
@@ -1027,9 +1003,12 @@
 <header class="pc-header">
   <div class="header-wrapper">
     <div class="me-auto pc-mob-drp position-relative">
-      <a href="#" class="pc-head-link sidebar-edge-toggle d-none d-lg-inline-flex" id="sidebar-hide">
-        <i class="ti ti-menu-2"></i>
-      </a>
+      <ul class="list-unstyled d-flex align-items-center mb-0">
+        <li class="pc-h-item pc-sidebar-collapse">
+          <a href="#" class="pc-head-link sidebar-edge-toggle d-none d-lg-inline-flex" id="sidebar-hide">
+            <i class="ti ti-menu-2"></i>
+          </a>
+        </li>
         <li class="pc-h-item pc-sidebar-popup">
           <a href="#" class="pc-head-link ms-0" id="mobile-collapse">
             <i class="ti ti-menu-2"></i>
@@ -1375,15 +1354,129 @@
       }
     }
 
+<<<<<<< HEAD
     notifTrigger.addEventListener('click', function () {
+=======
+    window.markUrgentRead = async function(nim, event, url) {
+      event.preventDefault();
+      try {
+        await fetch(`{{ url('/konselor/notifications') }}/${nim}/read`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+      } catch (err) {
+        console.error('Failed to mark urgent read:', err);
+      }
+      window.location.href = url;
+    };
+
+    // ── Browser Push Notification ──────────────────────────────────────────
+    const VAPID_PUBLIC_KEY = 'BANc9RgVqlg0Oau0kRon4GfLRAU6shEkZVndWOiX_j-c0MsLAWKX3wpLWZZO_P6WTJjS720x8_WKaA2IBSh8DLg';
+    let swRegistration = null;
+    let urgentAlreadyNotified = new Set();
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const output = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) output[i] = rawData.charCodeAt(i);
+      return output;
+    }
+
+    async function registerSW() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+      if (swRegistration) return swRegistration;
+      try {
+        swRegistration = await navigator.serviceWorker.register('/sw.js');
+        return swRegistration;
+      } catch (e) {
+        console.error('SW registration failed', e);
+        return null;
+      }
+    }
+
+    async function requestNotifPermissionAndSubscribe() {
+      if (!('Notification' in window)) return;
+      if (Notification.permission === 'denied') return;
+      if (Notification.permission !== 'granted') {
+        const result = await Notification.requestPermission();
+        if (result !== 'granted') return;
+      }
+      const reg = await registerSW();
+      if (!reg) return;
+      try {
+        const existing = await reg.pushManager.getSubscription();
+        if (existing) return;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        await fetch('/subscriptions', {
+          method: 'POST',
+          body: JSON.stringify(sub),
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': token }
+        });
+      } catch (e) {
+        console.error('Push subscribe failed', e);
+      }
+    }
+
+    function sendUrgentBrowserNotif(student) {
+      if (Notification.permission !== 'granted') return;
+      if (urgentAlreadyNotified.has(student.nim)) return;
+      urgentAlreadyNotified.add(student.nim);
+      const notif = new Notification('⚠️ Mahasiswa Perlu Perhatian!', {
+        body: `${student.name} (${student.nim}) berada di Level Mental ${student.mental_level}. Segera tindak lanjuti!`,
+        icon: '/img/logo.png',
+        badge: '/img/logo.png',
+        tag: 'urgent-' + student.nim,
+        requireInteraction: true
+      });
+      notif.onclick = function() {
+        window.focus();
+        window.location.href = `/konselor/detail/${student.nim}`;
+        notif.close();
+      };
+    }
+
+    // Auto-request izin saat halaman load (jika belum pernah diputuskan)
+    (async function autoInitNotif() {
+      if (Notification.permission === 'default') {
+        // Daftarkan SW di background tanpa langsung minta izin
+        await registerSW();
+      } else if (Notification.permission === 'granted') {
+        await registerSW();
+        await requestNotifPermissionAndSubscribe();
+      }
+    })();
+
+    notifTrigger.addEventListener('click', async function () {
+      // Request izin notifikasi saat bell diklik (jika belum)
+      await requestNotifPermissionAndSubscribe();
+>>>>>>> 65b63cf2d2662dfdb4e8a2b0369dcca2ebfb848b
       setTimeout(async function () {
         await markAdminNotificationsAsRead();
         await fetchAllNotifications();
       }, 120);
     });
 
-    fetchAllNotifications();
-    setInterval(fetchAllNotifications, 10000);
+    // Override fetchUrgentNotifications agar juga kirim browser push
+    const _origFetchAllNotifications = fetchAllNotifications;
+    async function fetchAllNotificationsWithPush() {
+      const urgentStudents = await fetchUrgentNotifications();
+      if (urgentStudents.length > 0 && Notification.permission === 'granted') {
+        urgentStudents.forEach(student => sendUrgentBrowserNotif(student));
+      }
+      await fetchAllNotifications();
+    }
+
+    fetchAllNotificationsWithPush();
+    setInterval(fetchAllNotificationsWithPush, 10000);
   })();
 
   function togglePush() {
@@ -1424,8 +1517,6 @@
     }
   });
 </script>
-
-<script src="{{ asset('js/webpush.js') }}"></script>
 @stack('scripts')
 
 </body>

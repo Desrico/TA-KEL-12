@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  id="Definitions_Koreksi_AI" 
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_Koreksi_AI">
+    <bpmn:participant id="Participant_Koreksi_AI" name="Proses Mengubah &amp; Mengoreksi Label Klasifikasi AI" processRef="Process_Koreksi_AI" />
+  </bpmn:collaboration>
+  
+  <bpmn:process id="Process_Koreksi_AI" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Koreksi_AI">
+      <bpmn:lane id="Lane_Konselor_K" name="Konselor (Web Admin)">
+        <bpmn:flowNodeRef>StartEvent_K</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ViewLabel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SelectOverride</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitOverride</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SeeUpdated</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_K</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sistem_K" name="Sistem (Laravel &amp; MongoDB)">
+        <bpmn:flowNodeRef>Task_ValidateInput</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UpdateMongo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReturnSuccess</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    
+    <bpmn:startEvent id="StartEvent_K" name="Ingin Mengoreksi Label Klasifikasi AI">
+      <bpmn:outgoing>Flow_K_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <bpmn:userTask id="Task_ViewLabel" name="Melihat Label Klasifikasi AI Mahasiswa">
+      <bpmn:incoming>Flow_K_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_K_2</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_SelectOverride" name="Memilih Level Mental Baru pada Dropdown">
+      <bpmn:incoming>Flow_K_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_K_3</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_SubmitOverride" name="Klik Tombol Simpan Koreksi">
+      <bpmn:incoming>Flow_K_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_K_4</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:serviceTask id="Task_ValidateInput" name="Validasi Parameter level (0 / 1 / 2 / 3)">
+      <bpmn:incoming>Flow_K_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_K_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_UpdateMongo" name="Perbarui Model Student di MongoDB (Set Level &amp; Confidence = 100)">
+      <bpmn:incoming>Flow_K_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_K_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_ReturnSuccess" name="Kirim Response Sukses JSON">
+      <bpmn:incoming>Flow_K_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_K_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:userTask id="Task_SeeUpdated" name="Melihat Status Mahasiswa Diperbarui di Halaman Profil">
+      <bpmn:incoming>Flow_K_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_K_8</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:endEvent id="EndEvent_K" name="Koreksi Manual Berhasil Disimpan">
+      <bpmn:incoming>Flow_K_8</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:sequenceFlow id="Flow_K_1" sourceRef="StartEvent_K" targetRef="Task_ViewLabel" />
+    <bpmn:sequenceFlow id="Flow_K_2" sourceRef="Task_ViewLabel" targetRef="Task_SelectOverride" />
+    <bpmn:sequenceFlow id="Flow_K_3" sourceRef="Task_SelectOverride" targetRef="Task_SubmitOverride" />
+    <bpmn:sequenceFlow id="Flow_K_4" sourceRef="Task_SubmitOverride" targetRef="Task_ValidateInput" />
+    <bpmn:sequenceFlow id="Flow_K_5" sourceRef="Task_ValidateInput" targetRef="Task_UpdateMongo" />
+    <bpmn:sequenceFlow id="Flow_K_6" sourceRef="Task_UpdateMongo" targetRef="Task_ReturnSuccess" />
+    <bpmn:sequenceFlow id="Flow_K_7" sourceRef="Task_ReturnSuccess" targetRef="Task_SeeUpdated" />
+    <bpmn:sequenceFlow id="Flow_K_8" sourceRef="Task_SeeUpdated" targetRef="EndEvent_K" />
+  </bpmn:process>
+  
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Koreksi_AI">
+    <bpmndi:BPMNPlane id="BPMNPlane_Koreksi_AI" bpmnElement="Collaboration_Koreksi_AI">
+      <bpmndi:BPMNShape id="Participant_Koreksi_AI_di" bpmnElement="Participant_Koreksi_AI" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="900" height="300" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Lane_Konselor_K_di" bpmnElement="Lane_Konselor_K" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="870" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Sistem_K_di" bpmnElement="Lane_Sistem_K" isHorizontal="true">
+        <dc:Bounds x="180" y="220" width="870" height="140" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="StartEvent_K_di" bpmnElement="StartEvent_K">
+        <dc:Bounds x="210" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ViewLabel_di" bpmnElement="Task_ViewLabel">
+        <dc:Bounds x="280" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SelectOverride_di" bpmnElement="Task_SelectOverride">
+        <dc:Bounds x="410" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SubmitOverride_di" bpmnElement="Task_SubmitOverride">
+        <dc:Bounds x="540" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SeeUpdated_di" bpmnElement="Task_SeeUpdated">
+        <dc:Bounds x="800" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_K_di" bpmnElement="EndEvent_K">
+        <dc:Bounds x="950" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Task_ValidateInput_di" bpmnElement="Task_ValidateInput">
+        <dc:Bounds x="540" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_UpdateMongo_di" bpmnElement="Task_UpdateMongo">
+        <dc:Bounds x="670" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReturnSuccess_di" bpmnElement="Task_ReturnSuccess">
+        <dc:Bounds x="800" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNEdge id="Flow_K_1_di" bpmnElement="Flow_K_1">
+        <di:waypoint x="246" y="150" />
+        <di:waypoint x="280" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_K_2_di" bpmnElement="Flow_K_2">
+        <di:waypoint x="380" y="150" />
+        <di:waypoint x="410" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_K_3_di" bpmnElement="Flow_K_3">
+        <di:waypoint x="510" y="150" />
+        <di:waypoint x="540" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_K_4_di" bpmnElement="Flow_K_4">
+        <di:waypoint x="590" y="190" />
+        <di:waypoint x="590" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_K_5_di" bpmnElement="Flow_K_5">
+        <di:waypoint x="640" y="290" />
+        <di:waypoint x="670" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_K_6_di" bpmnElement="Flow_K_6">
+        <di:waypoint x="770" y="290" />
+        <di:waypoint x="800" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_K_7_di" bpmnElement="Flow_K_7">
+        <di:waypoint x="850" y="250" />
+        <di:waypoint x="850" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_K_8_di" bpmnElement="Flow_K_8">
+        <di:waypoint x="900" y="150" />
+        <di:waypoint x="950" y="150" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

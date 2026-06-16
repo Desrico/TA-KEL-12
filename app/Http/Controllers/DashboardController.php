@@ -21,47 +21,53 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Data utama dashboard konselor (MongoDB)
-        $students = Student::with('journalTexts')
-            ->whereNotNull('mental_level')
-            ->orderBy('mental_level', 'desc')
-            ->orderBy('name')
-            ->get()
-            ->map(function ($student) {
-                $student->journal_texts_count = $student->journalTexts->count();
-                return $student;
-            });
+        try {
+            // Data utama dashboard konselor (MongoDB)
+            $students = Student::with('journalTexts')
+                ->whereNotNull('mental_level')
+                ->orderBy('mental_level', 'desc')
+                ->orderBy('name')
+                ->get()
+                ->map(function ($student) {
+                    $student->journal_texts_count = $student->journalTexts ? $student->journalTexts->count() : 0;
+                    return $student;
+                });
 
-        $user = Auth::user();
-        $konselor = $user ? Konselor::where('user_id', $user->id)->first() : null;
+            $user = Auth::user();
+            $konselor = $user ? Konselor::where('user_id', $user->id)->first() : null;
 
-        $baseQuery = $konselor
-            ? JadwalKonseling::where('konselor_id', $konselor->id)
-            : JadwalKonseling::query();
+            $baseQuery = $konselor
+                ? JadwalKonseling::where('konselor_id', $konselor->id)
+                : JadwalKonseling::query();
 
-        $todayJadwals = (clone $baseQuery)
-            ->whereDate('tanggal', Carbon::today())
-            ->with('mahasiswa.user')
-            ->orderBy('waktu')
-            ->get();
+            $todayJadwals = (clone $baseQuery)
+                ->whereDate('tanggal', Carbon::today())
+                ->with('mahasiswa.user')
+                ->orderBy('waktu')
+                ->get();
 
-        $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
+            $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
 
-        // Daftar angkatan unik dari MongoDB untuk filter dropdown
-        $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();$angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
+            // Daftar angkatan unik dari MongoDB untuk filter dropdown
+            $angkatanList = Student::pluck('angkatan')->filter()->unique()->sort()->values();
 
-        $feedbacks = Feedback::with(['mahasiswa.user'])
-            ->latest()
-            ->take(6)
-            ->get();
+            $feedbacks = Feedback::with(['mahasiswa.user'])
+                ->latest()
+                ->take(6)
+                ->get();
 
-        return view('admin.dashboard', [
-            'students'     => $students,
-            'lastScan'     => $lastScan,
-            'todayJadwals' => $todayJadwals,
-            'angkatanList' => $angkatanList,
-            'feedbacks'    => $feedbacks,
-        ]);
+            $view = view('admin.dashboard', [
+                'students'     => $students,
+                'lastScan'     => $lastScan,
+                'todayJadwals' => $todayJadwals,
+                'angkatanList' => $angkatanList,
+                'feedbacks'    => $feedbacks,
+            ])->render();
+            
+            return response($view);
+        } catch (\Exception $e) {
+            dd("Error found in DashboardController: " . $e->getMessage() . " | Line: " . $e->getLine() . " | File: " . $e->getFile());
+        }
     }
     
     public function publishFeedback(\App\Models\Feedback $feedback)
@@ -501,7 +507,7 @@ class DashboardController extends Controller
             $allText = $journals->pluck('description')->implode(' ');
 
             try {
-                $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+                $aiUrl = config('services.ai.engine_url');
                 $response = Http::timeout(30)->post("{$aiUrl}/api/classify", [
                     'nim'                     => $student->nim,
                     'text'                    => $allText,
@@ -576,7 +582,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+        $aiUrl = config('services.ai.engine_url');
         $response = Http::timeout(120)->post("{$aiUrl}/api/summarize", [
             'nim'           => $nim,
             'journal_texts' => $journals,
@@ -691,7 +697,6 @@ class DashboardController extends Controller
         ];
 
         $students = Student::with('journalTexts')
-            ->whereNotNull('mental_level')
             ->when($level !== 'Semua', function ($q) use ($level) {
                 $q->whereIn('mental_level', [(int)$level, (string)$level]);
             })
@@ -766,7 +771,7 @@ class DashboardController extends Controller
             $daysSinceLastJournal = $lastJournal ? now()->diffInDays($lastJournal->created_at) : 99;
             $allText = $journals->pluck('description')->implode(' ');
 
-            $aiUrl = env('AI_ENGINE_URL', 'http://127.0.0.1:8001');
+            $aiUrl = config('services.ai.engine_url');
             $response = Http::timeout(20)->post("{$aiUrl}/api/classify", [
                 'nim'                     => $nim,
                 'text'                    => $allText,

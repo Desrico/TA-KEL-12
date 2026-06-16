@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  id="Definitions_Laporan_Grafik" 
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_Laporan_Grafik">
+    <bpmn:participant id="Participant_Laporan_Grafik" name="Proses Generate Laporan Grafik Mood &amp; Perasaan" processRef="Process_Laporan_Grafik" />
+  </bpmn:collaboration>
+  
+  <bpmn:process id="Process_Laporan_Grafik" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Laporan_Grafik">
+      <bpmn:lane id="Lane_Konselor_G" name="Konselor (Web Admin)">
+        <bpmn:flowNodeRef>StartEvent_G</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SelectRange</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ClickPrint</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SavePDF</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_G</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sistem_G" name="Sistem (Laravel &amp; DB)">
+        <bpmn:flowNodeRef>Task_FetchData</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CalcGraph</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RenderLaporan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TriggerPrint</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    
+    <bpmn:startEvent id="StartEvent_G" name="Ingin Mencetak Tren Mood &amp; Perasaan">
+      <bpmn:outgoing>Flow_G_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <bpmn:userTask id="Task_SelectRange" name="Memilih Rentang Waktu (14d / 1m / 4m)">
+      <bpmn:incoming>Flow_G_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_2</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_ClickPrint" name="Klik Cetak Laporan Tren (Print Icon)">
+      <bpmn:incoming>Flow_G_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_3</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:serviceTask id="Task_FetchData" name="Ambil Data DailyCheckin &amp; Eager Load Relasi">
+      <bpmn:incoming>Flow_G_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_CalcGraph" name="Hitung Persentase Distribusi Mood &amp; Perasaan">
+      <bpmn:incoming>Flow_G_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_RenderLaporan" name="Render Halaman Khusus Laporan Cetak">
+      <bpmn:incoming>Flow_G_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_TriggerPrint" name="Jalankan print() Dialog Browser">
+      <bpmn:incoming>Flow_G_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:userTask id="Task_SavePDF" name="Simpan PDF atau Cetak Dokumen Fisik">
+      <bpmn:incoming>Flow_G_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_8</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:endEvent id="EndEvent_G" name="Laporan Grafik Selesai Dicetak">
+      <bpmn:incoming>Flow_G_8</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:sequenceFlow id="Flow_G_1" sourceRef="StartEvent_G" targetRef="Task_SelectRange" />
+    <bpmn:sequenceFlow id="Flow_G_2" sourceRef="Task_SelectRange" targetRef="Task_ClickPrint" />
+    <bpmn:sequenceFlow id="Flow_G_3" sourceRef="Task_ClickPrint" targetRef="Task_FetchData" />
+    <bpmn:sequenceFlow id="Flow_G_4" sourceRef="Task_FetchData" targetRef="Task_CalcGraph" />
+    <bpmn:sequenceFlow id="Flow_G_5" sourceRef="Task_CalcGraph" targetRef="Task_RenderLaporan" />
+    <bpmn:sequenceFlow id="Flow_G_6" sourceRef="Task_RenderLaporan" targetRef="Task_TriggerPrint" />
+    <bpmn:sequenceFlow id="Flow_G_7" sourceRef="Task_TriggerPrint" targetRef="Task_SavePDF" />
+    <bpmn:sequenceFlow id="Flow_G_8" sourceRef="Task_SavePDF" targetRef="EndEvent_G" />
+  </bpmn:process>
+  
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Laporan_Grafik">
+    <bpmndi:BPMNPlane id="BPMNPlane_Laporan_Grafik" bpmnElement="Collaboration_Laporan_Grafik">
+      <bpmndi:BPMNShape id="Participant_Laporan_Grafik_di" bpmnElement="Participant_Laporan_Grafik" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="900" height="300" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Lane_Konselor_G_di" bpmnElement="Lane_Konselor_G" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="870" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Sistem_G_di" bpmnElement="Lane_Sistem_G" isHorizontal="true">
+        <dc:Bounds x="180" y="220" width="870" height="140" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="StartEvent_G_di" bpmnElement="StartEvent_G">
+        <dc:Bounds x="210" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SelectRange_di" bpmnElement="Task_SelectRange">
+        <dc:Bounds x="280" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ClickPrint_di" bpmnElement="Task_ClickPrint">
+        <dc:Bounds x="410" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SavePDF_di" bpmnElement="Task_SavePDF">
+        <dc:Bounds x="800" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_G_di" bpmnElement="EndEvent_G">
+        <dc:Bounds x="950" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Task_FetchData_di" bpmnElement="Task_FetchData">
+        <dc:Bounds x="410" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CalcGraph_di" bpmnElement="Task_CalcGraph">
+        <dc:Bounds x="540" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RenderLaporan_di" bpmnElement="Task_RenderLaporan">
+        <dc:Bounds x="670" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TriggerPrint_di" bpmnElement="Task_TriggerPrint">
+        <dc:Bounds x="800" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNEdge id="Flow_G_1_di" bpmnElement="Flow_G_1">
+        <di:waypoint x="246" y="150" />
+        <di:waypoint x="280" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_2_di" bpmnElement="Flow_G_2">
+        <di:waypoint x="380" y="150" />
+        <di:waypoint x="410" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_3_di" bpmnElement="Flow_G_3">
+        <di:waypoint x="460" y="190" />
+        <di:waypoint x="460" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_4_di" bpmnElement="Flow_G_4">
+        <di:waypoint x="510" y="290" />
+        <di:waypoint x="540" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_5_di" bpmnElement="Flow_G_5">
+        <di:waypoint x="640" y="290" />
+        <di:waypoint x="670" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_6_di" bpmnElement="Flow_G_6">
+        <di:waypoint x="770" y="290" />
+        <di:waypoint x="800" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_7_di" bpmnElement="Flow_G_7">
+        <di:waypoint x="850" y="250" />
+        <di:waypoint x="850" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_8_di" bpmnElement="Flow_G_8">
+        <di:waypoint x="900" y="150" />
+        <di:waypoint x="950" y="150" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

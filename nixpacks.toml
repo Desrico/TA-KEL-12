@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = []
+
+[phases.build]
+cmds = []
+
+[variables]
+NIXPACKS_PHP_EXTENSIONS = "mongodb pdo_mysql ctype curl dom fileinfo filter hash mbstring openssl pcre pdo session tokenizer xml"

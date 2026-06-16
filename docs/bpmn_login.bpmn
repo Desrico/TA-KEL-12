@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  id="Definitions_Login" 
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_Login">
+    <bpmn:participant id="Participant_Login" name="Proses Autentikasi Pengguna (Login)" processRef="Process_Login" />
+  </bpmn:collaboration>
+  
+  <bpmn:process id="Process_Login" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Login">
+      <bpmn:lane id="Lane_User_Auth" name="Pengguna (Mahasiswa / Konselor)">
+        <bpmn:flowNodeRef>StartEvent_Auth</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AccessLogin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitCredentials</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowError</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sistem_Auth" name="Sistem (Laravel Auth Engine)">
+        <bpmn:flowNodeRef>Task_ValidateCredentials</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_CredValid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreateSession</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_CheckRole</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RedirectKonselor</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RedirectMahasiswa</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Auth</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    
+    <bpmn:startEvent id="StartEvent_Auth" name="Ingin Masuk ke Sistem">
+      <bpmn:outgoing>Flow_A_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <bpmn:userTask id="Task_AccessLogin" name="Mengakses Halaman Login (/login)">
+      <bpmn:incoming>Flow_A_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_2</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_SubmitCredentials" name="Mengisi NIM/Email &amp; Password, Klik Login">
+      <bpmn:incoming>Flow_A_2</bpmn:incoming>
+      <bpmn:incoming>Flow_A_Retry</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_3</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:serviceTask id="Task_ValidateCredentials" name="Validasi Format Input &amp; Kredensial Database">
+      <bpmn:incoming>Flow_A_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:exclusiveGateway id="Gateway_CredValid" name="Kredensial Valid?">
+      <bpmn:incoming>Flow_A_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_No</bpmn:outgoing>
+      <bpmn:outgoing>Flow_A_Yes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    
+    <bpmn:serviceTask id="Task_ShowError" name="Tampilkan Pesan Error: Kredensial Salah">
+      <bpmn:incoming>Flow_A_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_Retry</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_CreateSession" name="Membuat Session Pengguna">
+      <bpmn:incoming>Flow_A_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:exclusiveGateway id="Gateway_CheckRole" name="Role Pengguna?">
+      <bpmn:incoming>Flow_A_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_Konselor</bpmn:outgoing>
+      <bpmn:outgoing>Flow_A_Mahasiswa</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    
+    <bpmn:serviceTask id="Task_RedirectKonselor" name="Mengarahkan ke Halaman /admin/dashboard">
+      <bpmn:incoming>Flow_A_Konselor</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_EndK</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_RedirectMahasiswa" name="Mengarahkan ke Halaman /dashboard">
+      <bpmn:incoming>Flow_A_Mahasiswa</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_EndM</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:endEvent id="EndEvent_Auth" name="Pengguna Masuk ke Halaman Utama">
+      <bpmn:incoming>Flow_A_EndK</bpmn:incoming>
+      <bpmn:incoming>Flow_A_EndM</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:sequenceFlow id="Flow_A_1" sourceRef="StartEvent_Auth" targetRef="Task_AccessLogin" />
+    <bpmn:sequenceFlow id="Flow_A_2" sourceRef="Task_AccessLogin" targetRef="Task_SubmitCredentials" />
+    <bpmn:sequenceFlow id="Flow_A_3" sourceRef="Task_SubmitCredentials" targetRef="Task_ValidateCredentials" />
+    <bpmn:sequenceFlow id="Flow_A_4" sourceRef="Task_ValidateCredentials" targetRef="Gateway_CredValid" />
+    <bpmn:sequenceFlow id="Flow_A_No" name="Tidak" sourceRef="Gateway_CredValid" targetRef="Task_ShowError" />
+    <bpmn:sequenceFlow id="Flow_A_Retry" sourceRef="Task_ShowError" targetRef="Task_SubmitCredentials" />
+    <bpmn:sequenceFlow id="Flow_A_Yes" name="Ya" sourceRef="Gateway_CredValid" targetRef="Task_CreateSession" />
+    <bpmn:sequenceFlow id="Flow_A_5" sourceRef="Task_CreateSession" targetRef="Gateway_CheckRole" />
+    <bpmn:sequenceFlow id="Flow_A_Konselor" name="Konselor" sourceRef="Gateway_CheckRole" targetRef="Task_RedirectKonselor" />
+    <bpmn:sequenceFlow id="Flow_A_Mahasiswa" name="Mahasiswa" sourceRef="Gateway_CheckRole" targetRef="Task_RedirectMahasiswa" />
+    <bpmn:sequenceFlow id="Flow_A_EndK" sourceRef="Task_RedirectKonselor" targetRef="EndEvent_Auth" />
+    <bpmn:sequenceFlow id="Flow_A_EndM" sourceRef="Task_RedirectMahasiswa" targetRef="EndEvent_Auth" />
+  </bpmn:process>
+  
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Login">
+    <bpmndi:BPMNPlane id="BPMNPlane_Login" bpmnElement="Collaboration_Login">
+      <bpmndi:BPMNShape id="Participant_Login_di" bpmnElement="Participant_Login" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1020" height="300" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Lane_User_Auth_di" bpmnElement="Lane_User_Auth" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="990" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Sistem_Auth_di" bpmnElement="Lane_Sistem_Auth" isHorizontal="true">
+        <dc:Bounds x="180" y="220" width="990" height="140" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="StartEvent_Auth_di" bpmnElement="StartEvent_Auth">
+        <dc:Bounds x="210" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AccessLogin_di" bpmnElement="Task_AccessLogin">
+        <dc:Bounds x="280" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SubmitCredentials_di" bpmnElement="Task_SubmitCredentials">
+        <dc:Bounds x="410" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ShowError_di" bpmnElement="Task_ShowError">
+        <dc:Bounds x="540" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Task_ValidateCredentials_di" bpmnElement="Task_ValidateCredentials">
+        <dc:Bounds x="410" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_CredValid_di" bpmnElement="Gateway_CredValid" isMarkerVisible="true">
+        <dc:Bounds x="540" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CreateSession_di" bpmnElement="Task_CreateSession">
+        <dc:Bounds x="670" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_CheckRole_di" bpmnElement="Gateway_CheckRole" isMarkerVisible="true">
+        <dc:Bounds x="800" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RedirectKonselor_di" bpmnElement="Task_RedirectKonselor">
+        <dc:Bounds x="890" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RedirectMahasiswa_di" bpmnElement="Task_RedirectMahasiswa">
+        <dc:Bounds x="890" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Auth_di" bpmnElement="EndEvent_Auth">
+        <dc:Bounds x="1040" y="272" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNEdge id="Flow_A_1_di" bpmnElement="Flow_A_1">
+        <di:waypoint x="246" y="150" />
+        <di:waypoint x="280" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_2_di" bpmnElement="Flow_A_2">
+        <di:waypoint x="380" y="150" />
+        <di:waypoint x="410" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_3_di" bpmnElement="Flow_A_3">
+        <di:waypoint x="460" y="190" />
+        <di:waypoint x="460" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_4_di" bpmnElement="Flow_A_4">
+        <di:waypoint x="510" y="290" />
+        <di:waypoint x="540" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_No_di" bpmnElement="Flow_A_No">
+        <di:waypoint x="565" y="265" />
+        <di:waypoint x="565" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_Retry_di" bpmnElement="Flow_A_Retry">
+        <di:waypoint x="540" y="150" />
+        <di:waypoint x="510" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_Yes_di" bpmnElement="Flow_A_Yes">
+        <di:waypoint x="590" y="290" />
+        <di:waypoint x="670" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_5_di" bpmnElement="Flow_A_5">
+        <di:waypoint x="770" y="290" />
+        <di:waypoint x="800" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_Konselor_di" bpmnElement="Flow_A_Konselor">
+        <di:waypoint x="825" y="265" />
+        <di:waypoint x="825" y="250" />
+        <di:waypoint x="890" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_Mahasiswa_di" bpmnElement="Flow_A_Mahasiswa">
+        <di:waypoint x="825" y="315" />
+        <di:waypoint x="825" y="330" />
+        <di:waypoint x="890" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_EndK_di" bpmnElement="Flow_A_EndK">
+        <di:waypoint x="990" y="270" />
+        <di:waypoint x="1040" y="270" />
+        <di:waypoint x="1040" y="272" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_EndM_di" bpmnElement="Flow_A_EndM">
+        <di:waypoint x="990" y="340" />
+        <di:waypoint x="1040" y="340" />
+        <di:waypoint x="1040" y="308" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

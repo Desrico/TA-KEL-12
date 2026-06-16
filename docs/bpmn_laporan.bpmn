@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  id="Definitions_Laporan" 
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_Laporan">
+    <bpmn:participant id="Participant_Laporan" name="Proses Deteksi Urgent &amp; Pengiriman Notifikasi Peringatan" processRef="Process_Laporan" />
+  </bpmn:collaboration>
+  
+  <bpmn:process id="Process_Laporan" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Laporan">
+      <bpmn:lane id="Lane_Mahasiswa_L" name="Mahasiswa (Mobile)">
+        <bpmn:flowNodeRef>StartEvent_Input</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitJournal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReceiveNotif</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Laporan</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Sistem_L" name="Sistem (Laravel, MongoDB &amp; AI)">
+        <bpmn:flowNodeRef>Task_SaveInput</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RunAI</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_CheckLevel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SetRegular</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SetUrgent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TriggerNotif</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PushNotif</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Reg</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Konselor_L" name="Konselor (Web Admin)">
+        <bpmn:flowNodeRef>Task_ViewDashboard</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenDetail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RequestSummary</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_WriteNotif</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ClickSend</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    
+    <bpmn:startEvent id="StartEvent_Input" name="Melakukan Check-in Harian">
+      <bpmn:outgoing>Flow_L1</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <bpmn:userTask id="Task_SubmitJournal" name="Input Jurnal Harian &amp; Mood">
+      <bpmn:incoming>Flow_L1</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:serviceTask id="Task_SaveInput" name="Menyimpan Input ke MongoDB">
+      <bpmn:incoming>Flow_L2</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_RunAI" name="Klasifikasi Sentimen Jurnal dengan AI">
+      <bpmn:incoming>Flow_L3</bpmn:incoming>
+      <bpmn:outgoing>Flow_L4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:exclusiveGateway id="Gateway_CheckLevel" name="Apakah Terdeteksi Level 3 (Urgent)?">
+      <bpmn:incoming>Flow_L4</bpmn:incoming>
+      <bpmn:outgoing>Flow_LevelRegular</bpmn:outgoing>
+      <bpmn:outgoing>Flow_LevelUrgent</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    
+    <bpmn:serviceTask id="Task_SetRegular" name="Simpan Level Normal (Level 1 / 2)">
+      <bpmn:incoming>Flow_LevelRegular</bpmn:incoming>
+      <bpmn:outgoing>Flow_EndReg</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_SetUrgent" name="Ubah mental_level = 3 di Database">
+      <bpmn:incoming>Flow_LevelUrgent</bpmn:incoming>
+      <bpmn:outgoing>Flow_L5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="Task_TriggerNotif" name="Tampilkan Alert Banner di Dashboard &amp; Kirim Notifikasi">
+      <bpmn:incoming>Flow_L5</bpmn:incoming>
+      <bpmn:outgoing>Flow_L6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:userTask id="Task_ViewDashboard" name="Melihat Banner Risiko Tinggi di Dashboard">
+      <bpmn:incoming>Flow_L6</bpmn:incoming>
+      <bpmn:outgoing>Flow_L7</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_OpenDetail" name="Membuka Halaman Detail Mahasiswa">
+      <bpmn:incoming>Flow_L7</bpmn:incoming>
+      <bpmn:outgoing>Flow_L8</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_RequestSummary" name="Klik Dapatkan Ringkasan AI">
+      <bpmn:incoming>Flow_L8</bpmn:incoming>
+      <bpmn:outgoing>Flow_L9</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_WriteNotif" name="Menulis Pesan Notifikasi Kustom (Ajakan Konseling)">
+      <bpmn:incoming>Flow_L9</bpmn:incoming>
+      <bpmn:outgoing>Flow_L10</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:userTask id="Task_ClickSend" name="Klik Kirim Notifikasi">
+      <bpmn:incoming>Flow_L10</bpmn:incoming>
+      <bpmn:outgoing>Flow_L11</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:serviceTask id="Task_PushNotif" name="Kirim Notifikasi Push ke MongoDB">
+      <bpmn:incoming>Flow_L11</bpmn:incoming>
+      <bpmn:outgoing>Flow_L12</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:userTask id="Task_ReceiveNotif" name="Menerima &amp; Membaca Notifikasi di HP">
+      <bpmn:incoming>Flow_L12</bpmn:incoming>
+      <bpmn:outgoing>Flow_LEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:endEvent id="EndEvent_Laporan" name="Mahasiswa Berhasil Diperingatkan">
+      <bpmn:incoming>Flow_LEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:endEvent id="EndEvent_Reg" name="Pencatatan Selesai">
+      <bpmn:incoming>Flow_EndReg</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:sequenceFlow id="Flow_L1" sourceRef="StartEvent_Input" targetRef="Task_SubmitJournal" />
+    <bpmn:sequenceFlow id="Flow_L2" sourceRef="Task_SubmitJournal" targetRef="Task_SaveInput" />
+    <bpmn:sequenceFlow id="Flow_L3" sourceRef="Task_SaveInput" targetRef="Task_RunAI" />
+    <bpmn:sequenceFlow id="Flow_L4" sourceRef="Task_RunAI" targetRef="Gateway_CheckLevel" />
+    <bpmn:sequenceFlow id="Flow_LevelRegular" name="Tidak" sourceRef="Gateway_CheckLevel" targetRef="Task_SetRegular" />
+    <bpmn:sequenceFlow id="Flow_EndReg" sourceRef="Task_SetRegular" targetRef="EndEvent_Reg" />
+    <bpmn:sequenceFlow id="Flow_LevelUrgent" name="Ya" sourceRef="Gateway_CheckLevel" targetRef="Task_SetUrgent" />
+    <bpmn:sequenceFlow id="Flow_L5" sourceRef="Task_SetUrgent" targetRef="Task_TriggerNotif" />
+    <bpmn:sequenceFlow id="Flow_L6" sourceRef="Task_TriggerNotif" targetRef="Task_ViewDashboard" />
+    <bpmn:sequenceFlow id="Flow_L7" sourceRef="Task_ViewDashboard" targetRef="Task_OpenDetail" />
+    <bpmn:sequenceFlow id="Flow_L8" sourceRef="Task_OpenDetail" targetRef="Task_RequestSummary" />
+    <bpmn:sequenceFlow id="Flow_L9" sourceRef="Task_RequestSummary" targetRef="Task_WriteNotif" />
+    <bpmn:sequenceFlow id="Flow_L10" sourceRef="Task_WriteNotif" targetRef="Task_ClickSend" />
+    <bpmn:sequenceFlow id="Flow_L11" sourceRef="Task_ClickSend" targetRef="Task_PushNotif" />
+    <bpmn:sequenceFlow id="Flow_L12" sourceRef="Task_PushNotif" targetRef="Task_ReceiveNotif" />
+    <bpmn:sequenceFlow id="Flow_LEnd" sourceRef="Task_ReceiveNotif" targetRef="EndEvent_Laporan" />
+  </bpmn:process>
+  
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Laporan">
+    <bpmndi:BPMNPlane id="BPMNPlane_Laporan" bpmnElement="Collaboration_Laporan">
+      <!-- Participant -->
+      <bpmndi:BPMNShape id="Participant_Laporan_di" bpmnElement="Participant_Laporan" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1350" height="430" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Lanes -->
+      <bpmndi:BPMNShape id="Lane_Mahasiswa_L_di" bpmnElement="Lane_Mahasiswa_L" isHorizontal="true">
+        <dc:Bounds x="180" y="80" width="1320" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Sistem_L_di" bpmnElement="Lane_Sistem_L" isHorizontal="true">
+        <dc:Bounds x="180" y="220" width="1320" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Konselor_L_di" bpmnElement="Lane_Konselor_L" isHorizontal="true">
+        <dc:Bounds x="180" y="360" width="1320" height="150" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Shapes - Mahasiswa -->
+      <bpmndi:BPMNShape id="StartEvent_Input_di" bpmnElement="StartEvent_Input">
+        <dc:Bounds x="210" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SubmitJournal_di" bpmnElement="Task_SubmitJournal">
+        <dc:Bounds x="280" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReceiveNotif_di" bpmnElement="Task_ReceiveNotif">
+        <dc:Bounds x="1230" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Laporan_di" bpmnElement="EndEvent_Laporan">
+        <dc:Bounds x="1380" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Shapes - Sistem -->
+      <bpmndi:BPMNShape id="Task_SaveInput_di" bpmnElement="Task_SaveInput">
+        <dc:Bounds x="280" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RunAI_di" bpmnElement="Task_RunAI">
+        <dc:Bounds x="410" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_CheckLevel_di" bpmnElement="Gateway_CheckLevel" isMarkerVisible="true">
+        <dc:Bounds x="540" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SetRegular_di" bpmnElement="Task_SetRegular">
+        <dc:Bounds x="620" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SetUrgent_di" bpmnElement="Task_SetUrgent">
+        <dc:Bounds x="620" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TriggerNotif_di" bpmnElement="Task_TriggerNotif">
+        <dc:Bounds x="750" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PushNotif_di" bpmnElement="Task_PushNotif">
+        <dc:Bounds x="1230" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Reg_di" bpmnElement="EndEvent_Reg">
+        <dc:Bounds x="750" y="252" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Shapes - Konselor -->
+      <bpmndi:BPMNShape id="Task_ViewDashboard_di" bpmnElement="Task_ViewDashboard">
+        <dc:Bounds x="750" y="395" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenDetail_di" bpmnElement="Task_OpenDetail">
+        <dc:Bounds x="870" y="395" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RequestSummary_di" bpmnElement="Task_RequestSummary">
+        <dc:Bounds x="990" y="395" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_WriteNotif_di" bpmnElement="Task_WriteNotif">
+        <dc:Bounds x="1110" y="395" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ClickSend_di" bpmnElement="Task_ClickSend">
+        <dc:Bounds x="1230" y="395" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Edges -->
+      <bpmndi:BPMNEdge id="Flow_L1_di" bpmnElement="Flow_L1">
+        <di:waypoint x="246" y="150" />
+        <di:waypoint x="280" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L2_di" bpmnElement="Flow_L2">
+        <di:waypoint x="330" y="190" />
+        <di:waypoint x="330" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L3_di" bpmnElement="Flow_L3">
+        <di:waypoint x="380" y="290" />
+        <di:waypoint x="410" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L4_di" bpmnElement="Flow_L4">
+        <di:waypoint x="510" y="290" />
+        <di:waypoint x="540" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_LevelRegular_di" bpmnElement="Flow_LevelRegular">
+        <di:waypoint x="565" y="265" />
+        <di:waypoint x="565" y="250" />
+        <di:waypoint x="620" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_EndReg_di" bpmnElement="Flow_EndReg">
+        <di:waypoint x="720" y="270" />
+        <di:waypoint x="750" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_LevelUrgent_di" bpmnElement="Flow_LevelUrgent">
+        <di:waypoint x="565" y="315" />
+        <di:waypoint x="565" y="330" />
+        <di:waypoint x="620" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L5_di" bpmnElement="Flow_L5">
+        <di:waypoint x="720" y="330" />
+        <di:waypoint x="750" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L6_di" bpmnElement="Flow_L6">
+        <di:waypoint x="800" y="370" />
+        <di:waypoint x="800" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L7_di" bpmnElement="Flow_L7">
+        <di:waypoint x="850" y="435" />
+        <di:waypoint x="870" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L8_di" bpmnElement="Flow_L8">
+        <di:waypoint x="970" y="435" />
+        <di:waypoint x="990" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L9_di" bpmnElement="Flow_L9">
+        <di:waypoint x="1090" y="435" />
+        <di:waypoint x="1110" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L10_di" bpmnElement="Flow_L10">
+        <di:waypoint x="1210" y="435" />
+        <di:waypoint x="1230" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L11_di" bpmnElement="Flow_L11">
+        <di:waypoint x="1280" y="395" />
+        <di:waypoint x="1280" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L12_di" bpmnElement="Flow_L12">
+        <di:waypoint x="1280" y="250" />
+        <di:waypoint x="1280" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_LEnd_di" bpmnElement="Flow_LEnd">
+        <di:waypoint x="1330" y="150" />
+        <di:waypoint x="1380" y="150" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -2,7 +2,10 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
@@ -12,7 +15,9 @@
         "laravel/reverb": "^1.10",
         "laravel/tinker": "^2.9",
         "mongodb/laravel-mongodb": "5.7",
-        "mongodb/mongodb": "1.21"
+        "mongodb/mongodb": "^2.0",
+        "ext-mongodb": "*",
+        "ext-pdo_mysql": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -69,6 +74,9 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "platform": {
+            "ext-mongodb": "2.3.3"
         }
     },
     "minimum-stability": "stable",

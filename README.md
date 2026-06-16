@@ -1,66 +1,175 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Campus Care
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+> Web-based student counseling service platform developed as a Digital Mental Health Intervention (DMHI) project for Institut Teknologi Del.
+
+<p>
+  <img src="https://img.shields.io/badge/PHP-8.2-4F5B93?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2">
+  <img src="https://img.shields.io/badge/Laravel-11-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 11">
+  <img src="https://img.shields.io/badge/MySQL-Primary%20Data-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/MongoDB-Student%20Monitoring-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB">
+  <img src="https://img.shields.io/badge/Vite-Frontend%20Tooling-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite">
 </p>
 
-## About Laravel
+## Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Campus Care is a web application that supports student counseling services in a more structured, accessible, and privacy-aware way. The system was designed to help students submit counseling requests, schedule sessions, communicate with counselors, access service history, and provide service feedback through a single platform.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Within the scope of the thesis project, Campus Care is positioned as a **Digital Mental Health Intervention (DMHI)** that focuses on improving access to campus counseling services, reducing barriers to help-seeking, and supporting service documentation without replacing professional clinical judgment.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Why This Project Matters
 
-## Learning Laravel
+Students often face academic, social, personal, and environmental pressures. In a residential campus setting, those pressures can become more complex due to adaptation demands, structured rules, and limited counseling access channels.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Campus Care addresses several practical service issues:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- Limited visibility of counseling service information
+- Manual scheduling through forms and chat-based communication
+- Scattered or non-centralized service documentation
+- Reluctance to share personal issues openly
+- Limited counselor capacity for administrative follow-up
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## DMHI Perspective
 
-## Laravel Sponsors
+From a DMHI perspective, this project focuses on:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- `Accessibility`: helping students reach counseling services through a digital entry point
+- `Privacy`: providing features such as anonymous mode to reduce hesitation
+- `Continuity of care`: supporting structured records, chat, and session history
+- `Service efficiency`: helping counselors manage schedules, communication, and follow-up
+- `Digital support, not diagnosis`: the system supports counseling workflows and monitoring, not medical diagnosis
 
-### Premium Partners
+## UCD and Iterative Development
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+The application was developed using an iterative **User-Centered Design (UCD)** approach within the broader ADDIE process. Feature planning and refinement were carried out incrementally so the product could stay aligned with the needs of students and counselors.
 
-## Contributing
+Core UCD principles reflected in the project:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Focus on real user needs
+- Design decisions informed by feedback
+- Iterative improvement across sprints
+- Evaluation of usability, security, and performance
 
-## Code of Conduct
+## Feature Progress by Sprint
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Sprint 1
 
-## Security Vulnerabilities
+- `🔐` Registrasi dan login
+- `🗓️` Penjadwalan konseling
+- `🕶️` Mode anonim
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Sprint 2
 
-## License
+- `💬` Chat konseling untuk mahasiswa dan konselor
+- `📌` Melihat status jadwal konseling
+- `🧾` Riwayat konseling
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Sprint 3
+
+- `⭐` Evaluasi dan feedback layanan
+- `🔔` Sistem notifikasi
+- `ℹ️` Tentang layanan
+
+## Current Application Scope
+
+In its current implementation, Campus Care includes the following relevant capabilities:
+
+- Student and counselor authentication flow
+- Counseling session request and scheduling
+- Anonymous identity mode for students
+- One-to-one counseling chat
+- Group chat support for guided anonymous discussion
+- Counseling history and service records
+- Feedback and service evaluation
+- Web push notifications
+- Educational mental health content
+- Counselor/admin dashboard and service management
+- AI-assisted summary support for counseling documentation
+
+## User Roles
+
+### `Mahasiswa`
+
+Students use the system to:
+
+- Log in to the platform
+- Submit counseling requests
+- Choose available schedules
+- Use anonymous mode
+- Chat with counselors
+- Monitor counseling schedule status
+- View counseling history
+- Submit service feedback
+
+### `Konselor / Admin`
+
+Counselors use the system to:
+
+- Review incoming counseling requests
+- Manage schedules and session flow
+- Communicate with students
+- Access counseling records and reports
+- Monitor service activity
+- Manage educational content and notifications
+
+## Technology Stack
+
+- `Backend`: Laravel 11, PHP 8.2
+- `Frontend`: Blade, Vite, Tailwind CSS, Alpine.js
+- `Database`: MySQL and MongoDB
+- `Realtime / Notification`: Laravel Reverb, Web Push
+- `Media / Supporting Services`: Cloudinary integration
+
+## Evaluation Focus
+
+The project evaluation is centered on:
+
+- `Usability`
+- `Security`
+- `Performance`
+- `Blackbox testing`
+- `User Acceptance Testing`
+
+## Scope and Boundaries
+
+This system is intended to support campus counseling workflows, not to function as a substitute for psychologists, psychiatrists, or formal medical services.
+
+Project boundaries include:
+
+- Focus on student counseling services in Institut Teknologi Del
+- Web-based implementation
+- Limited-scope deployment and testing environment
+- No clinical diagnosis capability
+- No full integration yet with all campus systems
+
+## Getting Started
+
+### Prerequisites
+
+- PHP `^8.2`
+- Composer
+- Node.js and npm
+- MySQL
+- MongoDB
+
+### Installation
+
+```bash
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+npm run build
+php artisan serve
+```
+
+Adjust `.env` values for:
+
+- application database
+- MongoDB connection
+- CIS / campus API configuration
+- push notification configuration
+
+## Project Goal
+
+Campus Care aims to provide a professional, structured, and user-aware digital support system for student counseling services. The project combines counseling workflow support, privacy-conscious interaction, and iterative design improvement to better fit the real context of student mental health services on campus.
