@@ -1348,9 +1348,6 @@
       }
     }
 
-<<<<<<< HEAD
-    notifTrigger.addEventListener('click', function () {
-=======
     window.markUrgentRead = async function(nim, event, url) {
       event.preventDefault();
       try {
@@ -1452,7 +1449,7 @@
     notifTrigger.addEventListener('click', async function () {
       // Request izin notifikasi saat bell diklik (jika belum)
       await requestNotifPermissionAndSubscribe();
->>>>>>> 65b63cf2d2662dfdb4e8a2b0369dcca2ebfb848b
+
       setTimeout(async function () {
         await markAdminNotificationsAsRead();
         await fetchAllNotifications();
