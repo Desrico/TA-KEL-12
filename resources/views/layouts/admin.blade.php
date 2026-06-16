@@ -1019,12 +1019,6 @@
 
     <div class="ms-auto admin-header-actions">
       <ul class="list-unstyled d-flex align-items-center gap-2 mb-0">
-        <li class="pc-h-item">
-          <button class="btn-notification" id="btnWebPush" onclick="togglePush()">
-              <i class="ti ti-bell"></i>
-              <span class="d-none d-md-inline">Notifikasi Sistem</span>
-          </button>
-        </li>
         <li class="dropdown pc-h-item">
           <a href="#" class="admin-notif-btn position-relative"
              id="adminNotifTrigger"
@@ -1479,43 +1473,6 @@
     setInterval(fetchAllNotificationsWithPush, 10000);
   })();
 
-  function togglePush() {
-    if (Notification.permission === 'granted') {
-      alert('✅ Notifikasi sudah aktif!');
-      return;
-    }
-    Notification.requestPermission().then(permission => {
-      if (permission === 'granted') {
-        if (typeof initWebPush === 'function') initWebPush();
-        const btn = document.getElementById('btnWebPush');
-        if (btn) {
-          btn.style.background = '#ecfdf5';
-          btn.style.color = '#059669';
-          btn.style.borderColor = '#a7f3d0';
-          const span = btn.querySelector('span');
-          if (span) span.innerText = 'Notifikasi Aktif';
-          const i = btn.querySelector('i');
-          if (i) i.className = 'ti ti-bell-filled';
-        }
-        alert('🚀 Notifikasi sistem berhasil diaktifkan!');
-      } else {
-        alert('⚠️ Izin notifikasi ditolak.');
-      }
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('btnWebPush');
-    if (btn && Notification.permission === 'granted') {
-      btn.style.background = '#ecfdf5';
-      btn.style.color = '#059669';
-      btn.style.borderColor = '#a7f3d0';
-      const span = btn.querySelector('span');
-      if (span) span.innerText = 'Notifikasi Aktif';
-      const i = btn.querySelector('i');
-      if (i) i.className = 'ti ti-bell-filled';
-    }
-  });
 </script>
 @stack('scripts')
 
