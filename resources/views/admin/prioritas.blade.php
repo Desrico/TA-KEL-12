@@ -517,7 +517,7 @@
                     <td>Bimbingan & Konseling Mahasiswa</td>
                     <td style="font-weight: 700;">Konselor Pencetak</td>
                     <td>:</td>
-                    <td>{{ auth()->user()->nama ?? 'Staf Konselor IT Del' }}</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td style="font-weight: 700;">Status Kasus</td>
@@ -739,13 +739,12 @@
                         <p>Dibuat Oleh:</p>
                         <p style="font-weight: 700; margin-top: 4px;">Konselor Unit Layanan,</p>
                         <div style="height: 64px;"></div>
-                        <p style="text-decoration: underline; font-weight: 700; margin-bottom: 2px;">{{ auth()->user()->nama ?? 'Staf Konselor IT Del' }}</p>
-                        <p style="font-size: 0.72rem; color: #475569;">Staf Konseling Mahasiswa</p>
+                        <p style="text-decoration: underline; font-weight: 700; margin-bottom: 2px;">_______________________________</p>
+                        <p style="font-size: 0.72rem; color: #475569;">NIP. __________________________</p>
                     </div>
                     <div class="signature-box">
                         <p>Mengetahui / Menyetujui:</p>
-                        <p style="font-weight: 700; margin-top: 4px;">Kepala Unit Layanan BK IT Del,</p>
-                        <div style="height: 64px;"></div>
+                        <div style="height: 64px; margin-top: 25px;"></div>
                         <p style="text-decoration: underline; font-weight: 700; margin-bottom: 2px;">_______________________________</p>
                         <p style="font-size: 0.72rem; color: #475569;">NIP. __________________________</p>
                     </div>

@@ -323,10 +323,7 @@
                                 <option value="90">3 Bulan Terakhir</option>
                                 <option value="all">Semua Riwayat</option>
                             </select>
-                            <button onclick="window.print()" class="btn-outline" style="padding: 6px 12px; font-size: 0.75rem; display: flex; align-items: center; gap: 5px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                Ekspor PDF
-                            </button>
+
                         </div>
                     </div>
                     <div style="height: 200px; position: relative; width: 100%;">
@@ -423,11 +420,7 @@
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="6" x2="3" y2="6"></line><line x1="17" y1="12" x2="7" y2="12"></line><line x1="14" y1="18" x2="10" y2="18"></line></svg>
                     </button>
                     
-                    <!-- Tombol Ekspor PDF (Fungsional via Browser Print) -->
-                    <button onclick="window.print()" class="btn-outline">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                        Ekspor PDF
-                    </button>
+
                 </div>
             </div>
 
@@ -543,25 +536,7 @@
         </div>
     </div>
 
-    <!-- Detail Chart Preview Modal (Untuk Ekspor PDF) -->
-    <div class="custom-modal-backdrop" id="detailPreviewModal" onclick="if(event.target.id==='detailPreviewModal') closeDetailPreview()">
-        <div class="custom-modal">
-            <div class="custom-modal-header">
-                <h2 id="detailPreviewTitle">Pratinjau Laporan</h2>
-                <button class="custom-modal-close-btn" onclick="closeDetailPreview()">&times;</button>
-            </div>
-            <div class="custom-modal-body">
-                <div id="detailPreviewContent" class="paper-preview-box"></div>
-            </div>
-            <div class="custom-modal-footer">
-                <button class="btn-outline" onclick="closeDetailPreview()">Batal</button>
-                <button class="btn-white" style="background: #059669; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="confirmDetailDownload()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Unduh PDF
-                </button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Modal Kirim Notifikasi ke Mahasiswa -->
     <div class="custom-modal-backdrop" id="sendNotifModal" onclick="if(event.target.id==='sendNotifModal') closeSendNotifModal()">
@@ -672,11 +647,6 @@
         });
     }
 
-    // Modal helpers (Preview PDF)
-    function closeDetailPreview() {
-        document.getElementById('detailPreviewModal').classList.remove('show');
-        document.body.style.overflow = '';
-    }
 
     // Modal helpers (Kirim Notifikasi)
     function openSendNotifModal() {
