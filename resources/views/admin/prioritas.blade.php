@@ -504,12 +504,12 @@
             <!-- Meta Laporan -->
             <table class="meta-table">
                 <tr>
+                    <td style="width: 16%; font-weight: 700;">Nomor Laporan</td>
+                    <td style="width: 2%;">:</td>
+                    <td style="width: 32%;"></td>
                     <td style="width: 16%; font-weight: 700;">Tanggal Cetak</td>
                     <td style="width: 2%;">:</td>
                     <td style="width: 32%;">{{ now()->isoFormat('DD MMMM YYYY') }}</td>
-                    <td style="width: 16%;"></td>
-                    <td style="width: 2%;"></td>
-                    <td style="width: 32%;"></td>
                 </tr>
                 <tr>
                     <td style="font-weight: 700;">Unit Kerja</td>
