@@ -791,7 +791,7 @@
             Langkah berani untuk masa depan yang lebih cerah. Campus Care hadir sebagai ruang bimbingan dan konseling yang aman, tenang, dan mudah diakses oleh mahasiswa IT Del.
           </p>
           <div class="hero-actions">
-            <a href="/tentang" class="btn-home-primary">Ruang Edukasi</a>
+            <a href="/edukasi-mental" class="btn-home-primary">Ruang Edukasi</a>
           </div>
         </div>
 
