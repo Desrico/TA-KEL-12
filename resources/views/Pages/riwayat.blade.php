@@ -135,7 +135,6 @@
 
                     @if(method_exists($riwayat,'onFirstPage') && !$riwayat->onFirstPage())
                         <a href="{{ $riwayat->previousPageUrl() }}" class="simple-next">
-                            ‹
                         </a>
                     @endif
 

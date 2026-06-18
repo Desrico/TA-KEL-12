@@ -1837,23 +1837,210 @@ footer a:hover {
   color: white !important;
 }
 
+.mobile-menu-toggle {
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--primary) !important;
+  border-radius: 12px;
+  background: var(--white) !important;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 !important;
+  box-shadow: 0 8px 20px rgba(6, 78, 59, 0.08);
+}
+
+.mobile-menu-toggle span {
+  width: 22px;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 999px;
+  display: block;
+}
+
+.mobile-menu-toggle:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+}
+
+/* MOBILE */
 @media (max-width: 991.98px) {
-  .navbar-nav {
-    padding-top: 1rem;
-    align-items: flex-start !important;
+  .navbar-main .container {
+    position: relative;
   }
 
-  .navbar-collapse {
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  #navMain {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 12px;
+    right: 12px;
     background: var(--navbar-bg);
-    border-radius: 16px;
-    padding: .5rem .25rem 1rem;
-    margin-top: .75rem;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: .9rem 1rem;
+    box-shadow: 0 18px 45px rgba(6, 78, 59, 0.16);
+    z-index: 1200;
+    overflow: visible;
   }
 
-  .profile-dropdown {
-    width: 250px;
+  #navMain:not(.show) {
+    display: none !important;
+  }
+
+  #navMain.show {
+    display: block !important;
+  }
+
+  #navMain .navbar-nav {
+    padding-top: 0;
+    align-items: flex-start !important;
+    gap: .35rem !important;
+  }
+
+  #navMain .nav-item {
+    width: 100%;
+  }
+
+  #navMain .nav-link-custom {
+    display: inline-flex;
+    width: auto;
+    padding: .55rem .9rem !important;
+  }
+
+  #navMain .notif-link {
+    margin-top: .2rem;
+    margin-left: .35rem;
+  }
+
+  #navMain .d-flex.align-items-center.ms-lg-3 {
+    width: 100%;
+    display: block !important;
+    margin-top: .7rem !important;
+  }
+
+  #navMain .profile-wrap {
+    width: 100%;
+    position: relative;
+    padding-left: .35rem;
+  }
+
+  #navMain .profile-btn {
+    width: 46px;
+    height: 46px;
+  }
+
+  #navMain .profile-dropdown {
+    position: static !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin-top: .75rem;
+    border-radius: 16px;
+    opacity: 0;
+    display: none;
+    pointer-events: none;
+    transform: none !important;
+    box-shadow: 0 12px 30px rgba(6, 78, 59, 0.12);
+  }
+
+  #navMain .profile-dropdown.show {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #navMain .pd-header {
+    align-items: center;
+    padding: .9rem;
+  }
+
+  #navMain .pd-info {
+    min-width: 0;
+    flex: 1;
+  }
+
+  #navMain .pd-name {
+    max-width: 100% !important;
+    white-space: normal;
+    word-break: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+  }
+
+  #navMain .pd-nim {
+    max-width: 100% !important;
+    white-space: normal;
+    word-break: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
   }
 }
+
+/* DESKTOP */
+@media (min-width: 992px) {
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+
+  #navMain {
+    position: static !important;
+    display: flex !important;
+    width: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin-top: 0 !important;
+    box-shadow: none !important;
+  }
+
+  #navMain.collapse:not(.show) {
+    display: flex !important;
+  }
+
+  #navMain .navbar-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 1.2rem !important;
+    padding-top: 0 !important;
+  }
+
+  #navMain .nav-item {
+    width: auto !important;
+  }
+
+  #navMain .nav-link-custom {
+    width: auto !important;
+    white-space: nowrap !important;
+    padding: .75rem 1rem !important;
+  }
+
+  #navMain .notif-link {
+    margin: 0 !important;
+  }
+
+  #navMain .profile-wrap {
+    position: relative !important;
+    width: auto !important;
+    padding-left: 0 !important;
+  }
+
+  #navMain .profile-dropdown {
+    position: absolute !important;
+    width: 280px !important;
+    right: 0 !important;
+    left: auto !important;
+  }
+}
+
 </style>
   @vite(['resources/js/app.js'])
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -2057,8 +2244,10 @@ footer a:hover {
             </div>
         </a>
 
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
-      <span class="navbar-toggler-icon"></span>
+    <button class="navbar-toggler mobile-menu-toggle" type="button" id="mobileMenuToggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
     </button>
 
     <div class="collapse navbar-collapse" id="navMain">
@@ -2960,5 +3149,34 @@ if (notifDropdownBtn) {
 }
 </script>
 @stack('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const toggleButton = document.getElementById('mobileMenuToggle');
+    const navMain = document.getElementById('navMain');
+
+    if (!toggleButton || !navMain) {
+        return;
+    }
+
+    toggleButton.addEventListener('click', function () {
+        const isOpen = navMain.classList.contains('show');
+
+        if (isOpen) {
+            navMain.classList.remove('show');
+            toggleButton.setAttribute('aria-expanded', 'false');
+        } else {
+            navMain.classList.add('show');
+            toggleButton.setAttribute('aria-expanded', 'true');
+        }
+    });
+
+    navMain.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            navMain.classList.remove('show');
+            toggleButton.setAttribute('aria-expanded', 'false');
+        });
+    });
+});
+</script>
 </body>
 </html>

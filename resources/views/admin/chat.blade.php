@@ -1279,7 +1279,7 @@
   <div class="admin-chat-thread" id="adminChatThread"></div>
 
       <div class="admin-chat-compose">
-        @if($canSendChat)
+       @if($canSendChat)
           <form id="adminChatForm" class="admin-chat-form">
             <textarea
               id="adminChatInput"
@@ -1288,10 +1288,13 @@
               maxlength="2000"
               placeholder="Tulis respons konseling Anda di sini..."
             ></textarea>
+
             <button type="submit" class="admin-chat-send" id="adminChatSendBtn">
               <i class="ti ti-send"></i>
             </button>
           </form>
+
+          <div class="admin-chat-hint" id="adminChatHint"></div>
         @else
           <div class="admin-chat-readonly-box">
             <i class="ti ti-lock"></i>
@@ -1637,34 +1640,34 @@
 
   renderInitialMessages();
 
-  if (form && input && sendBtn && canSendMessage) {
+if (window.Echo) {
+  window.Echo.private(payload.channel)
+    .listen('.chat.message.sent', (event) => {
+      if (!event?.message) {
+        return;
+      }
+
+      const exists = thread.querySelector(`[data-message-id="${event.message.id}"]`);
+      if (exists) {
+        return;
+      }
+
+      renderMessage({
+        ...event.message,
+        is_mine: Number(event.message.sender_id) === currentUserId,
+      });
+
+      scrollToBottom();
+    });
+}
+
+syncMessages(true);
+window.setInterval(() => syncMessages(false), 10000);
+
+if (form && input && sendBtn && canSendMessage) {
     autoResize();
 
-  if (window.Echo) {
-    window.Echo.private(payload.channel)
-      .listen('.chat.message.sent', (event) => {
-        if (!event?.message) {
-          return;
-        }
-
-        const exists = thread.querySelector(`[data-message-id="${event.message.id}"]`);
-        if (exists) {
-          return;
-        }
-
-        renderMessage({
-          ...event.message,
-          is_mine: Number(event.message.sender_id) === currentUserId,
-        });
-
-        scrollToBottom();
-      });
-  }
-
-  syncMessages();
-  window.setInterval(syncMessages, 10000);
-
-  input.addEventListener('input', autoResize);
+    input.addEventListener('input', autoResize);
   let isSending = false;
 
   input.addEventListener('keydown', (event) => {

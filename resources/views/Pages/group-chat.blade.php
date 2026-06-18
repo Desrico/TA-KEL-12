@@ -478,10 +478,6 @@
             <div class="group-empty">
               Kamu belum bergabung ke grup konseling mana pun.
               <div class="group-empty-actions">
-                <a href="{{ route('mahasiswa.group-chat.create') }}" class="group-card-action-link">
-                  <i class="bi bi-plus-circle-fill"></i>
-                  <span>Buat grup pertamamu</span>
-                </a>
               </div>
             </div>
           @else
