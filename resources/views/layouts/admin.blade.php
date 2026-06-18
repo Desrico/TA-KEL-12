@@ -1311,15 +1311,18 @@
           let bgColor = 'transparent';
           let textColor = 'var(--admin-text)';
           let link = notif.link || '{{ route('admin.jadwal') }}';
+          let onclickAttr = '';
 
           if (notif.status === 'urgent') {
             dotColor = '#EF4444';
             bgColor = '#FEF2F2';
             textColor = '#B91C1C';
+            const nim = notif.id.replace('urgent-', '');
+            onclickAttr = `onclick="window.markUrgentRead('${nim}', event, '${link}')"`;
           }
 
           return `
-            <a class="dropdown-item admin-notif-item" href="${link}" style="background-color: ${bgColor}">
+            <a class="dropdown-item admin-notif-item" href="${link}" style="background-color: ${bgColor}" ${onclickAttr}>
               <div class="d-flex gap-2 align-items-start">
                 <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};margin-top:5px;flex-shrink:0;"></div>
                 <div style="min-width:0;">

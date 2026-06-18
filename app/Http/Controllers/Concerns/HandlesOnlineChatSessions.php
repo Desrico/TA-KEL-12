@@ -14,7 +14,7 @@ trait HandlesOnlineChatSessions
         $foreignKey = SesiKonseling::jadwalForeignKey();
         $attributes = [$foreignKey => $jadwal->id];
         $defaults = [
-            'status' => ($jadwal->status === 'berlangsung' && ! $jadwal->hasChatWindowEnded()) ? 'berlangsung' : 'disetujui',
+            'status' => ($jadwal->status === 'berlangsung' && ! $jadwal->hasChatWindowEnded()) ? 'berlangsung' : 'menunggu',
         ];
 
         if (! Schema::hasColumn('sesi_konseling', 'status')) {

@@ -192,6 +192,11 @@ class DashboardController extends Controller
             $query->with(['mood', 'feeling'])->orderBy('created_at', 'desc');
         }])->where('nim', $nim)->firstOrFail();
 
+        // Tandai notifikasi urgent sebagai terbaca secara otomatis jika halaman detail diakses
+        if ($student->mental_level == 3 && !$student->mental_notif_read) {
+            $student->update(['mental_notif_read' => true]);
+        }
+
         $logs = collect();
         
         foreach ($student->journalTexts as $journal) {
