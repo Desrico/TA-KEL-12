@@ -21,7 +21,7 @@ class ProfilController extends Controller
             ->where('status', 'disetujui')
             ->count();
 
-        return view('pages.profil', compact(
+        return view('Pages.profil', compact(
             'user',
             'mahasiswa',
             'totalKonseling',
