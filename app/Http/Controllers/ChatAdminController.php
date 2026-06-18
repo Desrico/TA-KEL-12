@@ -51,11 +51,10 @@ class ChatAdminController extends Controller
         $conversationSchedules = $this->resolveConversationSchedules($user, $selectedJadwal);
 
         $conversationSessionIds = SesiKonseling::query()
-            ->whereIn('jadwal_konseling_id', $conversationSchedules->pluck('id')->filter()->values())
+            ->whereIn('jadwal_konseling_id', $conversationSchedules->pluck('id')->filter()->unique()->values())
             ->pluck('id')
-            ->whereIn('jadwal_konseling_id', $conversationSchedules->pluck('jadwal_konseling_id')->filter()->values())
-            ->pluck('jadwal_konseling_id')
             ->push($sesi->id)
+            ->filter()
             ->unique()
             ->values();
 
@@ -170,13 +169,6 @@ class ChatAdminController extends Controller
                 ], 404);
             }
 
-            if (! $this->isChatWindowOpen($sesi) || $sesi->status !== 'berlangsung') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ruang chat tidak tersedia (sudah kadaluarsa atau belum dimulai).',
-                ], 403);
-            }
-
             $sesi->loadMissing([
                 'jadwalKonseling.mahasiswa.user.profil',
                 'jadwalKonseling.konselor.user.profil',
@@ -193,10 +185,11 @@ class ChatAdminController extends Controller
 
             $conversationSchedules = $this->resolveConversationSchedules($request->user(), $selectedJadwal);
 
-            $conversationSessionIds = SesiKonseling::query()
-                ->whereIn('jadwal_konseling_id', $conversationSchedules->pluck('id')->filter()->values())
+           $conversationSessionIds = SesiKonseling::query()
+                ->whereIn('jadwal_konseling_id', $conversationSchedules->pluck('id')->filter()->unique()->values())
                 ->pluck('id')
                 ->push($sesi->id)
+                ->filter()
                 ->unique()
                 ->values();
 

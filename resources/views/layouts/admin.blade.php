@@ -1019,6 +1019,8 @@
 
     <div class="ms-auto admin-header-actions">
       <ul class="list-unstyled d-flex align-items-center gap-2 mb-0">
+        <li class="pc-h-item">
+        </li>
         <li class="dropdown pc-h-item">
           <a href="#" class="admin-notif-btn position-relative"
              id="adminNotifTrigger"
