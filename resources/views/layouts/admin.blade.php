@@ -1433,10 +1433,34 @@
         tag: 'urgent-' + student.nim,
         requireInteraction: true
       });
+      
+      let isReadMarked = false;
+      const markAsRead = async () => {
+        if (isReadMarked) return;
+        isReadMarked = true;
+        try {
+          const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+          await fetch(`/konselor/notifications/${student.nim}/read`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': token,
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+        } catch (err) {
+          console.error('Failed to mark urgent read:', err);
+        }
+      };
+
       notif.onclick = function() {
         window.focus();
+        markAsRead();
         window.location.href = `/konselor/detail/${student.nim}`;
         notif.close();
+      };
+
+      notif.onclose = function() {
+        markAsRead();
       };
     }
 

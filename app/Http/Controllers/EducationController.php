@@ -34,6 +34,7 @@ class EducationController extends Controller
     {
         $filter = $request->query('filter', 'semua'); // semua | aktif | draft
         $sort   = $request->query('sort', 'terbaru'); // terbaru | terlama | az | za
+        $kategori = $request->query('kategori', '');
 
         $query = Module::query();
 
@@ -47,6 +48,10 @@ class EducationController extends Controller
             });
         }
 
+        if (!empty($kategori)) {
+            $query->where('kategori', $kategori);
+        }
+
         match ($sort) {
             'terlama' => $query->oldest(),
             'az'      => $query->orderBy('title', 'asc'),
@@ -55,7 +60,10 @@ class EducationController extends Controller
         };
 
         $modules = $query->paginate(5)->withQueryString();
-        return view('admin.education.modules.index', compact('modules', 'filter', 'sort'));
+        
+        $categories = Module::whereNotNull('kategori')->where('kategori', '!=', '')->distinct()->pluck('kategori');
+
+        return view('admin.education.modules.index', compact('modules', 'filter', 'sort', 'kategori', 'categories'));
     }
 
     public function moduleCreate()

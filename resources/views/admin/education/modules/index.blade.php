@@ -121,24 +121,37 @@
 
         <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
             <div class="mi-tabs">
-                <a href="{{ route('counselor.education.modules.index', ['filter' => 'semua', 'sort' => $sort]) }}"
+                <a href="{{ route('counselor.education.modules.index', ['filter' => 'semua', 'sort' => $sort, 'kategori' => $kategori ?? '']) }}"
                    class="mi-tab {{ $filter === 'semua' ? 'active' : '' }}">Semua Modul</a>
-                <a href="{{ route('counselor.education.modules.index', ['filter' => 'aktif', 'sort' => $sort]) }}"
+                <a href="{{ route('counselor.education.modules.index', ['filter' => 'aktif', 'sort' => $sort, 'kategori' => $kategori ?? '']) }}"
                    class="mi-tab {{ $filter === 'aktif' ? 'active' : '' }}">Aktif</a>
-                <a href="{{ route('counselor.education.modules.index', ['filter' => 'draft', 'sort' => $sort]) }}"
+                <a href="{{ route('counselor.education.modules.index', ['filter' => 'draft', 'sort' => $sort, 'kategori' => $kategori ?? '']) }}"
                    class="mi-tab {{ $filter === 'draft' ? 'active' : '' }}">Draft</a>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #475569; font-weight: 500;">
-                <span>Urutkan:</span>
-                <form method="GET" action="{{ route('counselor.education.modules.index') }}" id="sortForm">
+            <div style="display: flex; align-items: center; gap: 16px; font-size: 0.82rem; color: #475569; font-weight: 500;">
+                <form method="GET" action="{{ route('counselor.education.modules.index') }}" id="filterForm" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                     <input type="hidden" name="filter" value="{{ $filter }}">
-                    <select name="sort" class="mi-sort-select" onchange="document.getElementById('sortForm').submit()">
-                        <option value="terbaru" {{ $sort === 'terbaru' ? 'selected' : '' }}>Terbaru</option>
-                        <option value="terlama" {{ $sort === 'terlama' ? 'selected' : '' }}>Terlama</option>
-                        <option value="az"      {{ $sort === 'az'      ? 'selected' : '' }}>A–Z</option>
-                        <option value="za"      {{ $sort === 'za'      ? 'selected' : '' }}>Z–A</option>
-                    </select>
+                    
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span>Kategori:</span>
+                        <select name="kategori" class="mi-sort-select" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Semua Kategori</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat }}" {{ (isset($kategori) && $kategori === $cat) ? 'selected' : '' }}>{{ $cat }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span>Urutkan:</span>
+                        <select name="sort" class="mi-sort-select" onchange="document.getElementById('filterForm').submit()">
+                            <option value="terbaru" {{ $sort === 'terbaru' ? 'selected' : '' }}>Terbaru</option>
+                            <option value="terlama" {{ $sort === 'terlama' ? 'selected' : '' }}>Terlama</option>
+                            <option value="az"      {{ $sort === 'az'      ? 'selected' : '' }}>A–Z</option>
+                            <option value="za"      {{ $sort === 'za'      ? 'selected' : '' }}>Z–A</option>
+                        </select>
+                    </div>
                 </form>
             </div>
         </div>
@@ -217,7 +230,7 @@
                         Menampilkan {{ $modules->firstItem() }}&ndash;{{ $modules->lastItem() }} dari {{ $modules->total() }} modul
                     </div>
                     <div class="custom-pagination" style="display: flex; gap: 4px; align-items: center;">
-                        {{ $modules->appends(['filter' => $filter, 'sort' => $sort])->links('vendor.pagination.custom') }}
+                        {{ $modules->appends(['filter' => $filter, 'sort' => $sort, 'kategori' => $kategori ?? ''])->links('vendor.pagination.custom') }}
                     </div>
                 </div>
                 @endif
