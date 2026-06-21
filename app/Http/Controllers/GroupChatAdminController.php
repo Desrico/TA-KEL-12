@@ -8,6 +8,7 @@ use App\Models\GroupChatMessage;
 use App\Models\GroupChatRoom;
 use App\Models\Mahasiswa;
 use App\Models\Notifikasi;
+use App\Models\NotifikasiMahasiswa;
 use App\Models\Student;
 use App\Services\KampusApiService;
 use App\Models\User;
@@ -19,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class GroupChatAdminController extends Controller
@@ -27,18 +29,11 @@ class GroupChatAdminController extends Controller
     {
         $groupList = $this->resolveAvailableRooms();
         $activeRoom = $this->resolveSelectedRoom($groupList, $request->integer('group'));
-        $messages = $activeRoom
-            ? $activeRoom->messages
-            ->sortBy('created_at')
-            ->values()
-            ->map(fn(GroupChatMessage $message) => $this->transformMessage($message, $request->user(), $activeRoom))
-            ->all()
-            : [];
 
         return view('admin.group-chat', [
             'groupList' => $groupList,
             'activeRoom' => $activeRoom,
-            'chatPayload' => $activeRoom ? $this->buildChatPayload($activeRoom, $messages) : null,
+            'chatPayload' => $activeRoom ? $this->buildChatPayload($activeRoom) : null,
         ]);
     }
 
@@ -57,7 +52,14 @@ class GroupChatAdminController extends Controller
             ]);
         }
 
-        $cacheKey = 'admin.group_chat.student_lookup.' . $nim . '.' . $limit;
+        $room = null;
+        $roomId = (int) $request->integer('room_id');
+
+        if ($roomId > 0) {
+            $room = GroupChatRoom::query()->find($roomId);
+        }
+
+        $cacheKey = 'admin.group_chat.student_lookup.' . $nim . '.' . $limit . '.' . ($room?->id ?? 'new');
         $cachedPayload = Cache::get($cacheKey);
 
         if (is_array($cachedPayload)) {
@@ -74,7 +76,8 @@ class GroupChatAdminController extends Controller
             $kampusApi,
             (string) $request->session()->get('cis.access_token', ''),
             $limit,
-            $autocompleteTimeout
+            $autocompleteTimeout,
+            $room
         );
 
         if ($items !== [] && $message === null) {
@@ -204,6 +207,137 @@ class GroupChatAdminController extends Controller
             ->with('success', 'Nama grup privat berhasil diperbarui.');
     }
 
+    public function updateRoomAvatar(Request $request, GroupChatRoom $group): RedirectResponse
+    {
+        $room = $this->resolveRoom($group->id);
+
+        if (! $room) {
+            return back()->with('error', 'Grup chat tidak ditemukan.');
+        }
+
+        if (! GroupChatSupport::supportsRoomAvatar()) {
+            return back()->with('error', 'Foto grup membutuhkan migration database terbaru sebelum dapat digunakan.');
+        }
+
+        $validated = $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ]);
+
+        $oldPath = $room->avatar_path;
+        $newPath = $validated['avatar']->store('group-chat/avatars', 'public');
+
+        $room->update([
+            'avatar_path' => $newPath,
+        ]);
+
+        if (filled($oldPath)) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        return redirect()
+            ->route('admin.group-chat', ['group' => $room->id])
+            ->with('success', 'Foto grup berhasil diperbarui.');
+    }
+
+    public function deleteRoom(GroupChatRoom $group): RedirectResponse
+    {
+        $room = $this->resolveRoom($group->id);
+
+        if (! $room) {
+            return redirect()
+                ->route('admin.group-chat')
+                ->with('error', 'Grup chat tidak ditemukan.');
+        }
+
+        if (! $room->isPrivate()) {
+            return redirect()
+                ->route('admin.group-chat', ['group' => $room->id])
+                ->with('error', 'Grup publik tidak dapat dihapus.');
+        }
+
+        $roomTitle = $room->title;
+        $avatarPath = $room->avatar_path;
+        $inviteUrl = GroupChatSupport::supportsInviteToken() && filled($room->invite_token)
+            ? route('mahasiswa.group-chat.invite', ['token' => $room->invite_token])
+            : null;
+
+        DB::transaction(function () use ($room, $inviteUrl) {
+            if ($inviteUrl) {
+                Notifikasi::query()
+                    ->where('cta_target', $inviteUrl)
+                    ->delete();
+
+                try {
+                    NotifikasiMahasiswa::query()
+                        ->where('cta_target', $inviteUrl)
+                        ->delete();
+                } catch (\Throwable $exception) {
+                    Log::warning('Penghapusan notifikasi Mongo untuk grup privat gagal.', [
+                        'room_id' => $room->id,
+                        'invite_url' => $inviteUrl,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
+            }
+
+            $room->delete();
+        });
+
+        if (filled($avatarPath)) {
+            Storage::disk('public')->delete($avatarPath);
+        }
+
+        return redirect()
+            ->route('admin.group-chat')
+            ->with('success', 'Grup privat "' . $roomTitle . '" berhasil dihapus.')
+            ->with('admin_private_group_deleted_modal', [
+                'title' => 'Grup Privat Berhasil Dihapus',
+                'message' => 'Grup privat "' . $roomTitle . '" telah berhasil dihapus dari sistem.',
+            ]);
+    }
+
+    public function removeMember(Request $request, GroupChatRoom $group, GroupChatMember $member): RedirectResponse
+    {
+        $room = $this->resolveRoom($group->id);
+
+        if (! $room || (int) $member->room_id !== (int) $group->id) {
+            return back()->with('error', 'Anggota grup tidak ditemukan.');
+        }
+
+        $member->loadMissing('user.mahasiswa');
+
+        if (GroupChatSupport::supportsMembershipStatus() && $member->membership_status !== GroupChatMember::STATUS_ACTIVE) {
+            return redirect()
+                ->route('admin.group-chat', ['group' => $group->id])
+                ->with('error', 'Anggota tersebut sudah tidak aktif di grup.');
+        }
+
+        DB::transaction(function () use ($member) {
+            if (GroupChatSupport::supportsMembershipStatus()) {
+                $payload = [
+                    'membership_status' => GroupChatMember::STATUS_REMOVED,
+                ];
+
+                if (GroupChatSupport::supportsMembershipLifecycleFields()) {
+                    $payload['removed_at'] = now();
+                    $payload['removed_reason'] = 'removed_by_counselor';
+                }
+
+                $member->update($payload);
+
+                return;
+            }
+
+            $member->delete();
+        });
+
+        $this->createMembershipSystemMessage($group, $member->user, 'removed');
+
+        return redirect()
+            ->route('admin.group-chat', ['group' => $group->id])
+            ->with('success', 'Anggota grup berhasil dikeluarkan.');
+    }
+
     public function messages(Request $request): JsonResponse
     {
         $room = $this->resolveRoom((int) $request->integer('group_id'));
@@ -217,11 +351,24 @@ class GroupChatAdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'messages' => $room->messages
-                ->sortBy('created_at')
-                ->values()
-                ->map(fn(GroupChatMessage $message) => $this->transformMessage($message, $request->user(), $room))
-                ->all(),
+            'messages' => $this->buildVisibleMessages($room, $request->user()),
+        ]);
+    }
+
+    public function members(Request $request): JsonResponse
+    {
+        $room = $this->resolveRoom((int) $request->integer('group_id'));
+
+        if (! $room) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Grup chat tidak ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'members' => $this->resolveMemberProfiles($room),
         ]);
     }
 
@@ -242,11 +389,18 @@ class GroupChatAdminController extends Controller
         }
 
         $message = DB::transaction(function () use ($room, $request, $validated) {
-            return GroupChatMessage::create([
+            $payload = [
                 'room_id' => $room->id,
                 'user_id' => $request->user()->id,
                 'pesan' => trim($validated['pesan']),
-            ]);
+            ];
+
+            if (GroupChatSupport::supportsSystemMessages()) {
+                $payload['is_system'] = false;
+                $payload['system_event'] = null;
+            }
+
+            return GroupChatMessage::create($payload);
         });
 
         $message->loadMissing([
@@ -279,7 +433,7 @@ class GroupChatAdminController extends Controller
         $user = $request->user();
         $room = $this->resolveRoomByOwnedMessage($user, $message);
 
-        if (! $room || (int) $message->user_id !== (int) $user->id) {
+        if (! $room || (int) $message->user_id !== (int) $user->id || (bool) $message->is_system) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pesan tidak ditemukan atau tidak bisa diedit.',
@@ -306,7 +460,7 @@ class GroupChatAdminController extends Controller
         $user = $request->user();
         $room = $this->resolveRoomByOwnedMessage($user, $message);
 
-        if (! $room || (int) $message->user_id !== (int) $user->id) {
+        if (! $room || (int) $message->user_id !== (int) $user->id || (bool) $message->is_system) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pesan tidak ditemukan atau tidak bisa dihapus.',
@@ -323,6 +477,7 @@ class GroupChatAdminController extends Controller
 
     private function resolveAvailableRooms()
     {
+        // Sidebar tetap SSR, tetapi hanya membawa ringkasan room agar render awal tetap ringan.
         $roomsQuery = GroupChatRoom::query()
             ->with([
                 'latestMessage.sender.mahasiswa',
@@ -334,18 +489,9 @@ class GroupChatAdminController extends Controller
                 ->withCount([
                     'members as active_members_count' => fn($query) => $query->where('membership_status', GroupChatMember::STATUS_ACTIVE),
                     'members as invited_members_count' => fn($query) => $query->where('membership_status', GroupChatMember::STATUS_INVITED),
-                ])
-                ->with([
-                    'members' => fn($query) => $query
-                        ->where('membership_status', GroupChatMember::STATUS_ACTIVE)
-                        ->with('user.mahasiswa'),
                 ]);
         } else {
-            $roomsQuery
-                ->withCount('members')
-                ->with([
-                    'members.user.mahasiswa',
-                ]);
+            $roomsQuery->withCount('members');
         }
 
         $rooms = $roomsQuery->get()
@@ -356,12 +502,6 @@ class GroupChatAdminController extends Controller
             })
             ->values();
 
-        foreach ($rooms as $room) {
-            foreach ($room->members as $member) {
-                GroupChatSupport::ensureMemberAlias($room, $member);
-            }
-        }
-
         return $rooms;
     }
 
@@ -371,10 +511,6 @@ class GroupChatAdminController extends Controller
             $room = $groupList->firstWhere('id', $roomId);
 
             if ($room) {
-                $room->loadMissing([
-                    'messages.sender.mahasiswa',
-                ]);
-
                 if (GroupChatSupport::supportsMembershipStatus()) {
                     $room->loadMissing([
                         'members' => fn($query) => $query
@@ -394,10 +530,6 @@ class GroupChatAdminController extends Controller
         $room = $groupList->first();
 
         if ($room) {
-            $room->loadMissing([
-                'messages.sender.mahasiswa',
-            ]);
-
             if (GroupChatSupport::supportsMembershipStatus()) {
                 $room->loadMissing([
                     'members' => fn($query) => $query
@@ -421,9 +553,6 @@ class GroupChatAdminController extends Controller
         }
 
         $roomQuery = GroupChatRoom::query()
-            ->with([
-                'messages.sender.mahasiswa',
-            ])
             ->whereKey($roomId)
             ->where('is_active', true);
 
@@ -457,13 +586,18 @@ class GroupChatAdminController extends Controller
         return $room;
     }
 
-    private function buildChatPayload(GroupChatRoom $room, array $messages): array
+    private function buildChatPayload(GroupChatRoom $room): array
     {
+        $sessionStartedAt = GroupChatSupport::roomUsesSessionReset($room)
+            ? $this->toDisplayDateTime(GroupChatSupport::currentSessionStartedAt($room))
+            : null;
+
         return [
             'roomId' => $room->id,
             'channel' => 'chat.group.' . $room->id,
             'sendUrl' => route('admin.group-chat.store'),
             'messagesUrl' => route('admin.group-chat.messages'),
+            'membersUrl' => route('admin.group-chat.members'),
             'updateUrlTemplate' => route('admin.group-chat.update', ['message' => '__MESSAGE_ID__']),
             'deleteUrlTemplate' => route('admin.group-chat.destroy', ['message' => '__MESSAGE_ID__']),
             'roomTitle' => $room->title,
@@ -474,54 +608,25 @@ class GroupChatAdminController extends Controller
             'memberCount' => (int) ($room->active_members_count ?? $room->members_count ?? $room->members->count()),
             'pendingInviteCount' => (int) ($room->invited_members_count ?? 0),
             'memberNames' => $this->resolveMemberNames($room),
-            'memberProfiles' => $this->resolveMemberProfiles($room),
+            'roomAvatarUrl' => GroupChatSupport::resolveRoomAvatarUrl($room),
+            'roomAvatarInitial' => GroupChatSupport::resolveRoomAvatarInitial($room),
+            'canUpdateAvatar' => GroupChatSupport::supportsRoomAvatar(),
             'inviteUrl' => GroupChatSupport::supportsPrivateGroups() && $room->isPrivate() && filled($room->invite_token)
                 ? route('mahasiswa.group-chat.invite', ['token' => $room->invite_token])
                 : null,
             'canInviteMembers' => GroupChatSupport::supportsPrivateGroups() && $room->isPrivate(),
-            'messages' => $messages,
+            'updateAvatarUrl' => route('admin.group-chat.rooms.avatar', ['group' => $room->id]),
+            'privateMemberLimit' => GroupChatSupport::privateGroupMemberLimit(),
+            'sessionResetHours' => GroupChatSupport::roomUsesSessionReset($room)
+                ? GroupChatSupport::sessionResetHours()
+                : null,
+            'sessionStartedAt' => $sessionStartedAt?->toIso8601String(),
         ];
-    }
-
-
-    private function resolveUserDisplayName(?User $user): string
-    {
-        if (! $user) {
-            return 'Anonim';
-        }
-
-        // Di grup chat, mahasiswa selalu tampil anonim dengan nama hewan.
-        if ($user->role === 'mahasiswa') {
-            return method_exists($user, 'getAnonimDisplayName')
-                ? $user->getAnonimDisplayName()
-                : 'Mahasiswa Anonim';
-        }
-
-        return $user->nama ?? $user->name ?? 'Admin';
-    }
-
-    private function resolveUserAvatarUrl(?User $user): string
-    {
-        if (! $user) {
-            return asset('img/default-avatar.png');
-        }
-
-        // Di grup chat, mahasiswa selalu pakai avatar anonim hewan.
-        if ($user->role === 'mahasiswa') {
-            return method_exists($user, 'getAnonimAvatarSvg')
-                ? $user->getAnonimAvatarSvg()
-                : asset('img/default-avatar.png');
-        }
-
-        $profilePhoto = optional($user->profil)->foto;
-
-        return $profilePhoto
-            ? Storage::url($profilePhoto)
-            : asset('img/default-avatar.png');
     }
 
     private function resolveMemberNames(GroupChatRoom $room): array
     {
+        // Nama anggota harus mengikuti mode identitas room: publik anonim, privat nama asli.
         return $room->members
             ->sortBy(fn(GroupChatMember $member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
             ->map(function (GroupChatMember $member) use ($room) {
@@ -534,12 +639,17 @@ class GroupChatAdminController extends Controller
 
     private function resolveMemberProfiles(GroupChatRoom $room): array
     {
+        // Payload anggota dipakai ulang di header, dropdown anggota, dan pencarian sisi admin.
         return $room->members
             ->sortBy(fn(GroupChatMember $member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
             ->map(function (GroupChatMember $member) use ($room) {
                 return [
+                    'member_id' => $member->id,
+                    'user_id' => $member->user_id,
                     'name' => GroupChatSupport::resolveDisplayName($member->user, $room, $member),
                     'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
+                    'can_remove' => true,
+                    'remove_url' => route('admin.group-chat.rooms.members.remove', ['group' => $room->id, 'member' => $member->id]),
                 ];
             })
             ->filter(fn(array $member) => filled($member['name']))
@@ -556,21 +666,25 @@ class GroupChatAdminController extends Controller
         $sender = $message->sender;
         $membership = $sender ? GroupChatSupport::resolveRoomMember($sender, $room) : null;
 
+        // Nama pengirim pesan admin juga harus tunduk pada aturan identitas room yang sama.
         return [
             'id' => $message->id,
             'room_id' => $message->room_id,
             'sender_id' => $message->user_id,
-            'sender_name' => $message->user_id === $viewer->id
-                ? 'Anda'
-                : GroupChatSupport::resolveDisplayName($sender, $room, $membership),
+            'sender_name' => (bool) $message->is_system
+                ? 'Sistem'
+                : ($message->user_id === $viewer->id
+                    ? 'Anda'
+                    : GroupChatSupport::resolveDisplayName($sender, $room, $membership)),
             'sender_role' => $sender?->role ?? 'pengguna',
-            'avatar_url' => $this->resolveUserAvatarUrl($sender),
             'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
             'text' => $message->pesan,
             'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
             'updated_at' => $this->toDisplayDateTime($message->updated_at)?->toIso8601String(),
             'is_edited' => (bool) ($message->updated_at && $message->created_at && $message->updated_at->ne($message->created_at)),
+            'is_system' => (bool) $message->is_system,
+            'system_event' => $message->system_event,
             'is_mine' => $message->user_id === $viewer->id,
         ];
     }
@@ -616,7 +730,8 @@ class GroupChatAdminController extends Controller
         KampusApiService $kampusApi,
         string $sessionToken = '',
         int $limit = 12,
-        ?int $timeout = null
+        ?int $timeout = null,
+        ?GroupChatRoom $room = null
     ): array {
         $cisRows = [];
         $source = 'local';
@@ -654,7 +769,7 @@ class GroupChatAdminController extends Controller
                     'error' => $exception->getMessage(),
                 ]);
 
-                $message = 'Token statis CIS tidak valid atau sudah kedaluwarsa, sistem memakai data lokal aplikasi.';
+                $message = 'Token statis CIS tidak valid atau sudah kedaluwarsa, jadi pencarian sementara memakai data lokal aplikasi.';
             }
         }
 
@@ -680,6 +795,10 @@ class GroupChatAdminController extends Controller
             $message = 'Pencarian masih memakai data lokal karena token CIS atau service account CIS belum tersedia.';
         }
 
+        // Hasil CIS yang sudah dipastikan aktif langsung disinkronkan ke akun lokal
+        // agar autocomplete tidak gagal hanya karena mapping lokal tertinggal.
+        $this->syncMahasiswaFromCisRows($cisRows);
+
         $directory = $this->buildStudentDirectory($keyword, $cisRows, $limit);
         $nimOrder = array_keys($directory);
 
@@ -687,26 +806,49 @@ class GroupChatAdminController extends Controller
             return [[], $source, $message];
         }
 
-        $invitableStudents = $this->resolveInvitableMahasiswaByNims($nimOrder);
+        $cisActiveNims = collect($cisRows)
+            ->map(fn(array $row) => trim((string) ($row['nim'] ?? '')))
+            ->filter()
+            ->values()
+            ->all();
+
+        $invitableStudents = $this->resolveInvitableMahasiswaByNims($nimOrder, $cisActiveNims);
+        $roomInviteStatuses = $room ? $this->resolveInviteStatusesForRoom($room) : [];
 
         $items = collect($nimOrder)
-            ->filter(function (string $nim) use ($directory, $invitableStudents) {
-                $source = $directory[$nim]['source'] ?? 'local';
-
-                return $source === 'cis' || $invitableStudents->has($nim);
-            })
-            ->map(function (string $nim) use ($directory) {
+            ->map(function (string $nim) use ($directory, $invitableStudents, $roomInviteStatuses) {
                 $directoryItem = $directory[$nim] ?? [];
                 $displayName = trim((string) (
                     $directoryItem['name']
                     ?? 'Mahasiswa'
                 ));
 
+                $status = $roomInviteStatuses[$nim] ?? null;
+
+                if (! $invitableStudents->has($nim) && $status === null) {
+                    return null;
+                }
+
+                if ($status !== null) {
+                    return [
+                        'nim' => $nim,
+                        'name' => $displayName !== '' ? $displayName : 'Mahasiswa',
+                        'label' => $nim . ' - ' . ($displayName !== '' ? $displayName : 'Mahasiswa'),
+                        'source' => $directoryItem['source'] ?? 'cis',
+                        'selectable' => false,
+                        'status' => $status,
+                        'note' => $status === 'already_invited'
+                            ? 'Mahasiswa ini sudah diundang.'
+                            : 'Mahasiswa ini telah bergabung.',
+                    ];
+                }
+
                 return [
                     'nim' => $nim,
                     'name' => $displayName !== '' ? $displayName : 'Mahasiswa',
                     'label' => $nim . ' - ' . ($displayName !== '' ? $displayName : 'Mahasiswa'),
                     'source' => $directoryItem['source'] ?? 'cis',
+                    'selectable' => true,
                 ];
             })
             ->filter()
@@ -715,7 +857,7 @@ class GroupChatAdminController extends Controller
             ->all();
 
         if ($items === [] && $message === null) {
-            $message = 'Data mahasiswa ditemukan, tetapi belum ada akun mahasiswa aktif yang dapat menerima undangan grup privat.';
+            $message = 'NIM mahasiswa ditemukan, tetapi akun mahasiswa di aplikasi yang masih aktif dan bisa menerima undangan grup privat belum tersedia.';
         }
 
         return [$items, $source, $message];
@@ -783,14 +925,42 @@ class GroupChatAdminController extends Controller
         return $directory;
     }
 
-    private function resolveInvitableMahasiswaByNims(array $nims)
+    private function resolveInvitableMahasiswaByNims(array $nims, array $cisActiveNims = [])
     {
         return Mahasiswa::query()
             ->with('user:id,nama,role')
             ->whereIn('nim', $nims)
             ->get(['id', 'user_id', 'nim'])
-            ->filter(fn(Mahasiswa $mahasiswa) => $mahasiswa->user && $mahasiswa->user->role === 'mahasiswa')
+            ->filter(fn(Mahasiswa $mahasiswa) => $mahasiswa->user
+                && $mahasiswa->user->role === 'mahasiswa'
+                && $this->isUserEligibleForInvite($mahasiswa->user, (string) $mahasiswa->nim, $cisActiveNims))
             ->keyBy(fn(Mahasiswa $mahasiswa) => (string) $mahasiswa->nim);
+    }
+
+    private function resolveInviteStatusesForRoom(GroupChatRoom $room): array
+    {
+        return $room->members()
+            ->with('user.mahasiswa:id,user_id,nim')
+            ->whereIn('membership_status', [
+                GroupChatMember::STATUS_ACTIVE,
+                GroupChatMember::STATUS_INVITED,
+            ])
+            ->get()
+            ->mapWithKeys(function (GroupChatMember $member) {
+                $nim = trim((string) optional(optional($member->user)->mahasiswa)->nim);
+
+                if ($nim === '') {
+                    return [];
+                }
+
+                return [
+                    $nim => $member->membership_status === GroupChatMember::STATUS_INVITED
+                        ? 'already_invited'
+                        : 'already_joined',
+                ];
+            })
+            ->filter()
+            ->all();
     }
 
     private function parseNimList(string $rawValue): array
@@ -811,13 +981,15 @@ class GroupChatAdminController extends Controller
             return [
                 'invited_count' => 0,
                 'already_member_count' => 0,
+                'already_invited_count' => 0,
                 'missing_nims' => [],
                 'unavailable_nims' => [],
                 'blocked_nims' => [],
+                'capacity_limited_nims' => [],
             ];
         }
 
-        $this->syncMahasiswaFromCisByNims($nims);
+        $cisActiveNims = $this->syncMahasiswaFromCisByNims($nims);
 
         $students = Mahasiswa::query()
             ->with('user')
@@ -827,10 +999,18 @@ class GroupChatAdminController extends Controller
 
         $invitedCount = 0;
         $alreadyMemberCount = 0;
+        $alreadyInvitedCount = 0;
         $blockedNims = [];
         $unavailableNims = [];
+        $capacityLimitedNims = [];
+        $remainingSlots = $room->isPrivate() ? $this->resolveRemainingPrivateSlots($room) : null;
 
         foreach ($nims as $nim) {
+            if ($room->isPrivate() && $remainingSlots !== null && $remainingSlots <= 0) {
+                $capacityLimitedNims[] = $nim;
+                continue;
+            }
+
             /** @var Mahasiswa|null $mahasiswa */
             $mahasiswa = $students->get($nim);
             $user = $mahasiswa?->user;
@@ -840,8 +1020,7 @@ class GroupChatAdminController extends Controller
                 continue;
             }
 
-            $eligibility = GroupChatSupport::resolveAcademicEligibility($user);
-            if (! $eligibility['eligible']) {
+            if (! $this->isUserEligibleForInvite($user, $nim, $cisActiveNims)) {
                 $blockedNims[] = $nim;
                 continue;
             }
@@ -853,6 +1032,11 @@ class GroupChatAdminController extends Controller
 
             if ($member->exists && (! GroupChatSupport::supportsMembershipStatus() || $member->membership_status === GroupChatMember::STATUS_ACTIVE)) {
                 $alreadyMemberCount++;
+                continue;
+            }
+
+            if ($member->exists && GroupChatSupport::supportsMembershipStatus() && $member->membership_status === GroupChatMember::STATUS_INVITED) {
+                $alreadyInvitedCount++;
                 continue;
             }
 
@@ -897,6 +1081,10 @@ class GroupChatAdminController extends Controller
             Notifikasi::create($notificationPayload);
 
             $invitedCount++;
+
+            if ($room->isPrivate() && $remainingSlots !== null) {
+                $remainingSlots--;
+            }
         }
 
         $missingNims = array_values(array_diff($nims, $students->keys()->all()));
@@ -919,24 +1107,137 @@ class GroupChatAdminController extends Controller
         return [
             'invited_count' => $invitedCount,
             'already_member_count' => $alreadyMemberCount,
+            'already_invited_count' => $alreadyInvitedCount,
             'missing_nims' => $missingNims,
             'unavailable_nims' => $unavailableNims,
             'blocked_nims' => $blockedNims,
+            'capacity_limited_nims' => $capacityLimitedNims,
         ];
     }
 
-    private function syncMahasiswaFromCisByNims(array $nims): void
+    // Grup privat dibatasi agar dinamika konseling tetap terkelola dan tidak terlalu padat.
+    private function resolveRemainingPrivateSlots(GroupChatRoom $room): int
     {
-        $missingNims = array_values(array_diff($nims, Mahasiswa::query()->whereIn('nim', $nims)->pluck('nim')->all()));
-
-        if ($missingNims === []) {
-            return;
+        if (! $room->isPrivate()) {
+            return PHP_INT_MAX;
         }
 
+        $currentCount = GroupChatMember::query()
+            ->where('room_id', $room->id)
+            ->when(
+                GroupChatSupport::supportsMembershipStatus(),
+                fn ($query) => $query->whereIn('membership_status', [
+                    GroupChatMember::STATUS_ACTIVE,
+                    GroupChatMember::STATUS_INVITED,
+                ])
+            )
+            ->count();
+
+        return max(0, GroupChatSupport::privateGroupMemberLimit() - $currentCount);
+    }
+
+    private function buildVisibleMessages(GroupChatRoom $room, User $viewer): array
+    {
+        // Ambil pesan terbaru saja; riwayat lama tetap bisa disediakan belakangan jika dibutuhkan.
+        $messageLimit = 80;
+        $messageQuery = $room->messages()
+            ->with('sender.mahasiswa')
+            ->orderByDesc('created_at');
+
+        $sessionStartedAt = null;
+
+        if (GroupChatSupport::roomUsesSessionReset($room)) {
+            $sessionStartedAt = GroupChatSupport::currentSessionStartedAt($room);
+            $messageQuery->where('created_at', '>=', $sessionStartedAt);
+        }
+
+        $messages = $messageQuery
+            ->limit($messageLimit)
+            ->get()
+            ->sortBy('created_at')
+            ->values()
+            ->map(fn (GroupChatMessage $message) => $this->transformMessage($message, $viewer, $room))
+            ->all();
+
+        if ($sessionStartedAt) {
+            array_unshift($messages, $this->buildSessionResetThread($room, $sessionStartedAt));
+        }
+
+        return $messages;
+    }
+
+    private function buildSessionResetThread(GroupChatRoom $room, Carbon $sessionStartedAt): array
+    {
+        $displayTime = $this->toDisplayDateTime($sessionStartedAt) ?? $this->nowInDisplayTimezone();
+
+        return [
+            'id' => 'session-reset-' . $room->id . '-' . $displayTime->timestamp,
+            'room_id' => $room->id,
+            'sender_id' => null,
+            'sender_name' => 'Sistem',
+            'sender_role' => 'system',
+            'avatar_url' => null,
+            'text' => 'Sesi grup baru dimulai. Riwayat percakapan disetel ulang setiap 1 minggu.',
+            'time' => $displayTime->format('H:i'),
+            'sent_at' => $displayTime->toIso8601String(),
+            'updated_at' => null,
+            'is_edited' => false,
+            'is_system' => true,
+            'system_event' => 'weekly_reset',
+            'is_mine' => false,
+        ];
+    }
+
+    private function createMembershipSystemMessage(GroupChatRoom $room, User $user, string $event): GroupChatMessage
+    {
+        $member = GroupChatSupport::resolveRoomMember($user, $room);
+        $displayName = GroupChatSupport::resolveDisplayName($user, $room, $member);
+        $text = match ($event) {
+            'joined' => $displayName . ' Bergabung',
+            'left' => $displayName . ' Meninggalkan Grup',
+            'removed' => $displayName . ' Dikeluarkan dari Grup',
+            default => $displayName,
+        };
+
+        $payload = [
+            'room_id' => $room->id,
+            'user_id' => $user->id,
+            'pesan' => $text,
+        ];
+
+        if (GroupChatSupport::supportsSystemMessages()) {
+            $payload['is_system'] = true;
+            $payload['system_event'] = $event;
+        }
+
+        $message = GroupChatMessage::create($payload);
+        $message->loadMissing([
+            'sender.profil',
+            'sender.mahasiswa',
+            'room',
+        ]);
+
+        try {
+            broadcast(new GroupChatMessageSent($message))->toOthers();
+        } catch (\Throwable $exception) {
+            Log::warning('Broadcast pesan sistem group chat admin gagal dikirim.', [
+                'message_id' => $message->id,
+                'room_id' => $message->room_id,
+                'event' => $event,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
+        return $message;
+    }
+
+    private function syncMahasiswaFromCisByNims(array $nims): array
+    {
         /** @var KampusApiService $kampusApi */
         $kampusApi = app(KampusApiService::class);
+        $activeNims = [];
 
-        foreach ($missingNims as $nim) {
+        foreach (array_values(array_unique($nims)) as $nim) {
             try {
                 $cisRow = $kampusApi->findActiveMahasiswaByExactNim($nim);
 
@@ -944,10 +1245,31 @@ class GroupChatAdminController extends Controller
                     continue;
                 }
 
+                $activeNims[] = trim((string) ($cisRow['nim'] ?? ''));
                 $this->syncMahasiswaFromCisRow($cisRow);
             } catch (\Throwable $exception) {
                 Log::warning('Sinkronisasi mahasiswa CIS untuk undangan group chat gagal.', [
                     'nim' => $nim,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        return array_values(array_unique(array_filter($activeNims)));
+    }
+
+    private function syncMahasiswaFromCisRows(array $cisRows): void
+    {
+        foreach ($cisRows as $cisRow) {
+            if (! is_array($cisRow) || trim((string) ($cisRow['nim'] ?? '')) === '') {
+                continue;
+            }
+
+            try {
+                $this->syncMahasiswaFromCisRow($cisRow);
+            } catch (\Throwable $exception) {
+                Log::warning('Sinkronisasi hasil pencarian CIS untuk group chat gagal.', [
+                    'nim' => trim((string) ($cisRow['nim'] ?? '')),
                     'error' => $exception->getMessage(),
                 ]);
             }
@@ -1013,7 +1335,71 @@ class GroupChatAdminController extends Controller
             ]
         );
 
+        try {
+            // Snapshot Student lokal hanya pelengkap untuk cache/status.
+            // Kegagalan sinkronisasi Mongo tidak boleh membatalkan mapping user-mahasiswa SQL.
+            $this->syncStudentSnapshotFromCisRow($cisRow);
+        } catch (\Throwable $exception) {
+            Log::warning('Sinkronisasi snapshot Student dari hasil CIS gagal, tetapi mapping akun lokal tetap dilanjutkan.', [
+                'nim' => $nim,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
         return Mahasiswa::query()->with('user')->where('nim', $nim)->first();
+    }
+
+    private function isUserEligibleForInvite(User $user, string $nim = '', array $cisActiveNims = []): bool
+    {
+        if ($nim !== '' && in_array($nim, $cisActiveNims, true)) {
+            return true;
+        }
+
+        return GroupChatSupport::resolveAcademicEligibility($user)['eligible'];
+    }
+
+    private function syncStudentSnapshotFromCisRow(array $cisRow): void
+    {
+        $nim = trim((string) ($cisRow['nim'] ?? ''));
+
+        if ($nim === '') {
+            return;
+        }
+
+        $student = Student::query()->where('nim', $nim)->first() ?? new Student();
+        $student->nim = $nim;
+        $student->name = trim((string) ($cisRow['name'] ?? '')) ?: ($student->name ?? 'Mahasiswa');
+
+        $prodi = trim((string) ($cisRow['prodi'] ?? ''));
+        if ($prodi !== '') {
+            $student->prodi = $prodi;
+        }
+
+        $angkatan = trim((string) ($cisRow['angkatan'] ?? '')) ?: $this->extractAngkatanFromNim($nim);
+        if ($angkatan) {
+            $student->angkatan = $angkatan;
+            $student->tingkatan = $student->tingkatan ?? $angkatan;
+        }
+
+        // Search endpoint CIS khusus meminta status Aktif, jadi snapshot lokal
+        // disegarkan agar eligibility check tidak tertahan oleh data lama.
+        $student->status = 'Aktif';
+        $student->status_mahasiswa = 'Aktif';
+        $student->status_akademik = 'Aktif';
+        $student->academic_status = 'Aktif';
+        $student->is_active = true;
+        $student->is_active_student = true;
+        $student->active = true;
+
+        if (isset($student->graduated_at)) {
+            $student->graduated_at = null;
+        }
+
+        if (isset($student->tanggal_lulus)) {
+            $student->tanggal_lulus = null;
+        }
+
+        $student->save();
     }
 
     private function extractAngkatanFromNim(string $nim): ?string
@@ -1039,6 +1425,10 @@ class GroupChatAdminController extends Controller
             $parts[] = $summary['already_member_count'] . ' mahasiswa sudah menjadi anggota aktif.';
         }
 
+        if (($summary['already_invited_count'] ?? 0) > 0) {
+            $parts[] = $summary['already_invited_count'] . ' mahasiswa sebelumnya sudah menerima undangan.';
+        }
+
         if ($summary['missing_nims'] !== []) {
             $parts[] = 'NIM tidak ditemukan: ' . implode(', ', $summary['missing_nims']) . '.';
         }
@@ -1049,6 +1439,10 @@ class GroupChatAdminController extends Controller
 
         if ($summary['blocked_nims'] !== []) {
             $parts[] = 'Beberapa undangan dilewati karena status anggota dibatasi: ' . implode(', ', $summary['blocked_nims']) . '.';
+        }
+
+        if (($summary['capacity_limited_nims'] ?? []) !== []) {
+            $parts[] = 'Batas maksimal ' . GroupChatSupport::privateGroupMemberLimit() . ' anggota privat tercapai, sehingga undangan dilewati untuk: ' . implode(', ', $summary['capacity_limited_nims']) . '.';
         }
 
         return implode(' ', $parts);
@@ -1066,6 +1460,10 @@ class GroupChatAdminController extends Controller
             $detailLines[] = $summary['already_member_count'] . ' mahasiswa sudah aktif di grup ini.';
         }
 
+        if (($summary['already_invited_count'] ?? 0) > 0) {
+            $detailLines[] = $summary['already_invited_count'] . ' mahasiswa sebelumnya sudah tercatat sebagai penerima undangan.';
+        }
+
         if (! empty($summary['missing_nims'])) {
             $detailLines[] = 'NIM tidak ditemukan: ' . implode(', ', $summary['missing_nims']) . '.';
         }
@@ -1076,6 +1474,10 @@ class GroupChatAdminController extends Controller
 
         if (! empty($summary['blocked_nims'])) {
             $detailLines[] = 'Undangan dilewati untuk status anggota terbatas: ' . implode(', ', $summary['blocked_nims']) . '.';
+        }
+
+        if (! empty($summary['capacity_limited_nims'])) {
+            $detailLines[] = 'Kuota grup privat maksimal ' . GroupChatSupport::privateGroupMemberLimit() . ' anggota sudah penuh: ' . implode(', ', $summary['capacity_limited_nims']) . '.';
         }
 
         return [
@@ -1089,6 +1491,7 @@ class GroupChatAdminController extends Controller
     private function hasSuccessfulInviteOutcome(array $summary): bool
     {
         return (($summary['invited_count'] ?? 0) > 0)
-            || (($summary['already_member_count'] ?? 0) > 0);
+            || (($summary['already_member_count'] ?? 0) > 0)
+            || (($summary['already_invited_count'] ?? 0) > 0);
     }
 }

@@ -43,20 +43,29 @@ class GroupChatMessageSent implements ShouldBroadcastNow
         $createdAt = $this->toDisplayDateTime($this->message->created_at);
         $room = $this->message->room;
         $membership = ($sender && $room) ? GroupChatSupport::resolveRoomMember($sender, $room) : null;
+        $isSystemMessage = (bool) $this->message->is_system;
+        $senderRole = strtolower((string) ($sender?->role ?? 'pengguna'));
+        $isCounselorMessage = ! $isSystemMessage && in_array($senderRole, ['konselor', 'admin'], true);
 
         return [
             'message' => [
                 'id' => $this->message->id,
                 'room_id' => $this->message->room_id,
                 'sender_id' => $this->message->user_id,
-                'sender_name' => GroupChatSupport::resolveDisplayName($sender, $room, $membership),
+                'sender_name' => $isSystemMessage
+                    ? 'Sistem'
+                    : ($isCounselorMessage ? 'Konselor' : GroupChatSupport::resolveDisplayName($sender, $room, $membership)),
                 'sender_role' => $sender?->role ?? 'pengguna',
                 'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
+                'avatar_initial' => $isCounselorMessage ? 'K' : null,
+                'is_counselor' => $isCounselorMessage,
                 'text' => $this->message->pesan,
                 'time' => $createdAt?->format('H:i') ?? Carbon::now($this->displayTimezone())->format('H:i'),
                 'sent_at' => $createdAt?->toIso8601String() ?? Carbon::now($this->displayTimezone())->toIso8601String(),
                 'updated_at' => $this->toDisplayDateTime($this->message->updated_at)?->toIso8601String(),
                 'is_edited' => (bool) ($this->message->updated_at && $this->message->created_at && $this->message->updated_at->ne($this->message->created_at)),
+                'is_system' => $isSystemMessage,
+                'system_event' => $this->message->system_event,
             ],
         ];
     }

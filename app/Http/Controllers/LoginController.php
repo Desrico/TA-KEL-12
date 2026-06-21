@@ -145,49 +145,49 @@ class LoginController extends Controller
             $token = $cisLogin['token'];
 
             if ($this->isKnownCounselorLogin($validated['username'])) {
-            $konselorName = env('CIS_KONSELOR_NAME', 'Ibu Laura');
-            $konselorEmail = env('CIS_KONSELOR_EMAIL') ?: ($validated['username'] . '@cis.local');
+                $konselorName = env('CIS_KONSELOR_NAME', 'Ibu Laura');
+                $konselorEmail = env('CIS_KONSELOR_EMAIL') ?: ($validated['username'] . '@cis.local');
 
-            $user = User::firstOrNew([
-                'username_cis' => $validated['username'],
-            ]);
+                $user = User::firstOrNew([
+                    'username_cis' => $validated['username'],
+                ]);
 
-            $user->nama = $konselorName;
-            $user->email = $konselorEmail;
-            $user->role = 'konselor';
+                $user->nama = $konselorName;
+                $user->email = $konselorEmail;
+                $user->role = 'konselor';
 
-            if (! $user->exists || empty($user->password)) {
-                $user->password = bcrypt(str()->random(32));
+                if (! $user->exists || empty($user->password)) {
+                    $user->password = bcrypt(str()->random(32));
+                }
+
+                $user->save();
+
+                $konselor = Konselor::query()->orderBy('id')->first();
+
+                if (! $konselor) {
+                    $konselor = new Konselor();
+                }
+
+                $konselor->user_id = $user->id;
+
+                if (empty($konselor->spesialisasi)) {
+                    $konselor->spesialisasi = 'Psikolog / Konselor';
+                }
+
+                $konselor->save();
+
+                DB::commit();
+
+                Auth::login($user, $request->boolean('ingat'));
+                $request->session()->regenerate();
+                $request->session()->put('cis', [
+                    'access_token' => $token,
+                    'username' => $validated['username'],
+                    'logged_in_at' => now()->toIso8601String(),
+                ]);
+
+                return redirect()->route('admin.dashboard');
             }
-
-            $user->save();
-
-            $konselor = Konselor::query()->orderBy('id')->first();
-
-            if (! $konselor) {
-                $konselor = new Konselor();
-            }
-
-            $konselor->user_id = $user->id;
-
-            if (empty($konselor->spesialisasi)) {
-                $konselor->spesialisasi = 'Psikolog / Konselor';
-            }
-
-            $konselor->save();
-
-            DB::commit();
-
-            Auth::login($user, $request->boolean('ingat'));
-            $request->session()->regenerate();
-            $request->session()->put('cis', [
-                'access_token' => $token,
-                'username' => $validated['username'],
-                'logged_in_at' => now()->toIso8601String(),
-            ]);
-
-            return redirect()->route('admin.dashboard');
-        }
 
             try {
                 $mahasiswaResult = $kampusApi->getMahasiswaByUsername($validated['username'], $token);

@@ -195,26 +195,44 @@ class KampusApiService
     {
         $usingProvidedToken = filled($token);
         $token ??= $this->getStaticToken();
-        $token ??= $this->getServiceToken();
         $requestTimeout = $timeout && $timeout > 0 ? $timeout : $this->timeout;
 
-        $response = Http::withToken($token)
-            ->acceptJson()
-            ->timeout($requestTimeout)
-            ->get($this->baseUrl . '/library-api/mahasiswa', $filters);
+        if (! $token && $this->isConfigured()) {
+            $token = $this->getServiceToken();
+        }
+
+        $response = $this->sendMahasiswaRequest($filters, $requestTimeout, $token);
 
         // Jika token statis/sesi kedaluwarsa, backend mencoba service account bila tersedia.
         if ($response->status() === 401 && ! $usingProvidedToken && $this->isConfigured()) {
             $refreshedToken = $this->getServiceToken(true);
-            $response = Http::withToken($refreshedToken)
-                ->acceptJson()
-                ->timeout($requestTimeout)
-                ->get($this->baseUrl . '/library-api/mahasiswa', $filters);
+            $response = $this->sendMahasiswaRequest($filters, $requestTimeout, $refreshedToken);
+        }
+
+        // Beberapa deployment CIS membuka endpoint library mahasiswa tanpa bearer token.
+        // Jika mode token gagal dan request ini bukan memakai token sesi user, coba fallback guest.
+        if (in_array($response->status(), [401, 403], true) && ! $usingProvidedToken) {
+            $guestResponse = $this->sendMahasiswaRequest($filters, $requestTimeout, null);
+
+            if ($guestResponse->successful()) {
+                return $guestResponse->json();
+            }
         }
 
         $response->throw();
 
         return $response->json();
+    }
+
+    private function sendMahasiswaRequest(array $filters, int $timeout, ?string $token = null)
+    {
+        $request = Http::acceptJson()->timeout($timeout);
+
+        if (filled($token)) {
+            $request = $request->withToken($token);
+        }
+
+        return $request->get($this->baseUrl . '/library-api/mahasiswa', $filters);
     }
 
     private function normalizeMahasiswaRows(array $payload): array

@@ -16,9 +16,12 @@ class GroupChatMessage extends Model
         'room_id',
         'user_id',
         'pesan',
+        'is_system',
+        'system_event',
     ];
 
     protected $casts = [
+        'is_system' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

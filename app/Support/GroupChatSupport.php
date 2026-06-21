@@ -8,11 +8,14 @@ use App\Models\Student;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class GroupChatSupport
 {
     public const CONSENT_VERSION = 'group-chat-v1';
+    public const PRIVATE_GROUP_MEMBER_LIMIT = 12;
+    public const SESSION_RESET_HOURS = 168;
     private static array $schemaSupportCache = [];
 
     public static function consentVersion(): string
@@ -84,6 +87,11 @@ class GroupChatSupport
         return self::supportsRoomVisibility() && self::supportsInviteToken() && self::supportsMembershipStatus();
     }
 
+    public static function supportsRoomAvatar(): bool
+    {
+        return self::hasColumn('group_chat_rooms', 'avatar_path');
+    }
+
     public static function supportsConsentTracking(): bool
     {
         return self::hasColumn('group_chat_members', 'consented_at')
@@ -103,6 +111,51 @@ class GroupChatSupport
         return self::hasColumn('notifikasi', 'cta_target') && self::hasColumn('notifikasi', 'cta_label');
     }
 
+    public static function supportsSystemMessages(): bool
+    {
+        return self::hasColumn('group_chat_messages', 'is_system')
+            && self::hasColumn('group_chat_messages', 'system_event');
+    }
+
+    public static function privateGroupMemberLimit(): int
+    {
+        return self::PRIVATE_GROUP_MEMBER_LIMIT;
+    }
+
+    public static function sessionResetHours(): int
+    {
+        return self::SESSION_RESET_HOURS;
+    }
+
+    public static function roomUsesSessionReset(?GroupChatRoom $room): bool
+    {
+        if (! $room) {
+            return false;
+        }
+
+        if (! self::supportsRoomVisibility()) {
+            return true;
+        }
+
+        return $room->isPrivate();
+    }
+
+    public static function currentSessionStartedAt(GroupChatRoom $room, ?Carbon $reference = null): Carbon
+    {
+        if (! self::roomUsesSessionReset($room)) {
+            return ($room->created_at instanceof Carbon ? $room->created_at->copy() : Carbon::parse($room->created_at ?? now()))->startOfSecond();
+        }
+
+        $reference ??= now();
+        $anchor = ($room->created_at instanceof Carbon ? $room->created_at->copy() : Carbon::parse($room->created_at ?? now()))->startOfSecond();
+        $current = ($reference instanceof Carbon ? $reference->copy() : Carbon::parse($reference))->startOfSecond();
+        $hoursElapsed = max(0, $anchor->diffInHours($current));
+        $hoursPerSession = max(1, self::sessionResetHours());
+        $completedSessions = intdiv($hoursElapsed, $hoursPerSession);
+
+        return $anchor->addHours($completedSessions * $hoursPerSession);
+    }
+
     public static function ensureMemberAlias(GroupChatRoom $room, GroupChatMember $member): GroupChatMember
     {
         if (filled($member->anonymous_name)) {
@@ -120,6 +173,20 @@ class GroupChatSupport
         return $member->refresh();
     }
 
+    // Grup publik mempertahankan identitas anonim, sedangkan grup privat memakai nama asli.
+    public static function roomUsesAnonymousIdentity(?GroupChatRoom $room): bool
+    {
+        if (! $room) {
+            return false;
+        }
+
+        if (! self::supportsRoomVisibility()) {
+            return true;
+        }
+
+        return $room->isPublic();
+    }
+
     public static function resolveDisplayName(?User $user, ?GroupChatRoom $room = null, ?GroupChatMember $member = null): string
     {
         if (! $user) {
@@ -130,7 +197,12 @@ class GroupChatSupport
             return 'Konselor';
         }
 
+        // Mahasiswa hanya memakai alias hewan saat berada di grup publik.
         if ($room && $user->role === 'mahasiswa') {
+            if (! self::roomUsesAnonymousIdentity($room)) {
+                return $user->nama ?: 'Mahasiswa';
+            }
+
             $member ??= self::resolveRoomMember($user, $room);
 
             if ($member) {
@@ -157,6 +229,28 @@ class GroupChatSupport
     {
         // Semua avatar group chat dibuat generik agar foto profil asli tidak membocorkan identitas.
         return asset('img/default-avatar.png');
+    }
+
+    public static function resolveRoomAvatarUrl(?GroupChatRoom $room): ?string
+    {
+        if (! $room || ! self::supportsRoomAvatar()) {
+            return null;
+        }
+
+        $path = trim((string) ($room->avatar_path ?? ''));
+
+        if ($path === '') {
+            return null;
+        }
+
+        return Storage::url($path);
+    }
+
+    public static function resolveRoomAvatarInitial(?GroupChatRoom $room): string
+    {
+        $label = trim((string) ($room?->title ?: $room?->topicLabel() ?: 'G'));
+
+        return Str::upper(Str::substr($label, 0, 1) ?: 'G');
     }
 
     public static function resolveAcademicEligibility(User $user): array

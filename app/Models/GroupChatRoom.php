@@ -32,6 +32,7 @@ class GroupChatRoom extends Model
         'title',
         'description',
         'visibility',
+        'avatar_path',
         'invite_token',
         'created_by',
         'is_active',
