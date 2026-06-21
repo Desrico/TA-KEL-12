@@ -32,10 +32,10 @@ Route::post('/subscriptions/delete', [PushSubscriptionController::class, 'destro
 // ═══════════════════════════════
 Route::get('/', function () {
     $feedbacks = Feedback::with(['mahasiswa.user'])
-        ->where('is_published', true)
-        ->latest()
-        ->take(12)
-        ->get();
+    ->where('is_published', true)
+    ->latest()
+    ->take(12)
+    ->get();
 
     return view('Pages.beranda', [
         'feedbacks' => $feedbacks,
@@ -58,20 +58,33 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+Route::post('/notifikasi/{notifikasi}/baca', function (\App\Models\Notifikasi $notifikasi) {
+    if ((int) $notifikasi->user_id !== (int) auth()->id()) {
+        abort(403);
+    }
+
+    $notifikasi->status = 'dibaca';
+    $notifikasi->save();
+
+    return response()->json([
+        'success' => true,
+    ]);
+})->middleware('auth')->name('notifikasi.baca');
+
 
 // ═══════════════════════════════
 // MAHASISWA
 // ═══════════════════════════════
 Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::get('/dashboard', function () {
-        $feedbacks = Feedback::with(['mahasiswa.user'])
-            ->where('is_published', true)
-            ->latest()
-            ->take(10)
-            ->get();
+   $feedbacks = Feedback::with(['mahasiswa.user'])
+    ->where('is_published', true)
+    ->latest()
+    ->take(10)
+    ->get();
 
-        return view('Pages.beranda', compact('feedbacks'));
-    })->name('dashboard');
+    return view('Pages.beranda', compact('feedbacks'));
+})->name('dashboard');
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
@@ -80,29 +93,28 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('detail.riwayat');
 
     Route::post('/riwayat/feedback', [FeedbackMahasiswaController::class, 'store'])
-        ->name('mahasiswa.feedback.store');
+    ->name('mahasiswa.feedback.store');
 
     Route::get('/konseling/jadwal-ulang/{id}', [JadwalController::class, 'editJadwalUlang'])
-        ->name('konseling.jadwal_ulang.edit');
+    ->name('konseling.jadwal_ulang.edit');
     Route::put('/konseling/jadwal-ulang/{id}', [JadwalController::class, 'updateJadwalUlang'])
-        ->name('konseling.jadwal_ulang.update');
-
-    Route::post('/notifikasi/baca', [ProfilController::class, 'markNotificationsAsRead'])->name('notifikasi.baca');
-
+    ->name('konseling.jadwal_ulang.update');
+    
+    Route::post('/notifikasi/baca-semua', [ProfilController::class, 'markNotificationsAsRead'])
+    ->name('notifikasi.baca-semua');
+    
     Route::get('/chat', [ChatMahasiswaController::class, 'index'])->name('mahasiswa.chat');
     Route::post('/chat/mulai', [ChatMahasiswaController::class, 'start'])->name('mahasiswa.chat.start');
     Route::get('/chat/pesan', [ChatMahasiswaController::class, 'messages'])->name('mahasiswa.chat.messages');
     Route::post('/chat/pesan', [ChatMahasiswaController::class, 'store'])->name('mahasiswa.chat.store');
     Route::patch('/chat/pesan/{chat}', [ChatMahasiswaController::class, 'update'])->name('mahasiswa.chat.update');
     Route::delete('/chat/pesan/{chat}', [ChatMahasiswaController::class, 'destroy'])->name('mahasiswa.chat.destroy');
-
+    
     Route::get('/group-chat', [GroupChatMahasiswaController::class, 'index'])->name('mahasiswa.group-chat');
     Route::get('/group-chat/buat', [GroupChatMahasiswaController::class, 'create'])->name('mahasiswa.group-chat.create');
     Route::get('/group-chat/undangan/{token}', [GroupChatMahasiswaController::class, 'invitation'])->name('mahasiswa.group-chat.invite');
     Route::post('/group-chat/gabung', [GroupChatMahasiswaController::class, 'join'])->name('mahasiswa.group-chat.join');
     Route::get('/group-chat/room/{group}', [GroupChatMahasiswaController::class, 'room'])->name('mahasiswa.group-chat.room');
-    Route::post('/group-chat/room/{group}/avatar', [GroupChatMahasiswaController::class, 'updateRoomAvatar'])->name('mahasiswa.group-chat.room.avatar');
-    Route::post('/group-chat/room/{group}/leave', [GroupChatMahasiswaController::class, 'leave'])->name('mahasiswa.group-chat.leave');
     Route::get('/group-chat/pesan', [GroupChatMahasiswaController::class, 'messages'])->name('mahasiswa.group-chat.messages');
     Route::post('/group-chat/pesan', [GroupChatMahasiswaController::class, 'store'])->name('mahasiswa.group-chat.store');
     Route::patch('/group-chat/pesan/{message}', [GroupChatMahasiswaController::class, 'update'])->name('mahasiswa.group-chat.update');
@@ -147,22 +159,18 @@ Route::prefix('admin')
         Route::get('/group-chat/mahasiswa/cari', [GroupChatAdminController::class, 'searchStudents'])->name('group-chat.students.search');
         Route::post('/group-chat/grup', [GroupChatAdminController::class, 'createRoom'])->name('group-chat.rooms.store');
         Route::patch('/group-chat/grup/{group}', [GroupChatAdminController::class, 'renameRoom'])->name('group-chat.rooms.update');
-        Route::delete('/group-chat/grup/{group}', [GroupChatAdminController::class, 'deleteRoom'])->name('group-chat.rooms.destroy');
-        Route::post('/group-chat/grup/{group}/avatar', [GroupChatAdminController::class, 'updateRoomAvatar'])->name('group-chat.rooms.avatar');
         Route::post('/group-chat/grup/{group}/undang', [GroupChatAdminController::class, 'inviteMembers'])->name('group-chat.rooms.invite');
-        Route::post('/group-chat/grup/{group}/anggota/{member}/remove', [GroupChatAdminController::class, 'removeMember'])->name('group-chat.rooms.members.remove');
-        Route::get('/group-chat/anggota', [GroupChatAdminController::class, 'members'])->name('group-chat.members');
         Route::get('/group-chat/pesan', [GroupChatAdminController::class, 'messages'])->name('group-chat.messages');
         Route::post('/group-chat/pesan', [GroupChatAdminController::class, 'store'])->name('group-chat.store');
         Route::patch('/group-chat/pesan/{message}', [GroupChatAdminController::class, 'update'])->name('group-chat.update');
         Route::delete('/group-chat/pesan/{message}', [GroupChatAdminController::class, 'destroy'])->name('group-chat.destroy');
 
-        Route::get('/sesi', [SesiKonselingController::class, 'index'])->name('sesi');
-        Route::get('/sesi/{id}', [SesiKonselingController::class, 'detail'])->name('sesi.detail');
-        Route::post('/sesi/{id}/terima', [SesiKonselingController::class, 'terima'])->name('sesi.terima');
-        Route::get('/sesi/{id}/tolak', [SesiKonselingController::class, 'tolak'])->name('sesi.tolak');
-        Route::post('/sesi/{id}/tolak', [SesiKonselingController::class, 'kirimTolak'])->name('sesi.tolak.kirim');
-        Route::post('/sesi/{id}/selesai', [SesiKonselingController::class, 'selesai'])->name('sesi.selesai');
+        Route::get('/riwayat-konseling', [SesiKonselingController::class, 'index'])->name('riwayat');
+        Route::get('/riwayat-konseling/{id}', [SesiKonselingController::class, 'detail'])->name('riwayat.detail');
+        Route::post('/riwayat-konseling/{id}/terima', [SesiKonselingController::class, 'terima'])->name('riwayat.terima');
+        Route::get('/riwayat-konseling/{id}/tolak', [SesiKonselingController::class, 'tolak'])->name('riwayat.tolak');
+        Route::post('/riwayat-konseling/{id}/tolak', [SesiKonselingController::class, 'kirimTolak'])->name('riwayat.tolak.kirim');
+        Route::post('/riwayat-konseling/{id}/selesai', [SesiKonselingController::class, 'selesai'])->name('riwayat.selesai');
 
         Route::get('/laporan', [LaporanController::class, 'laporanAdmin'])->name('laporan');
         Route::get('/laporan/search', [LaporanController::class, 'search'])->name('laporan.search');
@@ -194,7 +202,7 @@ Route::middleware(['auth', 'role:konselor'])->group(function () {
 
     Route::delete('/konselor/ketidaktersediaan/{id}', [KetidaktersediaanKonselorController::class, 'destroy'])
         ->name('konselor.ketidaktersediaan.destroy');
-
+    
     Route::put('/admin/ketidaktersediaan/{id}', [KetidaktersediaanKonselorController::class, 'update'])
         ->name('admin.ketidaktersediaan.update');
 });

@@ -93,7 +93,7 @@ class SesiKonselingController extends Controller
             $item->nim_tampil = $identitas['nim'];
             $item->is_anonim_tampil = $identitas['is_anonim'];
         });
-        return view('admin.sesi', compact('jadwal'));
+        return view('admin.riwayat', compact('jadwal'));
     }
 
     public function detail($id)
@@ -106,7 +106,7 @@ class SesiKonselingController extends Controller
 
         $identitasMahasiswa = $this->getIdentitasMahasiswaTampil($jadwal);
 
-        return view('admin.detail_sesi', compact('jadwal', 'identitasMahasiswa'));
+        return view('admin.detail_riwayat', compact('jadwal', 'identitasMahasiswa'));
     }
 
     public function terima($id)
@@ -121,7 +121,7 @@ class SesiKonselingController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.sesi.detail', $jadwal->id)
+            ->route('admin.riwayat.detail', $jadwal->id)
             ->with('terima_success', true);
     }
 
@@ -153,7 +153,7 @@ class SesiKonselingController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.sesi')
+            ->route('admin.riwayat')
             ->with('success', 'Penjadwalan berhasil ditolak.');
     }
     

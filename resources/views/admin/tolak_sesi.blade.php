@@ -421,7 +421,7 @@
         </tr>
     </table>
 
-    <form id="formTolakSesi" action="{{ route('admin.sesi.tolak.kirim', $jadwal->id) }}" method="POST">
+    <form id="formTolakSesi" action="{{ route('admin.riwayat.tolak.kirim', $jadwal->id) }}" method="POST">
     @csrf
 
     <div class="rejection-box">
@@ -438,7 +438,7 @@
             Kirim Penolakan
         </button>
 
-        <a href="{{ route('admin.sesi') }}" class="btn-action btn-kembali-sesi">
+        <a href="{{ route('admin.riwayat') }}" class="btn-action btn-kembali-sesi">
             Kembali ke Sesi Konseling
         </a>
     </div>

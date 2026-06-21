@@ -215,6 +215,51 @@
     text-align:right;
 }
 
+.detail-action-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.btn-detail-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 260px;
+    height: 58px;
+    padding: 0 32px;
+    border-radius: 999px;
+    background: #047857;
+    color: #ffffff !important;
+    font-size: 18px;
+    font-weight: 800;
+    text-decoration: none !important;
+    box-shadow: 0 18px 35px rgba(4, 120, 87, 0.22);
+    transition: 0.2s ease;
+}
+
+.btn-detail-action:hover {
+    background: #065f46;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+.counselor-avatar {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: #b7eaff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #064e3b;
+    font-size: 34px;
+    flex-shrink: 0;
+}
+
 .summary-box{
     margin-top:18px;
     background:#f9fbfa;
@@ -316,8 +361,8 @@
     align-items: center;
     gap: 16px;
     margin-top: 32px;
-    padding-top: 24px;
-    border-top: 1px solid #e5e7eb;
+    padding-top: 0;
+    border-top: none;
 }
 
 .btn-detail {
@@ -668,6 +713,18 @@
 
     $metode = $jadwal->metode ?? $jadwal->jenis ?? 'Online';
 
+    $namaKonselor = env('CIS_KONSELOR_NAME', $konselorUser->nama ?? 'Konselor');
+
+    $jenisKonseling = strtolower($jadwal->jenis ?? $jadwal->metode ?? 'online');
+
+    $isOnline = $jenisKonseling === 'online';
+
+    $mediaTampil = $isOnline ? 'Chat' : 'Tatap Muka';
+
+    $lokasiTampil = $isOnline
+        ? 'Jarak Jauh<br>Akses dari ruang personalmu'
+        : 'Gedung 5, Lt. 2<br>Antara GD 525 & 526';
+
     $feedback = $feedback ?? optional($jadwal->sesiKonseling)->feedback;
     $bisaFeedback = $bisaFeedback ?? ($jadwal->status === 'selesai' && $jadwal->sesiKonseling && !$feedback);
 
@@ -695,10 +752,13 @@
             <aside>
                 <div class="side-card">
                     <div class="counselor-profile">
-                        <img src="{{ asset('assets/img/avatar-konselor.png') }}" alt="Konselor">
+                        <div class="counselor-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+
                         <div>
-                            <h5>{{ $konselorUser->nama ?? 'Konselor' }}</h5>
-                            <p>Konselor Utama</p>
+                            <h5>{{ $namaKonselor }}</h5>
+                            <p>Konselor</p>
                         </div>
                     </div>
 
@@ -709,12 +769,12 @@
 
                     <div class="side-row">
                         <span><i class="bi bi-camera-video"></i> Media</span>
-                        <strong>{{ $metode }}</strong>
+                        <strong>{{ $mediaTampil }}</strong>
                     </div>
 
                     <div class="side-row">
                         <span><i class="bi bi-geo-alt-fill"></i> Lokasi</span>
-                        <strong>{{ $jadwal->lokasi ?? '-' }}</strong>
+                        <strong>{!! $lokasiTampil !!}</strong>
                     </div>
                 </div>
 
@@ -791,7 +851,6 @@
                 </div>
 
                 <div class="section-label mt-4">
-                    <i class="bi bi-arrow-repeat"></i>
                     <span>Tindak Lanjut</span>
                 </div>
 
@@ -818,9 +877,28 @@
                             Berikan Ulasan
                         </button>
                     @else
-                        <a href="{{ route('riwayat') }}" class="btn-detail btn-back">
-                            Kembali ke Riwayat
-                        </a>
+                        @php
+                            $statusJadwal = strtolower($jadwal->status ?? '');
+                            $statusSesi = strtolower($sesi->status ?? '');
+                            $jenisKonseling = strtolower($jadwal->jenis ?? $jadwal->jenis_konseling ?? '');
+
+                            $isSelesai = $statusJadwal === 'selesai' || $statusSesi === 'selesai';
+                            $isOnline = $jenisKonseling === 'online';
+
+                            $sudahMemberiUlasan = isset($feedback) && $feedback;
+                        @endphp
+
+                        <div class="detail-action-wrapper">
+                            @if($isSelesai && $isOnline && $sudahMemberiUlasan)
+                                <a href="{{ url('/chat?jadwal_id=' . $jadwal->id) }}" class="btn-detail-action">
+                                    Lihat Riwayat Chat
+                                </a>
+                            @else
+                                <a href="{{ route('mahasiswa.riwayat') }}" class="btn-detail-action">
+                                    Kembali ke Riwayat
+                                </a>
+                            @endif
+                        </div>
                     @endif
 
                     @if ($jadwal->status === 'perlu_penjadwalan_ulang')

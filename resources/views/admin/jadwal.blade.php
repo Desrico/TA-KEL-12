@@ -463,7 +463,60 @@
   color: #374151;
 }
 
+.campus-alert-popup {
+    width: 420px !important;
+    border-radius: 18px !important;
+    background: #065f46 !important;
+    color: #ffffff !important;
+    padding: 30px 28px !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25) !important;
+}
 
+.campus-alert-title {
+    color: #ffffff !important;
+    font-size: 24px !important;
+    font-weight: 800 !important;
+    margin-top: 10px !important;
+}
+
+.campus-alert-content {
+    color: #ecfdf5 !important;
+    font-size: 15px !important;
+    line-height: 1.5 !important;
+    margin-top: 8px !important;
+}
+
+.campus-alert-confirm {
+    border: none !important;
+    border-radius: 8px !important;
+    background: #fde68a !important;
+    color: #064e3b !important;
+    padding: 10px 28px !important;
+    font-weight: 800 !important;
+    cursor: pointer !important;
+}
+
+.campus-alert-confirm:hover {
+    background: #fcd34d !important;
+}
+
+.campus-alert-container {
+    z-index: 999999 !important;
+}
+.campus-alert-cancel {
+    border: 1px solid #d1fae5 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    padding: 10px 28px !important;
+    font-weight: 800 !important;
+    cursor: pointer !important;
+    margin-right: 10px !important;
+}
+
+.campus-alert-cancel:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
   
 .modal-close {
   position: absolute;
@@ -603,6 +656,11 @@
     line-height: 1;
   }
 
+  .required-mark {
+      color: #dc2626;
+      font-weight: 800;
+  }
+
   @media (max-width: 768px) {
     .modal-box {
       padding: 22px 18px;
@@ -696,10 +754,10 @@
         <div class="modal-action">
             <a id="btnEditUnavailable" class="btn-edit">Edit</a>
 
-            <form id="formDeleteUnavailable" method="POST">
+            <form id="formDeleteUnavailable" method="POST" onsubmit="confirmDeleteUnavailable(event)">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="btn-hapus" onclick="return confirm('Yakin ingin menghapus data ini?')">
+                <button type="submit" class="btn-hapus">
                     Hapus
                 </button>
             </form>
@@ -774,7 +832,13 @@
             <div class="modal-grid">
                 <div class="form-group">
                     <label for="tanggal_mulai">Tanggal</label>
-                    <input type="date" name="tanggal_mulai" id="tanggal_mulai" required>
+                    <input
+                        type="date"
+                        name="tanggal_mulai"
+                        id="tanggal_mulai"
+                        min="{{ now('Asia/Jakarta')->toDateString() }}"
+                        required
+                    >
                 </div>
 
                 <div class="form-group">
@@ -792,27 +856,28 @@
             <input type="hidden" name="tanggal_selesai" id="tanggal_selesai">
 
             <div class="form-group form-group-full">
-                <label for="alasan">Alasan <span>(opsional)</span></label>
-                <textarea
-                    name="alasan"
-                    id="alasan"
-                    rows="5"
-                    maxlength="200"
-                    placeholder="Contoh: rapat, izin, kegiatan kampus"
-                ></textarea>
+                <label for="alasan">Alasan <span class="required-mark">*</span></label>
+                  <textarea
+                      name="alasan"
+                      id="alasan"
+                      rows="5"
+                      maxlength="200"
+                      required
+                      placeholder="Contoh: rapat, izin, kegiatan kampus"
+                  ></textarea>
                 <small id="charCount">0/200</small>
             </div>
 
             <div class="form-group form-group-full repeat-box">
                 <label class="checkbox-inline">
-                    <input type="checkbox" id="ulangi_opsional">
+                    <input type="checkbox" name="ulang_mingguan" id="ulang_mingguan" value="1">
                     <span>Ulangi setiap minggu pada hari yang sama.</span>
                 </label>
             </div>
 
             <div class="modal-actions">
                 <button type="button" class="btn-batal" onclick="closeUnavailableModal()">Batal</button>
-                <button type="submit" class="btn-simpan" onclick="submitUnavailableForm()">Simpan</button>
+                <button type="button" class="btn-simpan" onclick="submitUnavailableForm(event)">Simpan</button>
             </div>
         </form>
     </div>
@@ -821,8 +886,26 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+
+      function getTodayYmd() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+    function isPastDate(dateValue) {
+        if (!dateValue) {
+            return false;
+        }
+
+        return dateValue < getTodayYmd();
+    }
     function openUnavailableModal(reset = true) {
         const modal = document.getElementById('unavailableModal');
         const form = document.getElementById('unavailableForm');
@@ -910,9 +993,28 @@
         showNativePicker(jamMulai);
         showNativePicker(jamSelesai);
 
-        if (tanggalMulai && tanggalSelesai) {
+        if (tanggalMulai) {
+            tanggalMulai.setAttribute('min', getTodayYmd());
+
             tanggalMulai.addEventListener('change', function () {
-                tanggalSelesai.value = this.value;
+                if (isPastDate(this.value)) {
+                    this.value = '';
+
+                    if (tanggalSelesai) {
+                        tanggalSelesai.value = '';
+                    }
+
+                    showKetidaktersediaanWarning(
+                        'Tanggal Tidak Valid',
+                        'Tanggal yang sudah lewat tidak dapat dipilih.'
+                    );
+
+                    return;
+                }
+
+                if (tanggalSelesai) {
+                    tanggalSelesai.value = this.value;
+                }
             });
         }
 
@@ -1009,11 +1111,11 @@
     }
 
     if (data.detail_url) {
-        window.location.href = data.detail_url;
-        return;
-    }
+    window.location.href = '{{ route("admin.riwayat") }}';
+    return;
+}
 
-    alert('Detail sesi belum tersedia untuk jadwal ini.');
+window.location.href = '{{ route("admin.riwayat") }}';
 }
 });
 
@@ -1027,22 +1129,59 @@ document.getElementById('nextMonth').addEventListener('click', function () {
     calendar.next();
 });
 });
-    function submitUnavailableForm() {
-    const tanggal = document.getElementById('tanggal_mulai').value;
-    const dari = document.getElementById('jam_mulai').value;
-    const sampai = document.getElementById('jam_selesai').value;
+  function submitUnavailableForm(event) {
+    if (event) {
+        event.preventDefault();
+    }
 
-    if (!tanggal || !dari || !sampai) {
-        alert('Tanggal, jam mulai, dan jam selesai wajib diisi.');
-        return;
+    const tanggalInput = document.getElementById('tanggal_mulai');
+    const tanggalSelesaiInput = document.getElementById('tanggal_selesai');
+    const jamMulaiInput = document.getElementById('jam_mulai');
+    const jamSelesaiInput = document.getElementById('jam_selesai');
+    const alasanInput = document.getElementById('alasan');
+    const form = document.getElementById('unavailableForm');
+
+    const tanggal = tanggalInput?.value;
+    const dari = jamMulaiInput?.value;
+    const sampai = jamSelesaiInput?.value;
+    const alasan = alasanInput?.value.trim();
+
+    if (!tanggal || !dari || !sampai || !alasan) {
+        showKetidaktersediaanWarning(
+            'Data Belum Lengkap',
+            'Tanggal, jam mulai, jam selesai, dan alasan wajib diisi.'
+        );
+        return false;
+    }
+
+    if (isPastDate(tanggal)) {
+        tanggalInput.value = '';
+
+        if (tanggalSelesaiInput) {
+            tanggalSelesaiInput.value = '';
+        }
+
+        showKetidaktersediaanWarning(
+            'Tanggal Tidak Valid',
+            'Tanggal yang sudah lewat tidak dapat dipilih.'
+        );
+
+        return false;
     }
 
     if (sampai <= dari) {
-        alert('Jam selesai harus lebih besar dari jam mulai.');
-        return;
+        showKetidaktersediaanWarning(
+            'Jam Tidak Valid',
+            'Jam selesai harus lebih besar dari jam mulai.'
+        );
+        return false;
     }
 
-    document.getElementById('unavailableForm').submit();
+    if (tanggalSelesaiInput) {
+        tanggalSelesaiInput.value = tanggal;
+    }
+
+    form.submit();
 }
 
 function closeUnavailableDetail() {
@@ -1100,6 +1239,68 @@ function editUnavailable(data) {
 
         methodInput.value = 'PUT';
     }
+}
+
+function showKetidaktersediaanWarning(title, message) {
+    Swal.fire({
+        title: title,
+        html: `
+            <div class="ketidaktersediaan-popup-text">
+                ${message}
+            </div>
+        `,
+        icon: 'warning',
+        iconColor: '#fde68a',
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        target: document.body,
+        backdrop: true,
+        allowOutsideClick: false,
+        customClass: {
+            container: 'campus-alert-container',
+            popup: 'campus-alert-popup',
+            title: 'campus-alert-title',
+            htmlContainer: 'campus-alert-content',
+            confirmButton: 'campus-alert-confirm'
+        }
+    });
+}
+
+function confirmDeleteUnavailable(event) {
+    event.preventDefault();
+
+    const form = event.target;
+
+    Swal.fire({
+        title: 'Konfirmasi Hapus',
+        html: `
+            <div class="ketidaktersediaan-popup-text">
+                Apakah Anda yakin ingin menghapus data ketidaktersediaan ini?
+            </div>
+        `,
+        icon: 'warning',
+        iconColor: '#fde68a',
+        showCancelButton: true,
+        confirmButtonText: 'Hapus',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+        buttonsStyling: false,
+        target: document.body,
+        backdrop: true,
+        allowOutsideClick: false,
+        customClass: {
+            container: 'campus-alert-container',
+            popup: 'campus-alert-popup',
+            title: 'campus-alert-title',
+            htmlContainer: 'campus-alert-content',
+            confirmButton: 'campus-alert-confirm',
+            cancelButton: 'campus-alert-cancel'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
 }
 
 </script>

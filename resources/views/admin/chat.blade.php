@@ -1268,8 +1268,8 @@
                 Selesaikan Sesi
             </button>
 
-            <a href="{{ route('admin.sesi.detail', $activeSession->id) }}" class="admin-session-menu-item">
-                Lihat Detail Sesi
+            <a href="{{ route('admin.riwayat.detail', $activeSession->id) }}" class="admin-session-menu-item">
+                Lihat Detail Riwayat
             </a>
         </div>
       </div>
@@ -1323,7 +1323,7 @@
                   Batal
               </button>
 
-              <form action="{{ route('admin.sesi.selesai', $activeJadwal->id) }}" method="POST">
+              <form action="{{ route('admin.riwayat.selesai', $activeJadwal->id)}}" method="POST">
                   @csrf
                   <button type="submit" class="btn-finish-confirm">
                       Ya, Selesaikan
@@ -1549,21 +1549,15 @@
     const isMine = Boolean(message.is_mine ?? (message.sender_id === currentUserId));
     const dateParts = resolveDateParts(message.sent_at);
 
-    const senderRole = String(message.sender_role || '').toLowerCase();
+    const displaySenderName = message.sender_name || 'Mahasiswa';
 
-    const isCounselorMessage =
-        isMine ||
-        senderRole === 'konselor' ||
-        senderRole === 'admin' ||
-        String(message.sender_name || '').toLowerCase() === 'admin';
+    const avatarInitial = String(displaySenderName || 'M')
+        .charAt(0)
+        .toUpperCase();
 
-    const displaySenderName = isCounselorMessage
-        ? 'Konselor'
-        : (message.sender_name || 'Mahasiswa');
-
-    const avatarInitial = isCounselorMessage
-        ? 'K'
-        : String(displaySenderName || 'M').charAt(0).toUpperCase();
+    const senderNameHtml = isMine
+        ? ''
+        : `<span class="admin-message-name">${escapeHtml(displaySenderName)}</span>`;
 
     ensureDateSeparator(dateParts.key, dateParts.label);
 
@@ -1578,19 +1572,16 @@
           ${escapeHtml(avatarInitial)}
         </div>
       `}
+
       <div class="admin-message-content">
         <div class="admin-message-meta">
-          <span class="admin-message-name">${escapeHtml(displaySenderName)}</span>
+          ${senderNameHtml}
           <span>${escapeHtml(message.time)}</span>
           ${message.is_edited ? '<span class="admin-message-edited">telah diedit</span>' : ''}
         </div>
+
         <div class="admin-message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
       </div>
-      ${isMine ? `
-        <div class="admin-message-avatar-fallback admin">
-          ${escapeHtml(avatarInitial)}
-        </div>
-      ` : ''}
     `;
 
     thread.appendChild(row);

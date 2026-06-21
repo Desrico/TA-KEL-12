@@ -105,30 +105,13 @@
     width: 58px;
     height: 58px;
     border-radius: 18px;
+    display: grid;
+    place-items: center;
     background: linear-gradient(135deg, #065f46, #10b981);
     color: #fff;
     font-size: 1.4rem;
     box-shadow: 0 10px 24px rgba(6, 78, 59, 0.16);
     flex-shrink: 0;
-    overflow: hidden;
-    display: grid;
-    place-items: center;
-  }
-
-  .group-room-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .group-room-avatar-fallback {
-    width: 100%;
-    height: 100%;
-    display: grid;
-    place-items: center;
-    font-size: 1.35rem;
-    font-weight: 800;
   }
 
   .group-room-title {
@@ -260,15 +243,6 @@
     justify-content: flex-end;
   }
 
-  .group-message-row.system {
-    justify-content: center;
-    margin: 1.2rem 0;
-  }
-
-  .group-message-row.system .group-message-content {
-    max-width: min(100%, 560px);
-  }
-
   .group-message-row.mine .group-message-bubble {
     background: linear-gradient(135deg, #047857, #059669);
     color: #fff;
@@ -328,31 +302,6 @@
 
   .group-message-bubble-shell {
     position: relative;
-  }
-
-  .group-message-row.system .group-message-bubble {
-    padding: .62rem 1rem;
-    border-radius: 999px;
-    background: #ffffff;
-    border: 1px solid rgba(221, 239, 231, 0.95);
-    color: #5f7285;
-    text-align: center;
-    font-size: .77rem;
-    font-weight: 700;
-    line-height: 1.45;
-    box-shadow: none;
-  }
-
-  .group-message-row.system .group-message-bubble {
-    padding: .8rem 1rem;
-    border-radius: 18px;
-    background: #f8fffb;
-    border: 1px solid rgba(209, 250, 229, 0.95);
-    color: #406458;
-    text-align: center;
-    font-size: .84rem;
-    line-height: 1.6;
-    box-shadow: none;
   }
 
   .group-message-edited {
@@ -639,63 +588,6 @@
     max-height: min(430px, 58vh);
   }
 
-  .group-room-profile-footer {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(221, 239, 231, 0.95);
-    display: grid;
-    gap: .85rem;
-  }
-
-  .group-room-profile-section {
-    display: grid;
-    gap: .58rem;
-  }
-
-  .group-room-profile-section h4 {
-    margin: 0;
-    color: #064e3b;
-    font-size: .88rem;
-    font-weight: 800;
-  }
-
-  .group-room-profile-section p {
-    margin: 0;
-    color: #648072;
-    font-size: .76rem;
-    line-height: 1.55;
-  }
-
-  .group-room-avatar-form {
-    display: grid;
-    gap: .62rem;
-  }
-
-  .group-room-avatar-input {
-    width: 100%;
-    border: 1px solid #dbece3;
-    border-radius: 13px;
-    padding: .7rem .82rem;
-    background: #fff;
-    color: #0f172a;
-    font-size: .8rem;
-  }
-
-  .group-room-avatar-submit {
-    width: 100%;
-    border: none;
-    border-radius: 14px;
-    background: #065f46;
-    color: #fff;
-    padding: .82rem 1rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .45rem;
-    font-size: .81rem;
-    font-weight: 800;
-  }
-
   .group-member-search {
     position: relative;
     margin-bottom: .9rem;
@@ -785,112 +677,19 @@
     line-height: 1.6;
   }
 
-  .group-room-leave-trigger {
-    width: 100%;
-    border: 1px solid rgba(185, 28, 28, 0.16);
-    border-radius: 14px;
-    background: #fff5f5;
-    color: #b91c1c;
-    padding: .85rem 1rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .55rem;
-    font-size: .86rem;
-    font-weight: 800;
+  .group-animal-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #dcfce7;
+      border: 3px solid #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 6px 18px rgba(15, 118, 110, 0.12);
+      flex-shrink: 0;
   }
-
-  .group-room-leave-trigger:hover {
-    background: #ffe6e6;
-  }
-
-  .group-room-modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.2rem;
-    background: rgba(15, 23, 42, 0.26);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .18s ease;
-  }
-
-  .group-room-modal-overlay.is-open {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .group-room-modal {
-    width: min(100%, 420px);
-    padding: 1.35rem 1.25rem 1.2rem;
-    border-radius: 24px;
-    background: #fff;
-    border: 1px solid rgba(221, 239, 231, 0.95);
-    box-shadow: 0 22px 48px rgba(15, 23, 42, 0.18);
-    text-align: center;
-  }
-
-  .group-room-modal-icon {
-    width: 52px;
-    height: 52px;
-    margin: 0 auto .85rem;
-    border-radius: 18px;
-    display: grid;
-    place-items: center;
-    background: #fff1f2;
-    color: #b91c1c;
-    font-size: 1.4rem;
-    font-weight: 900;
-  }
-
-  .group-room-modal h3 {
-    margin: 0 0 .45rem;
-    color: #0f172a;
-    font-size: 1.05rem;
-    font-weight: 800;
-  }
-
-  .group-room-modal p {
-    margin: 0;
-    color: #64748b;
-    font-size: .86rem;
-    line-height: 1.7;
-  }
-
-  .group-room-modal-actions {
-    display: flex;
-    gap: .7rem;
-    justify-content: center;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .group-room-modal-btn {
-    min-width: 130px;
-    border: none;
-    border-radius: 14px;
-    padding: .82rem 1rem;
-    font-size: .84rem;
-    font-weight: 800;
-  }
-
-  .group-room-modal-btn-secondary {
-    border: 1px solid #dbece3;
-    color: #065f46;
-    background: #fff;
-  }
-
-  .group-room-modal-btn-primary {
-    color: #fff;
-    background: #b91c1c;
-    box-shadow: 0 14px 28px rgba(185, 28, 28, 0.18);
-  }
-
   @media (max-width: 767.98px) {
     .group-room-page {
       padding-top: 1.25rem;
@@ -925,26 +724,56 @@
     .group-message-content {
       max-width: 100%;
     }
-
-    .group-room-modal-actions {
-      flex-direction: column;
-    }
-
-    .group-room-modal-btn {
-      width: 100%;
-    }
   }
 </style>
 @endpush
 
 @section('konten')
+
+@php
+    $formatAnonymousName = function ($name) {
+        $name = trim((string) $name);
+
+        if ($name === '') {
+            return 'Anonim';
+        }
+
+        if (str_contains(strtolower($name), 'anonim')) {
+            return $name;
+        }
+
+        return $name . ' Anonim';
+    };
+
+    $animalIcon = function ($name) {
+        $name = strtolower((string) $name);
+
+        $icons = [
+            'beruang' => '🐻',
+            'kucing' => '🐱',
+            'kelinci' => '🐰',
+            'rubah' => '🦊',
+            'panda' => '🐼',
+            'koala' => '🐨',
+            'harimau' => '🐯',
+            'singa' => '🦁',
+            'anjing' => '🐶',
+            'burung' => '🐦',
+            'kura' => '🐢',
+            'monyet' => '🐵',
+        ];
+
+        foreach ($icons as $keyword => $icon) {
+            if (str_contains($name, $keyword)) {
+                return $icon;
+            }
+        }
+
+        return '👤';
+    };
+@endphp
 <section class="group-room-page">
   <div class="container">
-    @if(session('success'))
-      <div style="max-width:1180px;margin:0 auto 1rem;background:#e8fff1;border:1px solid #bbf7d0;color:#166534;padding:1rem 1.15rem;border-radius:18px;font-weight:600;">
-        {{ session('success') }}
-      </div>
-    @endif
 
     @if(session('error'))
       <div style="max-width:1180px;margin:0 auto 1rem;background:#fff1f2;border:1px solid #fecdd3;color:#be123c;padding:1rem 1.15rem;border-radius:18px;font-weight:600;">
@@ -965,11 +794,7 @@
           <div class="group-room-head">
             <div class="group-room-head-main">
               <div class="group-room-avatar">
-                @if(!empty($chatPayload['roomAvatarUrl']))
-                  <img src="{{ $chatPayload['roomAvatarUrl'] }}" alt="{{ $chatPayload['roomTitle'] }}">
-                @else
-                  <div class="group-room-avatar-fallback">{{ $chatPayload['roomAvatarInitial'] }}</div>
-                @endif
+                <i class="bi bi-people-fill"></i>
               </div>
               <div>
                 <h1 class="group-room-title">{{ $chatPayload['roomTitle'] }}</h1>
@@ -1010,37 +835,20 @@
                     </div>
 
                     @foreach($chatPayload['memberProfiles'] as $memberProfile)
-                      <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberProfile['name']) }}">
-                        <div class="group-member-avatar">
-                          <img src="{{ $memberProfile['avatar_url'] }}" alt="{{ $memberProfile['name'] }}">
+                        @php
+                            $memberDisplayName = $formatAnonymousName($memberProfile['name'] ?? 'Anonim');
+                        @endphp
+
+                        <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberDisplayName) }}">
+                            <div class="group-animal-avatar">
+                                {{ $animalIcon($memberDisplayName) }}
+                            </div>
+
+                            <div class="group-member-name">{{ $memberDisplayName }}</div>
                         </div>
-                        <div class="group-member-name">{{ $memberProfile['name'] }}</div>
-                      </div>
                     @endforeach
                   </div>
                   <div class="group-member-empty" id="groupRoomMemberEmpty">Anggota tidak ditemukan.</div>
-
-                  <div class="group-room-profile-footer">
-                    @if(!empty($chatPayload['canUpdateAvatar']))
-                      <div class="group-room-profile-section">
-                        <h4>Foto Grup</h4>
-                        <p>Semua anggota grup dapat mengganti foto profil grup ini.</p>
-                        <form method="POST" action="{{ $chatPayload['updateAvatarUrl'] }}" enctype="multipart/form-data" class="group-room-avatar-form">
-                          @csrf
-                          <input type="file" name="avatar" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="group-room-avatar-input" required>
-                          <button type="submit" class="group-room-avatar-submit">
-                            <i class="bi bi-camera-fill"></i>
-                            <span>Perbarui Foto Grup</span>
-                          </button>
-                        </form>
-                      </div>
-                    @endif
-
-                    <button type="button" class="group-room-leave-trigger" id="groupRoomLeaveTrigger">
-                      <i class="bi bi-box-arrow-right"></i>
-                      <span>Keluar Grup</span>
-                    </button>
-                  </div>
                 </div>
               </aside>
             </div>
@@ -1071,26 +879,6 @@
     </div>
   </div>
 </section>
-
-<div class="group-room-modal-overlay" id="groupRoomLeaveModal" aria-hidden="true">
-  <div class="group-room-modal" role="dialog" aria-modal="true" aria-labelledby="groupRoomLeaveModalTitle">
-    <div class="group-room-modal-icon">!</div>
-    <h3 id="groupRoomLeaveModalTitle">Keluar dari grup ini?</h3>
-    <p>Apakah benar Anda ingin keluar dari grup konseling ini? Setelah keluar, Anda tidak bisa mengirim pesan lagi sampai bergabung kembali.</p>
-
-    <form method="POST" action="{{ route('mahasiswa.group-chat.leave', ['group' => $activeRoom->id]) }}">
-      @csrf
-      <div class="group-room-modal-actions">
-        <button type="button" class="group-room-modal-btn group-room-modal-btn-secondary" id="groupRoomLeaveCancel">
-          Batal
-        </button>
-        <button type="submit" class="group-room-modal-btn group-room-modal-btn-primary">
-          Keluar Grup
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
 @endsection
 
 @push('scripts')
@@ -1102,9 +890,6 @@
   const memberSearch = document.getElementById('groupRoomMemberSearchInput');
   const memberList = document.getElementById('groupRoomMemberList');
   const memberEmpty = document.getElementById('groupRoomMemberEmpty');
-  const leaveTrigger = document.getElementById('groupRoomLeaveTrigger');
-  const leaveModal = document.getElementById('groupRoomLeaveModal');
-  const leaveCancel = document.getElementById('groupRoomLeaveCancel');
   const memberProfiles = [
   {
     name: 'Konselor',
@@ -1212,26 +997,6 @@
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       syncDropdownState(false);
-      leaveModal?.classList.remove('is-open');
-      leaveModal?.setAttribute('aria-hidden', 'true');
-    }
-  });
-
-  leaveTrigger?.addEventListener('click', () => {
-    syncDropdownState(false);
-    leaveModal?.classList.add('is-open');
-    leaveModal?.setAttribute('aria-hidden', 'false');
-  });
-
-  leaveCancel?.addEventListener('click', () => {
-    leaveModal?.classList.remove('is-open');
-    leaveModal?.setAttribute('aria-hidden', 'true');
-  });
-
-  leaveModal?.addEventListener('click', (event) => {
-    if (event.target === leaveModal) {
-      leaveModal.classList.remove('is-open');
-      leaveModal.setAttribute('aria-hidden', 'true');
     }
   });
 })();
@@ -1318,7 +1083,7 @@
   // Editor inline disimpan di bubble supaya pengalaman edit tetap menyatu dengan alur chat.
   const buildMessageBubbleMarkup = (message, isMine) => `
     <div class="group-message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
-    ${isMine && !message.is_system ? `
+    ${isMine ? `
       <div class="group-message-actions">
         <button type="button" class="group-message-action-toggle" data-action="toggle-menu" aria-label="Opsi pesan">
           <i class="bi bi-three-dots"></i>
@@ -1381,7 +1146,6 @@
 
   const renderMessage = (message) => {
     const row = document.createElement('div');
-    const isSystemMessage = Boolean(message.is_system);
     const isMine = Boolean(message.is_mine ?? (message.sender_id === currentUserId));
     const dateParts = resolveDateParts(message.sent_at);
 
@@ -1404,21 +1168,6 @@ const displayAvatarInitial = isCounselorMessage
   : String(displaySenderName || 'M').charAt(0).toUpperCase();
 
     ensureDateSeparator(dateParts.key, dateParts.label);
-
-    if (isSystemMessage) {
-      row.className = 'group-message-row system';
-      row.dataset.messageId = String(message.id);
-      row.dataset.messageText = message.text ?? '';
-      row.dataset.messageEdited = '0';
-      row.innerHTML = `
-        <div class="group-message-content">
-          <div class="group-message-bubble-shell">${buildMessageBubbleMarkup(message, false)}</div>
-        </div>
-      `;
-
-      thread.appendChild(row);
-      return;
-    }
 
     row.className = `group-message-row ${isMine ? 'mine' : 'other'}`;
     row.dataset.messageId = message.id;
@@ -1468,6 +1217,45 @@ const displayAvatarInitial = isCounselorMessage
     closeAllMenus();
     scrollToBottom();
   };
+
+  function formatAnonymousName(name) {
+    if (!name) return 'Anonim';
+
+    const cleanName = String(name).trim();
+
+    if (cleanName.toLowerCase().includes('anonim')) {
+        return cleanName;
+    }
+
+    return `${cleanName} Anonim`;
+}
+
+function animalIcon(name) {
+    const value = String(name || '').toLowerCase();
+
+    const icons = {
+        beruang: '🐻',
+        kucing: '🐱',
+        kelinci: '🐰',
+        rubah: '🦊',
+        panda: '🐼',
+        koala: '🐨',
+        harimau: '🐯',
+        singa: '🦁',
+        anjing: '🐶',
+        burung: '🐦',
+        kura: '🐢',
+        monyet: '🐵'
+    };
+
+    for (const key in icons) {
+        if (value.includes(key)) {
+            return icons[key];
+        }
+    }
+
+    return '👤';
+}
 
   // Force dipakai setelah edit/hapus sukses supaya isi grup langsung mengikuti data terbaru.
   const syncMessages = async (force = false) => {

@@ -170,6 +170,52 @@ class JadwalController extends Controller
         ];
     }
 
+    private function findKetidaktersediaanKonselor(int $konselorId, string $tanggal, string $waktu): ?KetidaktersediaanKonselor
+{
+    $slotMulai = Carbon::createFromFormat('H:i', substr($waktu, 0, 5));
+    $slotSelesai = $slotMulai->copy()->addHour();
+
+    $jamMulai = $slotMulai->format('H:i:s');
+    $jamSelesai = $slotSelesai->format('H:i:s');
+
+    return KetidaktersediaanKonselor::where('konselor_id', $konselorId)
+        ->whereDate('tanggal_mulai', '<=', $tanggal)
+        ->where(function ($query) use ($tanggal) {
+            $query->whereNull('tanggal_selesai')
+                ->orWhereDate('tanggal_selesai', '>=', $tanggal);
+        })
+        ->where(function ($query) use ($jamMulai, $jamSelesai) {
+            $query->where(function ($q) {
+                $q->whereNull('jam_mulai')
+                    ->whereNull('jam_selesai');
+            })
+            ->orWhere(function ($q) use ($jamMulai, $jamSelesai) {
+                $q->whereNotNull('jam_mulai')
+                    ->whereNotNull('jam_selesai')
+                    ->where('jam_mulai', '<', $jamSelesai)
+                    ->where('jam_selesai', '>', $jamMulai);
+            });
+        })
+        ->first();
+}
+
+private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data): array
+{
+    $tanggal = Carbon::parse($data->tanggal_mulai)->format('d/m/Y');
+
+    $waktu = 'Seharian';
+
+    if ($data->jam_mulai && $data->jam_selesai) {
+        $waktu = Carbon::parse($data->jam_mulai)->format('H:i') . ' - ' . Carbon::parse($data->jam_selesai)->format('H:i');
+    }
+
+    return [
+        'tanggal' => $tanggal,
+        'waktu'   => $waktu,
+        'alasan'  => $data->alasan ?: 'Tidak ada alasan tambahan.',
+    ];
+}
+
     public function checkAvailability(Request $request)
     {
         if (!Auth::check()) {
@@ -198,35 +244,24 @@ class JadwalController extends Controller
             ], 404);
         }
 
-        $jadwalTidakTersedia = DB::table('ketidaktersediaan_konselor')
-            ->where('konselor_id', $konselor->id)
-            ->whereDate('tanggal_mulai', '<=', $validated['tanggal'])
-            ->where(function ($query) use ($validated) {
-                $query->whereNull('tanggal_selesai')
-                    ->orWhereDate('tanggal_selesai', '>=', $validated['tanggal']);
-            })
-            ->where(function ($query) use ($jamMulai, $jamSelesai) {
-                $query->where(function ($q) {
-                    $q->whereNull('jam_mulai')
-                        ->whereNull('jam_selesai');
-                })
-                    ->orWhere(function ($q) use ($jamMulai, $jamSelesai) {
-                        $q->whereNotNull('jam_mulai')
-                            ->whereNotNull('jam_selesai')
-                            ->where('jam_mulai', '<', $jamSelesai)
-                            ->where('jam_selesai', '>', $jamMulai);
-                    });
-            })
-            ->first();
+        $jadwalTidakTersedia = $this->findKetidaktersediaanKonselor(
+        $konselor->id,
+        $validated['tanggal'],
+        $validated['waktu']
+    );
 
-        if ($jadwalTidakTersedia) {
-            return response()->json([
-                'success' => false,
-                'is_available' => false,
-                'message' => 'Maaf, konselor tidak tersedia pada jadwal yang kamu pilih.',
-                'alasan' => $jadwalTidakTersedia->alasan ?? 'Konselor tidak tersedia pada waktu tersebut.'
-            ]);
-        }
+    if ($jadwalTidakTersedia) {
+        return response()->json([
+            'success'      => false,
+            'is_available' => false,
+            'type'         => 'konselor_tidak_tersedia',
+            'title'        => 'Konselor Tidak Tersedia',
+            'message'      => 'Jadwal tidak dapat dipilih karena konselor tidak tersedia pada tanggal dan waktu tersebut.',
+            'slot_status'  => 'tidak_tersedia',
+            'slot_label'   => 'Tidak tersedia',
+            'detail'       => $this->formatKetidaktersediaanResponse($jadwalTidakTersedia),
+        ], 409);
+    }
 
         $conflict = $this->findSlotConflict($validated['tanggal'], $jamMulai, $konselor->id);
 
@@ -323,48 +358,21 @@ class JadwalController extends Controller
                     abort(response()->json($this->formatSlotConflictResponse($existingBooking), 409));
                 }
 
-                /**
-                 * 2. Cek apakah konselor tidak tersedia pada tanggal dan jam tersebut
-                 */
-                $waktuMulai = $normalizedWaktu;
-
-                // Sesuaikan durasi sesi konseling di sini.
-                // Jika 1 sesi = 60 menit, biarkan 60.
-                // Jika 30 menit, ubah menjadi 30.
-                $durasiSesiMenit = 60;
-
-                $waktuSelesai = Carbon::createFromFormat('H:i:s', $normalizedWaktu)
-                    ->addMinutes($durasiSesiMenit)
-                    ->format('H:i:s');
-
-                $jadwalTidakTersedia = KetidaktersediaanKonselor::where('konselor_id', $konselor->id)
-                    ->whereDate('tanggal_mulai', $validated['tanggal'])
-                    ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
-                        $query->whereTime('jam_mulai', '<', $waktuSelesai)
-                            ->whereTime('jam_selesai', '>', $waktuMulai);
-                    })
-                    ->lockForUpdate()
-                    ->first();
+                $jadwalTidakTersedia = $this->findKetidaktersediaanKonselor(
+                    $konselor->id,
+                    $validated['tanggal'],
+                    $validated['waktu']
+                );
 
                 if ($jadwalTidakTersedia) {
-                    $tanggalTidakTersedia = Carbon::parse($jadwalTidakTersedia->tanggal_mulai)->format('d/m/Y');
-
-                    $jamMulaiTidakTersedia = Carbon::parse($jadwalTidakTersedia->jam_mulai)->format('H:i');
-                    $jamSelesaiTidakTersedia = Carbon::parse($jadwalTidakTersedia->jam_selesai)->format('H:i');
-
                     abort(response()->json([
                         'success' => false,
                         'type'    => 'konselor_tidak_tersedia',
                         'title'   => 'Konselor Tidak Tersedia',
                         'message' => 'Jadwal tidak dapat dipilih karena konselor tidak tersedia pada tanggal dan waktu tersebut.',
-                        'detail'  => [
-                            'tanggal' => $tanggalTidakTersedia,
-                            'waktu'   => $jamMulaiTidakTersedia . ' - ' . $jamSelesaiTidakTersedia,
-                            'alasan'  => $jadwalTidakTersedia->alasan ?: 'Tidak ada alasan tambahan.',
-                        ]
+                        'detail'  => $this->formatKetidaktersediaanResponse($jadwalTidakTersedia),
                     ], 409));
                 }
-
                 /**
                  * 3. Jika aman, simpan jadwal konseling
                  */
@@ -493,12 +501,15 @@ class JadwalController extends Controller
         ]);
     }
 
-    public function getBookedSlots(Request $request)
+   public function getBookedSlots(Request $request)
     {
         $konselor = $this->resolveActiveKonselor();
+
         if (!$konselor) {
             return response()->json([]);
         }
+
+        $result = [];
 
         $booked = JadwalKonseling::where('konselor_id', $konselor->id)
             ->where('status', '!=', 'ditolak')
@@ -506,20 +517,59 @@ class JadwalController extends Controller
             ->get(['tanggal', 'waktu', 'status'])
             ->map(function ($j) {
                 $status = strtolower(trim((string) $j->status));
+
                 $tanggal = $j->tanggal instanceof Carbon
                     ? $j->tanggal->format('Y-m-d')
                     : Carbon::parse($j->tanggal)->format('Y-m-d');
 
                 return [
-                    'slot' => $tanggal . '-' . Carbon::parse($j->waktu)->format('H:i'),
+                    'slot'   => $tanggal . '-' . Carbon::parse($j->waktu)->format('H:i'),
                     'status' => $status,
-                    'label' => in_array($status, ['disetujui', 'berlangsung'], true)
+                    'label'  => in_array($status, ['disetujui', 'berlangsung'], true)
                         ? 'Telah Terjadwal'
                         : 'Sudah Terisi',
                 ];
             })
             ->toArray();
 
-        return response()->json($booked);
+        foreach ($booked as $slot) {
+            $result[$slot['slot']] = $slot;
+        }
+
+        $serviceTimes = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'];
+
+        $tanggalMulai = Carbon::today();
+        $tanggalAkhir = Carbon::today()->copy()->addMonths(3);
+
+        for ($date = $tanggalMulai->copy(); $date->lte($tanggalAkhir); $date->addDay()) {
+            if (!$date->isWeekday()) {
+                continue;
+            }
+
+            $tanggal = $date->format('Y-m-d');
+
+            foreach ($serviceTimes as $time) {
+                $tidakTersedia = $this->findKetidaktersediaanKonselor(
+                    $konselor->id,
+                    $tanggal,
+                    $time
+                );
+
+                if (!$tidakTersedia) {
+                    continue;
+                }
+
+                $slotKey = $tanggal . '-' . $time;
+
+                $result[$slotKey] = [
+                    'slot'   => $slotKey,
+                    'status' => 'tidak_tersedia',
+                    'label'  => 'Tidak tersedia',
+                    'detail' => $this->formatKetidaktersediaanResponse($tidakTersedia),
+                ];
+            }
+        }
+
+        return response()->json(array_values($result));
     }
 }

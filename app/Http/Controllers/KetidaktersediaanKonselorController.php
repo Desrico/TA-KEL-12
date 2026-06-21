@@ -14,15 +14,16 @@ use Carbon\Carbon;
 
 class KetidaktersediaanKonselorController extends Controller
 {
-  public function store(Request $request)
+ public function store(Request $request)
 {
     $validated = $request->validate([
-        'tanggal_mulai' => 'required|date',
-        'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
-        'jam_mulai' => 'nullable|required_with:jam_selesai|date_format:H:i',
-        'jam_selesai' => 'nullable|required_with:jam_mulai|date_format:H:i|after:jam_mulai',
-        'alasan' => 'nullable|string|max:255',
-    ]);
+            'tanggal_mulai' => 'required|date|after_or_equal:today',
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
+            'jam_mulai' => 'nullable|required_with:jam_selesai|date_format:H:i',
+            'jam_selesai' => 'nullable|required_with:jam_mulai|date_format:H:i|after:jam_mulai',
+            'alasan' => 'required|string|max:200',
+            'ulang_mingguan' => 'nullable|boolean',
+        ]);
 
     $konselor = $this->getKonselorAktif();
 
@@ -34,45 +35,72 @@ class KetidaktersediaanKonselorController extends Controller
     $validated['jam_mulai'] = $validated['jam_mulai'] ?? null;
     $validated['jam_selesai'] = $validated['jam_selesai'] ?? null;
 
+    $ulangMingguan = $request->boolean('ulang_mingguan');
+
     $jumlahJadwalTerdampak = 0;
+    $jumlahKetidaktersediaan = 0;
 
-    DB::transaction(function () use ($validated, $konselor, &$jumlahJadwalTerdampak) {
-        KetidaktersediaanKonselor::create([
-            'konselor_id' => $konselor->id,
-            'tanggal_mulai' => $validated['tanggal_mulai'],
-            'tanggal_selesai' => $validated['tanggal_selesai'],
-            'jam_mulai' => $validated['jam_mulai'],
-            'jam_selesai' => $validated['jam_selesai'],
-            'alasan' => $validated['alasan'] ?? null,
-        ]);
+    DB::transaction(function () use (
+        $validated,
+        $konselor,
+        $ulangMingguan,
+        &$jumlahJadwalTerdampak,
+        &$jumlahKetidaktersediaan
+    ) {
+        $tanggalList = $ulangMingguan
+            ? $this->buatTanggalUlangMingguan($validated['tanggal_mulai'], 12)
+            : [$validated['tanggal_mulai']];
 
-        $jumlahJadwalTerdampak = $this->tandaiJadwalTerdampak(
-            $konselor->id,
-            $validated
-        );
+        foreach ($tanggalList as $tanggal) {
+            $dataKetidaktersediaan = [
+                'konselor_id' => $konselor->id,
+                'tanggal_mulai' => $tanggal,
+                'tanggal_selesai' => $tanggal,
+                'jam_mulai' => $validated['jam_mulai'],
+                'jam_selesai' => $validated['jam_selesai'],
+            ];
+
+            KetidaktersediaanKonselor::updateOrCreate(
+                $dataKetidaktersediaan,
+                [
+                    'alasan' => $validated['alasan'] ?? null,
+                ]
+            );
+
+            $jumlahKetidaktersediaan++;
+
+            $jumlahJadwalTerdampak += $this->tandaiJadwalTerdampak(
+                $konselor->id,
+                [
+                    'tanggal_mulai' => $tanggal,
+                    'tanggal_selesai' => $tanggal,
+                    'jam_mulai' => $validated['jam_mulai'],
+                    'jam_selesai' => $validated['jam_selesai'],
+                ]
+            );
+        }
     });
 
+    $pesan = $ulangMingguan
+        ? 'Jadwal ketidaktersediaan mingguan berhasil ditambahkan untuk ' . $jumlahKetidaktersediaan . ' minggu.'
+        : 'Jadwal ketidaktersediaan berhasil ditambahkan.';
+
     if ($jumlahJadwalTerdampak > 0) {
-        return back()->with(
-            'success',
-            'Jadwal ketidaktersediaan berhasil ditambahkan. ' .
-            $jumlahJadwalTerdampak .
-            ' jadwal yang bentrok telah ditandai perlu penjadwalan ulang dan mahasiswa telah diberi notifikasi.'
-        );
+        $pesan .= ' ' . $jumlahJadwalTerdampak .
+            ' jadwal yang bentrok telah ditandai perlu penjadwalan ulang dan mahasiswa telah diberi notifikasi.';
     }
 
-    return back()->with('success', 'Jadwal ketidaktersediaan berhasil ditambahkan.');
+    return back()->with('success', $pesan);
 }
-
 
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'tanggal_mulai' => 'required|date',
+            'tanggal_mulai' => 'required|date|after_or_equal:today',
             'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
             'jam_mulai' => 'nullable|required_with:jam_selesai|date_format:H:i',
             'jam_selesai' => 'nullable|required_with:jam_mulai|date_format:H:i|after:jam_mulai',
-            'alasan' => 'nullable|string|max:255',
+            'alasan' => 'required|string|max:200',
         ]);
 
         $konselor = $this->getKonselorAktif();
@@ -135,6 +163,18 @@ class KetidaktersediaanKonselorController extends Controller
     {
         return Auth::user()->konselor ?? Konselor::where('user_id', Auth::id())->first();
     }
+
+    private function buatTanggalUlangMingguan(string $tanggalAwal, int $jumlahMinggu = 12): array
+{
+    $tanggal = Carbon::parse($tanggalAwal);
+    $tanggalList = [];
+
+    for ($i = 0; $i < $jumlahMinggu; $i++) {
+        $tanggalList[] = $tanggal->copy()->addWeeks($i)->toDateString();
+    }
+
+    return $tanggalList;
+}
 
 private function tandaiJadwalTerdampak($konselorId, array $data)
 {

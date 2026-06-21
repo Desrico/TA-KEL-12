@@ -6,7 +6,6 @@ use App\Events\GroupChatMessageSent;
 use App\Models\GroupChatMember;
 use App\Models\GroupChatMessage;
 use App\Models\GroupChatRoom;
-use App\Models\Notifikasi;
 use App\Models\User;
 use App\Support\GroupChatSupport;
 use Carbon\Carbon;
@@ -15,7 +14,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -39,33 +37,35 @@ class GroupChatMahasiswaController extends Controller
         ]);
     }
 
-    public function create(Request $request)
-    {
-        $user = $request->user();
-        $eligibility = GroupChatSupport::syncMemberEligibilityStatus($user);
+   public function create(Request $request)
+{
+    $user = $request->user();
+    $eligibility = GroupChatSupport::syncMemberEligibilityStatus($user);
 
-        if (! $eligibility['eligible']) {
-            return redirect()
-                ->route('mahasiswa.group-chat')
-                ->with('error', $eligibility['reason']);
-        }
-
-        $topic = $request->query('topic');
-        $selectedTopic = null;
-
-        if ($topic && array_key_exists($topic, GroupChatRoom::topicOptions())) {
-            $selectedTopic = collect($this->resolvePublicTopicCards($user))->firstWhere('topic_key', $topic);
-        }
-
-        return view('Pages.group-chat-create', [
-            'topicOptions' => GroupChatRoom::topicOptions(),
-            'publicTopics' => $this->resolvePublicTopicCards($user),
-            'pendingInvitations' => $this->resolvePendingInvitations($user),
-            'groupRules' => GroupChatSupport::rules(),
-            'consentVersion' => GroupChatSupport::consentVersion(),
-            'consentContext' => $selectedTopic ? $this->buildPublicConsentContext($selectedTopic) : null,
-        ]);
+    if (! $eligibility['eligible']) {
+        return redirect()
+            ->route('mahasiswa.group-chat')
+            ->with('error', $eligibility['reason']);
     }
+
+    $topic = $request->query('topic');
+    $selectedTopic = null;
+
+    $publicTopics = $this->resolvePublicTopicCards($user);
+
+    if ($topic && array_key_exists($topic, GroupChatRoom::topicOptions())) {
+        $selectedTopic = collect($publicTopics)->firstWhere('topic_key', $topic);
+    }
+
+    return view('Pages.group-chat-create', [
+        'publicTopics' => $publicTopics,
+        'pendingInvitations' => $this->resolvePendingInvitations($user),
+        'groupRules' => GroupChatSupport::rules(),
+        'consentVersion' => GroupChatSupport::consentVersion(),
+        'consentContext' => $selectedTopic ? $this->buildPublicConsentContext($selectedTopic) : null,
+        'topicOptions' => GroupChatRoom::topicOptions(),
+    ]);
+}
 
     public function invitation(Request $request, string $token)
     {
@@ -108,8 +108,6 @@ class GroupChatMahasiswaController extends Controller
                 ->with('error', collect($exception->errors())->flatten()->first() ?: 'Anda tidak memiliki akses ke undangan grup privat ini.');
         }
 
-        $this->markInviteNotificationsAsRead($user, $token);
-
         if ($membership && (! GroupChatSupport::supportsMembershipStatus() || $membership->membership_status === GroupChatMember::STATUS_ACTIVE)) {
             return redirect()
                 ->route('mahasiswa.group-chat.room', ['group' => $room->id])
@@ -117,7 +115,6 @@ class GroupChatMahasiswaController extends Controller
         }
 
         return view('Pages.group-chat-create', [
-            'topicOptions' => GroupChatRoom::topicOptions(),
             'publicTopics' => $this->resolvePublicTopicCards($user),
             'pendingInvitations' => $this->resolvePendingInvitations($user),
             'groupRules' => GroupChatSupport::rules(),
@@ -146,7 +143,11 @@ class GroupChatMahasiswaController extends Controller
                 ->with('error', 'Anda belum tergabung aktif di grup chat tersebut.');
         }
 
-        $messages = $this->buildVisibleMessages($activeRoom, $user);
+        $messages = $activeRoom->messages
+            ->sortBy('created_at')
+            ->values()
+            ->map(fn (GroupChatMessage $message) => $this->transformMessage($message, $user, $activeRoom))
+            ->all();
 
         return view('Pages.group-chat-room', [
             'joinedRooms' => $joinedRooms,
@@ -181,13 +182,7 @@ class GroupChatMahasiswaController extends Controller
                         ->with('error', 'Undangan grup privat belum aktif karena pembaruan database group chat belum dijalankan.');
                 }
 
-                [$room, $member, $activatedNow] = $this->joinPrivateRoomByInvite($user, (string) $validated['invite_token']);
-
-                if ($activatedNow) {
-                    $this->createMembershipSystemMessage($room, $user, 'joined');
-                }
-
-                $this->markInviteNotificationsAsRead($user, (string) $validated['invite_token']);
+                [$room, $member] = $this->joinPrivateRoomByInvite($user, (string) $validated['invite_token']);
 
                 return redirect()
                     ->route('mahasiswa.group-chat.room', ['group' => $room->id])
@@ -199,20 +194,10 @@ class GroupChatMahasiswaController extends Controller
                     );
             }
 
-            [$room, $member, $topicLabel, $activatedNow] = $this->joinPublicRoom($user, $validated);
-
-            if ($activatedNow) {
-                $this->createMembershipSystemMessage($room, $user, 'joined');
-            }
+            [$room, $member, $topicLabel] = $this->joinPublicRoom($user, $validated);
 
             return redirect()
-                ->route('mahasiswa.group-chat.room', ['group' => $room->id])
-                ->with(
-                    'success',
-                    $member->wasRecentlyCreated || (GroupChatSupport::supportsMembershipStatus() && $member->getOriginal('membership_status') !== GroupChatMember::STATUS_ACTIVE)
-                        ? 'Anda berhasil masuk ke grup konseling ' . $topicLabel . '.'
-                        : 'Ruang chat grup konseling ' . $topicLabel . ' dibuka kembali.'
-                );
+                ->route('mahasiswa.group-chat.room', ['group' => $room->id]);
         } catch (ValidationException $exception) {
             throw $exception;
         } catch (\Throwable $exception) {
@@ -225,86 +210,6 @@ class GroupChatMahasiswaController extends Controller
                 ->with('error', 'Grup chat tidak dapat diproses saat ini. Silakan coba lagi.')
                 ->withInput();
         }
-    }
-
-    public function leave(Request $request, int $group): RedirectResponse
-    {
-        $user = $request->user();
-        $room = $this->resolveAccessibleRoom($user, $group);
-
-        if (! $room) {
-            return redirect()
-                ->route('mahasiswa.group-chat')
-                ->with('error', 'Grup chat tidak ditemukan atau Anda sudah keluar dari grup tersebut.');
-        }
-
-        $member = GroupChatSupport::resolveRoomMember($user, $room);
-
-        if (! $member) {
-            return redirect()
-                ->route('mahasiswa.group-chat')
-                ->with('error', 'Keanggotaan grup tidak ditemukan.');
-        }
-
-        DB::transaction(function () use ($member) {
-            if (GroupChatSupport::supportsMembershipStatus()) {
-                $payload = [
-                    'membership_status' => GroupChatMember::STATUS_LEFT,
-                ];
-
-                if (GroupChatSupport::supportsMembershipLifecycleFields()) {
-                    $payload['removed_at'] = now();
-                    $payload['removed_reason'] = 'left_by_member';
-                }
-
-                $member->update($payload);
-
-                return;
-            }
-
-            $member->delete();
-        });
-
-        // Jejak sistem ini membantu anggota lain memahami kenapa nama tertentu tidak lagi muncul aktif di grup.
-        $this->createMembershipSystemMessage($room, $user, 'left');
-
-        return redirect()
-            ->route('mahasiswa.group-chat')
-            ->with('success', 'Anda telah keluar dari grup konseling.');
-    }
-
-    public function updateRoomAvatar(Request $request, int $group): RedirectResponse
-    {
-        $room = $this->resolveAccessibleRoom($request->user(), $group);
-
-        if (! $room) {
-            return redirect()
-                ->route('mahasiswa.group-chat')
-                ->with('error', 'Grup chat tidak ditemukan.');
-        }
-
-        if (! GroupChatSupport::supportsRoomAvatar()) {
-            return back()->with('error', 'Foto grup membutuhkan migration database terbaru sebelum dapat digunakan.');
-        }
-
-        $validated = $request->validate([
-            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-        ]);
-
-        $oldPath = $room->avatar_path;
-        $newPath = $validated['avatar']->store('group-chat/avatars', 'public');
-
-        $room->update([
-            'avatar_path' => $newPath,
-        ]);
-
-        if (filled($oldPath)) {
-            Storage::disk('public')->delete($oldPath);
-        }
-
-        return redirect()
-            ->route('mahasiswa.group-chat.room', ['group' => $room->id])
-            ->with('success', 'Foto grup berhasil diperbarui.');
     }
 
     public function messages(Request $request): JsonResponse
@@ -320,7 +225,11 @@ class GroupChatMahasiswaController extends Controller
 
         return response()->json([
             'success' => true,
-            'messages' => $this->buildVisibleMessages($room, $request->user()),
+            'messages' => $room->messages
+                ->sortBy('created_at')
+                ->values()
+                ->map(fn (GroupChatMessage $message) => $this->transformMessage($message, $request->user(), $room))
+                ->all(),
         ]);
     }
 
@@ -351,18 +260,11 @@ class GroupChatMahasiswaController extends Controller
         }
 
         $message = DB::transaction(function () use ($room, $user, $validated) {
-            $payload = [
+            return GroupChatMessage::create([
                 'room_id' => $room->id,
                 'user_id' => $user->id,
                 'pesan' => trim($validated['pesan']),
-            ];
-
-            if (GroupChatSupport::supportsSystemMessages()) {
-                $payload['is_system'] = false;
-                $payload['system_event'] = null;
-            }
-
-            return GroupChatMessage::create($payload);
+            ]);
         });
 
         $message->loadMissing([
@@ -396,7 +298,7 @@ class GroupChatMahasiswaController extends Controller
         $user = $request->user();
         $room = $this->resolveRoomByOwnedMessage($user, $message);
 
-        if (! $room || (int) $message->user_id !== (int) $user->id || (bool) $message->is_system) {
+        if (! $room || (int) $message->user_id !== (int) $user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pesan tidak ditemukan atau tidak bisa diedit.',
@@ -424,7 +326,7 @@ class GroupChatMahasiswaController extends Controller
         $user = $request->user();
         $room = $this->resolveRoomByOwnedMessage($user, $message);
 
-        if (! $room || (int) $message->user_id !== (int) $user->id || (bool) $message->is_system) {
+        if (! $room || (int) $message->user_id !== (int) $user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pesan tidak ditemukan atau tidak bisa dihapus.',
@@ -483,9 +385,9 @@ class GroupChatMahasiswaController extends Controller
         }
 
         $topicLabel = $room->topicLabel();
-        [$member, $activatedNow] = $this->activateMembership($room, $user, 'public_topic');
+        $member = $this->activateMembership($room, $user, 'public_topic');
 
-        return [$room, $member, $topicLabel, $activatedNow];
+        return [$room, $member, $topicLabel];
     }
 
     private function joinPrivateRoomByInvite(User $user, string $inviteToken): array
@@ -504,9 +406,9 @@ class GroupChatMahasiswaController extends Controller
 
         // Token undangan hanya valid untuk mahasiswa yang sudah terdaftar di daftar undangan grup tersebut.
         $this->resolvePrivateInvitationMembership($user, $room);
-        [$member, $activatedNow] = $this->activateMembership($room, $user, 'invite_link');
+        $member = $this->activateMembership($room, $user, 'invite_link');
 
-        return [$room, $member, $activatedNow];
+        return [$room, $member];
     }
 
     private function resolvePrivateInvitationMembership(User $user, GroupChatRoom $room): GroupChatMember
@@ -533,7 +435,7 @@ class GroupChatMahasiswaController extends Controller
         return $member;
     }
 
-    private function activateMembership(GroupChatRoom $room, User $user, string $joinedVia): array
+    private function activateMembership(GroupChatRoom $room, User $user, string $joinedVia): GroupChatMember
     {
         return DB::transaction(function () use ($room, $user, $joinedVia) {
             $member = GroupChatMember::query()->firstOrNew([
@@ -542,8 +444,6 @@ class GroupChatMahasiswaController extends Controller
             ]);
 
             $this->guardMembershipReactivation($member);
-            $wasActiveBefore = $member->exists
-                && (! GroupChatSupport::supportsMembershipStatus() || $member->getOriginal('membership_status') === GroupChatMember::STATUS_ACTIVE);
 
             $fill = [];
 
@@ -577,28 +477,8 @@ class GroupChatMahasiswaController extends Controller
 
             $member->save();
 
-            return [
-                GroupChatSupport::ensureMemberAlias($room, $member),
-                ! $wasActiveBefore,
-            ];
+            return GroupChatSupport::ensureMemberAlias($room, $member);
         });
-    }
-
-    private function markInviteNotificationsAsRead(User $user, string $inviteToken): void
-    {
-        $inviteToken = trim($inviteToken);
-
-        if ($inviteToken === '') {
-            return;
-        }
-
-        $inviteUrl = route('mahasiswa.group-chat.invite', ['token' => $inviteToken]);
-
-        Notifikasi::query()
-            ->where('user_id', $user->id)
-            ->where('status', 'belum')
-            ->where('cta_target', $inviteUrl)
-            ->update(['status' => 'dibaca']);
     }
 
     private function guardMembershipReactivation(GroupChatMember $member): void
@@ -790,10 +670,6 @@ class GroupChatMahasiswaController extends Controller
 
     private function buildChatPayload(GroupChatRoom $room, array $messages): array
     {
-        $sessionStartedAt = GroupChatSupport::roomUsesSessionReset($room)
-            ? $this->toDisplayDateTime(GroupChatSupport::currentSessionStartedAt($room))
-            : null;
-
         return [
             'roomId' => $room->id,
             'channel' => 'chat.group.' . $room->id,
@@ -808,15 +684,7 @@ class GroupChatMahasiswaController extends Controller
             'memberCount' => (int) ($room->active_members_count ?? $room->members_count ?? $room->members->count()),
             'memberNames' => $this->resolveMemberNames($room),
             'memberProfiles' => $this->resolveMemberProfiles($room),
-            'roomAvatarUrl' => GroupChatSupport::resolveRoomAvatarUrl($room),
-            'roomAvatarInitial' => GroupChatSupport::resolveRoomAvatarInitial($room),
             'rules' => GroupChatSupport::rules(),
-            'canUpdateAvatar' => GroupChatSupport::supportsRoomAvatar(),
-            'updateAvatarUrl' => route('mahasiswa.group-chat.room.avatar', ['group' => $room->id]),
-            'sessionResetHours' => GroupChatSupport::roomUsesSessionReset($room)
-                ? GroupChatSupport::sessionResetHours()
-                : null,
-            'sessionStartedAt' => $sessionStartedAt?->toIso8601String(),
             'messages' => $messages,
         ];
     }
@@ -840,13 +708,14 @@ class GroupChatMahasiswaController extends Controller
     private function buildPrivateConsentContext(GroupChatRoom $room, ?GroupChatMember $membership): array
     {
         $inviterName = $membership?->inviter?->nama ?: 'Konselor';
+        $aliasName = $membership?->anonymous_name ?: 'Disiapkan otomatis';
 
         return [
             'kind' => 'private_invite',
-            'room_title' => $room->title,
-            'room_description' => $room->description,
-            'meta' => 'Pengundang: ' . $inviterName . ' • Nama asli Anda akan tampil di grup privat ini.',
-            'inviter_name' => $inviterName,
+            'headline' => 'Undangan grup privat',
+            'title' => 'Anda diundang ke grup privat "' . $room->title . '".',
+            'description' => $room->description ?: 'Grup privat ini dibuat oleh konselor untuk diskusi yang lebih terarah.',
+            'meta' => 'Pengundang: ' . $inviterName . ' • Alias anonim Anda: ' . $aliasName,
             'submit_label' => 'Setuju dan Gabung Grup',
             'hidden_fields' => [
                 'invite_token' => GroupChatSupport::supportsInviteToken() ? $room->invite_token : null,
@@ -897,11 +766,9 @@ class GroupChatMahasiswaController extends Controller
             'id' => $message->id,
             'room_id' => $message->room_id,
             'sender_id' => $message->user_id,
-            'sender_name' => (bool) $message->is_system
-                ? 'Sistem'
-                : ($message->user_id === $viewer->id
-                    ? 'Anda'
-                    : ($isCounselorMessage ? 'Konselor' : GroupChatSupport::resolveDisplayName($sender, $room, $membership))),
+            'sender_name' => $message->user_id === $viewer->id
+                ? 'Anda'
+                : ($isCounselorMessage ? 'Konselor' : GroupChatSupport::resolveDisplayName($sender, $room, $membership)),
             'sender_role' => $sender?->role ?? 'pengguna',
             'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
             'avatar_initial' => $isCounselorMessage ? 'K' : null,
@@ -911,8 +778,6 @@ class GroupChatMahasiswaController extends Controller
             'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
             'updated_at' => $this->toDisplayDateTime($message->updated_at)?->toIso8601String(),
             'is_edited' => (bool) ($message->updated_at && $message->created_at && $message->updated_at->ne($message->created_at)),
-            'is_system' => (bool) $message->is_system,
-            'system_event' => $message->system_event,
             'is_mine' => $message->user_id === $viewer->id,
         ];
     }
@@ -963,95 +828,5 @@ class GroupChatMahasiswaController extends Controller
         });
 
         return $isMember ? $room : null;
-    }
-
-    private function createMembershipSystemMessage(GroupChatRoom $room, User $user, string $event): GroupChatMessage
-    {
-        $member = GroupChatSupport::resolveRoomMember($user, $room);
-        $displayName = GroupChatSupport::resolveDisplayName($user, $room, $member);
-        $text = match ($event) {
-            'joined' => $displayName . ' Bergabung',
-            'left' => $displayName . ' Meninggalkan Grup',
-            'removed' => $displayName . ' Dikeluarkan dari Grup',
-            default => $displayName,
-        };
-
-        $payload = [
-            'room_id' => $room->id,
-            'user_id' => $user->id,
-            'pesan' => $text,
-        ];
-
-        if (GroupChatSupport::supportsSystemMessages()) {
-            $payload['is_system'] = true;
-            $payload['system_event'] = $event;
-        }
-
-        $message = GroupChatMessage::create($payload);
-        $message->loadMissing([
-            'sender.profil',
-            'sender.mahasiswa',
-            'room',
-        ]);
-
-        try {
-            broadcast(new GroupChatMessageSent($message))->toOthers();
-        } catch (\Throwable $exception) {
-            Log::warning('Broadcast pesan sistem group chat mahasiswa gagal dikirim.', [
-                'message_id' => $message->id,
-                'room_id' => $message->room_id,
-                'event' => $event,
-                'error' => $exception->getMessage(),
-            ]);
-        }
-
-        return $message;
-    }
-
-    private function buildVisibleMessages(GroupChatRoom $room, User $viewer): array
-    {
-        if (! GroupChatSupport::roomUsesSessionReset($room)) {
-            return $room->messages
-                ->sortBy('created_at')
-                ->values()
-                ->map(fn (GroupChatMessage $message) => $this->transformMessage($message, $viewer, $room))
-                ->all();
-        }
-
-        $sessionStartedAt = GroupChatSupport::currentSessionStartedAt($room);
-        $messages = $room->messages
-            ->filter(fn (GroupChatMessage $message) => $message->created_at && $message->created_at->greaterThanOrEqualTo($sessionStartedAt))
-            ->sortBy('created_at')
-            ->values()
-            ->map(fn (GroupChatMessage $message) => $this->transformMessage($message, $viewer, $room))
-            ->all();
-
-        array_unshift($messages, $this->buildSessionResetThread($room, $sessionStartedAt));
-
-        return $messages;
-    }
-
-    private function buildSessionResetThread(GroupChatRoom $room, Carbon $sessionStartedAt): array
-    {
-        $displayTime = $this->toDisplayDateTime($sessionStartedAt) ?? $this->nowInDisplayTimezone();
-
-        return [
-            'id' => 'session-reset-' . $room->id . '-' . $displayTime->timestamp,
-            'room_id' => $room->id,
-            'sender_id' => null,
-            'sender_name' => 'Sistem',
-            'sender_role' => 'system',
-            'avatar_url' => null,
-            'avatar_initial' => null,
-            'is_counselor' => false,
-            'text' => 'Sesi grup baru dimulai. Riwayat percakapan disetel ulang setiap 1 minggu.',
-            'time' => $displayTime->format('H:i'),
-            'sent_at' => $displayTime->toIso8601String(),
-            'updated_at' => null,
-            'is_edited' => false,
-            'is_system' => true,
-            'system_event' => 'weekly_reset',
-            'is_mine' => false,
-        ];
     }
 }

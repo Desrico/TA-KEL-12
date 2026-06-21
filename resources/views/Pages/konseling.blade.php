@@ -1151,8 +1151,13 @@
               <i class="bi bi-person-fill"></i>
             </div>
             <div>
-              <h2 class="counselor-name">Laura</h2>
-              <div class="counselor-role">Konselor Utama</div>
+              @php
+                  $namaKonselor = env('CIS_KONSELOR_NAME', 'Konselor');
+                  $inisialKonselor = strtoupper(mb_substr($namaKonselor, 0, 1));
+              @endphp
+
+              <div class="counselor-name">{{ $namaKonselor }}</div>
+              <div class="counselor-role">Konselor</div>
             </div>
           </div>
 
@@ -1715,6 +1720,41 @@ document.addEventListener('DOMContentLoaded', function () {
     return true;
   }
 
+  function showUnavailablePopup(detail = {}) {
+    return showInteractiveAlert({
+      title: 'Konselor Tidak Tersedia',
+      icon: 'unavailable',
+      confirmButtonText: 'Pilih Waktu Lain',
+      html: `
+        <div class="unavailable-popup-content">
+          <div class="unavailable-popup-desc">
+            Jadwal tidak dapat dipilih karena konselor tidak tersedia pada tanggal dan waktu tersebut.
+          </div>
+
+          <div class="unavailable-detail">
+            <div class="detail-row">
+              <span class="detail-label">Tanggal</span>
+              <span class="detail-separator">:</span>
+              <span class="detail-value">${detail.tanggal || '-'}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Waktu</span>
+              <span class="detail-separator">:</span>
+              <span class="detail-value">${detail.waktu || '-'}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Alasan</span>
+              <span class="detail-separator">:</span>
+              <span class="detail-value">${detail.alasan || 'Tidak ada alasan tambahan.'}</span>
+            </div>
+          </div>
+        </div>
+      `
+    });
+  }
+
   function renderTimeOptions() {
     const ymd = tanggalEl.value;
     const selectedBeforeRender = waktuEl.value || jadwalUlangData?.waktu || '';
@@ -1749,13 +1789,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const isPastTime = slotDate <= now;
       const slotInfo = bookedSlots.get(`${ymd}-${time}`);
-      const isApproved = isApprovedSlotStatus(slotInfo?.status);
+      const slotStatus = String(slotInfo?.status || '').toLowerCase();
+      const isApproved = isApprovedSlotStatus(slotStatus);
+      const isUnavailable = slotStatus === 'tidak_tersedia';
 
-      if (isPastTime || isApproved) {
+      if (isPastTime) {
         option.disabled = true;
-        option.textContent += isApproved
-          ? ` - ${slotInfo?.label || 'Telah Terjadwal'}`
-          : ' - lewat';
+        option.textContent += ' - lewat';
+      } else if (isUnavailable) {
+        option.textContent += ` - ${slotInfo?.label || 'Tidak tersedia'}`;
+        option.dataset.status = 'tidak_tersedia';
+        option.dataset.detail = JSON.stringify(slotInfo?.detail || {});
+      } else if (isApproved) {
+        option.disabled = true;
+        option.textContent += ` - ${slotInfo?.label || 'Telah Terjadwal'}`;
       }
 
       waktuEl.appendChild(option);
@@ -1798,6 +1845,7 @@ document.addEventListener('DOMContentLoaded', function () {
           bookedSlots.set(slot.slot, {
             status: slot.status || 'menunggu',
             label: slot.label || 'Sudah Terisi',
+            detail: slot.detail || null,
           });
         }
       });
@@ -2232,6 +2280,26 @@ document.addEventListener('DOMContentLoaded', function () {
     validateDate();
     renderTimeOptions();
   });
+
+  waktuEl.addEventListener('change', async function () {
+  const selectedOption = this.options[this.selectedIndex];
+
+  if (selectedOption?.dataset.status !== 'tidak_tersedia') {
+    return;
+  }
+
+  let detail = {};
+
+  try {
+    detail = JSON.parse(selectedOption.dataset.detail || '{}');
+  } catch (error) {
+    detail = {};
+  }
+
+  await showUnavailablePopup(detail);
+
+  this.value = '';
+});
 
   topikEl.addEventListener('change', handleTopikChange);
 

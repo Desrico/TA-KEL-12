@@ -951,9 +951,9 @@
                     <span style="{{ $ico }}"><i class="ti ti-message-circle" style="{{ $activeIco('admin.chat*') }}font-size:1.1rem;"></i></span>
                     <span style="{{ $txt }}">Chat</span>
                 </a>
-                <a href="{{ route('admin.sesi') }}" style="{{ $active('admin.sesi*') }}{{ $lnk }}">
-                    <span style="{{ $ico }}"><i class="ti ti-stethoscope" style="{{ $activeIco('admin.sesi*') }}font-size:1.1rem;"></i></span>
-                    <span style="{{ $txt }}">Sesi Konseling</span>
+                <a href="{{ route('admin.riwayat') }}" style="{{ $active('admin.riwayat*') }}{{ $lnk }}">
+                    <span style="{{ $ico }}"><i class="ti ti-stethoscope" style="{{ $activeIco('admin.riwayat*') }}font-size:1.1rem;"></i></span>
+                    <span style="{{ $txt }}">Riwayat Konseling</span>
                 </a>
                 <a href="{{ route('admin.laporan') }}" style="{{ $active('admin.laporan*') }}{{ $lnk }}">
                     <span style="{{ $ico }}"><i class="ti ti-file-report" style="{{ $activeIco('admin.laporan*') }}font-size:1.1rem;"></i></span>
@@ -969,12 +969,17 @@
         <div class="admin-sidebar-profile">
             <div class="dropdown">
                 <a href="#" class="admin-sidebar-profile-trigger" data-bs-toggle="dropdown" aria-expanded="false">
+                    @php
+                        $namaKonselorLogin = auth()->user()?->nama ?: env('CIS_KONSELOR_NAME', 'Konselor');
+                        $inisialKonselorLogin = strtoupper(mb_substr($namaKonselorLogin, 0, 1));
+                    @endphp
+
                     <div class="admin-sidebar-avatar">
-                        K
+                        {{ $inisialKonselorLogin }}
                     </div>
 
                     <div class="admin-sidebar-user">
-                        <div class="admin-sidebar-name">Konselor</div>
+                        <div class="admin-sidebar-name">{{ $namaKonselorLogin }}</div>
                     </div>
 
                     <i class="ti ti-chevron-up admin-sidebar-arrow"></i>
@@ -1202,11 +1207,49 @@
   });
 </script>
 
-<script>layout_change('light');</script>
-<script>change_box_container('false');</script>
-<script>layout_rtl_change('false');</script>
-<script>preset_change("preset-1");</script>
-<script>font_change("Public-Sans");</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    try {
+        if (typeof layout_change === 'function') {
+            layout_change('light');
+        }
+    } catch (error) {
+        console.warn('layout_change dilewati:', error.message);
+    }
+
+    try {
+        if (typeof change_box_container === 'function') {
+            change_box_container('false');
+        }
+    } catch (error) {
+        console.warn('change_box_container dilewati:', error.message);
+    }
+
+    try {
+        if (typeof layout_rtl_change === 'function') {
+            layout_rtl_change('false');
+        }
+    } catch (error) {
+        console.warn('layout_rtl_change dilewati:', error.message);
+    }
+
+    try {
+        if (typeof preset_change === 'function') {
+            preset_change('preset-1');
+        }
+    } catch (error) {
+        console.warn('preset_change dilewati:', error.message);
+    }
+
+    try {
+        if (typeof font_change === 'function') {
+            font_change('Public-Sans');
+        }
+    } catch (error) {
+        console.warn('font_change dilewati:', error.message);
+    }
+});
+</script>
 
 <script>
   (function () {

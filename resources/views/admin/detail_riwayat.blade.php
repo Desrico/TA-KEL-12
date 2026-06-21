@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Detail Sesi Konseling')
+@section('page-title', 'Detail Riwayat Konseling')
 
 @push('styles')
 <style>
@@ -149,7 +149,7 @@
 @endphp
 
 <div class="detail-card">
-    <div class="detail-title">Detail Penjadwalan</div>
+    <div class="detail-title">Detail Riwayat Konseling</div>
 
     <div class="detail-section-title">Informasi Pribadi</div>
     <table class="detail-table">
@@ -201,12 +201,12 @@
 
     @if($status === 'menunggu')
         <div class="detail-actions">
-            <form id="formTerimaSesi" action="{{ route('admin.sesi.terima', $jadwal->id) }}" method="POST">
+            <form id="formTerimaSesi" action="{{ route('admin.riwayat.terima', $jadwal->id) }}" method="POST">
             @csrf
             <button type="submit" class="btn-terima">Terima</button>
         </form>
 
-            <a href="{{ route('admin.sesi.tolak', $jadwal->id) }}" class="btn-tolak">
+            <a href="{{ route('admin.riwayat.tolak', $jadwal->id) }}" class="btn-tolak">
                 Tolak
             </a>
         </div>
@@ -218,8 +218,8 @@
     </div>
 
     <div class="detail-actions">
-        <a href="{{ url('/admin/sesi') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
-            Kembali
+        <a href="{{ url('/admin/riwayat-konseling') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
+            Kembali ke Riwayat
         </a>
     </div>
 
@@ -241,7 +241,7 @@
                 Lanjutkan Chat
             </a>
 
-            <form action="{{ route('admin.sesi.selesai', $jadwal->id) }}" method="POST">
+            <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
                 @csrf
                 <!-- Tandai selesai agar laporan bisa dibuat. -->
                 <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
@@ -251,7 +251,7 @@
         </div>
     @elseif($status === 'selesai')
         <div class="detail-actions">
-            <a href="{{ url('/admin/sesi') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
+            <a href="{{ url('/admin/riwayat-konseling') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
                 Kembali
             </a>
         </div>
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     confirmButton: 'campuscare-swal-confirm'
                 }
         }).then(() => {
-            window.location.href = "{{ route('admin.sesi') }}";
+            window.location.href = "{{ route('admin.riwayat') }}";
         });
     @endif
 });

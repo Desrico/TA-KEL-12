@@ -10,6 +10,21 @@
     $canStartNow = $canStartNow ?? false;
     $scheduledStartLabel = $scheduledStartLabel ?? null;
 
+    $chatPayload = $chatPayload ?? null;
+
+    $readOnlyChat = (bool) (
+        $chatPayload['readOnly'] ??
+        $chatPayload['chatSelesai'] ??
+        false
+    );
+
+    $canSendChat = $activeSession
+        && $chatPayload
+        && $chatAccessGranted
+        && ! $isBlockedBySchedule
+        && ! $startReady
+        && ! $readOnlyChat;
+
     if (!empty($jadwal?->catatan) && preg_match('/Topik:\s*([^|]+)/i', $jadwal->catatan, $match)) {
         $topik = trim($match[1]);
     }
@@ -25,8 +40,15 @@
         },
     };
 
-    $namaKonselorTampil = 'Konselor';
-    $inisialKonselorTampil = 'K';
+    $namaKonselorTampil = env(
+    'CIS_KONSELOR_NAME',
+    $konselor?->getNamaDisplay()
+        ?? $konselor?->nama
+        ?? $konselor?->name
+        ?? 'Konselor'
+);
+
+$inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
 @endphp
 
 @push('styles')
@@ -916,20 +938,28 @@
           <div class="chat-thread" id="chatThread"></div>
 
           <div class="chat-composer">
-            <form id="chatForm" class="chat-form">
+            <form id="chatForm" class="chat-form {{ $canSendChat ? '' : 'is-disabled' }}">
                 <textarea
                     id="chatInput"
                     class="chat-input"
                     rows="1"
                     maxlength="2000"
-                    placeholder="Tulis pesan Anda di sini..."
+                    placeholder="{{ $readOnlyChat ? 'Sesi konseling sudah selesai.' : 'Tulis pesan Anda di sini...' }}"
+                    {{ $canSendChat ? '' : 'disabled' }}
                 ></textarea>
-                <button type="submit" class="chat-send" id="chatSendBtn">
+
+                <button type="submit" class="chat-send" id="chatSendBtn" {{ $canSendChat ? '' : 'disabled' }}>
                     <i class="bi bi-send-fill"></i>
                 </button>
             </form>
 
-            <div id="chatHint" class="chat-hint"></div>
+            <div id="chatHint" class="chat-hint">
+                @if($readOnlyChat)
+                    Pesan baru tidak dapat dikirim karena sesi konseling sudah selesai atau telah melewati batas waktu.
+                @elseif(! $canSendChat)
+                    Pesan baru dapat dikirim setelah penjadwalan konseling diterima.
+                @endif
+            </div>
         </div>
         </div>
 
@@ -939,11 +969,13 @@
 </section>
 @endsection
 
-@if($activeSession && $chatPayload && $chatAccessGranted)
+@if($activeSession && $chatPayload)
 @push('scripts')
 <script>
 (() => {
   const payload = @json($chatPayload);
+  const isReadOnly = Boolean(payload.readOnly || payload.chatSelesai);
+  const canSendMessage = @json($canSendChat);
   const currentUserName = @json(
       filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN)
           ? (
@@ -965,6 +997,18 @@
 
   if (!thread || !form || !input || !sendBtn) {
     return;
+  }
+
+  if (!canSendMessage || isReadOnly) {
+      input.disabled = true;
+      sendBtn.disabled = true;
+      form.classList.add('is-disabled');
+
+      if (hint) {
+          hint.textContent = isReadOnly
+              ? 'Pesan baru tidak dapat dikirim karena sesi konseling sudah selesai atau telah melewati batas waktu.'
+              : 'Pesan baru dapat dikirim setelah penjadwalan konseling diterima.';
+      }
   }
 
   const escapeHtml = (value) => String(value ?? '')
@@ -1045,7 +1089,7 @@
   // Bubble dan editor inline dipisah supaya mode edit terasa seperti chat modern, bukan popup.
   const buildMessageBubbleMarkup = (message, isMine) => `
     <div class="message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
-    ${isMine && !message.is_pending ? `
+    ${isMine && !message.is_pending && canSendMessage ? `
       <div class="message-actions">
         <button type="button" class="message-action-toggle" data-action="toggle-menu" aria-label="Opsi pesan">
           <i class="bi bi-three-dots"></i>
@@ -1118,21 +1162,19 @@
     row.dataset.messageText = message.text ?? '';
     row.dataset.messageEdited = message.is_edited ? '1' : '0';
 
-    const senderRole = (message.sender_role || '').toLowerCase();
+    const counselorDisplayName = payload.counselorName || @json(env('CIS_KONSELOR_NAME', 'Konselor'));
 
-    const isCounselorMessage = !message.is_mine && (
-        senderRole === 'konselor' ||
-        senderRole === 'admin' ||
-        (message.sender_name || '').toLowerCase() === 'admin'
-    );
+    const displaySenderName = isMine
+        ? ''
+        : counselorDisplayName;
 
-    const displaySenderName = isCounselorMessage
-        ? 'Konselor'
-        : (message.sender_name || 'Mahasiswa');
+    const avatarInitial = isMine
+        ? ''
+        : String(displaySenderName || 'K').charAt(0).toUpperCase();
 
-    const avatarInitial = isCounselorMessage
-        ? 'K'
-        : (displaySenderName || 'M').charAt(0).toUpperCase();
+    const senderNameHtml = isMine
+        ? ''
+        : `<span class="message-name">${escapeHtml(displaySenderName)}</span>`;
 
     row.innerHTML = `
       ${isMine ? '' : `
@@ -1140,23 +1182,20 @@
           ${escapeHtml(avatarInitial)}
         </div>
       `}
+
       <div class="message-content">
         <div class="message-meta">
-          <span class="message-name">${escapeHtml(displaySenderName)}</span>
+          ${senderNameHtml}
           <span>${escapeHtml(message.time)}</span>
           ${message.is_pending ? '<span class="admin-message-edited">mengirim...</span>' : (message.is_edited ? '<span class="admin-message-edited">telah diedit</span>' : '')}
         </div>
+
         <div class="message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
       </div>
-      ${isMine ? `
-        <div class="message-avatar-fallback">
-          ${escapeHtml(avatarInitial)}
-        </div>
-      ` : ''}
     `;
 
     thread.appendChild(row);
-  };
+};
 
   const renderInitialMessages = () => {
     renderMessages(payload.messages || []);
@@ -1254,23 +1293,45 @@
   syncMessages();
   window.setInterval(syncMessages, 10000);
 
-  input.addEventListener('input', autoResize);
+  if (canSendMessage && !isReadOnly) {
+      input.addEventListener('input', autoResize);
 
-  input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' && !event.shiftKey) {
-          event.preventDefault();
+      input.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
 
-          if (!isSending) {
-              form.requestSubmit();
+              if (!isSending) {
+                  form.requestSubmit();
+              }
           }
-      }
-  });
+      });
+
+      form.addEventListener('submit', async (event) => {
+          input.addEventListener('input', autoResize);
+
+          input.addEventListener('keydown', (event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault();
+
+                  if (!isSending) {
+                      form.requestSubmit();
+                  }
+              }
+          });
+      });
+  } else {
+      form.addEventListener('submit', function (event) {
+          event.preventDefault();
+      });
+  }
+  
 
   document.addEventListener('click', (event) => {
     if (!thread.contains(event.target)) {
       closeAllMenus();
     }
   });
+
 
   thread.addEventListener('click', async (event) => {
     const toggleButton = event.target.closest('[data-action="toggle-menu"]');

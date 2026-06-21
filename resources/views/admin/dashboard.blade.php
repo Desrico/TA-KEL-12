@@ -1201,7 +1201,7 @@
                         <div style="font-size:12px;color:#6c757d;">{{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('j F Y') }} · {{ \Carbon\Carbon::parse($jadwal->waktu)->format('H:i') }} WIB</div>
                     </div>
                     <div style="min-width:120px; display:flex; justify-content:flex-end;">
-                        <a href="{{ route('admin.sesi') }}" style="background:#065F46;color:#fff;border:none;border-radius:10px;padding:.5rem 1rem;font-size:.78rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-width:66px;">Lihat</a>
+                        <a href="{{ route('admin.riwayat')}}" style="background:#065F46;color:#fff;border:none;border-radius:10px;padding:.5rem 1rem;font-size:.78rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-width:66px;">Lihat</a>
                     </div>
                 </div>
                 @endforeach

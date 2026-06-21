@@ -333,32 +333,55 @@ class LaporanController extends Controller
 
     public function storeLaporan(Request $request, $id)
     {
-        // Allow fallback: if 'isi_laporan' not provided, compose it from other fields
-        $isi = trim((string) $request->input('isi_laporan', ''));
-        if ($isi === '') {
-            $ringkasan = trim((string) $request->input('ringkasan_masalah', ''));
-            $observasi = trim((string) $request->input('observasi_konselor', ''));
-            $combined = trim(($ringkasan ? $ringkasan : '') . ($observasi ? "\n\nObservasi: {$observasi}" : ''));
-            $isi = $combined;
-        }
+        $minTanggalTindakLanjut = now('Asia/Jakarta')->toDateString();
 
-        if ($isi === '') {
-            return back()->withErrors(['isi_laporan' => 'Isi laporan diperlukan.'])->withInput();
-        }
+        $ringkasanMasalah = trim((string) (
+            $request->input('ringkasan_masalah')
+            ?: $request->input('catatan')
+        ));
+
+        $observasiKonselor = trim((string) $request->input('observasi_konselor'));
+
+        $perluLanjut = $request->has('tindak_lanjut') || $request->has('perlu_lanjut');
+
+        $tanggalLanjut = $request->input('tanggal_tindak_lanjut')
+            ?: $request->input('tanggal_lanjut');
+
+        $request->merge([
+            'ringkasan_masalah' => $ringkasanMasalah,
+            'observasi_konselor' => $observasiKonselor,
+            'tanggal_tindak_lanjut' => $tanggalLanjut,
+        ]);
+
+        $rules = [
+            'ringkasan_masalah' => ['required', 'string', 'min:3'],
+            'observasi_konselor' => ['nullable', 'string'],
+            'progress' => ['required', 'in:Membaik,Memburuk'],
+            'tanggal_tindak_lanjut' => [
+                $perluLanjut ? 'required' : 'nullable',
+                'date',
+                'after_or_equal:' . $minTanggalTindakLanjut,
+            ],
+        ];
+
+        $messages = [
+            'ringkasan_masalah.required' => 'Ringkasan masalah wajib diisi sebelum laporan dapat disimpan.',
+            'progress.required' => 'Silakan pilih progress mahasiswa sebelum menyimpan laporan.',
+            'progress.in' => 'Progress mahasiswa harus dipilih antara Membaik atau Memburuk.',
+            'tanggal_tindak_lanjut.required' => 'Silakan pilih tanggal tindak lanjut sebelum menyimpan laporan.',
+            'tanggal_tindak_lanjut.after_or_equal' => 'Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
 
         $jadwal = JadwalKonseling::findOrFail($id);
         $sesi = $this->resolveSesiKonseling($jadwal);
         $konselorId = optional(auth()->user()->konselor)->id ?? $jadwal->konselor_id;
-        // Dukung nama input dari dua versi form laporan.
-        $perluLanjut = $request->has('tindak_lanjut') || $request->has('perlu_lanjut');
-        // Dukung nama input tanggal dari dua versi form laporan.
-        $tanggalLanjut = $request->input('tanggal_lanjut') ?: $request->input('tanggal_tindak_lanjut');
 
-        if ($perluLanjut && ! $tanggalLanjut) {
-            return back()
-                ->withErrors(['tanggal_lanjut' => 'Tanggal sesi lanjutan wajib diisi.'])
-                ->withInput();
-        }
+        $isi = trim(
+            $validated['ringkasan_masalah'] .
+            "\n\nObservasi: " . $validated['observasi_konselor']
+        );
 
         Laporan::updateOrCreate([
             'sesi_id' => $sesi->id,
@@ -371,22 +394,19 @@ class LaporanController extends Controller
             'status' => 'selesai',
         ]);
 
-        // Update jadwal with status and form fields for traceability
         $jadwal->update([
             'status' => 'selesai',
-            'ringkasan_masalah' => $request->input('ringkasan_masalah'),
-            'observasi_konselor' => $request->input('observasi_konselor'),
-            'progress' => $request->input('progress'),
-            // Simpan tindak lanjut dari form laporan aktif.
+            'ringkasan_masalah' => $validated['ringkasan_masalah'],
+            'observasi_konselor' => $validated['observasi_konselor'],
+            'progress' => $validated['progress'],
             'tindak_lanjut' => $perluLanjut ? 'Perlu sesi lanjutan' : 'Tidak perlu sesi lanjutan',
             'tindak_lanjut_tipe' => $perluLanjut ? 'perlu lanjut' : null,
-            'tanggal_lanjut' => $perluLanjut ? ($tanggalLanjut ?: null) : null,
+            'tanggal_lanjut' => $perluLanjut ? $validated['tanggal_tindak_lanjut'] : null,
             'laporan' => $isi,
         ]);
 
         return redirect()
             ->route('admin.laporan.mahasiswa', $jadwal->mahasiswa_id)
-            // Gunakan key khusus agar tidak muncul sebagai alert teks global.
             ->with('laporan_success', 'Laporan berhasil dibuat.');
     }
 

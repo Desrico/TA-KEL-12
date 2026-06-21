@@ -312,7 +312,7 @@ public function dashboard()
             ->orderBy('waktu', 'asc')
             ->paginate(10);
 
-        return view('admin.sesi', compact('jadwal'));
+        return view('admin.riwayat', compact('jadwal'));
     }
 
     public function detailSesi($id)
@@ -346,7 +346,7 @@ public function dashboard()
         }
 
         return redirect()
-            ->route('admin.sesi.detail', $jadwal->id)
+            ->route('admin.riwayat.detail', $jadwal->id)
             ->with('success', 'Jadwal berhasil diterima.');
     }
 
@@ -376,7 +376,7 @@ public function dashboard()
         $jadwal->alasan_penolakan = $validated['alasan_penolakan'];
         $jadwal->save();
 
-        return redirect()->route('admin.sesi.detail', $jadwal->id)
+        return redirect()->route('admin.riwayat.detail', $jadwal->id)
             ->with('success', 'Jadwal berhasil ditolak.');
     }
 
@@ -468,7 +468,7 @@ public function dashboard()
                 'jenis' => $item->jenis ?? '-',
                 'topik' => $item->topik ?? '-',
                 'status' => $statusLabel,
-                'detail_url' => url('/admin/sesi/' . $item->id),
+                'detail_url' => url('/admin/riwayat-konseling/' . $item->id),
             ],
         ];
     });

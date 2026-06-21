@@ -194,17 +194,6 @@
     background: #F8FFFB;
   }
 
-  .notif-item.is-disabled,
-  .notif-item:disabled {
-    background: #F8FAFC;
-    cursor: default;
-  }
-
-  .notif-item.is-disabled:hover,
-  .notif-item:disabled:hover {
-    background: #F8FAFC;
-  }
-
   .notif-item p {
     margin: 0;
     font-size: .84rem;
@@ -231,19 +220,6 @@
     background: transparent;
     border: none;
     cursor: pointer;
-  }
-
-  .notif-group-invite-trigger {
-    width: 100%;
-    text-align: left;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font: inherit;
-  }
-
-  .notif-group-invite-trigger:disabled {
-    cursor: default;
   }
 
   .notif-tag {
@@ -370,6 +346,10 @@
   .letter-modal-body::before {
     display: none;
   }
+
+  .notif-item.notif-read {
+    opacity: 0.6;
+}
 
   .envelope-stage {
     position: relative;
@@ -1191,6 +1171,34 @@
     margin-top: -.2rem;
   }
 
+  .footer-logo-img {
+    width: 78px;
+    height: 78px;
+    object-fit: contain;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 8px;
+    flex-shrink: 0;
+}
+
+.footer-brand {
+    align-items: center;
+    gap: 18px !important;
+}
+
+.footer-brand-txt {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+}
+
+.footer-brand-subtitle {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.62);
+    letter-spacing: 0.08em;
+    margin-top: 6px;
+}
   @media (max-width: 767.98px) {
     .letter-modal {
       padding: .7rem .85rem 1rem;
@@ -1229,31 +1237,8 @@
       transform: translate3d(0, -10px, 0) scale(1);
     }
 
-    .group-invite-dialog {
-      width: min(100%, 520px);
-      border-radius: 20px;
-    }
-
-    .group-invite-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .group-invite-meta {
-      grid-template-columns: 1fr;
-    }
-
     .envelope-helper {
       max-width: 320px;
-    }
-
-    .group-invite-actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .group-invite-submit,
-    .group-invite-cancel {
-      width: 100%;
     }
   }
 
@@ -1381,236 +1366,6 @@
     background: linear-gradient(135deg, #065f46, #10b981);
     font-weight: 800;
     box-shadow: 0 14px 28px rgba(6, 95, 70, 0.2);
-  }
-
-  .group-invite-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 3200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.2rem;
-    overflow-y: auto;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .22s ease;
-  }
-
-  .group-invite-modal.show {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .group-invite-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.22);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-  }
-
-  .group-invite-dialog {
-    position: relative;
-    z-index: 1;
-    width: min(100%, 780px);
-    border-radius: 22px;
-    border: 1px solid rgba(220, 238, 228, 0.96);
-    background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.18);
-    overflow: hidden;
-  }
-
-  .group-invite-head {
-    position: relative;
-    padding: 1rem 1.05rem .82rem;
-    background:
-      radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 28%),
-      linear-gradient(180deg, #f5fff9, #ffffff);
-    border-bottom: 1px solid rgba(220, 238, 228, 0.96);
-  }
-
-  .group-invite-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    margin-bottom: .8rem;
-    padding: .42rem .78rem;
-    border-radius: 999px;
-    background: #e8fff1;
-    color: #047857;
-    font-size: .72rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-  }
-
-  .group-invite-head h3 {
-    margin: 0 0 .35rem;
-    font-size: clamp(1.08rem, 2.1vw, 1.38rem);
-    font-weight: 800;
-    color: #064e3b;
-    line-height: 1.35;
-    max-width: 620px;
-  }
-
-  .group-invite-head p {
-    margin: 0;
-    color: #475569;
-    line-height: 1.58;
-    font-size: .8rem;
-    max-width: 620px;
-  }
-
-  .group-invite-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 38px;
-    height: 38px;
-    border-radius: 999px;
-    border: 1px solid #dbece3;
-    background: rgba(255, 255, 255, 0.88);
-    color: #065f46;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  }
-
-  .group-invite-body {
-    padding: .92rem 1.05rem 1.05rem;
-  }
-
-  .group-invite-form {
-    display: grid;
-    gap: .72rem;
-  }
-
-  .group-invite-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
-    gap: .72rem;
-    align-items: start;
-  }
-
-  .group-invite-panel {
-    padding: .8rem .85rem;
-    border-radius: 16px;
-    border: 1px solid #dbece3;
-    background: linear-gradient(180deg, #ffffff, #f8fffb);
-  }
-
-  .group-invite-panel h4 {
-    margin: 0 0 .42rem;
-    color: #0f172a;
-    font-size: .82rem;
-    font-weight: 800;
-  }
-
-  .group-invite-panel p {
-    margin: 0;
-    color: #475569;
-    font-size: .84rem;
-    line-height: 1.75;
-  }
-
-  .group-invite-meta {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: .55rem;
-  }
-
-  .group-invite-meta-item {
-    display: grid;
-    gap: .08rem;
-    color: #475569;
-    font-size: .76rem;
-    line-height: 1.45;
-    min-width: 0;
-  }
-
-  .group-invite-meta-label {
-    font-size: .74rem;
-    font-weight: 800;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    color: #047857;
-  }
-
-  .group-invite-rules {
-    margin: 0;
-    padding-left: 1rem;
-    color: #475569;
-    font-size: .75rem;
-    line-height: 1.5;
-  }
-
-  .group-invite-rules li + li {
-    margin-top: .22rem;
-  }
-
-  .group-invite-check {
-    display: flex;
-    align-items: flex-start;
-    gap: .72rem;
-    padding: .74rem .82rem;
-    border-radius: 16px;
-    border: 1px solid #dbece3;
-    background: #fff;
-  }
-
-  .group-invite-check input {
-    width: 18px;
-    height: 18px;
-    margin-top: .08rem;
-    accent-color: #047857;
-    flex-shrink: 0;
-  }
-
-  .group-invite-check label {
-    color: #334155;
-    font-size: .78rem;
-    line-height: 1.5;
-    cursor: pointer;
-  }
-
-  .group-invite-actions {
-    display: flex;
-    align-items: center;
-    gap: .8rem;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-  }
-
-  .group-invite-submit,
-  .group-invite-cancel {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .55rem;
-    min-height: 44px;
-    border-radius: 14px;
-    padding: .72rem 1rem;
-    font-size: .78rem;
-    font-weight: 800;
-    text-decoration: none;
-  }
-
-  .group-invite-submit {
-    border: none;
-    color: #fff;
-    background: linear-gradient(135deg, #065f46, #10b981);
-    box-shadow: 0 16px 30px rgba(6, 95, 70, 0.18);
-  }
-
-  .group-invite-submit:disabled {
-    opacity: .55;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-
-  .group-invite-cancel {
-    border: 1px solid #dbece3;
-    color: #065f46;
-    background: #fff;
   }
 
   @keyframes letterFloat {
@@ -2397,71 +2152,12 @@ footer a:hover {
               }
 
               $unreadNotif = Auth::user()->notifikasi()->where('status', 'belum')->count();
-              $notifItems = Auth::user()->notifikasi()->latest()->get();
 
-              $groupInviteTokens = $notifItems
-                ->map(function ($notif) {
-                  if (! filled($notif->cta_target) || ! str_contains((string) $notif->cta_target, '/group-chat/undangan/')) {
-                    return null;
-                  }
-
-                  if (preg_match('~/group-chat/undangan/([^/?#]+)~', (string) $notif->cta_target, $inviteMatch)) {
-                    return $inviteMatch[1];
-                  }
-
-                  return null;
-                })
-                ->filter()
-                ->unique()
-                ->values();
-
-              $groupInviteStates = collect();
-
-              if ($groupInviteTokens->isNotEmpty()) {
-                $inviteRooms = \App\Models\GroupChatRoom::query()
-                  ->whereIn('invite_token', $groupInviteTokens->all())
-                  ->get(['id', 'title', 'invite_token', 'visibility', 'is_active'])
-                  ->keyBy('invite_token');
-
-                $inviteMemberships = \App\Models\GroupChatMember::query()
-                  ->where('user_id', Auth::id())
-                  ->whereIn('room_id', $inviteRooms->pluck('id')->all())
-                  ->get(['room_id', 'membership_status'])
-                  ->keyBy('room_id');
-
-                $groupInviteStates = $groupInviteTokens->mapWithKeys(function ($token) use ($inviteRooms, $inviteMemberships) {
-                  $room = $inviteRooms->get($token);
-
-                  if (! $room || ! $room->is_active || $room->visibility !== \App\Models\GroupChatRoom::VISIBILITY_PRIVATE) {
-                    return [$token => [
-                      'actionable' => false,
-                      'tag' => 'Undangan tidak aktif',
-                    ]];
-                  }
-
-                  $membership = $inviteMemberships->get($room->id);
-                  $status = (string) ($membership->membership_status ?? '');
-
-                  if ($status === \App\Models\GroupChatMember::STATUS_INVITED) {
-                    return [$token => [
-                      'actionable' => true,
-                      'tag' => 'Buka Undangan Grup',
-                    ]];
-                  }
-
-                  if ($status === \App\Models\GroupChatMember::STATUS_ACTIVE) {
-                    return [$token => [
-                      'actionable' => false,
-                      'tag' => 'Sudah bergabung',
-                    ]];
-                  }
-
-                  return [$token => [
-                    'actionable' => false,
-                    'tag' => 'Undangan tidak dapat dipakai',
-                  ]];
-                });
-              }
+              $notifItems = Auth::user()
+                  ->notifikasi()
+                  ->where('status', 'belum')
+                  ->latest()
+                  ->get();
 
               $jadwalItems = \App\Models\JadwalKonseling::where('mahasiswa_id', $mahasiswaId)
                 ->get(['id', 'tanggal', 'waktu', 'jenis']);
@@ -2480,7 +2176,7 @@ footer a:hover {
                 return [$approvedMessage => $jadwalItem];
               });
 
-              $notifItems = $notifItems->map(function ($notif) use ($jadwalById, $jadwalByApprovedMessage, $chatGuardBlocked, $nextOnlineChatSchedule, $groupInviteStates) {
+              $notifItems = $notifItems->map(function ($notif) use ($jadwalById, $jadwalByApprovedMessage, $chatGuardBlocked, $nextOnlineChatSchedule) {
                 $pesan = $notif->pesan;
                 $notif->cta_target = $notif->cta_target ?: route('riwayat');
                 $notif->cta_label = $notif->cta_label ?: null;
@@ -2490,28 +2186,11 @@ footer a:hover {
                 $notif->prompt_cta = null;
                 $notif->prompt_note = null;
                 $notif->prompt_locked = false;
-                $notif->group_invite_token = null;
-                $notif->group_invite_room_title = null;
-                $notif->group_invite_inviter = 'Konselor';
-                $notif->group_invite_actionable = true;
-                $notif->group_invite_tag = 'Buka Undangan Grup';
+                // comment: Notifikasi undangan grup privat dipertahankan sebagai CTA langsung ke halaman consent grup.
                 $notif->is_group_invite = filled($notif->cta_target) && str_contains((string) $notif->cta_target, '/group-chat/undangan/');
                 if ($notif->is_group_invite) {
-                  if (preg_match('~/group-chat/undangan/([^/?#]+)~', (string) $notif->cta_target, $inviteMatch)) {
-                    $notif->group_invite_token = $inviteMatch[1];
-                  }
-                  if (preg_match('/grup\s+"([^"]+)"/iu', (string) $pesan, $roomMatch)) {
-                    $notif->group_invite_room_title = trim((string) $roomMatch[1]);
-                  }
-
-                  $inviteState = $groupInviteStates->get($notif->group_invite_token, [
-                    'actionable' => true,
-                    'tag' => 'Buka Undangan Grup',
-                  ]);
-
-                  $notif->group_invite_actionable = (bool) ($inviteState['actionable'] ?? false);
-                  $notif->group_invite_tag = (string) ($inviteState['tag'] ?? 'Buka Undangan Grup');
-                  $notif->cta_label = $notif->group_invite_tag;
+                  // comment: Label notifikasi lama dinormalisasi agar undangan grup privat selalu tampil konsisten.
+                  $notif->cta_label = 'Buka Undangan Grup';
                 }
                 $notifText = strtolower((string) $pesan);
                 $matchedApprovedJadwal = $jadwalByApprovedMessage->get($pesan);
@@ -2528,19 +2207,38 @@ footer a:hover {
                       $notif->pesan = 'Konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.';
 
                       if ($jenisKonseling === 'online') {
-                        $isLockedBySchedule = $dateTime ? ! $jadwal->hasScheduledTimeStarted() : true;
-                        $notif->cta_target = route('mahasiswa.chat.start', ['jadwal_id' => $jadwal->id]);
-                        $notif->is_letter_prompt = true;
-                        $notif->prompt_locked = $isLockedBySchedule;
-                        $notif->prompt_title = $isLockedBySchedule ? 'Sesi Belum Dimulai' : 'Undangan Sesi Konseling';
-                        $notif->prompt_message = $isLockedBySchedule
-                          ? 'Sesi konseling online Anda sudah disetujui. Ruang chat baru bisa diakses pada ' . $tanggalWaktu . '.'
-                          : 'Halo, terima kasih sudah sampai di tahap ini. Sesi ini bukan ruang untuk menilai, tapi tempat aman untuk bercerita. Kalau sudah siap, mari mulai sesi konseling bersama konselor.';
-                        $notif->prompt_cta = $isLockedBySchedule ? 'Menunggu Jadwal Sesi' : 'Mulai Sesi Konseling';
-                        $notif->prompt_note = $isLockedBySchedule
-                          ? 'Sesi ini akan dimulai pada ' . $tanggalWaktu . '.'
-                          : 'Saat siap, Anda bisa langsung masuk ke ruang chat konseling.';
-                      }
+                        $nowJakarta = \Carbon\Carbon::now('Asia/Jakarta');
+
+                        $isLockedBySchedule = $dateTime
+                            ? $nowJakarta->lt($dateTime)
+                            : true;
+
+                        $isExpiredBySchedule = $dateTime
+                            ? $nowJakarta->gte($dateTime->copy()->addHours(24))
+                            : false;
+
+                        if ($isExpiredBySchedule) {
+                            // Jika sesi sudah lewat 24 jam, jangan tampilkan "Buka Undangan".
+                            // Notifikasi hanya menjadi notifikasi biasa yang mengarah ke halaman chat.
+                            $notif->cta_target = route('mahasiswa.chat', ['jadwal_id' => $jadwal->id]);
+                            $notif->cta_label = null;
+                            $notif->is_letter_prompt = false;
+                            $notif->prompt_locked = false;
+                        } else {
+                            // Jika sesi belum lewat 24 jam, undangan masih boleh tampil.
+                            $notif->cta_target = route('mahasiswa.chat.start', ['jadwal_id' => $jadwal->id]);
+                            $notif->is_letter_prompt = true;
+                            $notif->prompt_locked = $isLockedBySchedule;
+                            $notif->prompt_title = $isLockedBySchedule ? 'Sesi Belum Dimulai' : 'Undangan Sesi Konseling';
+                            $notif->prompt_message = $isLockedBySchedule
+                                ? 'Sesi konseling online Anda sudah disetujui. Ruang chat baru bisa diakses pada ' . $tanggalWaktu . '.'
+                                : 'Halo, terima kasih sudah sampai di tahap ini. Sesi ini bukan ruang untuk menilai, tapi tempat aman untuk bercerita. Kalau sudah siap, mari mulai sesi konseling bersama konselor.';
+                            $notif->prompt_cta = $isLockedBySchedule ? 'Menunggu Jadwal Sesi' : 'Mulai Sesi Konseling';
+                            $notif->prompt_note = $isLockedBySchedule
+                                ? 'Sesi ini akan dimulai pada ' . $tanggalWaktu . '.'
+                                : 'Saat siap, Anda bisa langsung masuk ke ruang chat konseling.';
+                        }
+                    }
                     } elseif (str_contains(strtolower($pesan), 'menunggu persetujuan konselor')) {
                       $notif->pesan = 'Pengajuan konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' berhasil dibuat dan menunggu persetujuan konselor.';
                     }
@@ -2563,7 +2261,25 @@ footer a:hover {
                     $matchedTanggalWaktu = trim($matches[1]);
                   }
 
-                  $isLockedBySpecificSchedule = $matchedApprovedJadwal ? ! $matchedApprovedJadwal->hasScheduledTimeStarted() : $chatGuardBlocked;
+                  $nowJakarta = \Carbon\Carbon::now('Asia/Jakarta');
+
+                  $isLockedBySpecificSchedule = $matchedApprovedJadwal
+                      ? ! $matchedApprovedJadwal->hasScheduledTimeStarted()
+                      : $chatGuardBlocked;
+
+                  $isExpiredBySpecificSchedule = $matchedApprovedJadwal && $matchedDateTime
+                      ? $nowJakarta->gte($matchedDateTime->copy()->addHours(24))
+                      : false;
+
+                  if ($isExpiredBySpecificSchedule) {
+                      $notif->cta_target = route('mahasiswa.chat', ['jadwal_id' => $matchedApprovedJadwal->id]);
+                      $notif->cta_label = null;
+                      $notif->is_letter_prompt = false;
+                      $notif->prompt_locked = false;
+
+                      return $notif;
+                  }
+
                   $notif->cta_target = route('mahasiswa.chat.start', ['jadwal_id' => $matchedApprovedJadwal?->id]);
                   $notif->is_letter_prompt = true;
                   $notif->prompt_locked = $isLockedBySpecificSchedule;
@@ -2658,7 +2374,8 @@ footer a:hover {
               @if(!empty($notif->is_letter_prompt))
               <button
                 type="button"
-                class="notif-item notif-item-trigger"
+                class="notif-item notif-item-trigger notif-readable"
+                data-read-url="{{ route('notifikasi.baca', $notif->id) }}"
                 data-letter-title="{{ $notif->prompt_title }}"
                 data-letter-message="{{ $notif->prompt_message }}"
                 data-letter-cta="{{ $notif->prompt_cta }}"
@@ -2670,22 +2387,12 @@ footer a:hover {
                 <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
                 <span class="notif-tag"><i class="bi bi-envelope-paper-heart"></i> Buka Undangan</span>
               </button>
-              @elseif(!empty($notif->is_group_invite) && !empty($notif->group_invite_token))
-              <button
-                type="button"
-                class="notif-item notif-group-invite-trigger {{ empty($notif->group_invite_actionable) ? 'is-disabled' : '' }}"
-                data-group-invite-token="{{ $notif->group_invite_token }}"
-                data-group-invite-title="{{ $notif->group_invite_room_title ?: 'Grup Privat' }}"
-                data-group-invite-message="{{ $notif->pesan }}"
-                data-group-invite-inviter="{{ $notif->group_invite_inviter }}"
-                {{ empty($notif->group_invite_actionable) ? 'disabled' : '' }}
-              >
-                <p>{{ $notif->pesan }}</p>
-                <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
-                <span class="notif-tag"><i class="bi bi-people"></i> {{ $notif->group_invite_tag ?: ($notif->cta_label ?: 'Buka Undangan Grup') }}</span>
-              </button>
               @else
-              <a href="{{ $notif->cta_target ?? route('riwayat') }}" class="notif-item">
+              <a
+                href="{{ $notif->cta_target ?? route('riwayat') }}"
+                class="notif-item notif-readable"
+                data-read-url="{{ route('notifikasi.baca', $notif->id) }}"
+              >
                 <p>{{ $notif->pesan }}</p>
                 <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
                 @if(!empty($notif->cta_label))
@@ -2916,78 +2623,6 @@ footer a:hover {
   </div>
 </div>
 
-<div class="group-invite-modal" id="groupInviteModal" aria-hidden="true">
-  <div class="group-invite-backdrop" data-group-invite-close></div>
-  <div class="group-invite-dialog" role="dialog" aria-modal="true" aria-labelledby="groupInviteModalTitle">
-    <div class="group-invite-head">
-      <div class="group-invite-kicker">
-        <i class="bi bi-shield-check"></i>
-        <span>Persetujuan Grup</span>
-      </div>
-      <h3 id="groupInviteModalTitle">Undangan ke grup privat</h3>
-      <p id="groupInviteModalDescription">Pastikan Anda memahami identitas yang tampil, tujuan grup, dan aturan komunikasi sebelum bergabung.</p>
-      <button type="button" class="group-invite-close" data-group-invite-close aria-label="Tutup">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-    <div class="group-invite-body">
-      <form action="{{ route('mahasiswa.group-chat.join') }}" method="POST" id="groupInviteConsentForm" class="group-invite-form">
-        @csrf
-        <input type="hidden" name="invite_token" id="groupInviteTokenInput" value="">
-        <input type="hidden" name="consent_acknowledged" value="1">
-
-        <div class="group-invite-grid">
-          <div class="group-invite-panel">
-            <h4>Informasi Undangan</h4>
-            <div class="group-invite-meta">
-              <div class="group-invite-meta-item">
-                <span class="group-invite-meta-label">Nama Grup</span>
-                <strong id="groupInviteRoomName">Grup Privat</strong>
-              </div>
-              <div class="group-invite-meta-item">
-                <span class="group-invite-meta-label">Pengundang</span>
-                <strong id="groupInviteInviter">Konselor</strong>
-              </div>
-              <div class="group-invite-meta-item">
-                <span class="group-invite-meta-label">Visibilitas identitas</span>
-                <strong>Nama asli Anda tampil di grup privat.</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="group-invite-panel">
-            <h4>Aturan Sebelum Bergabung</h4>
-            <ul class="group-invite-rules">
-              <li>Gunakan grup ini untuk diskusi yang relevan dengan tujuan konseling.</li>
-              <li>Jangan spam atau mengirim pesan yang mengganggu anggota lain.</li>
-              <li>Gunakan bahasa yang sopan, tanpa kata-kata kasar atau menghina.</li>
-              <li>Jaga privasi isi percakapan dan identitas anggota grup.</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="group-invite-check">
-          <input type="checkbox" id="groupInviteConsentCheckbox" required>
-          <label for="groupInviteConsentCheckbox">
-            Saya memahami bahwa grup privat ini akan menampilkan nama asli saya kepada anggota grup dan konselor, dan saya setuju untuk bergabung.
-          </label>
-        </div>
-
-        <div class="group-invite-actions">
-          <button type="submit" class="group-invite-submit" id="groupInviteSubmitBtn" disabled>
-            <i class="bi bi-check2-circle"></i>
-            <span>Setuju dan Gabung Grup</span>
-          </button>
-          <button type="button" class="group-invite-cancel" data-group-invite-close>
-            <i class="bi bi-arrow-left"></i>
-            <span>Tutup</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 <div class="page-in">@yield('konten')</div>
 
 <!-- FOOTER -->
@@ -2995,37 +2630,80 @@ footer a:hover {
   <div class="container">
     <div class="row g-4">
       <div class="col-lg-4">
-        <div class="footer-brand-txt mb-2"><i class="bi bi-heart-pulse-fill me-2" style="color:var(--accent)"></i>Campus Care</div>
-        <p style="font-size:.86rem;line-height:1.75;margin-bottom:1.5rem">Platform Bimbingan dan Konseling digital IT Del — mendukung kesehatan mental mahasiswa dengan layanan profesional, aman, dan mudah diakses.</p>
+        <div class="footer-brand d-flex align-items-center gap-3 mb-3">
+          <img
+            src="{{ asset('img/logo.png') }}"
+            alt="Campus Care"
+            class="footer-logo-img"
+          >
+
+          <div>
+            <div class="footer-brand-txt">Campus Care</div>
+            <div class="footer-brand-subtitle">IT DEL - MENTAL HEALTH</div>
+          </div>
+        </div>
+
+        <p style="font-size:.86rem;line-height:1.75;margin-bottom:1.5rem">
+          Campus Care merupakan platform layanan bimbingan dan konseling digital
+          Institut Teknologi Del yang membantu mahasiswa mengakses layanan
+          konseling, edukasi kesehatan mental, chat konseling, serta riwayat
+          layanan secara aman dan terarah.
+        </p>
+
         <div class="footer-social">
-          <a href="#"><i class="bi bi-instagram"></i></a>
-          <a href="#"><i class="bi bi-whatsapp"></i></a>
-          <a href="#"><i class="bi bi-youtube"></i></a>
-          <a href="#"><i class="bi bi-envelope-fill"></i></a>
+          <a href="#" aria-label="Instagram Campus Care"><i class="bi bi-instagram"></i></a>
+          <a href="#" aria-label="WhatsApp Campus Care"><i class="bi bi-whatsapp"></i></a>
+          <a href="#" aria-label="YouTube Campus Care"><i class="bi bi-youtube"></i></a>
+          <a href="mailto:bk@del.ac.id" aria-label="Email Campus Care"><i class="bi bi-envelope-fill"></i></a>
         </div>
       </div>
+
       <div class="col-6 col-lg-2">
         <h6>Navigasi</h6>
-        <a href="/">Beranda</a>
-        <a href="/edukasi-mental">Edukasi Mental</a>
-        <a href="/konseling">Konseling</a>
+        <a href="{{ url('/') }}">Beranda</a>
+        <a href="{{ url('/edukasi-mental') }}">Ruang Edukasi</a>
+        <a href="{{ url('/konseling') }}">Konseling</a>
+        <a href="{{ url('/riwayat') }}">Riwayat Konseling</a>
       </div>
+
       <div class="col-6 col-lg-3">
-        <h6>Layanan</h6>
-        <a href="/konseling">Konseling</a>
+        <h6>Fitur Layanan</h6>
+        <a href="{{ url('/konseling') }}">Penjadwalan Konseling</a>
+        <a href="{{ url('/chat') }}">Chat Konseling</a>
+        <a href="{{ url('/group-chat') }}">Grup Chat</a>
+        <a href="{{ url('/edukasi-mental') }}">Edukasi Kesehatan Mental</a>
+        <a href="{{ url('/riwayat') }}">Detail Riwayat Konseling</a>
       </div>
-        <div class="col-lg-3">
+
+      <div class="col-lg-3">
         <h6>Kontak</h6>
-        <a href="mailto:bk@del.ac.id"><i class="bi bi-envelope me-2"></i>bk@del.ac.id</a>
-        <a href="#"><i class="bi bi-telephone me-2"></i>(0623) 95102</a>
-        <a href="#"><i class="bi bi-geo-alt me-2"></i>Sitoluama, Laguboti, Toba</a>
+        <a href="mailto:bk@del.ac.id">
+          <i class="bi bi-envelope me-2"></i>bk@del.ac.id
+        </a>
+
+        <a href="#">
+          <i class="bi bi-telephone me-2"></i>+62 822-8318-4190
+        </a>
+
+        <a href="#">
+          <i class="bi bi-geo-alt me-2"></i>
+          Gedung 5 Lt. 2, antara GD 525 & GD 526, Institut Teknologi Del
+        </a>
+
         <div class="mt-3 p-3" style="background:rgba(255,255,255,.07);border-radius:10px;">
-          <div style="color:rgba(255,255,255,.4);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">Jam Operasional</div>
-          <div style="color:rgba(255,255,255,.8);font-size:.82rem;">Senin – Jumat: 08.00 – 17.00</div>
+          <div style="color:rgba(255,255,255,.4);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">
+            Jam Operasional
+          </div>
+          <div style="color:rgba(255,255,255,.8);font-size:.82rem;">
+            Senin - Jumat: 08.00 - 16.00
+          </div>
         </div>
       </div>
     </div>
-    <div class="footer-copy">© 2024 Campus Care Connect · Institut Teknologi Del — Pengembangan Digital Mental Health Intervention</div>
+
+    <div class="footer-copy">
+      © 2024 Campus Care · Institut Teknologi Del — Digital Mental Health Intervention
+    </div>
   </div>
 </footer>
 
@@ -3043,86 +2721,98 @@ document.addEventListener('click',(e)=>{
   }
 });
 
-document.addEventListener('click', (e) => {
-  if (document.getElementById('notifDropdownBtn')?.contains(e.target)) {
-    return;
-  }
-
-  document.querySelectorAll('.notif-dropdown.show').forEach((menu) => {
-    menu.classList.remove('show');
-  });
-
-  document.getElementById('notifDropdownBtn')?.setAttribute('aria-expanded', 'false');
-});
-
 const notifDropdownBtn = document.getElementById('notifDropdownBtn');
+const notifDropdownMenu = notifDropdownBtn?.parentElement?.querySelector('.notif-dropdown');
 const notifBadge = document.getElementById('notifBadge');
-let notifMarkedRead = false;
-let notifMarkingInFlight = false;
 
-const markNotificationsRead = async () => {
-  if (notifMarkedRead || notifMarkingInFlight || !notifBadge || notifBadge.classList.contains('d-none')) {
-    return;
-  }
+function closeNotifDropdown() {
+  notifDropdownMenu?.classList.remove('show');
+  notifDropdownBtn?.setAttribute('aria-expanded', 'false');
+}
 
-  notifMarkingInFlight = true;
-
-  try {
-    const response = await fetch("{{ route('notifikasi.baca') }}", {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      notifMarkingInFlight = false;
-      return;
-    }
-
-    notifMarkedRead = true;
-    notifBadge.classList.add('d-none');
-    notifBadge.textContent = '0';
-  } catch (error) {
-    notifMarkingInFlight = false;
-    return;
-  }
-
-  notifMarkingInFlight = false;
-};
-
-if (notifDropdownBtn) {
-  notifDropdownBtn.addEventListener('click', async (event) => {
+if (notifDropdownBtn && notifDropdownMenu) {
+  notifDropdownBtn.addEventListener('click', function (event) {
     event.preventDefault();
     event.stopPropagation();
 
-    const notifDropdownMenu = notifDropdownBtn.parentElement?.querySelector('.notif-dropdown');
-    if (!notifDropdownMenu) return;
-
     const isOpen = notifDropdownMenu.classList.contains('show');
-    document.querySelectorAll('.notif-dropdown.show').forEach((menu) => menu.classList.remove('show'));
+
+    document.querySelectorAll('.notif-dropdown.show').forEach(function (menu) {
+      if (menu !== notifDropdownMenu) {
+        menu.classList.remove('show');
+      }
+    });
 
     notifDropdownMenu.classList.toggle('show', !isOpen);
     notifDropdownBtn.setAttribute('aria-expanded', String(!isOpen));
+  });
 
-    if (!isOpen) {
-      await markNotificationsRead();
+  notifDropdownMenu.addEventListener('click', function (event) {
+    event.stopPropagation();
+  });
+
+  document.addEventListener('click', function (event) {
+    if (
+      !notifDropdownBtn.contains(event.target) &&
+      !notifDropdownMenu.contains(event.target)
+    ) {
+      closeNotifDropdown();
     }
   });
 }
 
+function decreaseNotifBadge() {
+  if (!notifBadge || notifBadge.classList.contains('d-none')) {
+    return;
+  }
+
+  const text = notifBadge.textContent.trim();
+  let count = text === '9+' ? 10 : parseInt(text, 10);
+
+  if (Number.isNaN(count)) {
+    return;
+  }
+
+  count -= 1;
+
+  if (count <= 0) {
+    notifBadge.textContent = '0';
+    notifBadge.classList.add('d-none');
+  } else {
+    notifBadge.textContent = count > 9 ? '9+' : count;
+  }
+}
+
+function markNotifAsRead(item) {
+  const readUrl = item.dataset.readUrl;
+
+  if (!readUrl || item.dataset.reading === '1') {
+    return Promise.resolve();
+  }
+
+  item.dataset.reading = '1';
+
+  return fetch(readUrl, {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Accept': 'application/json',
+    },
+  }).then(function (response) {
+    if (response.ok) {
+      decreaseNotifBadge();
+      item.remove();
+    } else {
+      item.dataset.reading = '0';
+    }
+  }).catch(function (error) {
+    console.error('Gagal menandai notifikasi sebagai dibaca:', error);
+    item.dataset.reading = '0';
+  });
+}
+
 const letterModal = document.getElementById('letterModal');
-const groupInviteModal = document.getElementById('groupInviteModal');
-const groupInviteConsentForm = document.getElementById('groupInviteConsentForm');
-const groupInviteTokenInput = document.getElementById('groupInviteTokenInput');
-const groupInviteRoomName = document.getElementById('groupInviteRoomName');
-const groupInviteMessage = document.getElementById('groupInviteMessage');
-const groupInviteInviter = document.getElementById('groupInviteInviter');
-const groupInviteModalTitle = document.getElementById('groupInviteModalTitle');
-const groupInviteConsentCheckbox = document.getElementById('groupInviteConsentCheckbox');
-const groupInviteSubmitBtn = document.getElementById('groupInviteSubmitBtn');
 const letterEnvelope = document.getElementById('letterEnvelope');
 const envelopeStage = letterModal?.querySelector('.envelope-stage');
 const letterSpeechActions = document.getElementById('letterSpeechActions');
@@ -3148,10 +2838,7 @@ let envelopeSurpriseTimer = null;
 let envelopeGreetingTimer = null;
 
 const syncBodyScrollLock = () => {
-  const hasOpenModal =
-    letterModal?.classList.contains('show')
-    || scheduleGuardModal?.classList.contains('show')
-    || groupInviteModal?.classList.contains('show');
+  const hasOpenModal = letterModal?.classList.contains('show') || scheduleGuardModal?.classList.contains('show');
   document.body.style.overflow = hasOpenModal ? 'hidden' : '';
 };
 
@@ -3476,54 +3163,6 @@ const closeScheduleGuardModal = () => {
   syncBodyScrollLock();
 };
 
-const syncGroupInviteSubmitState = () => {
-  if (!groupInviteSubmitBtn || !groupInviteConsentCheckbox) {
-    return;
-  }
-
-  groupInviteSubmitBtn.disabled = !groupInviteConsentCheckbox.checked;
-};
-
-const closeGroupInviteModal = () => {
-  if (!groupInviteModal) {
-    return;
-  }
-
-  groupInviteModal.classList.remove('show');
-  groupInviteModal.setAttribute('aria-hidden', 'true');
-  if (groupInviteConsentCheckbox) {
-    groupInviteConsentCheckbox.checked = false;
-  }
-  syncGroupInviteSubmitState();
-  syncBodyScrollLock();
-};
-
-const openGroupInviteModal = ({ token, title, message, inviter }) => {
-  if (!groupInviteModal || !groupInviteTokenInput || !groupInviteConsentForm) {
-    return;
-  }
-
-  groupInviteTokenInput.value = token || '';
-  if (groupInviteRoomName) {
-    groupInviteRoomName.textContent = title || 'Grup Privat';
-  }
-  if (groupInviteModalTitle) {
-    groupInviteModalTitle.textContent = `Undangan ke grup privat "${title || 'Grup Privat'}"`;
-  }
-  if (groupInviteInviter) {
-    groupInviteInviter.textContent = inviter || 'Konselor';
-  }
-  if (groupInviteConsentCheckbox) {
-    groupInviteConsentCheckbox.checked = false;
-  }
-  syncGroupInviteSubmitState();
-  groupInviteModal.classList.add('show');
-  groupInviteModal.setAttribute('aria-hidden', 'false');
-  closeLetterModal();
-  closeScheduleGuardModal();
-  syncBodyScrollLock();
-};
-
 if (letterEnvelope) {
   const revealLetter = () => {
     if (!envelopeStage || !letterModal) {
@@ -3629,6 +3268,8 @@ document.querySelectorAll('[data-letter-close]').forEach((element) => {
 
 document.querySelectorAll('.notif-item-trigger').forEach((button) => {
   button.addEventListener('click', () => {
+    markNotifAsRead(button);
+
     openLetterModal({
       title: button.dataset.letterTitle || 'Undangan Sesi Konseling',
       message: button.dataset.letterMessage || 'Saat Anda siap, mari mulai sesi konseling.',
@@ -3640,13 +3281,16 @@ document.querySelectorAll('.notif-item-trigger').forEach((button) => {
   });
 });
 
-document.querySelectorAll('.notif-group-invite-trigger').forEach((button) => {
-  button.addEventListener('click', () => {
-    openGroupInviteModal({
-      token: button.dataset.groupInviteToken || '',
-      title: button.dataset.groupInviteTitle || 'Grup Privat',
-      message: button.dataset.groupInviteMessage || 'Undangan grup privat tersedia untuk Anda.',
-      inviter: button.dataset.groupInviteInviter || 'Konselor',
+document.querySelectorAll('a.notif-readable').forEach((item) => {
+  item.addEventListener('click', function (event) {
+    const targetUrl = item.getAttribute('href');
+
+    event.preventDefault();
+
+    markNotifAsRead(item).finally(() => {
+      if (targetUrl && targetUrl !== '#') {
+        window.location.href = targetUrl;
+      }
     });
   });
 });
@@ -3665,24 +3309,13 @@ document.querySelectorAll('[data-schedule-guard-close]').forEach((element) => {
   element.addEventListener('click', closeScheduleGuardModal);
 });
 
-document.querySelectorAll('[data-group-invite-close]').forEach((element) => {
-  element.addEventListener('click', closeGroupInviteModal);
-});
-
-groupInviteConsentCheckbox?.addEventListener('change', syncGroupInviteSubmitState);
-syncGroupInviteSubmitState();
-
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     closeLetterModal();
     closeScheduleGuardModal();
-    closeGroupInviteModal();
   }
 });
 
-</script>
-@stack('scripts')
-<script>
 document.addEventListener('DOMContentLoaded', function () {
     const toggleButton = document.getElementById('mobileMenuToggle');
     const navMain = document.getElementById('navMain');
@@ -3711,5 +3344,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+@stack('scripts')
 </body>
 </html>

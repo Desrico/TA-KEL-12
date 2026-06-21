@@ -377,6 +377,125 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* ── Custom Date Picker ── */
+    .custom-datepicker { position: relative; }
+
+    .cdp-input {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: 52px;
+        padding: .8rem 1rem;
+        border: 1px solid #dfe6e1;
+        border-radius: 16px;
+        background: #fff;
+        color: #111827;
+        font-size: .92rem;
+        cursor: pointer;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .cdp-input:hover { border-color: #0f766e; }
+    .cdp-input.open {
+        border-color: #0f766e;
+        box-shadow: 0 0 0 .2rem rgba(15,118,110,.08);
+    }
+
+    .cdp-icon { color: #6b7280; font-size: 1.1rem; }
+
+    .cdp-calendar {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 9999;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        box-shadow: 0 8px 30px rgba(15,23,42,.13);
+        padding: .9rem 1rem 1rem;
+        width: 290px;
+        animation: popFade .18s ease both;
+    }
+
+    .cdp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: .7rem;
+    }
+
+    .cdp-month-label {
+        font-weight: 700;
+        font-size: .93rem;
+        color: #111827;
+    }
+
+    .cdp-nav {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #6b7280;
+        font-size: 1rem;
+        padding: .1rem .3rem;
+        border-radius: 6px;
+    }
+    .cdp-nav:hover { background: #f3f4f3; color: #111827; }
+
+    .cdp-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-size: .78rem;
+        font-weight: 700;
+        color: #6b7280;
+        margin-bottom: .35rem;
+    }
+
+    .cdp-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+
+    .cdp-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: .84rem;
+        cursor: pointer;
+        color: #111827;
+        transition: background .12s ease;
+    }
+
+    .cdp-day:hover:not(.disabled):not(.other-month) { background: #ecfdf5; color: #047857; }
+    .cdp-day.today { font-weight: 800; }
+    .cdp-day.selected { background: #1b4332; color: #fff; font-weight: 700; }
+    .cdp-day.selected:hover { background: #066847; }
+
+    .cdp-day.disabled {
+        color: #d1d5db;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .cdp-day.other-month { color: #d1d5db; }
+    .cdp-day.other-month.disabled { color: #e5e7eb; }
+
+    .cdp-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: .7rem;
+        font-size: .82rem;
+    }
+
+    .cdp-clear { background: none; border: none; color: #6b7280; cursor: pointer; padding: 0; }
+    .cdp-clear:hover { color: #111827; }
+    .cdp-today { background: none; border: none; color: #0f766e; font-weight: 700; cursor: pointer; padding: 0; }
+    .cdp-today:hover { color: #065f46; }
 </style>
 @endpush
 
@@ -399,11 +518,12 @@
         : '-';
 
     $layanan = ucfirst($jadwal->jenis ?? 'Online');
+
     $topik = $jadwal->topik
-    ?? $jadwal->topik_konseling
-    ?? $jadwal->ringkasan_masalah
-    ?? $jadwal->catatan
-    ?? null;
+        ?? $jadwal->topik_konseling
+        ?? $jadwal->ringkasan_masalah
+        ?? $jadwal->catatan
+        ?? null;
 
     $status = strtolower($jadwal->status ?? 'menunggu');
 
@@ -418,10 +538,20 @@
 
     $modeLihat = isset($sudahAdaLaporan) && $sudahAdaLaporan;
 
-    $tanggalTindakLanjut = old('tanggal_tindak_lanjut');
+    $minTanggalTindakLanjut = now('Asia/Jakarta')->toDateString();
 
-    if (!$tanggalTindakLanjut && !empty($jadwal->tanggal_lanjut)) {
-        $tanggalTindakLanjut = $jadwal->tanggal_lanjut;
+    $tanggalTindakLanjut = old('tanggal_tindak_lanjut', $jadwal->tanggal_lanjut ?? '');
+
+    if (!empty($tanggalTindakLanjut)) {
+        try {
+            $tanggalTindakLanjut = \Carbon\Carbon::parse($tanggalTindakLanjut)->format('Y-m-d');
+
+            if ($tanggalTindakLanjut < $minTanggalTindakLanjut) {
+                $tanggalTindakLanjut = '';
+            }
+        } catch (\Exception $e) {
+            $tanggalTindakLanjut = '';
+        }
     }
 
     $ringkasanMasalah = old('catatan');
@@ -429,6 +559,14 @@
     if ($ringkasanMasalah === null) {
         $ringkasanMasalah = $modeLihat
             ? ($jadwal->ringkasan_masalah ?? $jadwal->catatan ?? '')
+            : '';
+    }
+
+    $observasiKonselor = old('observasi_konselor');
+
+    if ($observasiKonselor === null) {
+        $observasiKonselor = $modeLihat
+            ? ($jadwal->observasi_konselor ?? '')
             : '';
     }
 @endphp
@@ -515,7 +653,7 @@
             </div>
 
             <div class="form-laporan">
-                <form id="formLaporan" action="{{ route('admin.laporan.laporan.store', $jadwal->id) }}" method="POST">
+                <form id="formLaporan" action="{{ route('admin.laporan.laporan.store', $jadwal->id) }}" method="POST" novalidate>
                     @csrf
 
                     <div class="form-block">
@@ -536,6 +674,23 @@
                     </div>
 
                     <div class="form-block">
+                    <label class="form-label" for="observasi_konselor">
+                        <i class="ti ti-eye"></i>
+                        Observasi Konselor
+                    </label>
+
+                    <textarea
+                        id="observasi_konselor"
+                        name="observasi_konselor"
+                        class="form-textarea"
+                        rows="5"
+                        placeholder="Catatan observasi dari hasil konseling..."
+                        @disabled($modeLihat)
+                        required
+                    >{{ $observasiKonselor }}</textarea>
+                </div>
+
+                    <div class="form-block">
                         <label class="form-label">
                             <i class="ti ti-progress"></i>
                             Progress Mahasiswa
@@ -544,7 +699,7 @@
                         <div class="option-list">
                             <label class="option-item">
                                 <input
-                                    type="checkbox"
+                                    type="radio"
                                     name="progress"
                                     value="Membaik"
                                     @disabled($modeLihat)
@@ -555,7 +710,7 @@
 
                             <label class="option-item">
                                 <input
-                                    type="checkbox"
+                                    type="radio"
                                     name="progress"
                                     value="Memburuk"
                                     @disabled($modeLihat)
@@ -588,7 +743,7 @@
                     </div>
 
                     <div class="form-block" id="tanggal_tindak_lanjut_wrap" style="display: none;">
-                        <label class="form-label" for="tanggal_tindak_lanjut">
+                        <label class="form-label">
                             <i class="ti ti-calendar"></i>
                             Pilih Tanggal
                         </label>
@@ -599,17 +754,47 @@
                             class="form-control"
                             name="tanggal_tindak_lanjut"
                             value="{{ $tanggalTindakLanjut }}"
+                            min="{{ $minTanggalTindakLanjut }}"
+                            onkeydown="return false"
+                            onpaste="return false"
                             @disabled($modeLihat)
                         >
+                        @if(!$modeLihat)
+                        {{-- Custom date picker --}}
+                        <div class="custom-datepicker" id="customDatepicker">
+                            <div class="cdp-input" id="cdpInput" onclick="toggleCdpCalendar()">
+                                <span id="cdpDisplay">mm/dd/yyyy</span>
+                                <i class="ti ti-calendar-event cdp-icon"></i>
+                            </div>
+                            <div class="cdp-calendar" id="cdpCalendar" style="display:none;">
+                                <div class="cdp-header">
+                                    <button type="button" class="cdp-nav" onclick="cdpChangeMonth(-1)">&#8593;</button>
+                                    <span class="cdp-month-label" id="cdpMonthLabel"></span>
+                                    <button type="button" class="cdp-nav" onclick="cdpChangeMonth(1)">&#8595;</button>
+                                </div>
+                                <div class="cdp-weekdays">
+                                    <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                                </div>
+                                <div class="cdp-days" id="cdpDays"></div>
+                                <div class="cdp-footer">
+                                    <button type="button" class="cdp-clear" onclick="cdpClear()">Clear</button>
+                                    <button type="button" class="cdp-today" onclick="cdpGoToday()">Today</button>
+                                </div>
+                            </div>
+                        </div>
+                        @else
+                        <div class="form-control" style="background:#f3f4f3;color:#6b7280;cursor:not-allowed;">
+                            {{ $tanggalTindakLanjut ? \Carbon\Carbon::parse($tanggalTindakLanjut)->format('m/d/Y') : 'Tidak ada' }}
+                        </div>
+                        @endif
                     </div>
                     @if(!$modeLihat)
                         <div class="form-footer">
-                            <button type="button" class="submit-btn" onclick="openConfirmLaporanModal()">
+                            <button type="button" class="submit-btn" onclick="validateAndOpenLaporanModal()">
                                 Simpan Laporan
                             </button>
                         </div>
                     @else
-                        <!-- MODIFIED: Fix button kembali untuk direct ke detail laporan mahasiswa, bukan ke daftar laporan -->
                         <div class="finish-wrap">
                             <a href="{{ route('admin.laporan.mahasiswa', $jadwal->mahasiswa_id) }}" class="submit-btn finish-btn">
                                 Kembali
@@ -640,6 +825,24 @@
     </div>
 </div>
 
+<div class="confirm-overlay" id="validationLaporanModal">
+    <div class="confirm-box">
+        <div class="confirm-icon">!</div>
+
+        <h3>Data Belum Lengkap</h3>
+
+        <p id="validationLaporanMessage">
+            Mohon lengkapi data laporan terlebih dahulu.
+        </p>
+
+        <div class="confirm-actions">
+            <button type="button" class="btn-confirm" onclick="closeValidationLaporanModal()">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
 @if(session('success'))
 <div class="success-overlay show" id="successLaporanModal">
     <div class="success-box">
@@ -651,78 +854,165 @@
         <p>{{ session('success') }}</p>
 
         <button type="button" class="btn-success-ok" onclick="closeSuccessLaporanModal()">
-            Mengerti
+            OK
         </button>
     </div>
 </div>
 @endif
-@endsection
-
-@push('scripts')
 <script>
+function showValidationLaporanModal(message) {
+    const modal = document.getElementById('validationLaporanModal');
+    const messageElement = document.getElementById('validationLaporanMessage');
+
+    if (!modal || !messageElement) {
+        alert(message);
+        return;
+    }
+
+    messageElement.textContent = message;
+    document.body.appendChild(modal);
+    modal.classList.add('show');
+}
+
+function closeValidationLaporanModal() {
+    const modal = document.getElementById('validationLaporanModal');
+
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+function validateAndOpenLaporanModal() {
+    const ringkasanInput = document.getElementById('catatan');
+    const observasiInput = document.getElementById('observasi_konselor');
+    const progressInput = document.querySelector('input[name="progress"]:checked');
+    const tindakLanjutInput = document.getElementById('tindak_lanjut');
+    const tanggalInput = document.getElementById('tanggal_tindak_lanjut');
+
+    const minTanggal = @json($minTanggalTindakLanjut);
+
+    const ringkasan = ringkasanInput ? ringkasanInput.value.trim() : '';
+    const observasi = observasiInput ? observasiInput.value.trim() : '';
+
+    if (!ringkasan) {
+        showValidationLaporanModal('Ringkasan masalah wajib diisi sebelum laporan dapat disimpan.');
+        return;
+    }
+
+    if (!observasi) {
+        showValidationLaporanModal('Observasi konselor wajib diisi sebelum laporan dapat disimpan.');
+        return;
+    }
+
+    if (!progressInput) {
+        showValidationLaporanModal('Silakan pilih progress mahasiswa sebelum menyimpan laporan.');
+        return;
+    }
+
+    if (tindakLanjutInput && tindakLanjutInput.checked) {
+        if (!tanggalInput || !tanggalInput.value) {
+            showValidationLaporanModal('Silakan pilih tanggal tindak lanjut sebelum menyimpan laporan.');
+            return;
+        }
+
+        if (tanggalInput.value < minTanggal) {
+            tanggalInput.value = '';
+            showValidationLaporanModal('Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.');
+            return;
+        }
+    }
+
+    openConfirmLaporanModal();
+}
+
 function openConfirmLaporanModal() {
     const modal = document.getElementById('confirmLaporanModal');
+
+    if (!modal) {
+        return;
+    }
+
     document.body.appendChild(modal);
     modal.classList.add('show');
 }
 
 function closeConfirmLaporanModal() {
-    document.getElementById('confirmLaporanModal').classList.remove('show');
+    const modal = document.getElementById('confirmLaporanModal');
+
+    if (modal) {
+        modal.classList.remove('show');
+    }
 }
 
 function submitLaporan() {
+    const form = document.getElementById('formLaporan');
+
+    if (!form) {
+        return;
+    }
+
     closeConfirmLaporanModal();
-    document.getElementById('formLaporan').submit();
+    form.submit();
 }
 
 function closeSuccessLaporanModal() {
-    document.getElementById('successLaporanModal').classList.remove('show');
+    const modal = document.getElementById('successLaporanModal');
+
+    if (modal) {
+        modal.classList.remove('show');
+    }
+
     window.location.href = "{{ route('admin.laporan') }}";
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const isModeLihat = @json($modeLihat);
-    const progressCheckboxes = document.querySelectorAll('input[name="progress"]');
-    const tindakLanjutCheckbox = document.getElementById('tindak_lanjut');
+    const minTanggal = @json($minTanggalTindakLanjut);
     const tanggalInput = document.getElementById('tanggal_tindak_lanjut');
+    const tindakLanjutInput = document.getElementById('tindak_lanjut');
+    const tanggalWrap = document.getElementById('tanggal_tindak_lanjut_wrap');
 
-    progressCheckboxes.forEach(function (checkbox) {
-        checkbox.addEventListener('change', function () {
-            if (!this.checked) {
-                return;
+    if (tanggalInput) {
+        tanggalInput.setAttribute('min', minTanggal);
+
+        if (tanggalInput.value && tanggalInput.value < minTanggal) {
+            tanggalInput.value = '';
+        }
+
+        tanggalInput.addEventListener('input', function () {
+            if (this.value && this.value < minTanggal) {
+                this.value = '';
+                showValidationLaporanModal('Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.');
             }
-
-            progressCheckboxes.forEach(function (otherCheckbox) {
-                if (otherCheckbox !== checkbox) {
-                    otherCheckbox.checked = false;
-                }
-            });
         });
-    });
 
-   const tanggalWrap = document.getElementById('tanggal_tindak_lanjut_wrap');
+        tanggalInput.addEventListener('change', function () {
+            if (this.value && this.value < minTanggal) {
+                this.value = '';
+                showValidationLaporanModal('Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.');
+            }
+        });
+    }
 
-    if (tindakLanjutCheckbox && tanggalInput && tanggalWrap) {
+    if (tindakLanjutInput && tanggalInput && tanggalWrap) {
         const syncTanggalState = function () {
-            if (tindakLanjutCheckbox.checked) {
+            if (tindakLanjutInput.checked) {
                 tanggalWrap.style.display = 'block';
-                tanggalInput.disabled = isModeLihat;
+                tanggalInput.disabled = false;
+                tanggalInput.setAttribute('min', minTanggal);
+
+                if (tanggalInput.value && tanggalInput.value < minTanggal) {
+                    tanggalInput.value = '';
+                }
             } else {
                 tanggalWrap.style.display = 'none';
                 tanggalInput.disabled = true;
-
-                if (!isModeLihat) {
-                    tanggalInput.value = '';
-                }
+                tanggalInput.value = '';
             }
         };
 
         syncTanggalState();
-
-        if (!isModeLihat) {
-            tindakLanjutCheckbox.addEventListener('change', syncTanggalState);
-        }
+        tindakLanjutInput.addEventListener('change', syncTanggalState);
     }
 });
 </script>
-@endpush
+@endsection

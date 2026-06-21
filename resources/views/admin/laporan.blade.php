@@ -653,6 +653,22 @@
     $tanggalLanjutLabel = isset($jadwal) && $jadwal->tanggal_lanjut
         ? \Carbon\Carbon::parse($jadwal->tanggal_lanjut)->translatedFormat('d M Y')
         : '-';
+
+    $minTanggalLanjut = now('Asia/Jakarta')->toDateString();
+
+    $tanggalLanjutValue = old('tanggal_lanjut', $jadwal->tanggal_lanjut ?? '');
+
+    if (!empty($tanggalLanjutValue)) {
+        try {
+            $tanggalLanjutValue = \Carbon\Carbon::parse($tanggalLanjutValue)->format('Y-m-d');
+
+            if ($tanggalLanjutValue < $minTanggalLanjut) {
+                $tanggalLanjutValue = '';
+            }
+        } catch (\Exception $e) {
+            $tanggalLanjutValue = '';
+        }
+    }
 @endphp
 
 @if($isDetailForm)
@@ -781,8 +797,15 @@
                 @else
                     <div class="date-picker-group" id="datePickerGroup" style="display: none;">
                         <span class="date-picker-label">Pilih Tanggal</span>
-                        <input type="date" id="tanggal_lanjut" name="tanggal_lanjut" 
-                            value="{{ old('tanggal_lanjut', $jadwal->tanggal_lanjut ?? '') }}">
+                       <input
+                            type="date"
+                            id="tanggal_lanjut"
+                            name="tanggal_lanjut"
+                            value="{{ $tanggalLanjutValue }}"
+                            min="{{ $minTanggalLanjut }}"
+                            onkeydown="return false"
+                            onpaste="return false"
+                        >
                     </div>
                 @endif
             </div>
@@ -815,84 +838,203 @@
                 </div>
             </div>
         </div>
+
+        <div class="confirm-overlay" id="reportValidationModal" aria-hidden="true">
+    <div class="confirm-box" role="dialog" aria-modal="true">
+        <div class="confirm-icon">!</div>
+
+        <h3>Data Belum Lengkap</h3>
+
+        <p id="reportValidationMessage">
+            Mohon lengkapi data laporan terlebih dahulu.
+        </p>
+
+        <div class="confirm-actions">
+            <button type="button" class="btn-confirm" onclick="closeReportValidationModal()">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
     @endunless
 
     @unless($isReadOnly)
-    <script>
-        (function() {
-            const perluLanjutCheckbox = document.getElementById('perlu_lanjut');
-            const datePickerGroup = document.getElementById('datePickerGroup');
-            const tanggalLanjutInput = document.getElementById('tanggal_lanjut');
-            const progressRadios = document.querySelectorAll('input[name="progress"]');
-            const laporanForm = document.getElementById('laporanForm');
-            const reportConfirmModal = document.getElementById('reportConfirmModal');
+<script>
+    (function() {
+        const perluLanjutCheckbox = document.getElementById('perlu_lanjut');
+        const datePickerGroup = document.getElementById('datePickerGroup');
+        const tanggalLanjutInput = document.getElementById('tanggal_lanjut');
+        const laporanForm = document.getElementById('laporanForm');
+        const reportConfirmModal = document.getElementById('reportConfirmModal');
+        const reportValidationModal = document.getElementById('reportValidationModal');
+        const reportValidationMessage = document.getElementById('reportValidationMessage');
 
-            function updateDatePickerVisibility() {
-                if (perluLanjutCheckbox && perluLanjutCheckbox.checked) {
-                    datePickerGroup.style.display = 'flex';
-                    if (tanggalLanjutInput) tanggalLanjutInput.required = true;
-                } else {
-                    datePickerGroup.style.display = 'none';
-                    if (tanggalLanjutInput) tanggalLanjutInput.required = false;
+        const minTanggalLanjut = @json($minTanggalLanjut);
+
+        function showReportValidationModal(message) {
+            if (!reportValidationModal || !reportValidationMessage) {
+                alert(message);
+                return;
+            }
+
+            reportValidationMessage.textContent = message;
+            reportValidationModal.classList.add('show');
+            reportValidationModal.setAttribute('aria-hidden', 'false');
+        }
+
+        window.closeReportValidationModal = function() {
+            if (reportValidationModal) {
+                reportValidationModal.classList.remove('show');
+                reportValidationModal.setAttribute('aria-hidden', 'true');
+            }
+        };
+
+       function validateLaporanForm() {
+    const ringkasanInput = document.querySelector('textarea[name="ringkasan_masalah"]');
+    const progressInput = document.querySelector('input[name="progress"]:checked');
+
+    const ringkasan = ringkasanInput ? ringkasanInput.value.trim() : '';
+
+    if (!ringkasan) {
+        showReportValidationModal('Ringkasan masalah wajib diisi sebelum laporan dapat disimpan.');
+        setTimeout(() => ringkasanInput?.focus(), 200);
+        return false;
+    }
+
+    if (!progressInput) {
+        showReportValidationModal('Silakan pilih progress mahasiswa sebelum menyimpan laporan.');
+        return false;
+    }
+
+    if (perluLanjutCheckbox && perluLanjutCheckbox.checked) {
+        const tanggal = tanggalLanjutInput ? tanggalLanjutInput.value : '';
+
+        if (!tanggal) {
+            showReportValidationModal('Silakan pilih tanggal tindak lanjut sebelum menyimpan laporan.');
+            setTimeout(() => tanggalLanjutInput?.focus(), 200);
+            return false;
+        }
+
+        if (tanggal < minTanggalLanjut) {
+            if (tanggalLanjutInput) {
+                tanggalLanjutInput.value = '';
+            }
+
+            showReportValidationModal('Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.');
+            setTimeout(() => tanggalLanjutInput?.focus(), 200);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+        function updateDatePickerVisibility() {
+            if (!datePickerGroup || !tanggalLanjutInput) {
+                return;
+            }
+
+            if (perluLanjutCheckbox && perluLanjutCheckbox.checked) {
+                datePickerGroup.style.display = 'flex';
+                tanggalLanjutInput.disabled = false;
+                tanggalLanjutInput.required = true;
+                tanggalLanjutInput.setAttribute('min', minTanggalLanjut);
+
+                if (tanggalLanjutInput.value && tanggalLanjutInput.value < minTanggalLanjut) {
+                    tanggalLanjutInput.value = '';
                 }
+            } else {
+                datePickerGroup.style.display = 'none';
+                tanggalLanjutInput.required = false;
+                tanggalLanjutInput.disabled = true;
+                tanggalLanjutInput.value = '';
+            }
+        }
+
+        if (tanggalLanjutInput) {
+            tanggalLanjutInput.setAttribute('min', minTanggalLanjut);
+
+            if (tanggalLanjutInput.value && tanggalLanjutInput.value < minTanggalLanjut) {
+                tanggalLanjutInput.value = '';
             }
 
-            if (perluLanjutCheckbox) {
-                perluLanjutCheckbox.addEventListener('change', updateDatePickerVisibility);
-            }
-
-            progressRadios.forEach(radio => {
-                radio.addEventListener('pointerdown', function() {
-                    this.dataset.wasChecked = this.checked ? '1' : '0';
-                });
-
-                radio.addEventListener('click', function() {
-                    if (this.dataset.wasChecked === '1') {
-                        this.checked = false;
-                    }
-                    updateDatePickerVisibility();
-                });
+            tanggalLanjutInput.addEventListener('change', function() {
+                if (this.value && this.value < minTanggalLanjut) {
+                    this.value = '';
+                    showReportValidationModal('Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.');
+                }
             });
 
-            window.openReportConfirmModal = function() {
-                if (reportConfirmModal) {
-                    reportConfirmModal.classList.add('show');
-                    reportConfirmModal.setAttribute('aria-hidden', 'false');
+            tanggalLanjutInput.addEventListener('input', function() {
+                if (this.value && this.value < minTanggalLanjut) {
+                    this.value = '';
+                    showReportValidationModal('Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.');
                 }
-            };
+            });
+        }
 
-            window.closeReportConfirmModal = function() {
-                if (reportConfirmModal) {
-                    reportConfirmModal.classList.remove('show');
-                    reportConfirmModal.setAttribute('aria-hidden', 'true');
-                }
-            };
+        if (perluLanjutCheckbox) {
+            perluLanjutCheckbox.addEventListener('change', updateDatePickerVisibility);
+        }
 
-            window.confirmSaveLaporan = function() {
-                window.closeReportConfirmModal();
-                if (laporanForm) {
-                    laporanForm.submit();
-                }
-            };
-
-            if (reportConfirmModal) {
-                reportConfirmModal.addEventListener('click', function(event) {
-                    if (event.target === reportConfirmModal) {
-                        window.closeReportConfirmModal();
-                    }
-                });
+        window.openReportConfirmModal = function() {
+            if (!validateLaporanForm()) {
+                return;
             }
 
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape') {
+            if (reportConfirmModal) {
+                reportConfirmModal.classList.add('show');
+                reportConfirmModal.setAttribute('aria-hidden', 'false');
+            }
+        };
+
+        window.closeReportConfirmModal = function() {
+            if (reportConfirmModal) {
+                reportConfirmModal.classList.remove('show');
+                reportConfirmModal.setAttribute('aria-hidden', 'true');
+            }
+        };
+
+        window.confirmSaveLaporan = function() {
+            if (!validateLaporanForm()) {
+                window.closeReportConfirmModal();
+                return;
+            }
+
+            window.closeReportConfirmModal();
+
+            if (laporanForm) {
+                laporanForm.submit();
+            }
+        };
+
+        if (reportConfirmModal) {
+            reportConfirmModal.addEventListener('click', function(event) {
+                if (event.target === reportConfirmModal) {
                     window.closeReportConfirmModal();
                 }
             });
+        }
 
-            updateDatePickerVisibility();
-        })();
-    </script>
-    @endunless
+        if (reportValidationModal) {
+            reportValidationModal.addEventListener('click', function(event) {
+                if (event.target === reportValidationModal) {
+                    window.closeReportValidationModal();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                window.closeReportConfirmModal();
+                window.closeReportValidationModal();
+            }
+        });
+
+        updateDatePickerVisibility();
+    })();
+</script>
+@endunless
 
 @else
     {{-- LIST VIEW --}}

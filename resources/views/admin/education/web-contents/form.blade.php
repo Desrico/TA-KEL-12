@@ -519,6 +519,63 @@
     cursor: not-allowed;
 }
 
+/* =========================
+   CAMPUS CARE POPUP
+========================= */
+
+.campus-alert-container,
+.swal2-container.campus-alert-container {
+    z-index: 999999 !important;
+}
+
+.campus-alert-popup {
+    width: 440px !important;
+    border-radius: 24px !important;
+    background: #065f46 !important;
+    color: #ffffff !important;
+    padding: 34px 30px 30px !important;
+    box-shadow: 0 28px 80px rgba(4, 120, 87, 0.35) !important;
+}
+
+.campus-alert-title {
+    color: #ffffff !important;
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    margin-top: 10px !important;
+}
+
+.campus-alert-content {
+    color: #ecfdf5 !important;
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+    margin-top: 8px !important;
+}
+
+.campus-alert-confirm {
+    border: none !important;
+    border-radius: 12px !important;
+    background: #fde68a !important;
+    color: #064e3b !important;
+    padding: 12px 30px !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    cursor: pointer !important;
+}
+
+.campus-alert-confirm:hover {
+    background: #fcd34d !important;
+}
+
+.campus-alert-popup .swal2-icon.swal2-warning {
+    border-color: #fde68a !important;
+    color: #fde68a !important;
+}
+
+.campus-alert-popup .swal2-icon.swal2-warning [class^='swal2-x-mark-line'],
+.campus-alert-popup .swal2-icon.swal2-warning [class*='swal2-x-mark-line'] {
+    background-color: #fde68a !important;
+}
+
     /* =========================
        RESPONSIVE
     ========================= */
@@ -626,6 +683,14 @@
                id="status"
                value="{{ old('status', $webContent->status ?? 0) }}">
 
+        @php
+            $selectedType = old('type', $webContent->type ?? 'Artikel');
+
+            if ($selectedType === 'materi_edukasi') {
+                $selectedType = 'Artikel';
+            }
+        @endphp
+
         {{-- Informasi Dasar --}}
         <div class="f-section">
             <div class="f-section-title">Informasi Dasar</div>
@@ -676,27 +741,18 @@
                     <div class="f-radio-simple-group">
                         <label class="f-radio-simple">
                             <input type="radio"
-                                   name="type"
-                                   value="Artikel"
-                                   {{ old('type', $webContent->type ?? 'Artikel') === 'Artikel' ? 'checked' : '' }}>
+                                name="type"
+                                value="Artikel"
+                                {{ $selectedType === 'Artikel' ? 'checked' : '' }}>
                             <span>Artikel</span>
                         </label>
 
                         <label class="f-radio-simple">
                             <input type="radio"
-                                   name="type"
-                                   value="Video"
-                                   {{ old('type', $webContent->type ?? '') === 'Video' ? 'checked' : '' }}>
-                            <span>Video</span>
-                        </label>
-                        <label class="f-radio-simple">
-                            <input
-                                type="radio"
                                 name="type"
-                                value="materi_edukasi"
-                                {{ old('type', $webContent->type ?? '') == 'materi_edukasi' ? 'checked' : '' }}
-                            >
-                            <span>Materi Edukasi</span>
+                                value="Video"
+                                {{ $selectedType === 'Video' ? 'checked' : '' }}>
+                            <span>Video</span>
                         </label>
                     </div>
 
@@ -707,19 +763,25 @@
             </div>
 
 <div class="f-group" id="materi-upload-group">
-    <label class="f-label" for="file_materi">Upload Materi Edukasi</label>
+    <label class="f-label" for="file_materi">Upload Materi PDF</label>
 
     <input
         id="file_materi"
         class="f-input"
         type="file"
         name="file_materi"
-        accept=".jpg,.jpeg,.png,.pdf"
+        accept=".pdf"
     >
 
     <div class="f-help">
-        Gunakan untuk mengunggah materi edukasi dalam bentuk JPG, PNG, atau PDF.
+        Opsional. Digunakan untuk mengunggah materi PDF pendukung pada konten artikel maupun video.
     </div>
+
+    @if(isset($webContent) && !empty($webContent->file_materi))
+        <div class="f-help">
+            File saat ini: {{ basename($webContent->file_materi) }}
+        </div>
+    @endif
 
     @error('file_materi')
         <div class="f-error">⚠ {{ $message }}</div>
@@ -738,7 +800,7 @@
            placeholder="https://youtube.com/... atau link artikel referensi">
 
     <div class="f-help">
-        Gunakan link YouTube/Vimeo jika konten berupa video, atau link artikel jika konten berupa artikel.
+        Untuk video, isi dengan link YouTube/Vimeo. Untuk artikel, dapat diisi dengan link referensi tambahan.
     </div>
 
     @error('source_url')
@@ -756,7 +818,7 @@
                            placeholder="https://contoh.com/gambar-cover.jpg">
 
                     <div class="f-help">
-                        Opsional. Untuk video YouTube boleh dikosongkan. Untuk artikel, isi dengan URL gambar cover.
+                        Opsional. Digunakan sebagai gambar cover artikel atau thumbnail video.
                     </div>
 
                     @error('thumbnail')
@@ -773,7 +835,6 @@
             <div class="f-section-title">Isi Konten</div>
 
             <div class="f-group">
-                <label class="f-label" for="excerpt">Deskripsi Singkat</label>
                 <textarea id="excerpt"
                           class="f-input f-textarea"
                           name="excerpt"
@@ -815,6 +876,26 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    function showCampusCarePopup(title, message, icon = 'warning') {
+    return Swal.fire({
+        title: title,
+        html: `<div>${message}</div>`,
+        icon: icon,
+        iconColor: icon === 'success' ? '#a7f3d0' : '#fde68a',
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        backdrop: true,
+        allowOutsideClick: false,
+        customClass: {
+            container: 'campus-alert-container',
+            popup: 'campus-alert-popup',
+            title: 'campus-alert-title',
+            htmlContainer: 'campus-alert-content',
+            confirmButton: 'campus-alert-confirm'
+        }
+    });
+}
+
     const statusInput = document.getElementById('status');
     const statusButtons = document.querySelectorAll('[data-status-submit]');
 
@@ -849,45 +930,46 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function toggleContentFields() {
-        const selectedType = document.querySelector('input[name="type"]:checked')?.value;
+    const selectedType = document.querySelector('input[name="type"]:checked')?.value;
 
-        if (selectedType === 'materi_edukasi') {
-            setDisabled(
-                sourceUrlInput,
-                true,
-                'Tidak digunakan untuk Materi Edukasi'
-            );
+    if (selectedType === 'Artikel') {
+        setDisabled(
+            sourceUrlInput,
+            false,
+            'https://... link artikel referensi'
+        );
 
-            setDisabled(
-                thumbnailInput,
-                true,
-                'Tidak digunakan untuk Materi Edukasi'
-            );
+        setDisabled(
+            thumbnailInput,
+            false,
+            'https://.../gambar-cover.jpg'
+        );
 
-            if (fileMateriInput) {
-                fileMateriInput.disabled = false;
-                fileMateriInput.classList.remove('is-disabled-field');
-            }
-        } else {
-            setDisabled(
-                sourceUrlInput,
-                false,
-                'https://youtube.com/... atau link artikel referensi'
-            );
-
-            setDisabled(
-                thumbnailInput,
-                false,
-                'https://.../thumbnail.jpg'
-            );
-
-            if (fileMateriInput) {
-                fileMateriInput.value = '';
-                fileMateriInput.disabled = true;
-                fileMateriInput.classList.add('is-disabled-field');
-            }
+        if (fileMateriInput) {
+            fileMateriInput.disabled = false;
+            fileMateriInput.classList.remove('is-disabled-field');
         }
     }
+
+    if (selectedType === 'Video') {
+        setDisabled(
+            sourceUrlInput,
+            false,
+            'https://youtube.com/... atau link video lainnya'
+        );
+
+        setDisabled(
+            thumbnailInput,
+            false,
+            'https://.../thumbnail.jpg'
+        );
+
+        if (fileMateriInput) {
+            fileMateriInput.disabled = false;
+            fileMateriInput.classList.remove('is-disabled-field');
+        }
+    }
+}
 
     typeRadios.forEach(radio => {
         radio.addEventListener('change', toggleContentFields);
@@ -914,13 +996,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
 
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Data Belum Lengkap!',
-                    text: `Mohon isi atau perbaiki bagian: ${fieldName}`,
-                    confirmButtonColor: '#059669',
-                    confirmButtonText: 'Baik, lengkapi'
-                });
+                showCampusCarePopup(
+                    'Data Belum Lengkap!',
+                    `Mohon isi atau perbaiki bagian: <b>${fieldName}</b>`,
+                    'warning'
+                );
 
                 firstInvalid.focus();
             }

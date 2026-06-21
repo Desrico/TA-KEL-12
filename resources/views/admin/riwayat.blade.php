@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Sesi Konseling')
+@section('page-title', 'Riwayat Konseling')
 
 @push('styles')
 <style>
@@ -41,7 +41,7 @@
         gap: 1rem;
         padding: 1.2rem 1.5rem 1.2rem;
         flex-wrap: wrap;
-        border-bottom: 1px solid #edf2ef;
+        border-bottom: none;
     }
 
     .sesi-search-wrap {
@@ -175,10 +175,9 @@
         min-width: 120px;
     }
 
-    .layanan-text,
-    .durasi-text {
-        white-space: nowrap;
-    }
+    .layanan-text {
+    white-space: nowrap;
+}
 
     .status-pill {
         display: inline-flex;
@@ -356,14 +355,14 @@
 @endphp
 <div class="sesi-card">
     <div class="sesi-head">
-        <h6>Daftar Sesi Konseling</h6>
-        <p>Kelola dan lihat detail semua sesi konseling yang telah dijadwalkan</p>
+        <h6>Daftar Riwayat Konseling</h6>
+            <p>Kelola dan lihat detail riwayat konseling mahasiswa yang telah dijadwalkan</p>
     </div>
 
     <div class="sesi-toolbar">
         <div></div>
 
-        <form class="sesi-search-wrap" id="sesiSearchForm" method="GET" action="{{ route('admin.sesi') }}">
+        <form class="sesi-search-wrap" id="sesiSearchForm" method="GET" action="{{ route('admin.riwayat') }}">
             <div class="sesi-search">
                 <i class="ti ti-search"></i>
                 <input
@@ -377,7 +376,7 @@
             </div>
             <button type="submit" class="sesi-filter-btn">Cari</button>
             @if($search !== '')
-                <a href="{{ route('admin.sesi') }}" class="sesi-filter-btn text-decoration-none">Reset</a>
+                <a href="{{ route('admin.riwayat') }}" class="sesi-filter-btn text-decoration-none">Reset</a>
             @endif
         </form>
     </div>
@@ -389,7 +388,6 @@
                     <th>Mahasiswa</th>
                     <th>Waktu</th>
                     <th>Layanan</th>
-                    <th>Durasi</th>
                     <th>Status</th>
                     <th style="text-align:center;">Aksi</th>
                 </tr>
@@ -429,7 +427,6 @@
                             : '-';
 
                         $layanan = 'Sesi ' . ucfirst($item->jenis ?? 'Online');
-                        $durasi = '60 Menit';
 
                         $statusRaw = strtolower($item->status ?? 'menunggu');
 
@@ -493,10 +490,6 @@
                         </td>
 
                         <td>
-                            <div class="durasi-text">{{ $durasi }}</div>
-                        </td>
-
-                        <td>
                             <span class="status-pill {{ $statusClass }}">
                                 {{ $statusLabel }}
                             </span>
@@ -504,14 +497,14 @@
 
                         <td style="text-align:center;">
                             <div class="action-stack">
-                                <a href="{{ route('admin.sesi.detail', $item->id) }}" class="btn-lihat">Lihat</a>
+                                <a href="{{ route('admin.riwayat.detail', $item->id) }}" class="btn-lihat">Lihat</a>
                             </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="empty-row">
-                            Belum ada data sesi konseling
+                        <td colspan="5" class="empty-row">
+                            Belum ada data riwayat konseling
                         </td>
                     </tr>
                 @endforelse
