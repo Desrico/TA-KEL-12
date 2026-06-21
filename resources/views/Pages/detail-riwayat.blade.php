@@ -894,7 +894,7 @@
                                     Lihat Riwayat Chat
                                 </a>
                             @else
-                                <a href="{{ route('mahasiswa.riwayat') }}" class="btn-detail-action">
+                                <a href="{{ route('riwayat') }}" class="btn-detail-action">
                                     Kembali ke Riwayat
                                 </a>
                             @endif

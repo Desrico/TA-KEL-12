@@ -149,7 +149,6 @@
 @endphp
 
 <div class="detail-card">
-    <div class="detail-title">Detail Riwayat Konseling</div>
 
     <div class="detail-section-title">Informasi Pribadi</div>
     <table class="detail-table">

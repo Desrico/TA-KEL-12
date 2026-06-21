@@ -769,6 +769,9 @@ class GroupChatMahasiswaController extends Controller
             'sender_name' => $message->user_id === $viewer->id
                 ? 'Anda'
                 : ($isCounselorMessage ? 'Konselor' : GroupChatSupport::resolveDisplayName($sender, $room, $membership)),
+            'anonymous_name' => $membership
+                ? GroupChatSupport::resolveDisplayName($sender, $room, $membership)
+                : null,
             'sender_role' => $sender?->role ?? 'pengguna',
             'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
             'avatar_initial' => $isCounselorMessage ? 'K' : null,

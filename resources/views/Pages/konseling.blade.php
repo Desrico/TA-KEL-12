@@ -1088,8 +1088,8 @@
             <div class="mode-panel-head">
               <span class="mode-badge"><i class="bi bi-wifi"></i> Online</span>
             </div>
-            <h2>Konseling Online</h2>
-            <p>Gunakan layanan ini bila kamu membutuhkan ruang bercerita yang tenang tanpa harus datang ke kampus. Kerahasiaan jadwal, topik, dan riwayat sesimu akan selalu terjaga.</p>
+            <h2>Jadwalkan Online</h2>
+            <p>Ajukan jadwal konseling online untuk berdiskusi dengan konselor melalui ruang chat. Setelah jadwal disetujui, Anda dapat mengikuti sesi konseling sesuai waktu yang telah dipilih.</p>
             <div class="mode-facts">
               <div class="mode-fact">
                 <i class="bi bi-clock"></i>
@@ -1116,8 +1116,8 @@
             <div class="mode-panel-head">
               <span class="mode-badge"><i class="bi bi-person-walking"></i> Offline</span>
             </div>
-            <h2>Konseling Offline</h2>
-            <p>Gunakan layanan ini bila kamu ingin bertemu langsung dengan konselor di kampus. Data yang disimpan adalah jenis offline, tanggal, waktu, dan topik.</p>
+            <h2>Jadwalkan Offline</h2>
+            <p>Ajukan jadwal konseling offline untuk bertemu langsung dengan konselor di kampus. Setelah jadwal disetujui, Anda dapat datang sesuai waktu dan lokasi yang telah ditentukan.</p>
             <div class="mode-facts">
               <div class="mode-fact">
                 <i class="bi bi-clock"></i>

@@ -74,9 +74,8 @@ class ChatAdminController extends Controller
 
         $isBlockedBySchedule = ! $this->canStartSessionNow($sesi);
         $isReadyToStart = ! $isBlockedBySchedule
-            && ($selectedJadwal->status ?? null) === 'disetujui'
+            && in_array(($selectedJadwal->status ?? null), ['diterima', 'disetujui'], true)
             && ! $this->isSessionActive($sesi);
-        // Grant chat access only when session is active and still within 24h window
         $chatAccessGranted = $this->isSessionActive($sesi) && $this->isChatWindowOpen($sesi);
         $canStartNow = $this->canStartSessionNow($sesi);
 
@@ -145,7 +144,7 @@ class ChatAdminController extends Controller
             return redirect()->route('admin.chat', ['jadwal' => $jadwal->id]);
         }
 
-        if (($jadwal->status ?? null) !== 'disetujui') {
+        if (! in_array(($jadwal->status ?? null), ['diterima', 'disetujui'], true)) {
             return redirect()
                 ->route('admin.chat', ['jadwal' => $jadwal->id])
                 ->with('error', 'Sesi belum siap dimulai.');
@@ -351,11 +350,11 @@ class ChatAdminController extends Controller
                     'sesiKonseling',
                 ])
                 ->where('konselor_id', $konselorId)
-                ->whereIn('status', ['disetujui', 'berlangsung', 'selesai'])
+                ->whereIn('status', ['diterima', 'disetujui', 'berlangsung', 'selesai'])
                 ->orderByRaw("
                     CASE
                         WHEN status = 'berlangsung' THEN 1
-                        WHEN status = 'disetujui' THEN 2
+                        WHEN status IN ('diterima', 'disetujui') THEN 2
                         WHEN status = 'selesai' THEN 3
                         ELSE 4
                     END
@@ -505,7 +504,7 @@ class ChatAdminController extends Controller
                     ->orWhere('anonim', false)
                     ->orWhere('anonim', 0);
             })
-            ->whereIn('status', ['disetujui', 'berlangsung', 'selesai'])
+            ->whereIn('status', ['diterima', 'disetujui', 'berlangsung', 'selesai'])
             ->orderBy('tanggal')
             ->orderBy('waktu')
             ->get();
@@ -558,7 +557,7 @@ class ChatAdminController extends Controller
             ])
             ->where('konselor_id', $konselorId)
             ->where('jenis', 'online')
-            ->whereIn('status', ['disetujui', 'berlangsung', 'selesai'])
+            ->whereIn('status', ['diterima', 'disetujui', 'berlangsung', 'selesai'])
             ->find($jadwalId);
     }
 
@@ -736,7 +735,7 @@ class ChatAdminController extends Controller
             return 0;
         }
 
-        if ($status === 'disetujui') {
+        if (in_array($status, ['diterima', 'disetujui'], true)) {
             return $jadwal->hasScheduledTimeStarted() ? 1 : 2;
         }
 
@@ -790,7 +789,7 @@ class ChatAdminController extends Controller
             ];
         }
 
-        if ($rawStatus === 'disetujui' || ($scheduledAt && $now->lessThan($scheduledAt))) {
+        if (in_array($rawStatus, ['diterima', 'disetujui'], true) || ($scheduledAt && $now->lessThan($scheduledAt))) {
             return [
                 'key' => 'disetujui',
                 'label' => 'Disetujui',
@@ -848,7 +847,7 @@ class ChatAdminController extends Controller
             ->where('mahasiswa_id', $jadwal->mahasiswa_id)
             ->where('konselor_id', $jadwal->konselor_id)
             ->where('jenis', 'online')
-            ->whereIn('status', ['disetujui', 'berlangsung', 'selesai'])
+            ->whereIn('status', ['diterima', 'disetujui', 'berlangsung', 'selesai'])
             ->orderBy('tanggal')
             ->orderBy('waktu')
             ->get();

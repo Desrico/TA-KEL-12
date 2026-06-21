@@ -1235,8 +1235,25 @@
       </div>
     @else
   @php
-      $canSendChat = $chatAccessGranted && !$isBlockedBySchedule && !$chatSelesai;
-  @endphp
+    $jadwalSudahDiterima = in_array($statusJadwal, [
+        'diterima',
+        'disetujui',
+        'berlangsung',
+        'selesai',
+    ], true);
+
+    $canSendChat = $chatAccessGranted && !$isBlockedBySchedule && !$chatSelesai;
+
+    if ($chatSelesai) {
+        $readonlyMessage = 'Sesi konseling sudah selesai. Riwayat chat tetap dapat dilihat, tetapi pesan baru tidak dapat dikirim.';
+    } elseif ($jadwalSudahDiterima && $isBlockedBySchedule) {
+        $readonlyMessage = 'Chat sudah dapat dilihat, tetapi pesan baru hanya dapat dikirim saat jadwal konseling sudah dimulai.';
+    } elseif ($jadwalSudahDiterima && !$chatAccessGranted) {
+        $readonlyMessage = 'Chat sudah dapat dilihat, tetapi pesan baru belum dapat dikirim karena sesi belum berada pada waktu yang aktif.';
+    } else {
+        $readonlyMessage = 'Pesan baru dapat dikirim setelah penjadwalan konseling diterima.';
+    }
+@endphp
 
   <div class="admin-chat-head">
     <div class="admin-chat-person">
@@ -1297,10 +1314,10 @@
           <div class="admin-chat-hint" id="adminChatHint"></div>
         @else
           <div class="admin-chat-readonly-box">
-            <i class="ti ti-lock"></i>
-            <span>
-              Pesan baru dapat dikirim setelah penjadwalan konseling diterima.
-            </span>
+              <i class="ti ti-lock"></i>
+              <span>
+                  {{ $readonlyMessage }}
+              </span>
           </div>
         @endif
       </div>

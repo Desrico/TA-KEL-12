@@ -503,19 +503,31 @@
 .campus-alert-container {
     z-index: 999999 !important;
 }
+
 .campus-alert-cancel {
-    border: 1px solid #d1fae5 !important;
+    border: 1px solid rgba(255, 255, 255, 0.45) !important;
     border-radius: 8px !important;
     background: transparent !important;
     color: #ffffff !important;
     padding: 10px 28px !important;
     font-weight: 800 !important;
     cursor: pointer !important;
-    margin-right: 10px !important;
 }
 
 .campus-alert-cancel:hover {
     background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.campus-alert-popup .swal2-actions {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 18px !important;
+    margin-top: 28px !important;
+}
+
+.campus-alert-confirm,
+.campus-alert-cancel {
+    min-width: 150px !important;
 }
   
 .modal-close {
@@ -826,7 +838,7 @@
             </div>
         </div>
 
-        <form id="unavailableForm" action="{{ route('konselor.ketidaktersediaan.store') }}" method="POST" class="modal-form">
+       <form id="unavailableForm" action="{{ route('konselor.ketidaktersediaan.store') }}" method="POST" onsubmit="submitUnavailableForm(event)">
             @csrf
 
             <div class="modal-grid">
@@ -1129,59 +1141,70 @@ document.getElementById('nextMonth').addEventListener('click', function () {
     calendar.next();
 });
 });
-  function submitUnavailableForm(event) {
-    if (event) {
-        event.preventDefault();
-    }
+   function submitUnavailableForm(event) {
+    event.preventDefault();
 
-    const tanggalInput = document.getElementById('tanggal_mulai');
-    const tanggalSelesaiInput = document.getElementById('tanggal_selesai');
-    const jamMulaiInput = document.getElementById('jam_mulai');
-    const jamSelesaiInput = document.getElementById('jam_selesai');
-    const alasanInput = document.getElementById('alasan');
-    const form = document.getElementById('unavailableForm');
+    const form = event.target;
 
-    const tanggal = tanggalInput?.value;
-    const dari = jamMulaiInput?.value;
-    const sampai = jamSelesaiInput?.value;
-    const alasan = alasanInput?.value.trim();
+    const tanggal = document.getElementById('tanggal_mulai')?.value;
+    const jamMulai = document.getElementById('jam_mulai')?.value;
+    const jamSelesai = document.getElementById('jam_selesai')?.value;
+    const alasan = document.getElementById('alasan')?.value.trim();
 
-    if (!tanggal || !dari || !sampai || !alasan) {
+    if (!tanggal || !jamMulai || !jamSelesai || !alasan) {
         showKetidaktersediaanWarning(
             'Data Belum Lengkap',
             'Tanggal, jam mulai, jam selesai, dan alasan wajib diisi.'
         );
-        return false;
+        return;
     }
 
-    if (isPastDate(tanggal)) {
-        tanggalInput.value = '';
-
-        if (tanggalSelesaiInput) {
-            tanggalSelesaiInput.value = '';
-        }
-
+    if (typeof isPastDate === 'function' && isPastDate(tanggal)) {
         showKetidaktersediaanWarning(
             'Tanggal Tidak Valid',
-            'Tanggal yang sudah lewat tidak dapat dipilih.'
+            'Tanggal ketidaktersediaan tidak boleh menggunakan tanggal yang sudah lewat.'
         );
-
-        return false;
+        return;
     }
 
-    if (sampai <= dari) {
+    if (jamSelesai <= jamMulai) {
         showKetidaktersediaanWarning(
-            'Jam Tidak Valid',
+            'Waktu Tidak Valid',
             'Jam selesai harus lebih besar dari jam mulai.'
         );
-        return false;
+        return;
     }
 
-    if (tanggalSelesaiInput) {
-        tanggalSelesaiInput.value = tanggal;
-    }
-
-    form.submit();
+    Swal.fire({
+        title: 'Konfirmasi Simpan',
+        html: `
+            <div class="ketidaktersediaan-popup-text">
+                Apakah Anda yakin ingin menyimpan data ketidaktersediaan konselor?
+            </div>
+        `,
+        icon: 'question',
+        iconColor: '#fde68a',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Simpan',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+        buttonsStyling: false,
+        target: document.body,
+        backdrop: true,
+        allowOutsideClick: false,
+        customClass: {
+            container: 'campus-alert-container',
+            popup: 'campus-alert-popup',
+            title: 'campus-alert-title',
+            htmlContainer: 'campus-alert-content',
+            confirmButton: 'campus-alert-confirm',
+            cancelButton: 'campus-alert-cancel'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
 }
 
 function closeUnavailableDetail() {

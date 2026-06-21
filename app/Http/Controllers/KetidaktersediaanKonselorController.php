@@ -225,7 +225,9 @@ private function tandaiJadwalTerdampak($konselorId, array $data)
                     ' pukul ' .
                     Carbon::parse($jadwal->waktu)->format('H:i') .
                     ' perlu dijadwalkan ulang karena konselor tidak tersedia.',
-                'status' => 'belum_dibaca',
+                'status' => 'belum',
+                'cta_target' => route('riwayat.detail', $jadwal->id),
+                'cta_label' => 'Lihat Riwayat',
             ]);
         }
     }

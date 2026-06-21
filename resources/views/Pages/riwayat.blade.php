@@ -145,12 +145,6 @@
                         </a>
                     @endfor
 
-                    @if(method_exists($riwayat,'hasMorePages') && $riwayat->hasMorePages())
-                        <a href="{{ $riwayat->nextPageUrl() }}" class="simple-next">
-                            >
-                        </a>
-                    @endif
-
                 </div>
             @endif
 
@@ -590,20 +584,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 28px;
-    margin-top: 32px;
+    gap: 16px;
+    margin-top: 24px;
 }
 
 .simple-page,
 .simple-next {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
     display: inline-flex;
     justify-content: center;
     align-items: center;
     color: #064E3B;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 800;
     text-decoration: none;
 }
@@ -611,6 +605,11 @@
 .simple-page.active {
     background: #064E3B;
     color: white;
+}
+
+.simple-next {
+    font-size: 24px;
+    line-height: 1;
 }
 
 .simple-next {

@@ -160,10 +160,17 @@ Route::prefix('admin')
         Route::post('/group-chat/grup', [GroupChatAdminController::class, 'createRoom'])->name('group-chat.rooms.store');
         Route::patch('/group-chat/grup/{group}', [GroupChatAdminController::class, 'renameRoom'])->name('group-chat.rooms.update');
         Route::post('/group-chat/grup/{group}/undang', [GroupChatAdminController::class, 'inviteMembers'])->name('group-chat.rooms.invite');
+        Route::post('/group-chat/grup/{group}/avatar', [GroupChatAdminController::class, 'updateRoomAvatar'])->name('group-chat.rooms.avatar');
+        Route::delete('/group-chat/grup/{group}', [GroupChatAdminController::class, 'deleteRoom'])->name('group-chat.rooms.destroy');
+        Route::delete('/group-chat/grup/{group}/members/{member}', [GroupChatAdminController::class, 'removeMember'])->name('group-chat.rooms.members.remove');
+        Route::get('/group-chat/members', [GroupChatAdminController::class, 'members'])->name('group-chat.members');
         Route::get('/group-chat/pesan', [GroupChatAdminController::class, 'messages'])->name('group-chat.messages');
         Route::post('/group-chat/pesan', [GroupChatAdminController::class, 'store'])->name('group-chat.store');
         Route::patch('/group-chat/pesan/{message}', [GroupChatAdminController::class, 'update'])->name('group-chat.update');
         Route::delete('/group-chat/pesan/{message}', [GroupChatAdminController::class, 'destroy'])->name('group-chat.destroy');
+
+        Route::get('/group-chat/members', [GroupChatAdminController::class, 'members'])->name('group-chat.members');
+        Route::post('/group-chat/grup/{group}/avatar', [GroupChatAdminController::class, 'updateRoomAvatar'])->name('group-chat.rooms.avatar');
 
         Route::get('/riwayat-konseling', [SesiKonselingController::class, 'index'])->name('riwayat');
         Route::get('/riwayat-konseling/{id}', [SesiKonselingController::class, 'detail'])->name('riwayat.detail');

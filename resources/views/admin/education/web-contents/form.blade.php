@@ -790,7 +790,7 @@
 
             <div class="f-row">
                 <div class="f-group">
-    <label class="f-label" for="source_url">Link Video / Referensi</label>
+    <label class="f-label" for="source_url">Link Sumber / Referensi</label>
 
     <input id="source_url"
            class="f-input @error('source_url') is-invalid @enderror"
@@ -800,7 +800,7 @@
            placeholder="https://youtube.com/... atau link artikel referensi">
 
     <div class="f-help">
-        Untuk video, isi dengan link YouTube/Vimeo. Untuk artikel, dapat diisi dengan link referensi tambahan.
+        Gunakan link video jika konten berupa video, atau link artikel jika konten berupa artikel.
     </div>
 
     @error('source_url')

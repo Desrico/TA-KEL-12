@@ -829,24 +829,24 @@
                     >
                   </div>
                   <div class="group-member-list" id="groupRoomMemberList">
-                    <div class="group-member-item" data-member-name="konselor">
-                      <div class="group-member-avatar-fallback">K</div>
-                      <div class="group-member-name">Konselor</div>
-                    </div>
+                      <div class="group-member-item" data-member-name="konselor">
+                          <div class="group-member-avatar-fallback">K</div>
+                          <div class="group-member-name">Konselor</div>
+                      </div>
 
-                    @foreach($chatPayload['memberProfiles'] as $memberProfile)
-                        @php
-                            $memberDisplayName = $formatAnonymousName($memberProfile['name'] ?? 'Anonim');
-                        @endphp
+                      @foreach($chatPayload['memberProfiles'] as $memberProfile)
+                          @php
+                              $memberDisplayName = $formatAnonymousName($memberProfile['name'] ?? 'Anonim');
+                          @endphp
 
-                        <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberDisplayName) }}">
-                            <div class="group-animal-avatar">
-                                {{ $animalIcon($memberDisplayName) }}
-                            </div>
+                          <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberDisplayName) }}">
+                              <div class="group-animal-avatar">
+                                  {{ $animalIcon($memberDisplayName) }}
+                              </div>
 
-                            <div class="group-member-name">{{ $memberDisplayName }}</div>
-                        </div>
-                    @endforeach
+                              <div class="group-member-name">{{ $memberDisplayName }}</div>
+                          </div>
+                      @endforeach
                   </div>
                   <div class="group-member-empty" id="groupRoomMemberEmpty">Anggota tidak ditemukan.</div>
                 </div>
@@ -884,121 +884,168 @@
 @push('scripts')
 <script>
 (() => {
-  const stage = document.getElementById('groupRoomStage');
-  const toggle = document.getElementById('groupRoomProfileToggle');
-  const profile = document.getElementById('groupRoomProfile');
-  const memberSearch = document.getElementById('groupRoomMemberSearchInput');
-  const memberList = document.getElementById('groupRoomMemberList');
-  const memberEmpty = document.getElementById('groupRoomMemberEmpty');
-  const memberProfiles = [
-  {
-    name: 'Konselor',
-    avatar_initial: 'K',
-    is_counselor: true,
-  },
-  ...@json($chatPayload['memberProfiles'])
-];
+    const stage = document.getElementById('groupRoomStage');
+    const toggle = document.getElementById('groupRoomProfileToggle');
+    const profile = document.getElementById('groupRoomProfile');
+    const memberSearch = document.getElementById('groupRoomMemberSearchInput');
+    const memberList = document.getElementById('groupRoomMemberList');
+    const memberEmpty = document.getElementById('groupRoomMemberEmpty');
 
-  if (!stage || !toggle || !profile || !memberList) {
-    return;
-  }
+    if (!stage || !toggle || !profile || !memberList) {
+        return;
+    }
 
-  const renderMembers = () => {
-    memberList.innerHTML = '';
+    const memberProfiles = [
+        {
+            name: 'Konselor',
+            avatar_initial: 'K',
+            is_counselor: true,
+        },
+        ...@json($chatPayload['memberProfiles'] ?? [])
+    ];
 
-    memberProfiles.forEach((member) => {
-  const item = document.createElement('div');
-  const avatar = document.createElement('div');
-  const label = document.createElement('div');
+    function formatAnonymousName(name) {
+        const cleanName = String(name || '').trim();
 
-  const name = member?.name || 'Mahasiswa Anonim';
+        if (!cleanName) {
+            return 'Anonim';
+        }
 
-  item.className = 'group-member-item';
-  item.dataset.memberName = String(name).toLowerCase();
+        if (cleanName.toLowerCase().includes('anonim')) {
+            return cleanName;
+        }
 
-  if (member?.is_counselor) {
-    avatar.className = 'group-member-avatar-fallback';
-    avatar.textContent = 'K';
-  } else {
-    const image = document.createElement('img');
-    const avatarUrl = member?.avatar_url || '{{ asset('img/default-avatar.png') }}';
+        return `${cleanName} Anonim`;
+    }
 
-    avatar.className = 'group-member-avatar';
+    function animalIcon(name) {
+        const value = String(name || '').toLowerCase();
 
-    image.src = avatarUrl;
-    image.alt = name;
-    image.onerror = function () {
-      this.src = '{{ asset('img/default-avatar.png') }}';
-    };
+        const icons = {
+            beruang: '🐻',
+            kucing: '🐱',
+            kelinci: '🐰',
+            rubah: '🦊',
+            panda: '🐼',
+            koala: '🐨',
+            harimau: '🐯',
+            singa: '🦁',
+            anjing: '🐶',
+            burung: '🐦',
+            kura: '🐢',
+            monyet: '🐵'
+        };
 
-    avatar.appendChild(image);
-  }
+        for (const key in icons) {
+            if (value.includes(key)) {
+                return icons[key];
+            }
+        }
 
-  label.className = 'group-member-name';
-  label.textContent = name;
+        return '👤';
+    }
 
-  item.appendChild(avatar);
-  item.appendChild(label);
-  memberList.appendChild(item);
-});
-  };
+    function renderMembers() {
+        memberList.innerHTML = '';
 
-  const syncMemberSearch = () => {
-    const keyword = (memberSearch?.value || '').trim().toLowerCase();
-    const items = Array.from(memberList.querySelectorAll('.group-member-item'));
-    let visibleCount = 0;
+        memberProfiles.forEach((member) => {
+            const item = document.createElement('div');
+            const avatar = document.createElement('div');
+            const label = document.createElement('div');
 
-    items.forEach((item) => {
-      const isMatch = !keyword || (item.dataset.memberName || '').includes(keyword);
-      item.style.display = isMatch ? '' : 'none';
+            const rawName = member?.name || 'Anonim';
+            const name = member?.is_counselor ? 'Konselor' : formatAnonymousName(rawName);
 
-      if (isMatch) {
-        visibleCount += 1;
-      }
+            item.className = 'group-member-item';
+            item.dataset.memberName = String(name).toLowerCase();
+
+            if (member?.is_counselor) {
+                avatar.className = 'group-member-avatar-fallback';
+                avatar.textContent = 'K';
+            } else {
+                avatar.className = 'group-animal-avatar';
+                avatar.textContent = animalIcon(name);
+            }
+
+            label.className = 'group-member-name';
+            label.textContent = name;
+
+            item.appendChild(avatar);
+            item.appendChild(label);
+            memberList.appendChild(item);
+        });
+    }
+
+    function syncMemberSearch() {
+        const keyword = (memberSearch?.value || '').trim().toLowerCase();
+        const items = Array.from(memberList.querySelectorAll('.group-member-item'));
+        let visibleCount = 0;
+
+        items.forEach((item) => {
+            const isMatch = !keyword || (item.dataset.memberName || '').includes(keyword);
+            item.style.display = isMatch ? '' : 'none';
+
+            if (isMatch) {
+                visibleCount += 1;
+            }
+        });
+
+        if (memberEmpty) {
+            memberEmpty.textContent = keyword ? 'Anggota tidak ditemukan.' : 'Belum ada anggota dalam grup ini.';
+            memberEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+    }
+
+    function syncDropdownState(isOpen) {
+        const label = isOpen ? 'Sembunyikan anggota grup' : 'Lihat anggota grup';
+
+        stage.classList.toggle('is-profile-open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        toggle.setAttribute('aria-label', label);
+        toggle.setAttribute('title', label);
+
+        const toggleText = toggle.querySelector('.group-room-toggle-text');
+        if (toggleText) {
+            toggleText.textContent = label;
+        }
+    }
+
+    toggle.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        renderMembers();
+        syncMemberSearch();
+
+        const willOpen = !stage.classList.contains('is-profile-open');
+        syncDropdownState(willOpen);
     });
 
-    if (memberEmpty) {
-      memberEmpty.textContent = keyword ? 'Anggota tidak ditemukan.' : 'Belum ada anggota dalam grup ini.';
-      memberEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
-  };
+    profile.addEventListener('click', function (event) {
+        event.stopPropagation();
+    });
 
-  const syncDropdownState = (isOpen) => {
-    // Sinkronkan label aksesibilitas saat dropdown anggota dibuka atau ditutup.
-    const label = isOpen ? 'Sembunyikan anggota grup' : 'Lihat anggota grup';
-    stage.classList.toggle('is-profile-open', isOpen);
-    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    toggle.setAttribute('aria-label', label);
-    toggle.setAttribute('title', label);
-    toggle.querySelector('.group-room-toggle-text').textContent = label;
-  };
+    memberSearch?.addEventListener('input', syncMemberSearch);
 
-  toggle.addEventListener('click', (event) => {
-    event.stopPropagation();
+    document.addEventListener('click', function (event) {
+        if (!stage.classList.contains('is-profile-open')) {
+            return;
+        }
+
+        if (toggle.contains(event.target) || profile.contains(event.target)) {
+            return;
+        }
+
+        syncDropdownState(false);
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            syncDropdownState(false);
+        }
+    });
+
     renderMembers();
-    syncMemberSearch();
-    syncDropdownState(!stage.classList.contains('is-profile-open'));
-  });
-
-  memberSearch?.addEventListener('input', syncMemberSearch);
-
-  document.addEventListener('click', (event) => {
-    if (!stage.classList.contains('is-profile-open')) {
-      return;
-    }
-
-    if (toggle.contains(event.target) || profile.contains(event.target)) {
-      return;
-    }
-
-    syncDropdownState(false);
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      syncDropdownState(false);
-    }
-  });
 })();
 </script>
 @endpush
@@ -1152,20 +1199,24 @@
     const senderRole = String(message.sender_role || '').toLowerCase();
 
 const isCounselorMessage = senderRole === 'konselor'
-  || senderRole === 'admin'
-  || message.is_counselor === true;
+    || senderRole === 'admin'
+    || message.is_counselor === true;
+
+const rawAnonymousName = message.anonymous_name
+    || message.sender_anonymous_name
+    || message.member_anonymous_name
+    || message.sender_name
+    || 'Anonim';
+
+const anonymousDisplayName = formatAnonymousName(rawAnonymousName);
 
 const displaySenderName = isCounselorMessage
-  ? 'Konselor'
-  : (message.sender_name || 'Mahasiswa Anonim');
+    ? 'Konselor'
+    : (isMine ? 'Anda' : anonymousDisplayName);
 
-const displayAvatarUrl = isCounselorMessage
-  ? null
-  : (message.avatar_url || '{{ asset('img/default-avatar.png') }}');
-
-const displayAvatarInitial = isCounselorMessage
-  ? 'K'
-  : String(displaySenderName || 'M').charAt(0).toUpperCase();
+const avatarHtml = isCounselorMessage
+    ? `<div class="group-message-avatar-fallback">K</div>`
+    : `<div class="group-animal-avatar">${animalIcon(anonymousDisplayName)}</div>`;
 
     ensureDateSeparator(dateParts.key, dateParts.label);
 
@@ -1175,33 +1226,20 @@ const displayAvatarInitial = isCounselorMessage
     row.dataset.messageEdited = message.is_edited ? '1' : '0';
 
     row.innerHTML = `
-      ${isMine ? '' : `
-        ${isCounselorMessage ? `
-  <div class="group-message-avatar-fallback">K</div>
-` : `
-  <div class="group-message-avatar">
-    <img src="${escapeHtml(displayAvatarUrl)}" alt="${escapeHtml(displaySenderName)}">
+  ${isMine ? '' : avatarHtml}
+
+  <div class="group-message-content">
+    <div class="group-message-meta">
+      <span class="group-message-name">${escapeHtml(displaySenderName)}</span>
+      <span>${escapeHtml(message.time)}</span>
+      ${message.is_edited ? '<span class="group-message-edited">telah diedit</span>' : ''}
+    </div>
+
+    <div class="group-message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
   </div>
-`}
-      `}
-      <div class="group-message-content">
-        <div class="group-message-meta">
-          <span class="group-message-name">${escapeHtml(displaySenderName)}</span>
-          <span>${escapeHtml(message.time)}</span>
-          ${message.is_edited ? '<span class="group-message-edited">telah diedit</span>' : ''}
-        </div>
-        <div class="group-message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
-      </div>
-      ${isMine ? `
-        ${isCounselorMessage ? `
-  <div class="group-message-avatar-fallback">K</div>
-` : `
-  <div class="group-message-avatar">
-    <img src="${escapeHtml(displayAvatarUrl)}" alt="${escapeHtml(displaySenderName)}">
-  </div>
-`}
-      ` : ''}
-    `;
+
+  ${isMine ? avatarHtml : ''}
+`;
 
     thread.appendChild(row);
   };

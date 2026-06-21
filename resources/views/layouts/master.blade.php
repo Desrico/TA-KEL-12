@@ -348,8 +348,9 @@
   }
 
   .notif-item.notif-read {
-    opacity: 0.6;
-}
+    opacity: 0.72;
+    background: #ffffff;
+  }
 
   .envelope-stage {
     position: relative;
@@ -2105,7 +2106,7 @@ footer a:hover {
                   continue;
                 }
 
-                $pesanBaru = 'Konseling ' . $jenisKonseling . ' pada ' . $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i') . ' telah disetujui oleh konselor.';
+                $pesanBaru = 'Penjadwalan ' . $jenisKonseling . ' pada ' . $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i') . ' telah disetujui oleh konselor.';
                 $pesanLama = [
                   'Booking #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.',
                   'Jadwal #' . $jadwal->id . ' pada ' . $jadwal->tanggal . ' pukul ' . $jadwal->waktu . ' telah disetujui oleh konselor.',
@@ -2151,29 +2152,37 @@ footer a:hover {
                 }
               }
 
-              $unreadNotif = Auth::user()->notifikasi()->where('status', 'belum')->count();
+              $unreadNotif = Auth::user()
+                ->notifikasi()
+                ->where('status', 'belum')
+                ->count();
 
               $notifItems = Auth::user()
                   ->notifikasi()
-                  ->where('status', 'belum')
                   ->latest()
+                  ->take(10)
                   ->get();
 
               $jadwalItems = \App\Models\JadwalKonseling::where('mahasiswa_id', $mahasiswaId)
                 ->get(['id', 'tanggal', 'waktu', 'jenis']);
 
               $jadwalById = $jadwalItems->keyBy('id');
-              $jadwalByApprovedMessage = $jadwalItems->mapWithKeys(function ($jadwalItem) {
-                $jenisKonseling = strtolower(trim((string) $jadwalItem->jenis)) === 'offline' ? 'offline' : 'online';
-                $dateTime = $jadwalItem->scheduledAt();
+              $jadwalByApprovedMessage = $jadwalItems->flatMap(function ($jadwalItem) {
+                  $jenisKonseling = strtolower(trim((string) $jadwalItem->jenis)) === 'offline' ? 'offline' : 'online';
+                  $dateTime = $jadwalItem->scheduledAt();
 
-                if (! $dateTime) {
-                  return [];
-                }
+                  if (! $dateTime) {
+                      return [];
+                  }
 
-                $approvedMessage = 'Konseling ' . $jenisKonseling . ' pada ' . $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i') . ' telah disetujui oleh konselor.';
+                  $tanggalWaktu = $dateTime->translatedFormat('j F Y') . ' pukul ' . $dateTime->format('H:i');
 
-                return [$approvedMessage => $jadwalItem];
+                  return [
+                      'Konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.' => $jadwalItem,
+                      'Penjadwalan ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.' => $jadwalItem,
+                      'konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.' => $jadwalItem,
+                      'penjadwalan ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.' => $jadwalItem,
+                  ];
               });
 
               $notifItems = $notifItems->map(function ($notif) use ($jadwalById, $jadwalByApprovedMessage, $chatGuardBlocked, $nextOnlineChatSchedule) {
@@ -2204,7 +2213,7 @@ footer a:hover {
                     $tanggalWaktu = $jadwal->scheduledStartLabel();
 
                     if (str_contains(strtolower($pesan), 'telah disetujui oleh konselor')) {
-                      $notif->pesan = 'Konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.';
+                      $notif->pesan = 'Penjadwalan ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' telah disetujui oleh konselor.';
 
                       if ($jenisKonseling === 'online') {
                         $nowJakarta = \Carbon\Carbon::now('Asia/Jakarta');
@@ -2240,14 +2249,17 @@ footer a:hover {
                         }
                     }
                     } elseif (str_contains(strtolower($pesan), 'menunggu persetujuan konselor')) {
-                      $notif->pesan = 'Pengajuan konseling ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' berhasil dibuat dan menunggu persetujuan konselor.';
+                      $notif->pesan = 'Pengajuan Penjadwalan ' . $jenisKonseling . ' pada ' . $tanggalWaktu . ' berhasil dibuat dan menunggu persetujuan konselor.';
                     }
                   }
                 }
 
                 if (
                   ! $notif->is_letter_prompt &&
-                  str_contains($notifText, 'konseling online') &&
+                  (
+                      str_contains($notifText, 'konseling online') ||
+                      str_contains($notifText, 'penjadwalan online')
+                  ) &&
                   str_contains($notifText, 'telah disetujui oleh konselor')
                 ) {
                   $matchedDateTime = null;
@@ -2256,26 +2268,54 @@ footer a:hover {
                   if ($matchedApprovedJadwal) {
                     $matchedDateTime = $matchedApprovedJadwal->scheduledAt();
                     $matchedTanggalWaktu = $matchedApprovedJadwal->scheduledStartLabel();
-                    $notif->pesan = 'Konseling online pada ' . $matchedTanggalWaktu . ' telah disetujui oleh konselor.';
-                  } elseif (preg_match('/Konseling\s+online\s+pada\s+(.+?)\s+telah\s+disetujui\s+oleh\s+konselor\./iu', $pesan, $matches)) {
+                    $notif->pesan = 'Penjadwalan online pada ' . $matchedTanggalWaktu . ' telah disetujui oleh konselor.';
+                  } elseif (preg_match('/(?:Konseling|Penjadwalan)\s+online\s+pada\s+(.+?)\s+telah\s+disetujui\s+oleh\s+konselor\./iu', $pesan, $matches)) {
                     $matchedTanggalWaktu = trim($matches[1]);
                   }
 
                   $nowJakarta = \Carbon\Carbon::now('Asia/Jakarta');
 
-                  $isLockedBySpecificSchedule = $matchedApprovedJadwal
-                      ? ! $matchedApprovedJadwal->hasScheduledTimeStarted()
-                      : $chatGuardBlocked;
+                  if (! $matchedApprovedJadwal || ! $matchedDateTime) {
+                      $notif->cta_label = null;
+                      $notif->is_letter_prompt = false;
+                      $notif->prompt_locked = false;
 
-                  $isExpiredBySpecificSchedule = $matchedApprovedJadwal && $matchedDateTime
-                      ? $nowJakarta->gte($matchedDateTime->copy()->addHours(24))
-                      : false;
+                      $notif->pesan = preg_replace(
+                          '/\bPengajuan\s+konseling\s+(online|offline)\b/i',
+                          'Pengajuan penjadwalan $1',
+                          $notif->pesan
+                      );
+
+                      $notif->pesan = preg_replace(
+                          '/\bKonseling\s+(online|offline)\b/i',
+                          'Penjadwalan $1',
+                          $notif->pesan
+                      );
+
+                      return $notif;
+                  }
+
+                  $isLockedBySpecificSchedule = ! $matchedApprovedJadwal->hasScheduledTimeStarted();
+
+                  $isExpiredBySpecificSchedule = $nowJakarta->gte($matchedDateTime->copy()->addHours(24));
 
                   if ($isExpiredBySpecificSchedule) {
                       $notif->cta_target = route('mahasiswa.chat', ['jadwal_id' => $matchedApprovedJadwal->id]);
                       $notif->cta_label = null;
                       $notif->is_letter_prompt = false;
                       $notif->prompt_locked = false;
+
+                    $notif->pesan = preg_replace(
+                        '/\bPengajuan\s+konseling\s+(online|offline)\b/i',
+                        'Pengajuan penjadwalan $1',
+                        $notif->pesan
+                    );
+
+                    $notif->pesan = preg_replace(
+                        '/\bKonseling\s+(online|offline)\b/i',
+                        'Penjadwalan $1',
+                        $notif->pesan
+                    );
 
                       return $notif;
                   }
@@ -2334,7 +2374,7 @@ footer a:hover {
         </li>
         <li class="nav-item">
           <a class="nav-link nav-link-custom {{ request()->is('konseling*') ? 'active' : '' }}" href="/konseling">
-            Konseling
+            Penjadwalan 
           </a>
         </li>
         @auth
@@ -2374,8 +2414,9 @@ footer a:hover {
               @if(!empty($notif->is_letter_prompt))
               <button
                 type="button"
-                class="notif-item notif-item-trigger notif-readable"
+                class="notif-item notif-readable notif-item-trigger {{ $notif->status === 'dibaca' ? 'notif-read' : 'notif-unread' }}"
                 data-read-url="{{ route('notifikasi.baca', $notif->id) }}"
+                data-read="{{ $notif->status === 'dibaca' ? '1' : '0' }}"
                 data-letter-title="{{ $notif->prompt_title }}"
                 data-letter-message="{{ $notif->prompt_message }}"
                 data-letter-cta="{{ $notif->prompt_cta }}"
@@ -2389,10 +2430,11 @@ footer a:hover {
               </button>
               @else
               <a
-                href="{{ $notif->cta_target ?? route('riwayat') }}"
-                class="notif-item notif-readable"
-                data-read-url="{{ route('notifikasi.baca', $notif->id) }}"
-              >
+                    href="{{ $notif->cta_target ?? route('riwayat') }}"
+                    class="notif-item notif-readable {{ $notif->status === 'dibaca' ? 'notif-read' : 'notif-unread' }}"
+                    data-read-url="{{ route('notifikasi.baca', $notif->id) }}"
+                    data-read="{{ $notif->status === 'dibaca' ? '1' : '0' }}"
+                >
                 <p>{{ $notif->pesan }}</p>
                 <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
                 @if(!empty($notif->cta_label))
@@ -2524,18 +2566,6 @@ footer a:hover {
         @guest
         <a href="{{ route('login') }}" class="btn btn-login-custom me-2">Login</a>
         @endguest
-
-      <!-- </div>
-            </div>
-            <a href="#" class="pd-item"><i class="bi bi-person-circle"></i> Profil Saya</a>
-            <a href="#" class="pd-item"><i class="bi bi-calendar2-check"></i> Riwayat Konseling</a>
-            <a href="#" class="pd-item"><i class="bi bi-bell"></i> Notifikasi <span class="badge bg-danger ms-auto" style="font-size:.62rem">3</span></a>
-            <div class="pd-divider"></div>
-            <a href="#" class="pd-item danger"><i class="bi bi-box-arrow-right"></i> Keluar</a>
-          </div>
-        </div>
-      </div>
-    </div> -->
   </div>
 </nav>
 
@@ -2786,8 +2816,8 @@ function decreaseNotifBadge() {
 function markNotifAsRead(item) {
   const readUrl = item.dataset.readUrl;
 
-  if (!readUrl || item.dataset.reading === '1') {
-    return Promise.resolve();
+  if (!readUrl || item.dataset.reading === '1' || item.dataset.read === '1') {
+      return Promise.resolve();
   }
 
   item.dataset.reading = '1';
@@ -2802,7 +2832,10 @@ function markNotifAsRead(item) {
   }).then(function (response) {
     if (response.ok) {
       decreaseNotifBadge();
-      item.remove();
+      
+      item.dataset.read = '1';
+      item.classList.add('notif-read');
+      item.classList.remove('notif-unread');
     } else {
       item.dataset.reading = '0';
     }
