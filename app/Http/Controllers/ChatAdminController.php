@@ -72,12 +72,35 @@ class ChatAdminController extends Controller
             ->all();
 
 
-        $isBlockedBySchedule = ! $this->canStartSessionNow($sesi);
-        $isReadyToStart = ! $isBlockedBySchedule
-            && in_array(($selectedJadwal->status ?? null), ['diterima', 'disetujui'], true)
-            && ! $this->isSessionActive($sesi);
-        $chatAccessGranted = $this->isSessionActive($sesi) && $this->isChatWindowOpen($sesi);
+        $statusJadwal = strtolower(str_replace(' ', '_', (string) ($jadwal->status ?? '')));
+
+        $jadwalSudahDiterima = in_array($statusJadwal, [
+            'diterima',
+            'disetujui',
+            'berlangsung',
+        ], true);
+
         $canStartNow = $this->canStartSessionNow($sesi);
+
+        if ($jadwalSudahDiterima && $canStartNow && ! $this->isSessionActive($sesi)) {
+            $this->activateSessionIfNeeded($sesi);
+
+            $sesi->refresh();
+            $sesi->loadMissing([
+                'jadwalKonseling.konselor.user.profil',
+                'jadwalKonseling.mahasiswa.user.profil',
+                'chats.pengirim.profil',
+                'chats.pengirim.mahasiswa',
+            ]);
+        }
+
+        $isBlockedBySchedule = ! $canStartNow;
+
+        $isReadyToStart = false;
+
+        $chatAccessGranted = $jadwalSudahDiterima
+            && $this->isSessionActive($sesi)
+            && $this->isChatWindowOpen($sesi);
 
         $hasPendingRegularSchedule = $this->hasPendingRegularSchedule($user, $selectedJadwal);
 

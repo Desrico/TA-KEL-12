@@ -114,10 +114,6 @@ class ChatMahasiswaController extends Controller
             if (! $this->isSessionActive($sesi)) {
                 $this->activateSessionIfNeeded($sesi);
             }
-
-            return redirect()
-                ->route('mahasiswa.chat', ['jadwal' => $jadwal->id])
-                ->with('success', 'Sesi konseling berhasil dimulai.');
         }
 
         $sesi = $this->resolveActiveSession($request->user());
@@ -148,10 +144,6 @@ class ChatMahasiswaController extends Controller
         }
 
         $this->activateSessionIfNeeded($sesi);
-
-        return redirect()
-            ->route('mahasiswa.chat', ['jadwal' => $jadwal?->id])
-            ->with('success', 'Sesi konseling berhasil dimulai.');
     }
 
     public function messages(Request $request): JsonResponse

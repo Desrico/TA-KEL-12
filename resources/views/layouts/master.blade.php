@@ -2732,7 +2732,7 @@ footer a:hover {
     </div>
 
     <div class="footer-copy">
-      © 2024 Campus Care · Institut Teknologi Del — Digital Mental Health Intervention
+      © 2026 Campus Care · Institut Teknologi Del — Digital Mental Health Intervention
     </div>
   </div>
 </footer>
