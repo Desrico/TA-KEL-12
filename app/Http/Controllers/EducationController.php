@@ -60,8 +60,15 @@ class EducationController extends Controller
         };
 
         $modules = $query->paginate(5)->withQueryString();
-        
-        $categories = Module::whereNotNull('kategori')->where('kategori', '!=', '')->distinct()->pluck('kategori');
+
+        $categories = [
+            'Kesehatan Mental',
+            'Manajemen Stres',
+            'Kecemasan',
+            'Motivasi',
+            'Mindfulness',
+            'Lainnya'
+        ];
 
         return view('admin.education.modules.index', compact('modules', 'filter', 'sort', 'kategori', 'categories'));
     }
