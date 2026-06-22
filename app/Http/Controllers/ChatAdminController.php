@@ -71,8 +71,7 @@ class ChatAdminController extends Controller
             ->map(fn(Chat $chat) => $this->transformMessage($chat, $user))
             ->all();
 
-
-        $statusJadwal = strtolower(str_replace(' ', '_', (string) ($jadwal->status ?? '')));
+        $statusJadwal = strtolower(str_replace(' ', '_', (string) ($selectedJadwal->status ?? '')));
 
         $jadwalSudahDiterima = in_array($statusJadwal, [
             'diterima',
@@ -95,14 +94,14 @@ class ChatAdminController extends Controller
         }
 
         $isBlockedBySchedule = ! $canStartNow;
-
         $isReadyToStart = false;
 
         $chatAccessGranted = $jadwalSudahDiterima
+            && $canStartNow
             && $this->isSessionActive($sesi)
             && $this->isChatWindowOpen($sesi);
-
-        $hasPendingRegularSchedule = $this->hasPendingRegularSchedule($user, $selectedJadwal);
+        
+            $hasPendingRegularSchedule = $this->hasPendingRegularSchedule($user, $selectedJadwal);
 
         if ($hasPendingRegularSchedule) {
             $isBlockedBySchedule = true;
@@ -167,7 +166,9 @@ class ChatAdminController extends Controller
             return redirect()->route('admin.chat', ['jadwal' => $jadwal->id]);
         }
 
-        if (! in_array(($jadwal->status ?? null), ['diterima', 'disetujui'], true)) {
+        $statusJadwal = strtolower(str_replace(' ', '_', (string) ($jadwal->status ?? '')));
+
+        if (! in_array($statusJadwal, ['diterima', 'disetujui', 'berlangsung'], true)) {
             return redirect()
                 ->route('admin.chat', ['jadwal' => $jadwal->id])
                 ->with('error', 'Sesi belum siap dimulai.');
