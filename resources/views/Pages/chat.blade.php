@@ -1316,13 +1316,14 @@ body {
   window.setInterval(syncMessages, 10000);
 
   if (canSendMessage && !isReadOnly) {
+    input.addEventListener('input', autoResize);
 
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
+    const submitChatMessage = async () => {
         const pesan = input.value.trim();
 
         if (!pesan) {
+            input.value = '';
+            autoResize();
             return;
         }
 
@@ -1333,19 +1334,24 @@ body {
         isSending = true;
         sendBtn.disabled = true;
 
+        const tempId = `temp-${Date.now()}`;
+        const now = new Date();
+
         const tempMessage = {
-            id: `temp-${Date.now()}`,
+            id: tempId,
+            sesi_id: payload.sessionId,
             sender_id: currentUserId,
             sender_name: 'Anda',
             text: pesan,
-            time: new Date().toLocaleTimeString('id-ID', {
+            time: now.toLocaleTimeString('id-ID', {
                 hour: '2-digit',
                 minute: '2-digit',
             }),
-            sent_at: new Date().toISOString(),
+            sent_at: now.toISOString(),
+            updated_at: now.toISOString(),
             is_edited: false,
-            is_pending: true,
             is_mine: true,
+            is_pending: true,
         };
 
         const tempRow = renderMessage(tempMessage);
@@ -1420,7 +1426,20 @@ body {
         } finally {
             isSending = false;
             sendBtn.disabled = false;
+            input.focus();
         }
+    };
+
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            submitChatMessage();
+        }
+    });
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        submitChatMessage();
     });
 } else {
     form.addEventListener('submit', function (event) {
