@@ -1216,6 +1216,7 @@ body {
     `;
 
     thread.appendChild(row);
+    return row;
 };
 
   const renderInitialMessages = () => {
@@ -1315,36 +1316,117 @@ body {
   window.setInterval(syncMessages, 10000);
 
   if (canSendMessage && !isReadOnly) {
-      input.addEventListener('input', autoResize);
 
-      input.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault();
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
 
-              if (!isSending) {
-                  form.requestSubmit();
-              }
-          }
-      });
+        const pesan = input.value.trim();
 
-      form.addEventListener('submit', async (event) => {
-          input.addEventListener('input', autoResize);
+        if (!pesan) {
+            return;
+        }
 
-          input.addEventListener('keydown', (event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                  event.preventDefault();
+        if (isSending) {
+            return;
+        }
 
-                  if (!isSending) {
-                      form.requestSubmit();
-                  }
-              }
-          });
-      });
-  } else {
-      form.addEventListener('submit', function (event) {
-          event.preventDefault();
-      });
-  }
+        isSending = true;
+        sendBtn.disabled = true;
+
+        const tempMessage = {
+            id: `temp-${Date.now()}`,
+            sender_id: currentUserId,
+            sender_name: 'Anda',
+            text: pesan,
+            time: new Date().toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+            }),
+            sent_at: new Date().toISOString(),
+            is_edited: false,
+            is_pending: true,
+            is_mine: true,
+        };
+
+        const tempRow = renderMessage(tempMessage);
+        scrollToBottom();
+
+        input.value = '';
+        autoResize();
+
+        if (hint) {
+            hint.textContent = '';
+        }
+
+        try {
+            const response = await fetch(payload.sendUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    sesi_id: payload.sessionId,
+                    jadwal_id: payload.jadwalId,
+                    pesan: pesan,
+                }),
+            });
+
+            const rawText = await response.text();
+            let data = {};
+
+            try {
+                data = rawText ? JSON.parse(rawText) : {};
+            } catch (error) {
+                console.error(rawText);
+                tempRow?.remove();
+                input.value = pesan;
+                autoResize();
+
+                if (hint) {
+                    hint.textContent = 'Server mengembalikan response tidak valid.';
+                }
+
+                return;
+            }
+
+            if (!response.ok || !data.success) {
+                tempRow?.remove();
+                input.value = pesan;
+                autoResize();
+
+                if (hint) {
+                    hint.textContent = data.message ?? 'Pesan gagal dikirim.';
+                }
+
+                return;
+            }
+
+            tempRow?.remove();
+            renderMessage(data.message);
+            scrollToBottom();
+
+        } catch (error) {
+            console.error(error);
+            tempRow?.remove();
+            input.value = pesan;
+            autoResize();
+
+            if (hint) {
+                hint.textContent = 'Terjadi kendala saat mengirim pesan.';
+            }
+        } finally {
+            isSending = false;
+            sendBtn.disabled = false;
+        }
+    });
+} else {
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+    });
+}
   
 
   document.addEventListener('click', (event) => {

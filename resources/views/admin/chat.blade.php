@@ -1602,6 +1602,7 @@
     `;
 
     thread.appendChild(row);
+    return row;
 };
 
   const renderInitialMessages = () => {
@@ -1844,58 +1845,81 @@ if (form && input && sendBtn && canSendMessage) {
   });
 
   form.addEventListener('submit', async (event) => {
-    event.preventDefault();
+  event.preventDefault();
 
-    const pesan = input.value.trim();
-    if (!pesan) {
-      return;
-    }
+  const pesan = input.value.trim();
+  if (!pesan) {
+    return;
+  }
 
-    if (isSending) {
-      return;
-    }
+  if (isSending) {
+    return;
+  }
 
-    // isSending = true;
-    // sendBtn.disabled = true;
-    // hint.textContent = 'Mengirim pesan...';
+  isSending = true;
+  sendBtn.disabled = true;
 
-    try {
-      const response = await fetch(payload.sendUrl, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-Socket-ID': window.Echo?.socketId?.() ?? '',
-        },
-        body: JSON.stringify({
-          sesi_id: payload.sessionId,
-          jadwal_id: payload.jadwalId,
-          pesan,
-        }),
-      });
+  const tempMessage = {
+    id: `temp-${Date.now()}`,
+    sender_id: currentUserId,
+    sender_name: 'Anda',
+    text: pesan,
+    time: new Date().toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+    sent_at: new Date().toISOString(),
+    is_edited: false,
+    is_mine: true,
+  };
 
-      const data = await response.json();
+  const tempRow = renderMessage(tempMessage);
+  scrollToBottom();
 
-      if (!response.ok || !data.success) {
-        hint.textContent = data.message ?? 'Pesan gagal dikirim.';
-        sendBtn.disabled = false;
-        return;
-      }
+  input.value = '';
+  autoResize();
 
-      renderMessage(data.message);
-      scrollToBottom();
-      input.value = '';
+  try {
+    const response = await fetch(payload.sendUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({
+        sesi_id: payload.sessionId,
+        jadwal_id: payload.jadwalId,
+        pesan,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      tempRow?.remove();
+      input.value = pesan;
       autoResize();
-    } catch (error) {
-      console.error(error);
-      hint.textContent = 'Terjadi kendala saat mengirim pesan.';
-    } finally {
-      isSending = false;
-      sendBtn.disabled = false;
+      hint.textContent = data.message ?? 'Pesan gagal dikirim.';
+      return;
     }
-  });
+
+    tempRow?.remove();
+    renderMessage(data.message);
+    scrollToBottom();
+
+  } catch (error) {
+    console.error(error);
+    tempRow?.remove();
+    input.value = pesan;
+    autoResize();
+    hint.textContent = 'Terjadi kendala saat mengirim pesan.';
+  } finally {
+    isSending = false;
+    sendBtn.disabled = false;
+  }
+});
 }
 })();
 
