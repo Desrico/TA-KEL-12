@@ -35,7 +35,8 @@
     display: grid;
     grid-template-columns: 340px minmax(0, 1fr);
     gap: 0;
-    min-height: 760px;
+    height: calc(100vh - 60px);
+    min-height: 0;
     background: #fff;
     border: 1px solid #dceee4;
     border-radius: 28px;
@@ -52,6 +53,10 @@
   }
 
   .admin-chat-list {
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     align-self: stretch;
     border-right: 1px solid #edf7f1;
@@ -62,6 +67,14 @@
     padding: 1rem 1rem .85rem;
     border-bottom: 1px solid #edf7f1;
     background: rgba(255, 255, 255, .92);
+    flex-shrink: 0;
+  }
+
+  .admin-chat-list-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .admin-chat-tabs {
@@ -315,14 +328,18 @@
   }
 
   .admin-chat-card {
-    overflow: visible;
-    min-height: 760px;
+    height: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     background:
       radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 22%),
       linear-gradient(180deg, #f6fff9 0%, #ffffff 16%, #ffffff 100%);
   }
+
+  .admin-chat-head {
+      flex-shrink: 0;
+    }
 
   .admin-chat-empty {
     padding: 2.6rem 2rem;
@@ -369,6 +386,8 @@
     background: rgba(255,255,255,.88);
     backdrop-filter: blur(10px);
     overflow: visible;
+    position: relative; 
+    z-index: 10;
   }
 
   .admin-chat-person {
@@ -439,8 +458,11 @@
   }
   .admin-chat-thread {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 1.35rem 1.35rem 0;
+    isolation: isolate;
     background:
       radial-gradient(circle at center, rgba(209, 250, 229, 0.28), transparent 42%),
       linear-gradient(180deg, rgba(246,255,249,.7), rgba(255,255,255,.98));
@@ -702,6 +724,7 @@
     padding: 1rem 1.2rem 1.2rem;
     border-top: 1px solid #edf7f1;
     background: rgba(255,255,255,.95);
+    flex-shrink: 0;
   }
 
   .admin-chat-form {
@@ -823,6 +846,7 @@
 
   .admin-session-menu {
     position: relative;
+    z-index: 99999;
 }
 
 .admin-session-menu-toggle {
@@ -847,20 +871,6 @@
 
 .admin-session-menu-dropdown {
     position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    width: 220px;
-    padding: .65rem;
-    border-radius: 18px;
-    background: #ffffff;
-    border: 1px solid #DCEEE4;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, .14);
-    display: none;
-    z-index: 9999;
-}
-
-.admin-session-menu-dropdown {
-    position: absolute;
     top: calc(100% + 12px);
     right: 0;
     width: 260px;
@@ -870,19 +880,20 @@
     border: 1px solid #dceee4;
     box-shadow: 0 22px 55px rgba(15, 23, 42, .16);
     display: none;
-    z-index: 9999;
+    z-index: 99999;
 }
 
 .admin-session-menu.is-open .admin-session-menu-dropdown {
     display: grid;
     gap: .45rem;
+    background: #ffffff;
 }
 
 .admin-session-menu-item {
     width: 100%;
     border: none;
     text-decoration: none;
-    border-radius: 16px;
+    border-radius: 14px;
     padding: .78rem .85rem;
     display: flex;
     align-items: center;
@@ -894,6 +905,8 @@
     text-align: left;
     cursor: pointer;
     transition: all .18s ease;
+    position: relative;
+    z-index: 2;
 }
 
 .admin-session-menu-item:hover {
@@ -1059,37 +1072,41 @@
     color: #ffffff;
 }
 
-  @media (max-width: 1199.98px) {
-    .admin-chat-page {
-      grid-template-columns: 1fr;
-      min-height: 0;
-    }
-
-    .admin-chat-list {
-      border-right: none;
-      border-bottom: 1px solid #edf7f1;
-    }
+ @media (max-width: 1199.98px) {
+  .admin-chat-page {
+    grid-template-columns: 1fr;
+    min-height: 0;
   }
 
-  @media (max-width: 767.98px) {
-    .admin-chat-card {
-      min-height: 680px;
-    }
-
-    .admin-chat-head {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .admin-chat-head-actions {
-      width: 100%;
-      justify-content: flex-start;
-    }
-
-    .admin-message-content {
-      max-width: 100%;
-    }
+  .admin-chat-list {
+    border-right: none;
+    border-bottom: 1px solid #edf7f1;
   }
+}
+
+@media (max-width: 767.98px) {
+  .admin-chat-page {
+    height: calc(100vh - 70px);
+  }
+
+  .admin-chat-card {
+    min-height: 0;
+  }
+
+  .admin-chat-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-chat-head-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .admin-message-content {
+    max-width: 100%;
+  }
+}
 </style>
 @endpush
 
@@ -1137,7 +1154,8 @@
       </div>
     </div>
 
-   @forelse($jadwalList as $item)
+    <div class="admin-chat-list-body">
+    @forelse($jadwalList as $item)
     @php
         $itemUser = optional(optional($item)->mahasiswa)->user;
 
@@ -1208,6 +1226,7 @@
         Tidak ada percakapan yang cocok dengan kata kunci pencarian.
       </div>
     @endif
+    </div>
   </aside>
 
   <section class="admin-chat-card">

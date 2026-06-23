@@ -1605,121 +1605,121 @@ body {
   });
 
 form.addEventListener('submit', async (event) => {
-    event.preventDefault();
+  event.preventDefault();
 
-    if (isSending) {
-        return;
-    }
+  const pesan = input.value.trim();
 
-    const pesan = input.value.trim();
-
-    if (!pesan) {
-        input.value = '';
-        resetInputHeight();
-        return;
-    }
-
-    isSending = true;
-    sendBtn.disabled = true;
-
-    if (hint) {
-        hint.textContent = '';
-    }
-
-    const tempId = 'temp-' + Date.now();
-    const now = new Date();
-
-    const tempMessage = {
-        id: tempId,
-        sesi_id: payload.sessionId,
-        sender_id: currentUserId,
-        sender_name: currentUserName,
-        sender_role: 'pengguna',
-        avatar_url: currentUserAvatar,
-        text: pesan,
-        time: now.toLocaleTimeString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit'
-        }),
-        sent_at: now.toISOString(),
-        updated_at: now.toISOString(),
-        is_edited: false,
-        is_mine: true,
-        is_pending: true,
-    };
-
-    renderMessage(tempMessage);
-    scrollToBottom();
-
+  if (!pesan) {
     input.value = '';
-    resetInputHeight();
+    autoResize();
+    return;
+  }
+
+  if (isSending) {
+    return;
+  }
+
+  isSending = true;
+  sendBtn.disabled = true;
+
+  const now = new Date();
+
+  const tempMessage = {
+    id: `temp-${Date.now()}`,
+    sender_id: currentUserId,
+    sender_name: 'Anda',
+    text: pesan,
+    time: now.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+    sent_at: now.toISOString(),
+    updated_at: now.toISOString(),
+    is_edited: false,
+    is_mine: true,
+    is_pending: true,
+  };
+
+  const tempRow = renderMessage(tempMessage);
+  scrollToBottom();
+
+  input.value = '';
+  autoResize();
+
+  if (hint) {
+    hint.textContent = '';
+  }
+
+  try {
+    const response = await fetch(payload.sendUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({
+        sesi_id: payload.sessionId,
+        jadwal_id: payload.jadwalId,
+        pesan,
+      }),
+    });
+
+    const rawText = await response.text();
+    let data = {};
 
     try {
-        const response = await fetch(payload.sendUrl, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-Socket-ID': window.Echo?.socketId?.() ?? '',
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                sesi_id: payload.sessionId,
-                jadwal_id: payload.jadwalId,
-                pesan,
-            }),
-        });
-
-        const data = await response.json();
-        const tempRow = thread.querySelector(`[data-message-id="${tempId}"]`);
-
-        if (!response.ok || !data.success) {
-            if (tempRow) {
-                tempRow.remove();
-            }
-
-            input.value = pesan;
-            autoResize();
-
-            if (hint) {
-                hint.textContent = data.message ?? 'Pesan gagal dikirim.';
-            }
-
-            return;
-        }
-
-        if (tempRow) {
-            tempRow.remove();
-        }
-
-        renderMessage(data.message);
-        scrollToBottom();
-
-        if (hint) {
-            hint.textContent = '';
-        }
+      data = rawText ? JSON.parse(rawText) : {};
     } catch (error) {
-        console.error(error);
+      console.error(rawText);
+      tempRow?.remove();
+      input.value = pesan;
+      autoResize();
 
-        const tempRow = thread.querySelector(`[data-message-id="${tempId}"]`);
+      if (hint) {
+        hint.textContent = 'Server mengembalikan response tidak valid.';
+      }
 
-        if (tempRow) {
-            tempRow.remove();
-        }
-
-        input.value = pesan;
-        autoResize();
-
-        if (hint) {
-            hint.textContent = 'Terjadi kendala saat mengirim pesan.';
-        }
-    } finally {
-        isSending = false;
-        sendBtn.disabled = false;
-        input.focus();
+      return;
     }
+
+    if (!response.ok || !data.success) {
+      tempRow?.remove();
+      input.value = pesan;
+      autoResize();
+
+      if (hint) {
+        hint.textContent = data.message ?? 'Pesan gagal dikirim.';
+      }
+
+      return;
+    }
+
+    tempRow?.remove();
+
+    const existingRealMessage = thread.querySelector(`[data-message-id="${data.message.id}"]`);
+    if (existingRealMessage) {
+      existingRealMessage.remove();
+    }
+
+    renderMessage(data.message);
+    scrollToBottom();
+
+  } catch (error) {
+    console.error(error);
+    tempRow?.remove();
+    input.value = pesan;
+    autoResize();
+
+    if (hint) {
+      hint.textContent = 'Terjadi kendala saat mengirim pesan.';
+    }
+  } finally {
+    isSending = false;
+    sendBtn.disabled = false;
+    input.focus();
+  }
 });
 })();
 </script>
