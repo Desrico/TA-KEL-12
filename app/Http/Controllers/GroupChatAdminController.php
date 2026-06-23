@@ -372,57 +372,47 @@ class GroupChatAdminController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'group_id' => 'required|integer',
-            'pesan' => 'required|string|max:2000',
-        ]);
+   public function store(Request $request): JsonResponse
+{
+    $validated = $request->validate([
+        'group_id' => 'required|integer',
+        'pesan' => 'required|string|max:2000',
+    ]);
 
-        $room = $this->resolveRoom((int) $validated['group_id']);
+    $room = $this->resolveRoom((int) $validated['group_id']);
 
-        if (! $room) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Grup chat tidak ditemukan.',
-            ], 404);
-        }
-
-        $message = DB::transaction(function () use ($room, $request, $validated) {
-            $payload = [
-                'room_id' => $room->id,
-                'user_id' => $request->user()->id,
-                'pesan' => trim($validated['pesan']),
-            ];
-
-            if (GroupChatSupport::supportsSystemMessages()) {
-                $payload['is_system'] = false;
-                $payload['system_event'] = null;
-            }
-
-            return GroupChatMessage::create($payload);
-        });
-
-        $message->loadMissing([
-            'sender.mahasiswa',
-            'room',
-        ]);
-
-        try {
-            broadcast(new GroupChatMessageSent($message))->toOthers();
-        } catch (\Throwable $exception) {
-            Log::warning('Broadcast group chat admin gagal dikirim ke websocket.', [
-                'message_id' => $message->id,
-                'room_id' => $message->room_id,
-                'error' => $exception->getMessage(),
-            ]);
-        }
-
+    if (! $room) {
         return response()->json([
-            'success' => true,
-            'message' => $this->transformMessage($message, $request->user(), $room),
-        ]);
+            'success' => false,
+            'message' => 'Grup chat tidak ditemukan.',
+        ], 404);
     }
+
+    $message = DB::transaction(function () use ($room, $request, $validated) {
+        $payload = [
+            'room_id' => $room->id,
+            'user_id' => $request->user()->id,
+            'pesan' => trim($validated['pesan']),
+        ];
+
+        if (GroupChatSupport::supportsSystemMessages()) {
+            $payload['is_system'] = false;
+            $payload['system_event'] = null;
+        }
+
+        return GroupChatMessage::create($payload);
+    });
+
+    $message->loadMissing([
+        'sender.mahasiswa',
+        'room',
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => $this->transformMessage($message, $request->user(), $room),
+    ]);
+}
 
     public function update(Request $request, GroupChatMessage $message): JsonResponse
     {
@@ -1216,17 +1206,6 @@ class GroupChatAdminController extends Controller
             'sender.mahasiswa',
             'room',
         ]);
-
-        try {
-            broadcast(new GroupChatMessageSent($message))->toOthers();
-        } catch (\Throwable $exception) {
-            Log::warning('Broadcast pesan sistem group chat admin gagal dikirim.', [
-                'message_id' => $message->id,
-                'room_id' => $message->room_id,
-                'event' => $event,
-                'error' => $exception->getMessage(),
-            ]);
-        }
 
         return $message;
     }

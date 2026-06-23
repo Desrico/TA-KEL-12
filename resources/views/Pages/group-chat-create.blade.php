@@ -188,10 +188,262 @@
       width: 100%;
     }
   }
+  .group-consent-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  min-height: 100vh;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.group-consent-card {
+  position: relative;
+  width: min(100%, 980px);
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(209, 250, 229, 0.95);
+  box-shadow: 0 32px 90px rgba(15, 23, 42, 0.25);
+}
+
+.group-consent-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #065f46;
+  background: #ffffff;
+  border: 1px solid #dbece3;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  z-index: 3;
+}
+
+.group-consent-head {
+  padding: 1.35rem 1.6rem 1rem;
+}
+
+.group-consent-head h1 {
+  margin: 0.55rem 3.5rem 0.45rem 0;
+  font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+  line-height: 1.15;
+}
+
+.group-consent-head p {
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+.group-consent-body {
+  padding: 1.25rem 1.6rem 1.4rem;
+}
+
+.group-consent-info {
+  align-items: start;
+  gap: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.group-consent-box {
+  padding: 0.95rem;
+}
+
+
+.group-consent-box h3 {
+  margin: 0 0 0.9rem;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.group-consent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.group-consent-grid span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #059669;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.group-consent-grid strong {
+  display: block;
+  color: #334155;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.group-consent-rules {
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+
+.group-consent-rules li + li {
+  margin-top: 0.35rem;
+}
+
+.group-consent-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.group-consent-check {
+  padding: 0.85rem 1rem;
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+
+.group-consent-check input {
+  width: 22px;
+  height: 22px;
+  margin-top: 0.15rem;
+  accent-color: #059669;
+  flex: 0 0 auto;
+}
+
+.group-consent-card .group-create-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 991.98px) {
+  .group-consent-overlay {
+    padding: 1rem;
+  }
+
+  .group-consent-card {
+    max-height: calc(100vh - 2rem);
+    border-radius: 24px;
+  }
+
+  .group-consent-info {
+    grid-template-columns: 1fr;
+  }
+
+  .group-consent-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .group-consent-head h1 {
+    margin-right: 3rem;
+  }
+}
 </style>
 @endpush
 
 @section('konten')
+@php
+    $isConsentMode = isset($consentContext) && is_array($consentContext);
+@endphp
+
+@if($isConsentMode)
+<section class="group-create-page">
+  <div class="container">
+    <div class="group-consent-overlay">
+      <div class="group-consent-card">
+        <a href="{{ route('mahasiswa.group-chat') }}" class="group-consent-close" aria-label="Tutup">
+          <i class="bi bi-x-lg"></i>
+        </a>
+
+        <div class="group-consent-head">
+          <div class="group-create-kicker">
+            <i class="bi bi-shield-check"></i>
+            <span>{{ $consentContext['headline'] ?? 'Persetujuan Grup' }}</span>
+          </div>
+
+          <h1>{{ $consentContext['title'] ?? 'Undangan Grup' }}</h1>
+
+          <p>
+            {{ $consentContext['description'] ?? 'Pastikan Anda memahami aturan grup sebelum bergabung.' }}
+          </p>
+        </div>
+
+        <div class="group-consent-body">
+          <div class="group-consent-info">
+            <div class="group-consent-box">
+              <h3>Informasi Undangan</h3>
+
+              <div class="group-consent-grid">
+                <div>
+                  <span>Nama Grup</span>
+                  <strong>{{ $consentContext['group_name'] ?? '-' }}</strong>
+                </div>
+
+                <div>
+                  <span>Pengundang</span>
+                  <strong>{{ $consentContext['inviter_name'] ?? 'Konselor' }}</strong>
+                </div>
+
+                <div>
+                  <span>Visibilitas Identitas</span>
+                  <strong>{{ $consentContext['identity_visibility'] ?? 'Identitas Anda akan ditampilkan sesuai aturan grup.' }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="group-consent-box">
+              <h3>Aturan Sebelum Bergabung</h3>
+
+              <ul class="group-consent-rules">
+                @foreach($groupRules ?? [] as $rule)
+                  <li>{{ $rule }}</li>
+                @endforeach
+              </ul>
+            </div>
+          </div>
+
+          <form action="{{ route('mahasiswa.group-chat.join') }}" method="POST" class="group-consent-form">
+            @csrf
+
+            @foreach(($consentContext['hidden_fields'] ?? []) as $fieldName => $fieldValue)
+              @if(!is_null($fieldValue))
+                <input type="hidden" name="{{ $fieldName }}" value="{{ $fieldValue }}">
+              @endif
+            @endforeach
+
+            <input type="hidden" name="consent_version" value="{{ $consentVersion ?? 'v1' }}">
+            <input type="hidden" name="consent_acknowledged" value="1">
+
+            @error('invite_token')
+              <div class="group-inline-error">{{ $message }}</div>
+            @enderror
+
+            <div class="group-create-actions">
+              <button type="submit" class="group-create-submit">
+                <span>{{ $consentContext['submit_label'] ?? 'Setuju dan Gabung Grup' }}</span>
+              </button>
+
+              <a href="{{ route('mahasiswa.group-chat') }}" class="group-create-cancel">
+                <span>Tutup</span>
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+@else
 <section class="group-create-page">
   <div class="container">
     <div class="group-create-shell">
@@ -206,7 +458,9 @@
             <i class="bi bi-plus-circle-fill"></i>
             <span>Tambah Grup</span>
           </div>
-          <h1>Berbagung dengan grup baru</h1>
+
+          <h1>Bergabung dengan grup baru</h1>
+
           <p>
             Pilih topik konseling yang sesuai. Jika grup dengan topik ini sudah ada, sistem akan langsung membukanya untukmu.
             Jika belum ada, grup baru akan dibuat otomatis.
@@ -214,28 +468,14 @@
         </div>
 
         <div class="group-create-body">
-          @if($errors->any())
-              <div class="group-inline-error" style="margin-bottom: 16px;">
-                  {{ $errors->first() }}
-              </div>
-          @endif
-
-          @if(session('error'))
-              <div class="group-inline-error" style="margin-bottom: 16px;">
-                  {{ session('error') }}
-              </div>
-          @endif
-          {{-- Form ini tetap memakai endpoint join agar alur buat grup dan masuk grup tetap satu jalur. --}}
-          @php
-              $topicOptions = $topicOptions ?? \App\Models\GroupChatRoom::topicOptions();
-          @endphp
           <form action="{{ route('mahasiswa.group-chat.join') }}" method="POST" class="group-create-form">
             @csrf
-              <input type="hidden" name="consent_acknowledged" value="1">
+
             <div>
               <label for="groupTopic" class="group-form-label">Topik Konseling</label>
               <select id="groupTopic" name="topic" class="group-form-select" required>
                 <option value="">Pilih topik konseling</option>
+
                 @foreach($topicOptions as $topicKey => $topicLabel)
                   <option value="{{ $topicKey }}" {{ old('topic') === $topicKey ? 'selected' : '' }}>
                     {{ $topicLabel }}
@@ -257,6 +497,7 @@
                 <i class="bi bi-plus-circle-fill"></i>
                 <span>Lanjut Bergabung</span>
               </button>
+
               <a href="{{ route('mahasiswa.group-chat') }}" class="group-create-cancel">
                 <i class="bi bi-x-circle"></i>
                 <span>Batal</span>
@@ -273,4 +514,5 @@
     </div>
   </div>
 </section>
+@endif
 @endsection

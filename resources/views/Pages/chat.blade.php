@@ -54,15 +54,15 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
 @push('styles')
 <style>
   .chat-page {
-    min-height: calc(100vh - 82px);
-    background:
-      radial-gradient(circle at top left, rgba(16, 185, 129, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(110, 231, 183, 0.18), transparent 24%),
-      linear-gradient(180deg, #effcf5 0%, #eefbf4 26%, #e2f7ec 100%);
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-    padding: 1.2rem 0 2.4rem;
+      min-height: calc(100vh - 82px);
+      background:
+        radial-gradient(circle at top left, rgba(16, 185, 129, 0.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(110, 231, 183, 0.18), transparent 24%),
+        linear-gradient(180deg, #effcf5 0%, #eefbf4 26%, #e2f7ec 100%);
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+      padding: 0;
   }
 
   .chat-page-inner {
@@ -88,14 +88,14 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
   }
 
   .chat-main {
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    min-height: calc(100vh - 96px);
-    max-height: calc(100vh - 96px);
-    border-radius: 0;
-    border-inline: 0;
-    box-shadow: none;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 82px);
+      max-height: none;
+      border-radius: 0;
+      border-inline: 0;
+      box-shadow: none;
   }
 
   .chat-topbar {
@@ -171,15 +171,16 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
   }
 
   .chat-thread {
-    flex: 1;
-    min-height: 0;
-    padding: 1rem 1.5rem .75rem;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scroll-behavior: smooth;
-    background:
-      linear-gradient(180deg, rgba(248, 255, 251, 0.72), rgba(255, 255, 255, 0.98)),
-      radial-gradient(circle at center, rgba(209, 250, 229, 0.34), transparent 42%);
+      flex: 1;
+      min-height: calc(100vh - 245px);
+      padding: 1rem 1.5rem .75rem;
+      overflow-y: visible;
+      overflow-x: hidden;
+      overscroll-behavior: auto;
+      scroll-behavior: smooth;
+      background:
+        linear-gradient(180deg, rgba(248, 255, 251, 0.72), rgba(255, 255, 255, 0.98)),
+        radial-gradient(circle at center, rgba(209, 250, 229, 0.34), transparent 42%);
   }
 
   .chat-date-pill {
@@ -695,10 +696,10 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
   }
 
   @media (max-width: 991.98px) {
-    .chat-main {
-      min-height: calc(100vh - 88px);
-      max-height: calc(100vh - 88px);
-    }
+      .chat-main {
+        min-height: calc(100vh - 78px);
+        max-height: none;
+      }
   }
 
   @media (max-width: 767.98px) {
@@ -737,7 +738,7 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
 
     .chat-main {
       min-height: calc(100vh - 78px);
-      max-height: calc(100vh - 78px);
+      max-height: none;
     }
 
     .chat-thread {
@@ -773,6 +774,26 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
 .chat-page.is-empty-state .chat-empty {
     width: min(100%, 880px);
     margin: 0 auto;
+}
+
+html,
+body {
+    overflow-y: auto !important;
+}
+
+.chat-main,
+.chat-thread {
+    overflow-y: visible !important;
+    max-height: none !important;
+}
+
+.chat-thread::-webkit-scrollbar {
+    display: none;
+}
+
+.chat-thread {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 </style>
 @endpush

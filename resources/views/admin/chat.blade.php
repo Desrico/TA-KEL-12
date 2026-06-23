@@ -1255,13 +1255,6 @@
     }
 @endphp
 
-    @if(!$canSendChat)
-    <div class="admin-chat-readonly-box">
-        <i class="ti ti-lock"></i>
-        <span>{{ $readonlyMessage }}</span>
-    </div>
-    @endif
-
   <div class="admin-chat-head">
     <div class="admin-chat-person">
       <div class="admin-chat-avatar-fallback">
@@ -1862,9 +1855,9 @@ if (form && input && sendBtn && canSendMessage) {
       return;
     }
 
-    isSending = true;
-    sendBtn.disabled = true;
-    hint.textContent = 'Mengirim pesan...';
+    // isSending = true;
+    // sendBtn.disabled = true;
+    // hint.textContent = 'Mengirim pesan...';
 
     try {
       const response = await fetch(payload.sendUrl, {

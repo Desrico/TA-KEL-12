@@ -638,6 +638,10 @@
     flex-shrink: 0;
 }
 
+.group-chat-hint {
+  display: none !important;
+}
+
   /* Item anggota menampilkan foto kecil dan nama tanpa metadata tambahan. */
   .group-member-item {
     display: flex;
@@ -731,11 +735,19 @@
 @section('konten')
 
 @php
-    $formatAnonymousName = function ($name) {
+    $isPrivateRoom = ($chatPayload['isPrivate'] ?? false)
+        || ($chatPayload['is_private'] ?? false)
+        || str_contains(strtolower($chatPayload['topicLabel'] ?? ''), 'privat');
+
+    $cleanMemberName = function ($name) use ($isPrivateRoom) {
         $name = trim((string) $name);
 
         if ($name === '') {
-            return 'Anonim';
+            return $isPrivateRoom ? 'Mahasiswa' : 'Mahasiswa Anonim';
+        }
+
+        if ($isPrivateRoom) {
+            return trim(preg_replace('/\s+Anonim$/i', '', $name));
         }
 
         if (str_contains(strtolower($name), 'anonim')) {
@@ -835,17 +847,20 @@
                       </div>
 
                       @foreach($chatPayload['memberProfiles'] as $memberProfile)
-                          @php
-                              $memberDisplayName = $formatAnonymousName($memberProfile['name'] ?? 'Anonim');
-                          @endphp
+                        @php
+                            $memberName = $cleanMemberName($memberProfile['name'] ?? 'Mahasiswa');
+                        @endphp
 
-                          <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberDisplayName) }}">
-                              <div class="group-animal-avatar">
-                                  {{ $animalIcon($memberDisplayName) }}
-                              </div>
-
-                              <div class="group-member-name">{{ $memberDisplayName }}</div>
+                        <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberName) }}">
+                          <div class="group-member-avatar">
+                            <img
+                              src="{{ $memberProfile['avatar_url'] ?? asset('img/default-avatar.png') }}"
+                              alt="{{ $memberName }}"
+                            >
                           </div>
+
+                          <div class="group-member-name">{{ $memberName }}</div>
+                        </div>
                       @endforeach
                   </div>
                   <div class="group-member-empty" id="groupRoomMemberEmpty">Anggota tidak ditemukan.</div>
@@ -865,13 +880,13 @@
                 maxlength="2000"
                 placeholder="Tulis pesan untuk grup konseling ini..."
               ></textarea>
+
               <button type="submit" class="group-room-send" id="groupChatSendBtn">
                 <i class="bi bi-send-fill"></i>
               </button>
             </form>
-            <div class="group-room-hint" id="groupChatHint">
-              Percakapan di ruang ini dapat dibaca oleh anggota grup dan konselor.
-            </div>
+
+            <p id="groupChatHint" class="group-chat-hint"></p>
           </div>
         </section>
 
@@ -895,134 +910,35 @@
         return;
     }
 
-    const memberProfiles = [
-        {
-            name: 'Konselor',
-            avatar_initial: 'K',
-            is_counselor: true,
-        },
-        ...@json($chatPayload['memberProfiles'] ?? [])
-    ];
+    const syncDropdownState = (open) => {
+        stage.classList.toggle('is-profile-open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
 
-    function formatAnonymousName(name) {
-        const cleanName = String(name || '').trim();
-
-        if (!cleanName) {
-            return 'Anonim';
-        }
-
-        if (cleanName.toLowerCase().includes('anonim')) {
-            return cleanName;
-        }
-
-        return `${cleanName} Anonim`;
-    }
-
-    function animalIcon(name) {
-        const value = String(name || '').toLowerCase();
-
-        const icons = {
-            beruang: '🐻',
-            kucing: '🐱',
-            kelinci: '🐰',
-            rubah: '🦊',
-            panda: '🐼',
-            koala: '🐨',
-            harimau: '🐯',
-            singa: '🦁',
-            anjing: '🐶',
-            burung: '🐦',
-            kura: '🐢',
-            monyet: '🐵'
-        };
-
-        for (const key in icons) {
-            if (value.includes(key)) {
-                return icons[key];
-            }
-        }
-
-        return '👤';
-    }
-
-    function renderMembers() {
-        memberList.innerHTML = '';
-
-        memberProfiles.forEach((member) => {
-            const item = document.createElement('div');
-            const avatar = document.createElement('div');
-            const label = document.createElement('div');
-
-            const rawName = member?.name || 'Anonim';
-            const name = member?.is_counselor ? 'Konselor' : formatAnonymousName(rawName);
-
-            item.className = 'group-member-item';
-            item.dataset.memberName = String(name).toLowerCase();
-
-            if (member?.is_counselor) {
-                avatar.className = 'group-member-avatar-fallback';
-                avatar.textContent = 'K';
-            } else {
-                avatar.className = 'group-animal-avatar';
-                avatar.textContent = animalIcon(name);
-            }
-
-            label.className = 'group-member-name';
-            label.textContent = name;
-
-            item.appendChild(avatar);
-            item.appendChild(label);
-            memberList.appendChild(item);
-        });
-    }
-
-    function syncMemberSearch() {
-        const keyword = (memberSearch?.value || '').trim().toLowerCase();
+    const syncMemberSearch = () => {
+        const keyword = String(memberSearch?.value || '').trim().toLowerCase();
         const items = Array.from(memberList.querySelectorAll('.group-member-item'));
         let visibleCount = 0;
 
         items.forEach((item) => {
-            const isMatch = !keyword || (item.dataset.memberName || '').includes(keyword);
-            item.style.display = isMatch ? '' : 'none';
+            const name = String(item.dataset.memberName || '').toLowerCase();
+            const isVisible = !keyword || name.includes(keyword);
 
-            if (isMatch) {
+            item.style.display = isVisible ? '' : 'none';
+
+            if (isVisible) {
                 visibleCount += 1;
             }
         });
 
         if (memberEmpty) {
-            memberEmpty.textContent = keyword ? 'Anggota tidak ditemukan.' : 'Belum ada anggota dalam grup ini.';
             memberEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
         }
-    }
+    };
 
-    function syncDropdownState(isOpen) {
-        const label = isOpen ? 'Sembunyikan anggota grup' : 'Lihat anggota grup';
-
-        stage.classList.toggle('is-profile-open', isOpen);
-        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        toggle.setAttribute('aria-label', label);
-        toggle.setAttribute('title', label);
-
-        const toggleText = toggle.querySelector('.group-room-toggle-text');
-        if (toggleText) {
-            toggleText.textContent = label;
-        }
-    }
-
-    toggle.addEventListener('click', function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        renderMembers();
-        syncMemberSearch();
-
-        const willOpen = !stage.classList.contains('is-profile-open');
-        syncDropdownState(willOpen);
-    });
-
-    profile.addEventListener('click', function (event) {
-        event.stopPropagation();
+    toggle.addEventListener('click', () => {
+        syncDropdownState(!stage.classList.contains('is-profile-open'));
+        setTimeout(() => memberSearch?.focus(), 120);
     });
 
     memberSearch?.addEventListener('input', syncMemberSearch);
@@ -1045,7 +961,7 @@
         }
     });
 
-    renderMembers();
+    syncMemberSearch();
 })();
 </script>
 @endpush
@@ -1055,6 +971,21 @@
 (() => {
   const payload = @json($chatPayload);
   const currentUserId = {{ auth()->id() }};
+  const isPrivateRoom = Boolean(payload.isPrivate || payload.is_private || String(payload.topicLabel || '').toLowerCase().includes('privat'));
+
+  const cleanPrivateName = (name = '') => {
+    const value = String(name || '').trim();
+
+    if (!value) {
+      return isPrivateRoom ? 'Mahasiswa' : 'Mahasiswa Anonim';
+    }
+
+    if (isPrivateRoom) {
+      return value.replace(/\s+Anonim$/i, '');
+    }
+
+    return value;
+  };
   const thread = document.getElementById('groupChatThread');
   const form = document.getElementById('groupChatForm');
   const input = document.getElementById('groupChatInput');
@@ -1211,11 +1142,13 @@ const rawAnonymousName = message.anonymous_name
 const anonymousDisplayName = formatAnonymousName(rawAnonymousName);
 
 const displaySenderName = isCounselorMessage
-    ? 'Konselor'
-    : (isMine ? 'Anda' : anonymousDisplayName);
+  ? 'Konselor'
+  : cleanPrivateName(message.sender_name);
 
 const avatarHtml = isCounselorMessage
-    ? `<div class="group-message-avatar-fallback">K</div>`
+  ? `<div class="group-message-avatar-fallback">K</div>`
+  : isPrivateRoom
+    ? `<div class="group-member-avatar"><img src="${escapeHtml(message.avatar_url || '')}" alt="${escapeHtml(displaySenderName)}"></div>`
     : `<div class="group-animal-avatar">${animalIcon(anonymousDisplayName)}</div>`;
 
     ensureDateSeparator(dateParts.key, dateParts.label);
@@ -1241,7 +1174,8 @@ const avatarHtml = isCounselorMessage
   ${isMine ? avatarHtml : ''}
 `;
 
-    thread.appendChild(row);
+  thread.appendChild(row);
+  return row;
   };
 
   const renderMessages = (messages, force = false) => {
@@ -1257,16 +1191,8 @@ const avatarHtml = isCounselorMessage
   };
 
   function formatAnonymousName(name) {
-    if (!name) return 'Anonim';
-
-    const cleanName = String(name).trim();
-
-    if (cleanName.toLowerCase().includes('anonim')) {
-        return cleanName;
-    }
-
-    return `${cleanName} Anonim`;
-}
+    return cleanPrivateName(name);
+  }
 
 function animalIcon(name) {
     const value = String(name || '').toLowerCase();
@@ -1431,7 +1357,7 @@ function animalIcon(name) {
       }
 
       if (!pesan) {
-        hint.textContent = 'Pesan tidak boleh kosong.';
+        setHint('Pesan tidak boleh kosong.');
         textarea.focus();
         return;
       }
@@ -1501,6 +1427,12 @@ function animalIcon(name) {
           ? 'Pesan berhasil dihapus.'
           : (data.message ?? 'Pesan gagal dihapus.');
 
+        const setHint = (message = '') => {
+            if (hint) {
+              hint.textContent = message;
+            }
+          };
+
         if (response.ok && data.success) {
           syncMessages(true);
         }
@@ -1513,53 +1445,100 @@ function animalIcon(name) {
     }
   });
 
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
+  let isSendingGroupMessage = false;
 
-    const pesan = input.value.trim();
-    if (!pesan) {
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  if (isSendingGroupMessage) {
+    return;
+  }
+
+  const pesan = input.value.trim();
+  if (!pesan) {
+    return;
+  }
+
+  isSendingGroupMessage = true;
+  sendBtn.disabled = true;
+
+  const tempId = `temp-${Date.now()}`;
+
+  const tempMessage = {
+    id: tempId,
+    room_id: payload.roomId,
+    sender_id: currentUserId,
+    sender_name: 'Anda',
+    sender_role: 'mahasiswa',
+    text: pesan,
+    time: new Date().toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Jakarta',
+    }),
+    sent_at: new Date().toISOString(),
+    is_edited: false,
+    is_mine: true,
+  };
+
+  const tempRow = renderMessage(tempMessage);
+  scrollToBottom();
+
+  input.value = '';
+  autoResize();
+
+  try {
+    const response = await fetch(payload.sendUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({
+        group_id: payload.roomId,
+        pesan,
+      }),
+    });
+
+    const rawText = await response.text();
+    let data = {};
+
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (error) {
+      console.error(rawText);
+      tempRow?.remove();
+      input.value = pesan;
+      autoResize();
+      alert('Server mengembalikan response tidak valid. Cek log Laravel.');
       return;
     }
 
-    sendBtn.disabled = true;
-    hint.textContent = 'Mengirim pesan ke grup...';
-
-    try {
-      const response = await fetch(payload.sendUrl, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-Socket-ID': window.Echo?.socketId?.() ?? '',
-        },
-        body: JSON.stringify({
-          group_id: payload.roomId,
-          pesan,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        hint.textContent = data.message ?? 'Pesan gagal dikirim.';
-        sendBtn.disabled = false;
-        return;
-      }
-
-      renderMessage(data.message);
-      scrollToBottom();
-      input.value = '';
+    if (!response.ok || !data.success) {
+      tempRow?.remove();
+      input.value = pesan;
       autoResize();
-      hint.textContent = 'Pesan terkirim ke grup konseling.';
-    } catch (error) {
-      console.error(error);
-      hint.textContent = 'Terjadi kendala saat mengirim pesan.';
-    } finally {
-      sendBtn.disabled = false;
+      alert(data.message ?? 'Pesan gagal dikirim.');
+      return;
     }
-  });
+
+    tempRow?.remove();
+    renderMessage(data.message);
+    scrollToBottom();
+
+  } catch (error) {
+    console.error(error);
+    tempRow?.remove();
+    input.value = pesan;
+    autoResize();
+    alert('Terjadi kendala saat mengirim pesan.');
+  } finally {
+    isSendingGroupMessage = false;
+    sendBtn.disabled = false;
+  }
+});
 })();
 </script>
 @endpush

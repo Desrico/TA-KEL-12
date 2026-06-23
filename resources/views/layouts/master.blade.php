@@ -2437,9 +2437,11 @@ footer a:hover {
                 >
                 <p>{{ $notif->pesan }}</p>
                 <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
-                @if(!empty($notif->cta_label))
-                  <span class="notif-tag"><i class="bi bi-arrow-up-right-circle"></i> {{ $notif->cta_label }}</span>
-                @endif
+              @if(!empty($notif->cta_target) && !empty($notif->cta_label))
+                  <a href="{{ $notif->cta_target }}" class="notification-cta">
+                      {{ $notif->cta_label }}
+                  </a>
+              @endif
               </a>
               @endif
             @empty

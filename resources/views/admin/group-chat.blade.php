@@ -1896,6 +1896,7 @@
                 <button type="submit" class="admin-chat-send" id="adminGroupChatSendBtn">
                   <i class="ti ti-send"></i>
                 </button>
+                <p id="adminGroupChatHint" class="admin-chat-hint"></p>
               </form>
             </div>
           </div>
@@ -2706,6 +2707,11 @@ function animalIcon(name) {
   const input = document.getElementById('adminGroupChatInput');
   const sendBtn = document.getElementById('adminGroupChatSendBtn');
   const hint = document.getElementById('adminGroupChatHint');
+  const setHint = (message = '') => {
+    if (hint) {
+      hint.textContent = message;
+    }
+  };
 
   if (!thread || !form || !input || !sendBtn) {
     return;
@@ -3186,53 +3192,68 @@ function animalIcon(name) {
     }
   });
 
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
+  let isSendingGroupMessage = false;
 
-    const pesan = input.value.trim();
-    if (!pesan) {
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  if (isSendingGroupMessage) {
+    return;
+  }
+
+  const pesan = input.value.trim();
+  if (!pesan) {
+    return;
+  }
+
+  isSendingGroupMessage = true;
+  sendBtn.disabled = true;
+
+  try {
+    const response = await fetch(payload.sendUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({
+        group_id: payload.roomId,
+        pesan: pesan,
+      }),
+    });
+
+    const rawText = await response.text();
+    let data = {};
+
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (error) {
+      console.error(rawText);
+      alert('Server mengembalikan response tidak valid. Cek log Laravel.');
       return;
     }
 
-    sendBtn.disabled = true;
-    hint.textContent = 'Mengirim pesan ke grup...';
-
-    try {
-      const response = await fetch(payload.sendUrl, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-Socket-ID': window.Echo?.socketId?.() ?? '',
-        },
-        body: JSON.stringify({
-          group_id: payload.roomId,
-          pesan,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        hint.textContent = data.message ?? 'Pesan gagal dikirim.';
-        sendBtn.disabled = false;
-        return;
-      }
-
-      renderMessage(data.message);
-      scrollToBottom();
-      input.value = '';
-      autoResize();
-      hint.textContent = 'Pesan terkirim ke seluruh anggota grup.';
-    } catch (error) {
-      console.error(error);
-      hint.textContent = 'Terjadi kendala saat mengirim pesan.';
-    } finally {
-      sendBtn.disabled = false;
+    if (!response.ok || !data.success) {
+      alert(data.message ?? 'Pesan gagal dikirim.');
+      return;
     }
-  });
+
+    input.value = '';
+    autoResize();
+
+    await syncMessages(true);
+    scrollToBottom();
+
+  } catch (error) {
+    console.error(error);
+    alert('Terjadi kendala saat mengirim pesan.');
+  } finally {
+    isSendingGroupMessage = false;
+    sendBtn.disabled = false;
+  }
+});
 })();
 </script>
 @endpush
