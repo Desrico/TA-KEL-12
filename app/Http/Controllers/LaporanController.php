@@ -98,8 +98,9 @@ class LaporanController extends Controller
             ->count();
 
         $riwayat = $query
-            ->orderBy('tanggal', 'desc')
-            ->orderBy('waktu', 'desc')
+            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate(5);
 
         $riwayat->getCollection()->transform(function (JadwalKonseling $jadwal) {

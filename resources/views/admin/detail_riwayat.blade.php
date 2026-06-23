@@ -107,6 +107,10 @@
     $user = optional($mahasiswa)->user;
     $status = strtolower($jadwal->status ?? 'menunggu');
 
+    $jenisLayanan = strtolower((string) ($jadwal->jenis ?? 'online'));
+    $isOnlineSession = str_contains($jenisLayanan, 'online');
+    $isOfflineSession = str_contains($jenisLayanan, 'offline');
+
     $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
 
     $namaTampil = $isAnonim
@@ -124,14 +128,16 @@
     $statusLabel = match ($status) {
         'menunggu' => 'Menunggu Konfirmasi',
         'disetujui', 'diterima' => 'Diterima',
-        'berlangsung' => 'Sedang Berlangsung',
+        'berlangsung' => $isOfflineSession ? 'Selesai' : 'Sedang Berlangsung',
         'selesai' => 'Selesai',
         'ditolak', 'dibatalkan' => 'Ditolak',
         default => ucwords(str_replace('_', ' ', $jadwal->status ?? 'Menunggu')),
     };
 
     $topik = $jadwal->topik ?? null;
-    $canStartNow = $status === 'disetujui' && $jadwal->isChatWindowOpen(null, 'Asia/Jakarta');
+    $canStartNow = $isOnlineSession
+    && $status === 'disetujui'
+    && $jadwal->isChatWindowOpen(null, 'Asia/Jakarta');
     $scheduledStartLabel = $jadwal->scheduledStartLabel('Asia/Jakarta');
     // Cek laporan aktual agar sesi selesai tetap bisa dibuatkan laporan.
     $sudahAdaLaporan = trim((string) ($jadwal->laporan ?? '')) !== ''
@@ -223,31 +229,46 @@
     </div>
 
     @elseif($status === 'disetujui')
-        <div class="detail-actions">
-            @if($canStartNow)
-                <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
-                    Mulai Sesi
-                </a>
-            @else
-                <button type="button" class="btn-terima" style="min-width:220px;text-align:center;opacity:.6;cursor:not-allowed;" disabled>
-                    Menunggu Jadwal Sesi
+    <div class="detail-actions">
+        @if($isOfflineSession)
+            <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
+                @csrf
+                <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
+                    Tandai Selesai
                 </button>
-            @endif
-        </div>
+            </form>
+        @elseif($canStartNow)
+            <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
+                Mulai Sesi
+            </a>
+        @else
+            <button type="button" class="btn-terima" style="min-width:220px;text-align:center;opacity:.6;cursor:not-allowed;" disabled>
+                Menunggu Jadwal Sesi
+            </button>
+        @endif
+    </div>
     @elseif($status === 'berlangsung')
-        <div class="detail-actions">
+    <div class="detail-actions">
+        @if($isOnlineSession)
             <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
                 Lanjutkan Chat
             </a>
 
             <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
                 @csrf
-                <!-- Tandai selesai agar laporan bisa dibuat. -->
                 <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
                     Tandai Selesai
                 </button>
             </form>
-        </div>
+        @else
+            <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
+                @csrf
+                <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
+                    Selesai
+                </button>
+            </form>
+        @endif
+    </div>
     @elseif($status === 'selesai')
         <div class="detail-actions">
             <a href="{{ url('/admin/riwayat-konseling') }}" class="btn-laporan" style="min-width:220px;text-align:center;">

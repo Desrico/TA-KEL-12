@@ -25,49 +25,48 @@
 
     <div class="riwayat-content">
 
-        <!-- LEFT: LIST -->
         <div class="riwayat-list">
 
-           @foreach($riwayat as $item)
-@php
-    $status = strtolower(trim($item->status ?? ''));
-    $status = str_replace(' ', '_', $status);
+        @foreach($riwayat as $item)
+            @php
+                $status = strtolower(trim($item->status ?? ''));
+                $status = str_replace(' ', '_', $status);
 
-    $statusLabel = match($status) {
-        'selesai' => 'Selesai',
-        'ditolak' => 'Ditolak',
-        'dibatalkan' => 'Dibatalkan',
-        'disetujui', 'diterima' => 'Diterima',
-        'menunggu', 'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
-        'berlangsung', 'sedang_berlangsung' => 'Sedang Berlangsung',
-        'perlu_penjadwalan_ulang' => 'Perlu Penjadwalan Ulang',
-        default => ucfirst(str_replace('_', ' ', $item->status ?? '-'))
-    };
+                $sesi = $item->sesiKonseling;
+                $feedback = $sesi?->feedback;
+                $bisaFeedback = $status === 'selesai' && $sesi;
 
-    $statusClass = match($status) {
-        'selesai' => 'status-selesai',
-        'ditolak' => 'status-ditolak',
-        'dibatalkan' => 'status-dibatalkan',
-        'disetujui', 'diterima' => 'status-diterima',
-        'menunggu', 'menunggu_konfirmasi' => 'status-menunggu',
-        'berlangsung', 'sedang_berlangsung' => 'status-berlangsung',
-        'perlu_penjadwalan_ulang' => 'status-reschedule',
-        default => 'status-default'
-    };
+                $statusLabel = match($status) {
+                    'selesai' => 'Selesai',
+                    'ditolak' => 'Ditolak',
+                    'dibatalkan' => 'Dibatalkan',
+                    'disetujui', 'diterima' => 'Diterima',
+                    'menunggu', 'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
+                    'berlangsung', 'sedang_berlangsung' => 'Sedang Berlangsung',
+                    'perlu_penjadwalan_ulang' => 'Perlu Penjadwalan Ulang',
+                    default => ucfirst(str_replace('_', ' ', $item->status ?? '-'))
+                };
 
-    $topikText = '-';
+                $statusClass = match($status) {
+                    'selesai' => 'status-selesai',
+                    'ditolak' => 'status-ditolak',
+                    'dibatalkan' => 'status-dibatalkan',
+                    'disetujui', 'diterima' => 'status-diterima',
+                    'menunggu', 'menunggu_konfirmasi' => 'status-menunggu',
+                    'berlangsung', 'sedang_berlangsung' => 'status-berlangsung',
+                    'perlu_penjadwalan_ulang' => 'status-reschedule',
+                    default => 'status-default'
+                };
 
-    if (!empty($item->topik)) {
-        $topikText = $item->topik;
-    } elseif (!empty($item->catatan) && str_contains($item->catatan, 'Topik:')) {
-        $parts = explode('|', $item->catatan);
-        $topikText = trim(str_replace('Topik:', '', $parts[0]));
-    }
+                $topikText = '-';
 
-    $sesi = $item->sesiKonseling;
-    $feedback = $sesi?->feedback;
-    $bisaFeedback = $status === 'selesai' && $sesi;
-@endphp
+                if (!empty($item->topik)) {
+                    $topikText = $item->topik;
+                } elseif (!empty($item->catatan) && str_contains($item->catatan, 'Topik:')) {
+                    $parts = explode('|', $item->catatan);
+                    $topikText = trim(str_replace('Topik:', '', $parts[0]));
+                }
+            @endphp
 
     <div class="riwayat-card">
         <div class="card-left">

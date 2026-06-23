@@ -14,10 +14,15 @@ class RiwayatController extends Controller
     {
         $mahasiswa = Auth::user()->mahasiswa;
 
-        $riwayat = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
+        $riwayat = JadwalKonseling::with([
+                'mahasiswa.user',
+                'konselor.user',
+                'sesiKonseling.feedback',
+            ])
             ->where('mahasiswa_id', optional($mahasiswa)->id)
-            ->orderBy('tanggal', 'desc')
-            ->orderBy('waktu', 'desc')
+            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->get();
 
         return view('Pages.riwayat', compact('riwayat'));
