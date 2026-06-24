@@ -694,6 +694,32 @@
       box-shadow: 0 6px 18px rgba(15, 118, 110, 0.12);
       flex-shrink: 0;
   }
+
+  .group-member-avatar,
+  .group-member-avatar-fallback,
+  .group-animal-avatar {
+      width: 42px !important;
+      height: 42px !important;
+      border-radius: 50% !important;
+      background: #d1fae5;
+      color: #065f46;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      border: 3px solid #ffffff;
+      box-shadow: 0 8px 20px rgba(6, 78, 59, 0.12);
+      flex-shrink: 0;
+      overflow: hidden;
+  }
+
+  .group-member-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+  }
   @media (max-width: 767.98px) {
     .group-room-page {
       padding-top: 1.25rem;
@@ -757,7 +783,7 @@
         return $name . ' Anonim';
     };
 
-    $animalIcon = function ($name) {
+        $animalIcon = function ($name) {
         $name = strtolower((string) $name);
 
         $icons = [
@@ -783,7 +809,14 @@
 
         return '👤';
     };
+
+    $displayMemberNames = collect($chatPayload['memberNames'] ?? [])
+        ->map(fn ($name) => $cleanMemberName($name))
+        ->filter()
+        ->values()
+        ->all();
 @endphp
+
 <section class="group-room-page">
   <div class="container">
 
@@ -812,7 +845,7 @@
                 <h1 class="group-room-title">{{ $chatPayload['roomTitle'] }}</h1>
                 <p class="group-room-subtitle">
                   {{ $chatPayload['topicLabel'] }} &bull; {{ $chatPayload['memberCount'] }} anggota<br>
-                  {{ implode(', ', array_slice($chatPayload['memberNames'], 0, 4)) }}{{ count($chatPayload['memberNames']) > 4 ? ' dan lainnya' : '' }}
+                  {{ implode(', ', array_slice($displayMemberNames, 0, 4)) }}{{ count($displayMemberNames) > 4 ? ' dan lainnya' : '' }}
                 </p>
               </div>
             </div>
@@ -849,19 +882,32 @@
                       @foreach($chatPayload['memberProfiles'] as $memberProfile)
                         @php
                             $memberName = $cleanMemberName($memberProfile['name'] ?? 'Mahasiswa');
+                            $memberRole = strtolower((string) ($memberProfile['role'] ?? ''));
+                            $isKonselorMember = $memberRole === 'konselor' || strtolower($memberName) === 'konselor';
+                            $avatarUrl = $memberProfile['avatar_url'] ?? null;
+                            $initial = strtoupper(mb_substr($memberName, 0, 1));
                         @endphp
 
                         <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberName) }}">
-                          <div class="group-member-avatar">
-                            <img
-                              src="{{ $memberProfile['avatar_url'] ?? asset('img/default-avatar.png') }}"
-                              alt="{{ $memberName }}"
-                            >
-                          </div>
+                            @if($isKonselorMember)
+                                <div class="group-member-avatar-fallback">K</div>
+                            @elseif(! $isPrivateRoom)
+                                <div class="group-animal-avatar">
+                                    {{ $animalIcon($memberName) }}
+                                </div>
+                            @elseif(!empty($avatarUrl))
+                                <div class="group-member-avatar">
+                                    <img src="{{ $avatarUrl }}" alt="{{ $memberName }}">
+                                </div>
+                            @else
+                                <div class="group-member-avatar-fallback">
+                                    {{ $initial }}
+                                </div>
+                            @endif
 
-                          <div class="group-member-name">{{ $memberName }}</div>
+                            <div class="group-member-name">{{ $memberName }}</div>
                         </div>
-                      @endforeach
+                    @endforeach
                   </div>
                   <div class="group-member-empty" id="groupRoomMemberEmpty">Anggota tidak ditemukan.</div>
                 </div>
@@ -980,12 +1026,20 @@
       return isPrivateRoom ? 'Mahasiswa' : 'Mahasiswa Anonim';
     }
 
+    if (value.toLowerCase() === 'konselor') {
+      return 'Konselor';
+    }
+
     if (isPrivateRoom) {
       return value.replace(/\s+Anonim$/i, '');
     }
 
-    return value;
-  };
+    if (value.toLowerCase().includes('anonim')) {
+      return value;
+    }
+
+    return `${value} Anonim`;
+};
   const thread = document.getElementById('groupChatThread');
   const form = document.getElementById('groupChatForm');
   const input = document.getElementById('groupChatInput');
@@ -1145,11 +1199,17 @@ const displaySenderName = isCounselorMessage
   ? 'Konselor'
   : cleanPrivateName(message.sender_name);
 
+const avatarInitial = String(displaySenderName || 'M').charAt(0).toUpperCase();
+
 const avatarHtml = isCounselorMessage
   ? `<div class="group-message-avatar-fallback">K</div>`
   : isPrivateRoom
-    ? `<div class="group-member-avatar"><img src="${escapeHtml(message.avatar_url || '')}" alt="${escapeHtml(displaySenderName)}"></div>`
-    : `<div class="group-animal-avatar">${animalIcon(anonymousDisplayName)}</div>`;
+    ? (
+        message.avatar_url
+          ? `<div class="group-message-avatar"><img src="${escapeHtml(message.avatar_url)}" alt="${escapeHtml(displaySenderName)}"></div>`
+          : `<div class="group-message-avatar-fallback">${escapeHtml(avatarInitial)}</div>`
+      )
+    : `<div class="group-animal-avatar">${animalIcon(displaySenderName)}</div>`;
 
     ensureDateSeparator(dateParts.key, dateParts.label);
 
@@ -1468,7 +1528,8 @@ form.addEventListener('submit', async (event) => {
     id: tempId,
     room_id: payload.roomId,
     sender_id: currentUserId,
-    sender_name: 'Anda',
+    sender_name: cleanPrivateName(payload.currentMemberName || 'Mahasiswa Anonim'),
+    sender_anonymous_name: cleanPrivateName(payload.currentMemberName || 'Mahasiswa Anonim'),
     sender_role: 'mahasiswa',
     text: pesan,
     time: new Date().toLocaleTimeString('id-ID', {

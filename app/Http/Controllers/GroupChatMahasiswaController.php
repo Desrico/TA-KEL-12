@@ -155,7 +155,7 @@ class GroupChatMahasiswaController extends Controller
         return view('Pages.group-chat-room', [
             'joinedRooms' => $joinedRooms,
             'activeRoom' => $activeRoom,
-            'chatPayload' => $this->buildChatPayload($activeRoom, $messages),
+            'chatPayload' => $this->buildChatPayload($activeRoom, $messages, $user),
         ]);
     }
 
@@ -675,11 +675,18 @@ class GroupChatMahasiswaController extends Controller
         return $room;
     }
 
-    private function buildChatPayload(GroupChatRoom $room, array $messages): array
+    private function buildChatPayload(GroupChatRoom $room, array $messages, ?User $viewer = null): array
 {
     return [
         'roomId' => $room->id,
         'isPrivate' => $room->isPrivate(),
+        'currentMemberName' => $viewer
+        ? $this->resolveRoomDisplayName(
+            $viewer,
+            $room,
+            GroupChatSupport::resolveRoomMember($viewer, $room)
+        )
+        : null,
         'channel' => 'chat.group.' . $room->id,
         'sendUrl' => route('mahasiswa.group-chat.store'),
         'messagesUrl' => route('mahasiswa.group-chat.messages'),
@@ -770,13 +777,16 @@ private function transformMessage(GroupChatMessage $message, User $viewer, Group
     $sender = $message->sender;
     $membership = $sender ? GroupChatSupport::resolveRoomMember($sender, $room) : null;
 
+    $senderDisplayName = $sender
+    ? $this->resolveRoomDisplayName($sender, $room, $membership)
+    : 'Mahasiswa';
+
     return [
         'id' => $message->id,
         'room_id' => $message->room_id,
         'sender_id' => $message->user_id,
-        'sender_name' => $message->user_id === $viewer->id
-            ? 'Anda'
-            : $this->resolveRoomDisplayName($sender, $room, $membership),
+        'sender_name' => $senderDisplayName,
+        'sender_anonymous_name' => $senderDisplayName,
         'sender_role' => $sender?->role ?? 'pengguna',
         'avatar_url' => $this->resolveRoomAvatarUrl($sender, $room, $membership),
         'text' => $message->pesan,

@@ -471,6 +471,15 @@
           <form action="{{ route('mahasiswa.group-chat.join') }}" method="POST" class="group-create-form">
             @csrf
 
+            @if ($errors->any())
+                <div class="group-inline-error" style="margin-bottom: 1rem;">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
+            <input type="hidden" name="consent_acknowledged" value="1">
+            <input type="hidden" name="consent_version" value="{{ $consentVersion ?? '1.0' }}">
+
             <div>
               <label for="groupTopic" class="group-form-label">Topik Konseling</label>
               <select id="groupTopic" name="topic" class="group-form-select" required>
@@ -494,12 +503,10 @@
 
             <div class="group-create-actions">
               <button type="submit" class="group-create-submit">
-                <i class="bi bi-plus-circle-fill"></i>
-                <span>Lanjut Bergabung</span>
+                <span>Gabung Bergabung</span>
               </button>
 
               <a href="{{ route('mahasiswa.group-chat') }}" class="group-create-cancel">
-                <i class="bi bi-x-circle"></i>
                 <span>Batal</span>
               </a>
             </div>
