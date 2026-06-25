@@ -159,30 +159,30 @@ class SesiKonselingController extends Controller
     
     public function selesai($id)
     {
-        $konselor = $this->resolveAuthenticatedKonselor();
+        $jadwal = JadwalKonseling::with('sesiKonseling')->findOrFail($id);
 
-        $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
-            ->findOrFail($id);
-
-        $jadwal->update(['status' => 'selesai']);
-
-        $sesi = $jadwal->sesiKonseling ?: $jadwal->sesiKonseling()->create([
+        $jadwal->update([
             'status' => 'selesai',
-            'waktu_mulai' => now()->subHour(),
         ]);
 
-        $sesi->update(['status' => 'selesai']);
-
-        if (Schema::hasColumn('sesi_konseling', 'waktu_selesai')) {
-            $sesi->update(['waktu_selesai' => now()]);
+        if ($jadwal->sesiKonseling) {
+            $jadwal->sesiKonseling->update([
+                'status' => 'selesai',
+                'waktu_selesai' => now(),
+            ]);
         }
 
-        // Broadcast ke mahasiswa agar chat otomatis terkunci
-        broadcast(new \App\Events\SesiSelesai($sesi))->toOthers();
+        $jenisLayanan = strtolower((string) ($jadwal->jenis ?? 'online'));
+        $isOfflineSession = str_contains($jenisLayanan, 'offline');
 
-        // Redirect kembali ke halaman chat, BUKAN detail sesi
+        if ($isOfflineSession) {
+            return redirect()
+                ->route('admin.riwayat')
+                ->with('success', 'Sesi offline berhasil ditandai selesai.');
+        }
+
         return redirect()
-            ->route('admin.chat', ['jadwal' => $jadwal->id])
-            ->with('success', 'Sesi konseling telah diselesaikan.');
+            ->route('admin.riwayat.detail', $jadwal->id)
+            ->with('success', 'Sesi konseling berhasil ditandai selesai.');
     }
 }

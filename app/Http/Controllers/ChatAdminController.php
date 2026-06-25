@@ -40,6 +40,14 @@ class ChatAdminController extends Controller
             ]);
         }
 
+        $jenisLayanan = strtolower((string) ($selectedJadwal->jenis ?? ''));
+
+        if (! str_contains($jenisLayanan, 'online')) {
+            return redirect()
+                ->route('admin.riwayat')
+                ->with('error', 'Sesi offline tidak menggunakan fitur chat.');
+        }
+
         $sesi = $this->resolveSessionFromSchedule($selectedJadwal);
         $sesi->loadMissing([
             'jadwalKonseling.konselor.user.profil',
@@ -366,7 +374,7 @@ class ChatAdminController extends Controller
             return collect();
         }
 
-        return $this->synchronizeCandidateSchedules(
+       return $this->synchronizeCandidateSchedules(
             JadwalKonseling::query()
                 ->with([
                     'mahasiswa.user.profil',
@@ -374,6 +382,7 @@ class ChatAdminController extends Controller
                     'sesiKonseling',
                 ])
                 ->where('konselor_id', $konselorId)
+                ->whereRaw('LOWER(jenis) LIKE ?', ['%online%'])
                 ->whereIn('status', ['diterima', 'disetujui', 'berlangsung', 'selesai'])
                 ->orderByRaw("
                     CASE
@@ -522,7 +531,7 @@ class ChatAdminController extends Controller
             ])
             ->where('konselor_id', $konselorId)
             ->where('mahasiswa_id', $selectedJadwal->mahasiswa_id)
-            ->where('jenis', 'online')
+            ->whereRaw('LOWER(jenis) LIKE ?', ['%online%'])
             ->where(function ($query) {
                 $query->whereNull('anonim')
                     ->orWhere('anonim', false)
@@ -580,7 +589,7 @@ class ChatAdminController extends Controller
                 'konselor.user.profil',
             ])
             ->where('konselor_id', $konselorId)
-            ->where('jenis', 'online')
+            ->whereRaw('LOWER(jenis) LIKE ?', ['%online%'])
             ->whereIn('status', ['diterima', 'disetujui', 'berlangsung', 'selesai'])
             ->find($jadwalId);
     }
@@ -630,7 +639,8 @@ class ChatAdminController extends Controller
                 'jadwalKonseling.konselor.user.profil',
             ])
             ->whereHas('jadwalKonseling', function ($query) use ($konselorId) {
-                $query->where('konselor_id', $konselorId);
+                $query->where('konselor_id', $konselorId)
+                    ->whereRaw('LOWER(jenis) LIKE ?', ['%online%']);
             })
             ->find($sesiId);
 
@@ -870,7 +880,7 @@ class ChatAdminController extends Controller
             ])
             ->where('mahasiswa_id', $jadwal->mahasiswa_id)
             ->where('konselor_id', $jadwal->konselor_id)
-            ->where('jenis', 'online')
+            ->whereRaw('LOWER(jenis) LIKE ?', ['%online%'])
             ->whereIn('status', ['diterima', 'disetujui', 'berlangsung', 'selesai'])
             ->orderBy('tanggal')
             ->orderBy('waktu')
@@ -961,7 +971,7 @@ class ChatAdminController extends Controller
         return JadwalKonseling::query()
             ->where('konselor_id', $konselorId)
             ->where('mahasiswa_id', $selectedJadwal->mahasiswa_id)
-            ->where('jenis', 'online')
+            ->whereRaw('LOWER(jenis) LIKE ?', ['%online%'])
             ->where(function ($query) {
                 $query->whereNull('anonim')
                     ->orWhere('anonim', false)

@@ -108,8 +108,8 @@
     $status = strtolower($jadwal->status ?? 'menunggu');
 
     $jenisLayanan = strtolower((string) ($jadwal->jenis ?? 'online'));
-    $isOnlineSession = str_contains($jenisLayanan, 'online');
     $isOfflineSession = str_contains($jenisLayanan, 'offline');
+    $isOnlineSession = str_contains($jenisLayanan, 'online');
 
     $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
 
@@ -135,8 +135,8 @@
     };
 
     $topik = $jadwal->topik ?? null;
-    $canStartNow = $isOnlineSession
-    && $status === 'disetujui'
+   $canStartNow = $isOnlineSession
+    && in_array($status, ['disetujui', 'diterima'], true)
     && $jadwal->isChatWindowOpen(null, 'Asia/Jakarta');
     $scheduledStartLabel = $jadwal->scheduledStartLabel('Asia/Jakarta');
     // Cek laporan aktual agar sesi selesai tetap bisa dibuatkan laporan.
@@ -228,7 +228,7 @@
         </a>
     </div>
 
-    @elseif($status === 'disetujui')
+   @elseif(in_array($status, ['disetujui', 'diterima'], true))
     <div class="detail-actions">
         @if($isOfflineSession)
             <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
@@ -248,27 +248,27 @@
         @endif
     </div>
     @elseif($status === 'berlangsung')
-    <div class="detail-actions">
-        @if($isOnlineSession)
-            <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
-                Lanjutkan Chat
-            </a>
+        <div class="detail-actions">
+            @if($isOnlineSession)
+                <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
+                    Lanjutkan Chat
+                </a>
 
-            <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
-                @csrf
-                <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
-                    Tandai Selesai
-                </button>
-            </form>
-        @else
-            <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
-                @csrf
-                <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
-                    Selesai
-                </button>
-            </form>
-        @endif
-    </div>
+                <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
+                        Tandai Selesai
+                    </button>
+                </form>
+            @else
+                <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
+                        Tandai Selesai
+                    </button>
+                </form>
+            @endif
+        </div>
     @elseif($status === 'selesai')
         <div class="detail-actions">
             <a href="{{ url('/admin/riwayat-konseling') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
