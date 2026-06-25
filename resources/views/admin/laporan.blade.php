@@ -1,9 +1,20 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Laporan Hasil Konseling')
+@section('page-hero')       
+<div style="display:none !important;"></div>
+@endsection
 
 @push('styles')
 <style>
+    .pc-content {
+        padding-top: .65rem !important;
+    }
+
+    .admin-breadcrumb {
+        margin-bottom: .8rem;
+    }
+
     /* ── LIST VIEW STYLES ── */
     .laporan-card {
         background: #fff;

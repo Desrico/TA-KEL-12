@@ -1,9 +1,24 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Sesi Konseling')
+@section('page-hero')
+<div style="display:none !important;"></div>
+@endsection
 
 @push('styles')
 <style>
+    .pc-content {
+        padding: 1.5rem 2rem 2.5rem !important;
+    }
+
+    .admin-breadcrumb {
+        margin: 0 0 1.5rem 0 !important;
+    }
+
+    .admin-page-inner {
+        padding-top: 0 !important;
+    }
+
     .sesi-card {
         background: #fff;
         border: 1px solid #dceee4;

@@ -1,12 +1,28 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Penjadwalan Konseling')
+@section('page-hero')
+<div style="display:none !important;"></div>
+@endsection
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
 
 <style>
+  .pc-content {
+    padding: 1.5rem 2rem 2.5rem !important;
+  }
+
+  .admin-breadcrumb {
+    margin: 0 0 1.5rem 0 !important;
+  }
+
+  .admin-page-inner {
+    padding-top: 0 !important;
+  }
+
   .jadwal-page-wrap {
     display: grid;
+    margin-top: 0;
   }
 
   .jadwal-calendar-card,

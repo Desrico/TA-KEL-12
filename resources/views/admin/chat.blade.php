@@ -28,14 +28,42 @@
 @endphp
 
 @section('page-title', 'Chat Konseling')
+@section('page-hero')
+<div style="display:none !important;"></div>
+@endsection
 
 @push('styles')
 <style>
+  body {
+    overflow: hidden;
+  }
+
+  .pc-container {
+    height: calc(100vh - 74px);
+    overflow: hidden;
+  }
+
+  .pc-content {
+    height: 100%;
+    padding: 1.5rem 1.4rem 1rem !important;
+    overflow: hidden;
+  }
+
+  .admin-breadcrumb {
+    margin: 0 0 1.5rem 0 !important;
+  }
+
+  .admin-page-inner {
+    padding-top: 0 !important;
+  }
+
   .admin-chat-page {
     display: grid;
     grid-template-columns: 340px minmax(0, 1fr);
     gap: 0;
-    min-height: 760px;
+    min-height: 0;
+    height: calc(100vh - 170px);
+    max-height: calc(100vh - 170px);
     background: #fff;
     border: 1px solid #dceee4;
     border-radius: 28px;
@@ -316,7 +344,8 @@
 
   .admin-chat-card {
     overflow: visible;
-    min-height: 760px;
+    min-height: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
     background:

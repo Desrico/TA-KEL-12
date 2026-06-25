@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -51,14 +52,17 @@ class GroupChatMahasiswaController extends Controller
         }
 
         $topic = $request->query('topic');
+        $roomId = $request->integer('room');
         $selectedTopic = null;
 
-        if ($topic && array_key_exists($topic, GroupChatRoom::topicOptions())) {
+        if ($roomId > 0) {
+            $selectedTopic = collect($this->resolvePublicTopicCards($user))->firstWhere('room_id', $roomId);
+        } elseif ($topic && array_key_exists($topic, $this->selectableTopicOptions())) {
             $selectedTopic = collect($this->resolvePublicTopicCards($user))->firstWhere('topic_key', $topic);
         }
 
         return view('Pages.group-chat-create', [
-            'topicOptions' => GroupChatRoom::topicOptions(),
+            'topicOptions' => $this->selectableTopicOptions(),
             'publicTopics' => $this->resolvePublicTopicCards($user),
             'pendingInvitations' => $this->resolvePendingInvitations($user),
             'groupRules' => GroupChatSupport::rules(),
@@ -117,7 +121,7 @@ class GroupChatMahasiswaController extends Controller
         }
 
         return view('Pages.group-chat-create', [
-            'topicOptions' => GroupChatRoom::topicOptions(),
+            'topicOptions' => $this->selectableTopicOptions(),
             'publicTopics' => $this->resolvePublicTopicCards($user),
             'pendingInvitations' => $this->resolvePendingInvitations($user),
             'groupRules' => GroupChatSupport::rules(),
@@ -159,7 +163,7 @@ class GroupChatMahasiswaController extends Controller
     {
         $validated = $request->validate([
             'room_id' => ['nullable', 'integer'],
-            'topic' => ['nullable', 'string', Rule::in(array_keys(GroupChatRoom::topicOptions()))],
+            'topic' => ['nullable', 'string', Rule::in(array_keys($this->selectableTopicOptions()))],
             'invite_token' => ['nullable', 'string'],
             'consent_acknowledged' => ['required', 'accepted'],
         ]);
@@ -717,23 +721,46 @@ class GroupChatMahasiswaController extends Controller
             $publicRoomsQuery->where('visibility', GroupChatRoom::VISIBILITY_PUBLIC);
         }
 
-        $publicRooms = $publicRoomsQuery->get()->keyBy('topic');
+        $publicRooms = $publicRoomsQuery->get();
+        $selectableTopicOptions = $this->selectableTopicOptions();
 
         $cards = [];
 
-        foreach (GroupChatRoom::topicOptions() as $topicKey => $topicLabel) {
+        foreach ($selectableTopicOptions as $topicKey => $topicLabel) {
             /** @var GroupChatRoom|null $room */
-            $room = $publicRooms->get($topicKey);
+            $room = $publicRooms->firstWhere('topic', $topicKey);
 
             $cards[] = [
+                'kind' => 'preset',
                 'topic_key' => $topicKey,
                 'topic_label' => $topicLabel,
-                'description' => GroupChatSupport::topicDescription($topicKey),
+                'description' => trim((string) ($room?->description ?: GroupChatSupport::topicDescription($topicKey))),
                 'room_id' => $room?->id,
                 'member_count' => (int) ($room?->active_members_count ?? $room?->members_count ?? 0),
                 'joined' => $room ? in_array($room->id, $joinedRoomIds, true) : false,
                 'join_url' => route('mahasiswa.group-chat.create', ['topic' => $topicKey]),
                 'room_url' => $room ? route('mahasiswa.group-chat.room', ['group' => $room->id]) : null,
+            ];
+        }
+
+        $customPublicRooms = $publicRooms
+            ->filter(function (GroupChatRoom $room) {
+                return ! array_key_exists((string) $room->topic, GroupChatRoom::topicOptions());
+            })
+            ->sortBy(fn (GroupChatRoom $room) => Str::lower(trim((string) $room->title)))
+            ->values();
+
+        foreach ($customPublicRooms as $room) {
+            $cards[] = [
+                'kind' => 'custom',
+                'topic_key' => null,
+                'topic_label' => $room->topicLabel(),
+                'description' => trim((string) ($room->description ?: GroupChatSupport::topicDescription(null))),
+                'room_id' => $room->id,
+                'member_count' => (int) ($room->active_members_count ?? $room->members_count ?? 0),
+                'joined' => in_array($room->id, $joinedRoomIds, true),
+                'join_url' => route('mahasiswa.group-chat.create', ['room' => $room->id]),
+                'room_url' => route('mahasiswa.group-chat.room', ['group' => $room->id]),
             ];
         }
 
@@ -823,6 +850,11 @@ class GroupChatMahasiswaController extends Controller
 
     private function buildPublicConsentContext(array $topicCard): array
     {
+        $hiddenFields = array_filter([
+            'topic' => $topicCard['topic_key'] ?? null,
+            'room_id' => $topicCard['room_id'] ?? null,
+        ], fn ($value) => filled($value));
+
         return [
             'kind' => 'public_topic',
             'headline' => 'Konfirmasi gabung grup publik',
@@ -830,11 +862,15 @@ class GroupChatMahasiswaController extends Controller
             'description' => $topicCard['description'],
             'meta' => $topicCard['member_count'] . ' anggota aktif',
             'submit_label' => 'Setuju dan Masuk Grup',
-            'hidden_fields' => [
-                'topic' => $topicCard['topic_key'],
-                'room_id' => $topicCard['room_id'],
-            ],
+            'hidden_fields' => $hiddenFields,
         ];
+    }
+
+    private function selectableTopicOptions(): array
+    {
+        return collect(GroupChatRoom::topicOptions())
+            ->except('lainnya')
+            ->all();
     }
 
     private function buildPrivateConsentContext(GroupChatRoom $room, ?GroupChatMember $membership): array

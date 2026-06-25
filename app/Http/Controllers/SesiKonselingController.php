@@ -14,11 +14,25 @@ class SesiKonselingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user || ! $user->konselor) {
+        if (! $user) {
             abort(403, 'Data konselor tidak ditemukan.');
         }
 
-        return $user->konselor;
+        $konselor = $user->konselor;
+
+        if (! $konselor) {
+            $konselor = Konselor::query()
+                ->where('user_id', $user->id)
+                ->first();
+        }
+
+        if (! $konselor) {
+            abort(403, 'Data konselor tidak ditemukan.');
+        }
+
+        $user->setRelation('konselor', $konselor);
+
+        return $konselor;
     }
 
     private function getIdentitasMahasiswaTampil(JadwalKonseling $jadwal): array

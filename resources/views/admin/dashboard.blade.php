@@ -1,6 +1,9 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Dashboard Konselor')
+@section('page-title', 'Dashboard')
+@section('page-hero')
+<div style="display:none !important;"></div>
+@endsection
 
 @push('styles')
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -37,6 +40,14 @@
             background: var(--bg-base);
             max-width: 100%;
             overflow-x: hidden;
+        }
+
+        .pc-content {
+            padding-top: .65rem !important;
+        }
+
+        .admin-breadcrumb {
+            margin-bottom: .8rem;
         }
 
         /* ── Alert Banner ── */
@@ -887,7 +898,7 @@
         $topL3ForCards = $scanned->where('mental_level', 3)->sortBy('mental_scanned_at')->take(3);
     @endphp
 
-    <div class="container-fluid" style="padding: 24px; width: 100%; max-width: 100%; box-sizing: border-box;">
+    <div class="container-fluid" style="padding: 4px 24px 24px; width: 100%; max-width: 100%; box-sizing: border-box;">
         <!-- Alert Banner -->
          <div class="dashboard-heading-row">
 

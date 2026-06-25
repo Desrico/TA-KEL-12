@@ -7,12 +7,41 @@
 @endphp
 
 @section('page-title', 'Grup Chat')
+@section('page-hero')
+<div style="display:none !important;"></div>
+@endsection
 
 @push('styles')
 <style>
+  body {
+    overflow: hidden;
+  }
+
+  .pc-container {
+    height: calc(100vh - 74px);
+    overflow: hidden;
+  }
+
+  .pc-content {
+    height: 100%;
+    padding: 1.5rem 2rem 1rem !important;
+    overflow: hidden;
+  }
+
+  .admin-page-inner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .admin-breadcrumb {
+    margin: 0 0 1.5rem 0 !important;
+  }
+
   .admin-chat-page {
-    --admin-chat-shell-height: clamp(640px, calc(100vh - 142px), 900px);
-    --admin-chat-composer-space: 132px;
+    --admin-chat-shell-height: 100%;
+    --admin-chat-composer-space: 86px;
     --admin-accent: #0b5d45;
     --admin-accent-soft: #e4f1eb;
     --admin-accent-soft-2: #f3f8f5;
@@ -20,18 +49,20 @@
     display: grid;
     grid-template-columns: 340px minmax(0, 1fr);
     gap: 0;
+    flex: 1 1 auto;
     min-height: 0;
-    height: var(--admin-chat-shell-height);
+    height: calc(100vh - 170px);
+    max-height: calc(100vh - 170px);
     background: #fff;
     border: 1px solid #dceee4;
     border-radius: 28px;
     overflow: hidden;
-    box-shadow: 0 18px 44px rgba(6, 78, 59, .08);
+    box-shadow: none;
   }
 
   .admin-chat-card,
   .admin-chat-list {
-    background: transparent;
+    background: #ffffff;
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -45,14 +76,14 @@
     overflow-x: visible;
     align-self: stretch;
     border-right: 1px solid #edf7f1;
-    background: #f7fbf8;
+    background: #ffffff;
     overscroll-behavior: contain;
   }
 
   .admin-chat-list-head {
     padding: 1rem 1rem .85rem;
     border-bottom: 1px solid #edf7f1;
-    background: rgba(255, 255, 255, .92);
+    background: #ffffff;
     position: sticky;
     top: 0;
     z-index: 12;
@@ -158,16 +189,57 @@
     border-top: 1px solid #f4f8f6;
   }
 
+  .admin-chat-filter-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .55rem;
+    margin-top: .8rem;
+  }
+
+  .admin-chat-filter-btn {
+    min-height: 42px;
+    border: 1px solid #dbece3;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 999px;
+    padding: .5rem .9rem;
+    font-size: .8rem;
+    font-weight: 800;
+    text-align: center;
+    cursor: pointer;
+    transition: all .18s ease;
+  }
+
+  .admin-chat-filter-btn:hover {
+    background: #f0fdf4;
+    color: #065f46;
+  }
+
+  .admin-chat-filter-btn.active {
+    background: #065f46;
+    color: #ffffff;
+    border-color: #065f46;
+  }
+
+  .admin-create-shell {
+    margin-top: .85rem;
+  }
+
   .admin-chat-toolbar {
     display: flex;
     align-items: stretch;
     gap: .65rem;
-    margin-top: .85rem;
+  }
+
+  .admin-toolbar-create {
+    display: flex;
+    flex: 0 0 auto;
   }
 
   .admin-add-toggle {
-    width: 46px;
-    min-width: 46px;
+    min-width: 54px;
+    min-height: 100%;
+    padding: 0 1rem;
     border: 1px solid #dbece3;
     border-radius: 16px;
     background: #ffffff;
@@ -178,6 +250,11 @@
     align-items: center;
     justify-content: center;
     transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+
+  .admin-add-toggle i {
+    line-height: 1;
+    transition: transform .18s ease;
   }
 
   .admin-add-toggle:hover {
@@ -192,14 +269,28 @@
     border-color: transparent;
   }
 
+  .admin-add-toggle.is-open i {
+    transform: rotate(45deg);
+  }
+
+  #adminPrivateGroupCreatePanel {
+    width: 100%;
+    margin-top: .75rem;
+  }
+
+  #adminPrivateGroupCreatePanel[hidden] {
+    display: none !important;
+  }
+
   .admin-private-create {
-    margin-top: .85rem;
+    margin-top: 0;
     padding: .9rem;
     border-radius: 18px;
     border: 1px solid #dceee4;
-    background: #f8fbf9;
+    background: #ffffff;
     position: relative;
     z-index: 2;
+    box-shadow: none;
   }
 
   .admin-private-create[hidden] {
@@ -220,6 +311,18 @@
     color: #64748b;
     font-size: .78rem;
     line-height: 1.6;
+  }
+
+  .admin-create-mode-panel[hidden] {
+    display: none !important;
+  }
+
+  .admin-field-error {
+    margin-top: .45rem;
+    color: #b91c1c;
+    font-size: .76rem;
+    font-weight: 700;
+    line-height: 1.5;
   }
 
   .admin-field {
@@ -384,6 +487,31 @@
     padding: .72rem .85rem;
     color: #64748b;
     font-size: .76rem;
+  }
+
+  .admin-student-loading {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .78rem .85rem;
+    color: #64748b;
+    font-size: .76rem;
+  }
+
+  .admin-student-loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #dbece3;
+    border-top-color: var(--admin-accent);
+    border-radius: 999px;
+    flex-shrink: 0;
+    animation: admin-student-loading-spin .7s linear infinite;
+  }
+
+  @keyframes admin-student-loading-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .admin-create-actions {
@@ -555,7 +683,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: #f8fbf9;
+    background: #ffffff;
   }
 
   .admin-chat-empty {
@@ -1100,21 +1228,13 @@
     box-shadow: none;
   }
 
-  .admin-chat-hint {
-    max-width: 920px;
-    margin: .55rem auto 0;
-    color: #64748b;
-    font-size: .78rem;
-    padding: 0 .25rem;
-  }
-
   /* Tray bawah dibuat sticky agar direct add tetap mudah dijangkau saat thread chat sudah panjang. */
   .admin-chat-bottom-stack {
     position: sticky;
     bottom: 0;
     z-index: 5;
     flex-shrink: 0;
-    padding: .75rem 1.2rem 1rem;
+    padding: .75rem 1.2rem .85rem;
     background:
       linear-gradient(180deg, rgba(248,251,249,0) 0%, rgba(255,255,255,.88) 18%, rgba(255,255,255,.98) 38%, rgba(255,255,255,.98) 100%);
     backdrop-filter: blur(12px);
@@ -1439,10 +1559,14 @@
   }
 
   @media (max-width: 1199.98px) {
+    .pc-container {
+      height: calc(100vh - 74px);
+    }
+
     .admin-chat-page {
       grid-template-columns: 1fr;
       min-height: 0;
-      height: auto;
+      height: 100%;
     }
 
     .admin-chat-list {
@@ -1453,9 +1577,33 @@
   }
 
   @media (max-width: 767.98px) {
+    body {
+      overflow: auto;
+    }
+
+    .pc-container,
+    .pc-content,
+    .admin-page-inner {
+      height: auto;
+      overflow: visible;
+    }
+
     .admin-chat-page {
-      --admin-chat-shell-height: calc(100vh - 112px);
-      --admin-chat-composer-space: 124px;
+      --admin-chat-shell-height: calc(100vh - 92px);
+      --admin-chat-composer-space: 86px;
+    }
+
+    .admin-toolbar-create {
+      flex: 0 0 auto;
+    }
+
+    .admin-chat-toolbar {
+      gap: .5rem;
+    }
+
+    .admin-add-toggle {
+      min-width: 50px;
+      padding-inline: .85rem;
     }
 
     .admin-chat-card {
@@ -1516,54 +1664,128 @@
           <span>Grup Chat</span>
         </a>
       </div>
-      <div class="admin-chat-toolbar">
-        <div class="admin-chat-search">
-          <i class="ti ti-search"></i>
-          <input
-            type="search"
-            id="adminGroupChatSearchInput"
-            placeholder="Cari topik atau nama grup"
-            autocomplete="off"
-          >
+      @php
+        $createRoomMode = old('visibility', 'public');
+        $showCreatePanel = old('group_form_context') === 'create_room'
+            || $errors->has('topic')
+            || $errors->has('title')
+            || $errors->has('invite_nims');
+        $activeGroupFilter = old('visibility', optional($activeRoom)?->isPrivate() ? 'private' : 'public');
+      @endphp
+      <div class="admin-create-shell {{ $showCreatePanel ? 'is-open' : '' }}" data-create-dropdown>
+        <div class="admin-chat-toolbar">
+          <div class="admin-chat-search">
+            <i class="ti ti-search"></i>
+            <input
+              type="search"
+              id="adminGroupChatSearchInput"
+              placeholder="Cari topik atau nama grup"
+              autocomplete="off"
+            >
+          </div>
+          <div class="admin-toolbar-create">
+            <button
+              type="button"
+              class="admin-add-toggle {{ $showCreatePanel ? 'is-open' : '' }}"
+              id="adminGroupCreateToggle"
+              aria-expanded="{{ $showCreatePanel ? 'true' : 'false' }}"
+              aria-controls="adminPrivateGroupCreatePanel"
+              aria-label="Tambah grup"
+            >
+              <i class="ti ti-plus"></i>
+            </button>
+          </div>
         </div>
-        <button type="button" class="admin-add-toggle" id="adminPrivateGroupToggle" aria-expanded="false" aria-controls="adminPrivateGroupCreatePanel" title="Tambah grup privat">
-          <i class="ti ti-plus"></i>
-        </button>
+
+        <div class="admin-chat-filter-tabs" role="tablist" aria-label="Filter jenis grup">
+          <button
+            type="button"
+            class="admin-chat-filter-btn {{ $activeGroupFilter === 'public' ? 'active' : '' }}"
+            data-group-filter="public"
+            aria-selected="{{ $activeGroupFilter === 'public' ? 'true' : 'false' }}"
+          >
+            Publik
+          </button>
+          <button
+            type="button"
+            class="admin-chat-filter-btn {{ $activeGroupFilter === 'private' ? 'active' : '' }}"
+            data-group-filter="private"
+            aria-selected="{{ $activeGroupFilter === 'private' ? 'true' : 'false' }}"
+          >
+            Privat
+          </button>
+        </div>
+
+        <!-- Panel create dibuat inline agar konselor tetap berada di halaman group chat yang sama. -->
+        <div id="adminPrivateGroupCreatePanel" {{ $showCreatePanel ? '' : 'hidden' }}>
+          <form action="{{ route('admin.group-chat.rooms.store') }}" method="POST" class="admin-private-create">
+            @csrf
+            <input type="hidden" name="group_form_context" value="create_room">
+            <input type="hidden" name="visibility" value="{{ $createRoomMode }}" id="adminCreateGroupVisibilityInput">
+
+            <div data-create-mode-panel="public" {{ $createRoomMode === 'public' ? '' : 'hidden' }}>
+              <h3>Buat Grup Publik</h3>
+              <p>Grup publik ada materinya diberikan oleh konselor sesuai dengan topik masalah yang dibahas. Mahasiswa dapat bergabung untuk mengikuti diskusi, materi, dan arahan konseling yang relevan.</p>
+              <input
+                type="text"
+                name="topic"
+                class="admin-field"
+                placeholder="Masukkan topik grup publik"
+                value="{{ old('topic') }}"
+                data-create-mode-field="public"
+                {{ $createRoomMode === 'public' ? 'required' : 'disabled' }}
+              >
+              @error('topic')
+                <div class="admin-field-error">{{ $message }}</div>
+              @enderror
+              <div class="admin-inline-note">Isi topik publik secara spesifik agar mahasiswa mudah memahami fokus materi dan diskusinya.</div>
+            </div>
+
+            <div data-create-mode-panel="private" {{ $createRoomMode === 'private' ? '' : 'hidden' }}>
+              <h3>Buat Grup Privat</h3>
+              <p>Grup privat dipakai untuk undangan terbatas. Mahasiswa yang diundang akan menerima notifikasi, lalu melihat aturan dan consent sebelum resmi bergabung.</p>
+              <input
+                type="text"
+                name="title"
+                class="admin-field"
+                placeholder="Nama grup privat"
+                value="{{ old('title') }}"
+                data-create-mode-field="private"
+                {{ $createRoomMode === 'private' ? 'required' : 'disabled' }}
+              >
+              @error('title')
+                <div class="admin-field-error">{{ $message }}</div>
+              @enderror
+
+              <div class="admin-student-picker admin-student-picker-create" data-student-picker data-hidden-input-name="invite_nims" data-create-mode-field="private" {{ $createRoomMode === 'private' ? '' : 'data-disabled=true' }}>
+                <div class="admin-student-picker-tags is-empty" data-picker-tags></div>
+                <input
+                  type="search"
+                  class="admin-student-picker-input"
+                  data-picker-input
+                  placeholder="Cari mahasiswa aktif berdasarkan NIM, misalnya 11S278"
+                  autocomplete="off"
+                  {{ $createRoomMode === 'private' ? '' : 'disabled' }}
+                >
+                <div class="admin-student-results" data-picker-results></div>
+                <input type="hidden" name="invite_nims" value="{{ old('invite_nims') }}" data-picker-hidden {{ $createRoomMode === 'private' ? '' : 'disabled' }}>
+              </div>
+              <div class="admin-inline-note">Ketik minimal 3 karakter NIM untuk melihat mahasiswa aktif yang benar-benar bisa diundang.</div>
+            </div>
+
+            <div class="admin-create-actions">
+              <button type="button" class="admin-copy-link" id="adminCreateGroupCancelBtn">
+                <i class="ti ti-x"></i>
+                <span>Batal</span>
+              </button>
+              <button type="submit" class="admin-create-btn">
+                <i class="ti ti-plus"></i>
+                <span id="adminCreateGroupSubmitLabel">{{ $createRoomMode === 'private' ? 'Buat Grup Privat' : 'Buat Grup Publik' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-
-      <!-- Panel create dibuat inline agar konselor tetap berada di halaman group chat yang sama. -->
-      <form action="{{ route('admin.group-chat.rooms.store') }}" method="POST" class="admin-private-create" id="adminPrivateGroupCreatePanel" {{ old('create_private_group') ? '' : 'hidden' }}>
-        @csrf
-        <input type="hidden" name="create_private_group" value="1">
-        <h3>Buat Grup Privat</h3>
-        <p>Grup privat dipakai untuk undangan terbatas. Mahasiswa yang diundang akan menerima notifikasi, lalu melihat aturan dan consent sebelum resmi bergabung.</p>
-        <input type="text" name="title" class="admin-field" placeholder="Nama grup privat" value="{{ old('title') }}" required>
-
-        <div class="admin-student-picker admin-student-picker-create" data-student-picker data-hidden-input-name="invite_nims">
-          <div class="admin-student-picker-tags is-empty" data-picker-tags></div>
-          <input
-            type="search"
-            class="admin-student-picker-input"
-            data-picker-input
-            placeholder="Cari mahasiswa aktif berdasarkan NIM, misalnya 11S278"
-            autocomplete="off"
-          >
-          <div class="admin-student-results" data-picker-results></div>
-          <input type="hidden" name="invite_nims" value="{{ old('invite_nims') }}" data-picker-hidden>
-        </div>
-        <div class="admin-inline-note">Ketik minimal 3 karakter NIM untuk melihat mahasiswa aktif yang benar-benar bisa diundang.</div>
-
-        <div class="admin-create-actions">
-          <button type="button" class="admin-copy-link" id="adminPrivateGroupCancelBtn">
-            <i class="ti ti-x"></i>
-            <span>Batal</span>
-          </button>
-          <button type="submit" class="admin-create-btn">
-            <i class="ti ti-lock-plus"></i>
-            <span>Buat Grup Privat</span>
-          </button>
-        </div>
-      </form>
     </div>
 
     @forelse($groupList as $room)
@@ -1582,6 +1804,7 @@
       <div
         class="admin-chat-session-item {{ $room->isPrivate() ? 'has-room-menu' : '' }}"
         data-session-search="{{ $sessionSearchText }}"
+        data-room-visibility="{{ $room->isPrivate() ? 'private' : 'public' }}"
       >
         <a href="{{ route('admin.group-chat', ['group' => $room->id]) }}" class="admin-chat-session {{ $isSelected ? 'active' : '' }}">
           <div class="admin-chat-session-top">
@@ -1832,11 +2055,6 @@
                   <i class="ti ti-send"></i>
                 </button>
               </form>
-              <div class="admin-chat-hint" id="adminGroupChatHint">
-                {{ $activeRoom->isPrivate()
-                    ? 'Pesan akan langsung tampil untuk seluruh anggota grup aktif dan konselor lain yang membuka ruang ini. Nama asli mahasiswa ditampilkan di grup privat.'
-                    : 'Pesan akan langsung tampil untuk seluruh anggota grup aktif dan konselor lain yang membuka ruang ini. Mahasiswa tetap tampil sebagai alias anonim bernama binatang di grup publik.' }}
-              </div>
             </div>
           </div>
         </div>
@@ -1909,38 +2127,103 @@
   const privateGroupDeleteCancel = document.getElementById('adminPrivateGroupDeleteCancel');
   const privateGroupDeletedSuccessModal = document.getElementById('adminPrivateGroupDeletedSuccessModal');
   const privateGroupDeletedSuccessClose = document.getElementById('adminPrivateGroupDeletedSuccessClose');
-  const addToggleBtn = document.getElementById('adminPrivateGroupToggle');
-  const createPanel = document.getElementById('adminPrivateGroupCreatePanel');
-  const cancelCreateBtn = document.getElementById('adminPrivateGroupCancelBtn');
+  const createDropdownShell = document.querySelector('[data-create-dropdown]');
+  const createDropdownToggle = document.getElementById('adminGroupCreateToggle');
+  const createDropdownPanel = document.getElementById('adminPrivateGroupCreatePanel');
+  const groupFilterButtons = Array.from(document.querySelectorAll('[data-group-filter]'));
+  const createModePanels = Array.from(document.querySelectorAll('[data-create-mode-panel]'));
+  const createVisibilityInput = document.getElementById('adminCreateGroupVisibilityInput');
+  const createSubmitLabel = document.getElementById('adminCreateGroupSubmitLabel');
   const renameToggleBtn = document.getElementById('adminRoomRenameToggle');
   const renameForm = document.getElementById('adminRoomRenameForm');
   const cancelRenameBtn = document.getElementById('adminRoomRenameCancelBtn');
+  const createCancelBtn = document.getElementById('adminCreateGroupCancelBtn');
   const pickerNodes = Array.from(document.querySelectorAll('[data-student-picker]'));
   const searchStudentsUrl = @json(route('admin.group-chat.students.search'));
   let activeRoomDeleteForm = null;
+  let activeGroupFilter = @json($activeGroupFilter);
 
-  // Toggle panel create tetap dibuat inline agar admin tidak perlu pindah halaman.
-  const syncCreatePanelState = (isOpen) => {
-    if (!addToggleBtn || !createPanel) {
+  const syncCreateDropdownState = (isOpen) => {
+    if (!createDropdownToggle || !createDropdownPanel || !createDropdownShell) {
       return;
     }
 
-    createPanel.hidden = !isOpen;
-    addToggleBtn.classList.toggle('is-open', isOpen);
-    addToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    createDropdownShell.classList.toggle('is-open', isOpen);
+    createDropdownToggle.classList.toggle('is-open', isOpen);
+    createDropdownToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    createDropdownPanel.hidden = !isOpen;
   };
 
-  addToggleBtn?.addEventListener('click', () => {
-    syncCreatePanelState(createPanel?.hidden ?? true);
-  });
+  const syncCreateModeState = (mode) => {
+    if (!createVisibilityInput) {
+      return;
+    }
 
-  cancelCreateBtn?.addEventListener('click', () => {
-    syncCreatePanelState(false);
-  });
+    createVisibilityInput.value = mode;
 
-  if (createPanel && !createPanel.hidden && addToggleBtn) {
-    syncCreatePanelState(true);
+    createModePanels.forEach((panel) => {
+      const isActive = panel.dataset.createModePanel === mode;
+      panel.hidden = !isActive;
+
+      panel.querySelectorAll('input, textarea, select').forEach((field) => {
+        const isTopicField = field.name === 'topic';
+        const isPrivateTitleField = field.name === 'title';
+
+        if (isTopicField) {
+          field.disabled = !isActive;
+          field.required = isActive && mode === 'public';
+          return;
+        }
+
+        if (isPrivateTitleField) {
+          field.disabled = !isActive;
+          field.required = isActive && mode === 'private';
+          return;
+        }
+
+        field.disabled = !isActive;
+      });
+    });
+
+    if (createSubmitLabel) {
+      createSubmitLabel.textContent = mode === 'private' ? 'Buat Grup Privat' : 'Buat Grup Publik';
+    }
+  };
+
+  const syncFilterButtons = () => {
+    groupFilterButtons.forEach((button) => {
+      const isActive = button.dataset.groupFilter === activeGroupFilter;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+  };
+
+  syncFilterButtons();
+  syncCreateModeState(activeGroupFilter);
+
+  if (createDropdownPanel) {
+    syncCreateDropdownState(!createDropdownPanel.hidden);
   }
+
+  createDropdownToggle?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    syncCreateModeState(activeGroupFilter);
+    syncCreateDropdownState(createDropdownPanel?.hidden ?? true);
+  });
+
+  createCancelBtn?.addEventListener('click', () => {
+    syncCreateDropdownState(false);
+  });
+
+  groupFilterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      activeGroupFilter = button.dataset.groupFilter || 'public';
+      syncFilterButtons();
+      syncCreateModeState(activeGroupFilter);
+      syncSearch();
+    });
+  });
 
   // Rename grup privat dibuka inline agar konselor tidak keluar dari room aktif saat mengganti judul grup.
   const syncRenameFormState = (isOpen) => {
@@ -2036,6 +2319,25 @@
       resultsEl.classList.remove('is-open');
     };
 
+    const renderLoadingState = () => {
+      // Loading ringan ditampilkan di dropdown agar admin tahu pencarian NIM masih diproses.
+      resultsEl.innerHTML = '';
+
+      const loadingState = document.createElement('div');
+      const spinner = document.createElement('span');
+      const text = document.createElement('span');
+
+      loadingState.className = 'admin-student-loading';
+      spinner.className = 'admin-student-loading-spinner';
+      spinner.setAttribute('aria-hidden', 'true');
+      text.textContent = 'Sedang mencari...';
+
+      loadingState.appendChild(spinner);
+      loadingState.appendChild(text);
+      resultsEl.appendChild(loadingState);
+      resultsEl.classList.add('is-open');
+    };
+
     const renderResults = (results) => {
       latestResults = Array.isArray(results) ? results : [];
       resultsEl.innerHTML = '';
@@ -2103,6 +2405,7 @@
       const requestSequence = ++activeRequestSequence;
       activeRequestController?.abort();
       activeRequestController = new AbortController();
+      renderLoadingState();
 
       try {
         const searchParams = new URLSearchParams({
@@ -2197,26 +2500,32 @@
     hydrateInitialTags();
   };
 
-  if (searchInput && sessionItems.length > 0) {
-    const syncSearch = () => {
-      const keyword = searchInput.value.trim().toLowerCase();
-      let visibleCount = 0;
+  const syncSearch = () => {
+    const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    let visibleCount = 0;
 
-      sessionItems.forEach((item) => {
-        const haystack = item.dataset.sessionSearch || '';
-        const isMatch = !keyword || haystack.includes(keyword);
-        item.classList.toggle('is-hidden', !isMatch);
-        if (isMatch) {
-          visibleCount += 1;
-        }
-      });
+    sessionItems.forEach((item) => {
+      const haystack = item.dataset.sessionSearch || '';
+      const roomVisibility = item.dataset.roomVisibility || 'public';
+      const matchFilter = roomVisibility === activeGroupFilter;
+      const matchSearch = !keyword || haystack.includes(keyword);
+      const isMatch = matchFilter && matchSearch;
 
-      if (searchEmpty) {
-        searchEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
+      item.style.display = isMatch ? '' : 'none';
+
+      if (isMatch) {
+        visibleCount += 1;
       }
-    };
+    });
 
+    if (searchEmpty) {
+      searchEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  };
+
+  if (searchInput && sessionItems.length > 0) {
     searchInput.addEventListener('input', syncSearch);
+    syncSearch();
   }
 
   const closeRoomMenus = () => {
@@ -2291,6 +2600,10 @@
     if (!event.target.closest('[data-room-menu]')) {
       closeRoomMenus();
     }
+
+    if (createDropdownShell && !event.target.closest('[data-create-dropdown]')) {
+      syncCreateDropdownState(false);
+    }
   });
 
   document.addEventListener('keydown', (event) => {
@@ -2298,6 +2611,7 @@
       closeRoomMenus();
       closePrivateGroupDeleteModal();
       closePrivateGroupDeletedSuccessModal();
+      syncCreateDropdownState(false);
     }
   });
 
@@ -2571,7 +2885,7 @@
   const form = document.getElementById('adminGroupChatForm');
   const input = document.getElementById('adminGroupChatInput');
   const sendBtn = document.getElementById('adminGroupChatSendBtn');
-  const hint = document.getElementById('adminGroupChatHint');
+  const hint = document.getElementById('adminGroupChatHint') || { textContent: '' };
 
   if (!thread || !form || !input || !sendBtn) {
     return;

@@ -103,14 +103,62 @@ class GroupChatAdminController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:120'],
+            'visibility' => ['required', 'string', 'in:' . GroupChatRoom::VISIBILITY_PUBLIC . ',' . GroupChatRoom::VISIBILITY_PRIVATE],
+            'title' => ['nullable', 'string', 'max:120'],
+            'topic' => ['nullable', 'string', 'max:120'],
             'invite_nims' => ['nullable', 'string'],
         ]);
 
-        [$room, $inviteSummary] = DB::transaction(function () use ($request, $validated) {
+        if (($validated['visibility'] ?? null) === GroupChatRoom::VISIBILITY_PUBLIC) {
+            $publicTopic = trim((string) ($validated['topic'] ?? ''));
+
+            if ($publicTopic === '') {
+                return back()
+                    ->withErrors(['topic' => 'Topik grup publik wajib diisi.'])
+                    ->withInput();
+            }
+
+            $existingRoom = GroupChatRoom::query()
+                ->where('is_active', true)
+                ->where('visibility', GroupChatRoom::VISIBILITY_PUBLIC)
+                ->whereRaw('LOWER(topic) = ?', [Str::lower($publicTopic)])
+                ->first();
+
+            if ($existingRoom) {
+                return redirect()
+                    ->route('admin.group-chat', ['group' => $existingRoom->id])
+                    ->with('success', 'Grup publik dengan topik tersebut sudah ada. Anda diarahkan ke grup yang tersedia.');
+            }
+
+            $room = DB::transaction(function () use ($request, $publicTopic) {
+                return GroupChatRoom::query()->create([
+                    'topic' => $publicTopic,
+                    'title' => $publicTopic,
+                    'description' => 'Grup publik ada materinya diberikan oleh konselor sesuai dengan topik masalah yang dibahas. Mahasiswa dapat bergabung untuk mengikuti diskusi, materi, dan arahan konseling yang relevan.',
+                    'visibility' => GroupChatRoom::VISIBILITY_PUBLIC,
+                    'invite_token' => null,
+                    'created_by' => $request->user()->id,
+                    'is_active' => true,
+                ]);
+            });
+
+            return redirect()
+                ->route('admin.group-chat', ['group' => $room->id])
+                ->with('success', 'Grup publik berhasil dibuat.');
+        }
+
+        $privateTitle = trim((string) ($validated['title'] ?? ''));
+
+        if ($privateTitle === '') {
+            return back()
+                ->withErrors(['title' => 'Nama grup privat wajib diisi.'])
+                ->withInput();
+        }
+
+        [$room, $inviteSummary] = DB::transaction(function () use ($request, $validated, $privateTitle) {
             $room = GroupChatRoom::query()->create([
                 'topic' => GroupChatSupport::makePrivateTopicKey(),
-                'title' => trim($validated['title']),
+                'title' => $privateTitle,
                 'description' => 'Grup privat yang dibuat oleh konselor.',
                 'visibility' => GroupChatRoom::VISIBILITY_PRIVATE,
                 'invite_token' => Str::random(48),

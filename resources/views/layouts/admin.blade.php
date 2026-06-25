@@ -929,7 +929,7 @@
 
         {{-- MENU: completely outside .navbar-content so pcoded.js cannot touch it --}}
         <div class="navbar-content" style="display:none!important;height:0!important;overflow:hidden!important;"></div>
-        <div id="cc-sidebar-menu" style="flex:1 1 auto;min-height:0;padding:0 18px;overflow-y:auto;overflow-x:hidden;display:flex;align-items:center;">
+        <div id="cc-sidebar-menu" style="flex:1 1 auto;min-height:0;padding:0 18px;overflow-y:hidden;overflow-x:hidden;display:flex;align-items:center;">
             <nav style="width:100%;display:flex;flex-direction:column;gap:4px;">
                 @php
                     $lnk = 'display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:10px 16px;border-radius:13px;text-decoration:none;font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;transition:background .18s;';

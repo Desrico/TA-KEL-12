@@ -468,7 +468,7 @@
               </div>
 
               <div class="group-form-help">
-                Topik yang tersedia: Akademik, Kehidupan di Kampus, Intrapersonal, Keluarga, Masalah di Asrama, Relasi, dan Lainnya.
+                Topik yang tersedia: Akademik, Kehidupan di Kampus, Intrapersonal, Keluarga, Masalah di Asrama, dan Relasi.
               </div>
 
               <div class="group-create-actions">

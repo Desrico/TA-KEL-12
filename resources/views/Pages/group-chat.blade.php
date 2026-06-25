@@ -380,6 +380,300 @@
     background: #ecfdf5;
   }
 
+  .group-public-list {
+    display: grid;
+    gap: .95rem;
+  }
+
+  .group-public-item {
+    border: 1px solid rgba(221, 239, 231, 0.95);
+    border-radius: 24px;
+    padding: 1rem 1.05rem;
+    background: linear-gradient(180deg, #ffffff, #f8fffb);
+  }
+
+  .group-public-item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .9rem;
+    margin-bottom: .55rem;
+  }
+
+  .group-public-name {
+    margin: 0 0 .2rem;
+    font-size: .96rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .group-public-meta {
+    color: #64748b;
+    font-size: .8rem;
+    line-height: 1.7;
+  }
+
+  .group-public-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .9rem;
+    margin-top: .9rem;
+    flex-wrap: wrap;
+  }
+
+  .group-public-form {
+    margin: 0;
+  }
+
+  .group-public-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    min-height: 46px;
+    border: none;
+    border-radius: 16px;
+    padding: .82rem 1rem;
+    font-size: .84rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, #065f46, #10b981);
+    box-shadow: 0 16px 30px rgba(6, 95, 70, 0.18);
+  }
+
+  .group-consent-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2rem;
+    overflow-y: auto;
+    background: rgba(15, 23, 42, 0.22);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .group-consent-overlay.is-open {
+    display: flex;
+  }
+
+  .group-consent-modal {
+    position: relative;
+    width: min(100%, 780px);
+    border-radius: 22px;
+    border: 1px solid rgba(220, 238, 228, 0.96);
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+  }
+
+  .group-consent-head {
+    position: relative;
+    padding: 1rem 1.05rem .82rem;
+    background:
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 28%),
+      linear-gradient(180deg, #f5fff9, #ffffff);
+    border-bottom: 1px solid rgba(220, 238, 228, 0.96);
+  }
+
+  .group-consent-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    margin-bottom: .8rem;
+    padding: .42rem .78rem;
+    border-radius: 999px;
+    background: #e8fff1;
+    color: #047857;
+    font-size: .72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  .group-consent-head h2 {
+    margin: 0 0 .35rem;
+    font-size: clamp(1.08rem, 2.1vw, 1.38rem);
+    font-weight: 800;
+    color: #064e3b;
+    line-height: 1.35;
+    max-width: 620px;
+  }
+
+  .group-consent-head p {
+    margin: 0;
+    color: #475569;
+    line-height: 1.58;
+    font-size: .8rem;
+    max-width: 620px;
+  }
+
+  .group-consent-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid #dbece3;
+    background: rgba(255, 255, 255, 0.88);
+    color: #065f46;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  }
+
+  .group-consent-body {
+    padding: .92rem 1.05rem 1.05rem;
+  }
+
+  .group-consent-body form {
+    display: grid;
+    gap: .72rem;
+  }
+
+  .group-consent-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+    gap: .72rem;
+    align-items: start;
+  }
+
+  .group-consent-meta,
+  .group-consent-rules {
+    padding: .8rem .85rem;
+    border-radius: 16px;
+    border: 1px solid #dbece3;
+    background: linear-gradient(180deg, #ffffff, #f8fffb);
+  }
+
+  .group-consent-meta h3,
+  .group-consent-rules h3 {
+    margin: 0 0 .42rem;
+    color: #0f172a;
+    font-size: .82rem;
+    font-weight: 800;
+  }
+
+  .group-consent-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .55rem;
+  }
+
+  .group-consent-meta-item {
+    display: grid;
+    gap: .08rem;
+    color: #475569;
+    font-size: .76rem;
+    line-height: 1.45;
+    min-width: 0;
+  }
+
+  .group-consent-meta-label {
+    font-size: .74rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #047857;
+  }
+
+  .group-consent-meta-item strong {
+    color: #475569;
+    font-size: .76rem;
+    font-weight: 800;
+  }
+
+  .group-consent-rules ul {
+    margin: 0;
+    padding-left: 1rem;
+    color: #475569;
+    font-size: .75rem;
+    line-height: 1.5;
+  }
+
+  .group-consent-rules li + li {
+    margin-top: .22rem;
+  }
+
+  .group-consent-check {
+    display: flex;
+    align-items: flex-start;
+    gap: .72rem;
+    padding: .74rem .82rem;
+    border-radius: 16px;
+    border: 1px solid #dbece3;
+    background: #fff;
+  }
+
+  .group-consent-check input {
+    width: 18px;
+    height: 18px;
+    margin-top: .08rem;
+    accent-color: #047857;
+    flex-shrink: 0;
+  }
+
+  .group-consent-check label {
+    color: #334155;
+    font-size: .78rem;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  .group-consent-actions {
+    display: flex;
+    gap: .8rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .group-consent-submit,
+  .group-consent-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    min-height: 44px;
+    border-radius: 14px;
+    padding: .72rem 1rem;
+    font-size: .78rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .group-consent-submit {
+    border: none;
+    color: #fff;
+    background: linear-gradient(135deg, #065f46, #10b981);
+    box-shadow: 0 16px 30px rgba(6, 95, 70, 0.18);
+  }
+
+  .group-consent-submit:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .group-consent-back {
+    border: 1px solid #dbece3;
+    color: #065f46;
+    background: #fff;
+  }
+
+  .group-inline-error {
+    color: #be123c;
+    font-size: .8rem;
+    font-weight: 700;
+    margin-top: .2rem;
+  }
+
   @media (max-width: 991.98px) {
     .group-card-head {
       flex-direction: column;
@@ -388,6 +682,11 @@
 
     .group-card-head-actions {
       justify-content: flex-start;
+    }
+
+    .group-consent-grid,
+    .group-consent-meta-grid {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -403,13 +702,16 @@
 
     .group-card-head,
     .group-my-item-top,
-    .group-my-footer {
+    .group-my-footer,
+    .group-public-item-top,
+    .group-public-actions {
       flex-direction: column;
       align-items: flex-start;
     }
 
     .group-card-action-link,
-    .group-card-cta-secondary {
+    .group-card-cta-secondary,
+    .group-public-submit {
       width: 100%;
       justify-content: center;
     }
@@ -421,6 +723,33 @@
     .anonim-toggle-switch {
       align-self: flex-end;
     }
+
+    .group-consent-modal {
+      border-radius: 24px;
+    }
+
+    .group-consent-head {
+      padding: 1rem .95rem .82rem;
+    }
+
+    .group-consent-close {
+      top: .9rem;
+      right: .9rem;
+    }
+
+    .group-consent-body {
+      padding: .92rem .95rem .95rem;
+    }
+
+    .group-consent-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .group-consent-submit,
+    .group-consent-back {
+      width: 100%;
+    }
   }
 </style>
 @endpush
@@ -429,6 +758,8 @@
 @php
   $user = Auth::user();
   $isAnonim = $user ? $user->isAnonim() : false;
+  $customPublicTopics = collect($publicTopics ?? [])->where('kind', 'custom')->values();
+  $shouldReopenPublicConsent = $errors->has('consent_acknowledged') && !old('invite_token');
 @endphp
 <section class="group-lobby-page">
   <div class="container">
@@ -556,11 +887,293 @@
           @endif
         </div>
       </div>
+
+      <div class="group-card">
+        <div class="group-card-head">
+          <div>
+            <h2 class="group-card-title">Grup Publik</h2>
+            <p class="group-card-copy">Lihat grup publik yang dibuat oleh konselor dan gabung langsung ke topik yang tersedia.</p>
+          </div>
+          <div class="group-card-head-actions">
+            <div class="group-card-badge">{{ $customPublicTopics->count() }} topik</div>
+          </div>
+        </div>
+
+        <div class="group-card-body">
+          @if($customPublicTopics->isEmpty())
+            <div class="group-empty">
+              Belum ada grup publik custom dari konselor saat ini.
+            </div>
+          @else
+            <div class="group-public-list">
+              @foreach($customPublicTopics as $topic)
+                <div class="group-public-item">
+                  <div class="group-public-item-top">
+                    <div>
+                      <h3 class="group-public-name">{{ $topic['topic_label'] }}</h3>
+                      <span class="group-topic-pill">Publik</span>
+                    </div>
+                    <span class="group-card-badge">{{ $topic['member_count'] }} anggota</span>
+                  </div>
+
+                  <div class="group-public-meta">
+                    {{ $topic['description'] }}
+                  </div>
+
+                  <div class="group-public-actions">
+                    <span class="group-public-meta">
+                      {{ $topic['joined'] ? 'Kamu sudah tergabung di grup ini.' : 'Grup publik bisa diikuti langsung oleh mahasiswa.' }}
+                    </span>
+
+                    @if($topic['joined'] && !empty($topic['room_url']))
+                      <a href="{{ $topic['room_url'] }}" class="group-card-cta-secondary">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        <span>Buka ruang chat</span>
+                      </a>
+                    @else
+                      <div class="group-public-form">
+                        <button
+                          type="button"
+                          class="group-public-submit"
+                          data-public-consent-open
+                          data-room-id="{{ $topic['room_id'] ?? '' }}"
+                          data-topic-key="{{ $topic['topic_key'] ?? '' }}"
+                          data-topic-label="{{ $topic['topic_label'] ?? '' }}"
+                          data-description="{{ $topic['description'] ?? '' }}"
+                          data-member-count="{{ $topic['member_count'] ?? 0 }}"
+                        >
+                          <i class="bi bi-box-arrow-in-right"></i>
+                          <span>Gabung Grup</span>
+                        </button>
+                      </div>
+                    @endif
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          @endif
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
+<div class="group-consent-overlay{{ $shouldReopenPublicConsent ? ' is-open' : '' }}" id="groupPublicConsentOverlay" aria-hidden="{{ $shouldReopenPublicConsent ? 'false' : 'true' }}">
+  <div class="group-consent-modal" role="dialog" aria-modal="true" aria-labelledby="groupPublicConsentTitle">
+    <div class="group-consent-head">
+      <div class="group-consent-head-main">
+        <div class="group-consent-kicker">
+          <i class="bi bi-shield-check"></i>
+          <span>Persetujuan Grup</span>
+        </div>
+        <h2 id="groupPublicConsentTitle">Gabung ke grup publik</h2>
+        <p id="groupPublicConsentDescription">Pastikan Anda memahami identitas yang tampil, tujuan grup, dan aturan komunikasi sebelum bergabung.</p>
+      </div>
+      <button type="button" class="group-consent-close" id="groupPublicConsentClose" aria-label="Tutup persetujuan grup">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="group-consent-body">
+      <form action="{{ route('mahasiswa.group-chat.join') }}" method="POST" id="groupPublicConsentForm">
+        @csrf
+        <input type="hidden" name="room_id" id="groupPublicConsentRoomId" value="{{ old('room_id') }}">
+        <input type="hidden" name="topic" id="groupPublicConsentTopicKey" value="{{ old('topic') }}">
+
+        <div class="group-consent-grid">
+          <div class="group-consent-meta">
+            <h3>Informasi Grup</h3>
+            <div class="group-consent-meta-grid">
+              <div class="group-consent-meta-item">
+                <span class="group-consent-meta-label">Nama Grup</span>
+                <strong id="groupPublicConsentTopicLabel">Grup Publik</strong>
+              </div>
+              <div class="group-consent-meta-item">
+                <span class="group-consent-meta-label">Pengelola</span>
+                <strong>Konselor</strong>
+              </div>
+              <div class="group-consent-meta-item">
+                <span class="group-consent-meta-label">Visibilitas Identitas</span>
+                <strong>Nama anonim Anda tampil di grup publik.</strong>
+                <span>Mahasiswa lain melihat alias anonim, bukan nama asli Anda.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="group-consent-rules">
+            <h3>Aturan Sebelum Bergabung</h3>
+            <ul>
+              @foreach(($groupRules ?? []) as $rule)
+                <li>{{ $rule }}</li>
+              @endforeach
+            </ul>
+          </div>
+        </div>
+
+        <div class="group-consent-check">
+          <input
+            type="checkbox"
+            id="groupPublicConsentCheckbox"
+            name="consent_acknowledged"
+            value="1"
+            {{ old('consent_acknowledged') ? 'checked' : '' }}
+            required
+          >
+          <label for="groupPublicConsentCheckbox">
+            Saya memahami bahwa grup publik ini akan menampilkan identitas anonim saya kepada anggota lain, dan saya setuju untuk bergabung sesuai aturan yang berlaku.
+          </label>
+        </div>
+
+        @error('consent_acknowledged')
+          <div class="group-inline-error">{{ $message }}</div>
+        @enderror
+
+        @error('room_id')
+          <div class="group-inline-error">{{ $message }}</div>
+        @enderror
+
+        @error('topic')
+          <div class="group-inline-error">{{ $message }}</div>
+        @enderror
+
+        <div class="group-consent-actions">
+          <button type="submit" class="group-consent-submit" id="groupPublicConsentSubmitBtn" {{ old('consent_acknowledged') ? '' : 'disabled' }}>
+            <i class="bi bi-check2-circle"></i>
+            <span>Setuju dan Masuk Grup</span>
+          </button>
+          <button type="button" class="group-consent-back" id="groupPublicConsentBackBtn">
+            <i class="bi bi-arrow-left"></i>
+            <span>Tutup</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
+<script>
+  (() => {
+    const overlay = document.getElementById('groupPublicConsentOverlay');
+    const closeBtn = document.getElementById('groupPublicConsentClose');
+    const backBtn = document.getElementById('groupPublicConsentBackBtn');
+    const checkbox = document.getElementById('groupPublicConsentCheckbox');
+    const submitBtn = document.getElementById('groupPublicConsentSubmitBtn');
+    const roomIdInput = document.getElementById('groupPublicConsentRoomId');
+    const topicKeyInput = document.getElementById('groupPublicConsentTopicKey');
+    const topicLabelEl = document.getElementById('groupPublicConsentTopicLabel');
+    const titleEl = document.getElementById('groupPublicConsentTitle');
+    const descriptionEl = document.getElementById('groupPublicConsentDescription');
+    const triggers = Array.from(document.querySelectorAll('[data-public-consent-open]'));
 
+    if (!overlay || !checkbox || !submitBtn) {
+      return;
+    }
+
+    if (overlay.parentElement !== document.body) {
+      document.body.appendChild(overlay);
+    }
+
+    const defaultBodyOverflow = document.body.style.overflow;
+
+    const syncConsentState = () => {
+      submitBtn.disabled = !checkbox.checked;
+    };
+
+    const openOverlay = () => {
+      overlay.classList.add('is-open');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeOverlay = () => {
+      overlay.classList.remove('is-open');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = defaultBodyOverflow;
+    };
+
+    const hydrateConsent = (trigger) => {
+      const roomId = trigger.dataset.roomId || '';
+      const topicKey = trigger.dataset.topicKey || '';
+      const topicLabel = trigger.dataset.topicLabel || 'Grup Publik';
+      const description = trigger.dataset.description || 'Pastikan Anda memahami identitas yang tampil, tujuan grup, dan aturan komunikasi sebelum bergabung.';
+      const memberCount = Number(trigger.dataset.memberCount || 0);
+
+      if (roomIdInput) {
+        roomIdInput.value = roomId;
+      }
+
+      if (topicKeyInput) {
+        topicKeyInput.value = topicKey;
+      }
+
+      if (topicLabelEl) {
+        topicLabelEl.textContent = topicLabel;
+      }
+
+      if (titleEl) {
+        titleEl.textContent = `Gabung ke grup publik "${topicLabel}"`;
+      }
+
+      if (descriptionEl) {
+        descriptionEl.textContent = memberCount > 0
+          ? `${description} Saat ini ada ${memberCount} anggota aktif di grup ini.`
+          : description;
+      }
+
+      checkbox.checked = false;
+      syncConsentState();
+    };
+
+    triggers.forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        hydrateConsent(trigger);
+        openOverlay();
+      });
+    });
+
+    checkbox.addEventListener('change', syncConsentState);
+    closeBtn?.addEventListener('click', closeOverlay);
+    backBtn?.addEventListener('click', closeOverlay);
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        closeOverlay();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && overlay.classList.contains('is-open')) {
+        closeOverlay();
+      }
+    });
+
+    const previousRoomId = @json((string) old('room_id'));
+    const previousTopic = @json((string) old('topic'));
+    const shouldReopen = @json($shouldReopenPublicConsent);
+
+    if (shouldReopen) {
+      const matchedTrigger = triggers.find((trigger) => {
+        const sameRoom = previousRoomId !== '' && trigger.dataset.roomId === previousRoomId;
+        const sameTopic = previousTopic !== '' && trigger.dataset.topicKey === previousTopic;
+        return sameRoom || sameTopic;
+      });
+
+      if (matchedTrigger) {
+        hydrateConsent(matchedTrigger);
+      }
+
+      checkbox.checked = {{ old('consent_acknowledged') ? 'true' : 'false' }};
+      syncConsentState();
+      openOverlay();
+    } else {
+      syncConsentState();
+    }
+
+    window.addEventListener('pagehide', () => {
+      document.body.style.overflow = defaultBodyOverflow;
+    });
+  })();
+</script>
 @endpush

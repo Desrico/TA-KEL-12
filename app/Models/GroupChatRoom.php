@@ -76,7 +76,13 @@ class GroupChatRoom extends Model
             return 'Grup Privat';
         }
 
-        return self::TOPIC_OPTIONS[$this->topic] ?? ucfirst(str_replace('_', ' ', (string) $this->topic));
+        $topic = trim((string) $this->topic);
+
+        if ($topic === '') {
+            return 'Grup Publik';
+        }
+
+        return self::TOPIC_OPTIONS[$topic] ?? $topic;
     }
 
     public function isPublic(): bool
