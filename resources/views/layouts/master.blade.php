@@ -2383,11 +2383,6 @@ footer a:hover {
           <a
             class="nav-link nav-link-custom {{ request()->routeIs('mahasiswa.chat*') ? 'active' : '' }}"
             href="{{ route('mahasiswa.chat') }}"
-            @if($chatGuardBlocked)
-              data-chat-guard="true"
-              data-chat-guard-title="{{ $chatGuardTitle }}"
-              data-chat-guard-message="{{ $chatGuardMessage }}"
-            @endif
           >
             Chat
           </a>

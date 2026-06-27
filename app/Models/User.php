@@ -143,4 +143,6 @@ SVG;
             ? asset('storage/' . $this->profil->foto)
             : null;
     }
+
+    
 }

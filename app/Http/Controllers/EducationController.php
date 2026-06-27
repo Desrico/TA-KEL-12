@@ -415,14 +415,6 @@ class EducationController extends Controller
         $fileMateriPath = $request->file('file_materi')->store('materi-edukasi', 'public');
     }
 
-    if ($validated['type'] !== 'materi_edukasi') {
-        if ($webContent->file_materi && Storage::disk('public')->exists($webContent->file_materi)) {
-            Storage::disk('public')->delete($webContent->file_materi);
-        }
-
-        $fileMateriPath = null;
-    }
-
     $typeLabel = match ($validated['type']) {
         'artikel' => 'Artikel',
         'video' => 'Video',
@@ -477,9 +469,14 @@ public function show()
                 'time' => $item->reading_time,
                 'title' => $item->title,
                 'desc' => $item->excerpt,
-                'detail' => $item->excerpt,
+                'detail' => $item->content ?: $item->excerpt,
                 'thumbnail' => $this->resolveThumbnail($item),
                 'source_url' => $item->source_url,
+                'source_name' => $item->nama_sumber,
+                'embed_url' => $this->resolveEmbedUrl($item->source_url),
+                'embed_type' => $this->resolveEmbedType($item->source_url),
+                'material_url' => $item->file_materi ? route('edukasi.mental.material', $item->id) : null,
+                'material_name' => $item->file_materi ? basename($item->file_materi) : null,
                 'points' => [
                     'Baca konten ini untuk memahami topik secara lebih sederhana.',
                     'Gunakan konten ini sebagai edukasi awal.',
@@ -492,6 +489,75 @@ public function show()
         'pageContent' => $this->getMergedContent(),
         'contents' => $contents,
     ]);
+}
+
+public function showMaterial($id)
+{
+    $content = EducationContent::where('status', true)->findOrFail($id);
+
+    abort_unless($content->file_materi, 404);
+    abort_unless(Storage::disk('public')->exists($content->file_materi), 404);
+
+    $path = Storage::disk('public')->path($content->file_materi);
+    $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $mime = $extension === 'pdf'
+        ? 'application/pdf'
+        : (mime_content_type($path) ?: 'application/octet-stream');
+
+    return response()->file($path, [
+        'Content-Type' => $mime,
+        'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
+    ]);
+}
+
+private function resolveEmbedUrl(?string $url): ?string
+{
+    if (!$url || !filter_var($url, FILTER_VALIDATE_URL)) {
+        return null;
+    }
+
+    $host = strtolower(parse_url($url, PHP_URL_HOST) ?? '');
+    $path = parse_url($url, PHP_URL_PATH) ?? '';
+    $query = parse_url($url, PHP_URL_QUERY) ?? '';
+
+    if (str_contains($host, 'youtube.com')) {
+        parse_str($query, $params);
+
+        if (!empty($params['v'])) {
+            return 'https://www.youtube.com/embed/' . $params['v'];
+        }
+
+        if (preg_match('/\/(?:embed|shorts)\/([^\/\?]+)/', $path, $matches)) {
+            return 'https://www.youtube.com/embed/' . $matches[1];
+        }
+    }
+
+    if (str_contains($host, 'youtu.be')) {
+        $videoId = trim($path, '/');
+
+        return $videoId !== '' ? 'https://www.youtube.com/embed/' . $videoId : null;
+    }
+
+    if (str_contains($host, 'vimeo.com') && preg_match('/\/(\d+)/', $path, $matches)) {
+        return 'https://player.vimeo.com/video/' . $matches[1];
+    }
+
+    if (preg_match('/\.(mp4|webm|ogg)(\?.*)?$/i', $url)) {
+        return $url;
+    }
+
+    return null;
+}
+
+private function resolveEmbedType(?string $url): ?string
+{
+    $embedUrl = $this->resolveEmbedUrl($url);
+
+    if (!$embedUrl) {
+        return null;
+    }
+
+    return preg_match('/\.(mp4|webm|ogg)(\?.*)?$/i', $embedUrl) ? 'video' : 'iframe';
 }
 
 protected function extractYoutubeId($url)

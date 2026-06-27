@@ -45,6 +45,9 @@ Route::get('/', function () {
 Route::get('/edukasi-mental', [EducationController::class, 'show'])
     ->name('edukasi.mental');
 
+Route::get('/edukasi-mental/konten/{id}/materi', [EducationController::class, 'showMaterial'])
+    ->name('edukasi.mental.material');
+
 Route::get('/konseling', [JadwalController::class, 'create'])->name('konseling');
 
 
@@ -90,6 +93,8 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
 
     Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
+    Route::post('/riwayat/{id}/batalkan', [LaporanController::class, 'batalkanPenjadwalan'])
+        ->name('riwayat.batalkan');
     Route::get('/riwayat/{id}', [LaporanController::class, 'detailRiwayat'])->name('detail.riwayat');
 
     Route::post('/riwayat/feedback', [FeedbackMahasiswaController::class, 'store'])

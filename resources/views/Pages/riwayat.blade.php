@@ -222,7 +222,7 @@
 /* CARD */
 .riwayat-card {
     display: grid;
-    grid-template-columns: minmax(250px, 280px) minmax(0, 1fr) minmax(340px, 400px);
+    grid-template-columns: minmax(250px, 280px) minmax(0, 1fr) minmax(470px, 560px);
     align-items: center;
     gap: 20px;
     width: 100%;
@@ -404,7 +404,7 @@
     gap: 10px;
     flex-shrink: 0;
     min-width: auto;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .status-pill {
@@ -629,7 +629,7 @@
     }
 
     .riwayat-card {
-        grid-template-columns: minmax(240px, 260px) minmax(280px, 1fr) minmax(260px, 320px);
+        grid-template-columns: minmax(240px, 260px) minmax(260px, 1fr) minmax(430px, 500px);
         gap: 20px;
         padding: 22px 24px;
     }
@@ -671,7 +671,7 @@
     .card-right {
         justify-content: space-between;
         gap: 12px;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
     }
 
     .status-pill {
@@ -681,6 +681,7 @@
     .btn-riwayat {
         min-width: 120px;
     }
+
 }
 
 @media (max-width: 640px) {
@@ -716,6 +717,7 @@
         width: 100%;
         min-width: auto;
     }
+
 }
 
 /* Ensure Bootstrap modal is above other custom backdrops */

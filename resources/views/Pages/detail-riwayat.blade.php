@@ -219,6 +219,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
     margin-top: 0;
     padding-top: 0;
     border-top: none;
@@ -228,13 +230,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 260px;
-    height: 58px;
-    padding: 0 32px;
+    min-width: 160px;
+    height: 42px;
+    padding: 0 18px;
     border-radius: 999px;
     background: #047857;
     color: #ffffff !important;
-    font-size: 18px;
+    font-size: 13px;
     font-weight: 800;
     text-decoration: none !important;
     box-shadow: 0 18px 35px rgba(4, 120, 87, 0.22);
@@ -244,6 +246,34 @@
 .btn-detail-action:hover {
     background: #065f46;
     color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+.detail-cancel-form {
+    margin: 0;
+}
+
+.btn-detail-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 160px;
+    height: 42px;
+    padding: 0 18px;
+    border: 1px solid #FECACA;
+    border-radius: 999px;
+    background: #FEF2F2;
+    color: #DC2626;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.btn-detail-cancel:hover {
+    background: #FEE2E2;
+    border-color: #FCA5A5;
     transform: translateY(-1px);
 }
 
@@ -401,6 +431,115 @@
     background: #ecfdf5;
     border-color: #10b981;
     color: #065f46;
+    transform: translateY(-1px);
+}
+
+.schedule-cancel-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .24s ease, visibility .24s ease;
+}
+
+.schedule-cancel-modal.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.schedule-cancel-backdrop {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, .62);
+    backdrop-filter: blur(4px);
+}
+
+.schedule-cancel-dialog {
+    position: relative;
+    width: min(420px, 100%);
+    border-radius: 12px;
+    background: #066145;
+    box-shadow: 0 24px 80px rgba(6, 78, 59, .28);
+    padding: 30px 28px;
+    text-align: center;
+    transform: translateY(14px) scale(.96);
+    transition: transform .24s ease;
+}
+
+.schedule-cancel-modal.show .schedule-cancel-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.schedule-cancel-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    border: 4px solid #FDE68A;
+    background: transparent;
+    color: #FDE68A;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.schedule-cancel-dialog h3 {
+    margin: 0 0 18px;
+    color: #FFFFFF;
+    font-size: 23px;
+    font-weight: 900;
+}
+
+.schedule-cancel-dialog p {
+    margin: 0;
+    color: rgba(255,255,255,.92);
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
+}
+
+.schedule-cancel-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 26px;
+}
+
+.schedule-cancel-btn {
+    min-width: 110px;
+    height: 38px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.schedule-cancel-btn.secondary {
+    border: 2px solid rgba(255,255,255,.70);
+    background: transparent;
+    color: #FFFFFF;
+}
+
+.schedule-cancel-btn.danger {
+    border: 2px solid #FDE68A;
+    background: #FDE68A;
+    color: #064E3B;
+}
+
+.schedule-cancel-btn:hover {
     transform: translateY(-1px);
 }
 
@@ -608,9 +747,33 @@
         gap: 12px;
     }
 
+    .detail-action-wrapper {
+        width: 100%;
+        flex-direction: column;
+    }
+
     .btn-detail {
         width: 100%;
         min-width: unset;
+    }
+
+    .btn-detail-action,
+    .detail-cancel-form,
+    .btn-detail-cancel {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .schedule-cancel-dialog {
+        padding: 24px 18px;
+    }
+
+    .schedule-cancel-actions {
+        flex-direction: column-reverse;
+    }
+
+    .schedule-cancel-btn {
+        width: 100%;
     }
 }
 
@@ -727,6 +890,8 @@
 
     $feedback = $feedback ?? optional($jadwal->sesiKonseling)->feedback;
     $bisaFeedback = $bisaFeedback ?? ($jadwal->status === 'selesai' && $jadwal->sesiKonseling && !$feedback);
+    $statusNormalized = strtolower(str_replace(' ', '_', trim((string) ($jadwal->status ?? ''))));
+    $bisaBatalkan = in_array($statusNormalized, ['menunggu', 'menunggu_konfirmasi'], true);
 
     $tanggalLanjutLabel = $tanggalLanjut
         ? Carbon::parse($tanggalLanjut)->translatedFormat('d F Y')
@@ -898,6 +1063,18 @@
                                     Kembali ke Riwayat
                                 </a>
                             @endif
+
+                            @if($bisaBatalkan)
+                                <form action="{{ route('riwayat.batalkan', $jadwal->id) }}"
+                                      method="POST"
+                                      class="detail-cancel-form"
+                                      data-cancel-schedule-form>
+                                    @csrf
+                                    <button type="submit" class="btn-detail-cancel">
+                                        Batalkan Penjadwalan
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     @endif
 
@@ -912,6 +1089,27 @@
         </div>
     </div>
 </section>
+
+<div class="schedule-cancel-modal" id="scheduleCancelModal" aria-hidden="true">
+    <div class="schedule-cancel-backdrop" data-cancel-modal-close></div>
+    <div class="schedule-cancel-dialog" role="dialog" aria-modal="true" aria-labelledby="scheduleCancelTitle">
+        <div class="schedule-cancel-icon">?</div>
+        <h3 id="scheduleCancelTitle">Konfirmasi Pembatalan</h3>
+        <p>
+            Apakah kamu yakin ingin membatalkan penjadwalan konseling ini?
+            Pastikan keputusanmu sudah sesuai.
+        </p>
+
+        <div class="schedule-cancel-actions">
+            <button type="button" class="schedule-cancel-btn secondary" data-cancel-modal-close>
+                Batalkan
+            </button>
+            <button type="button" class="schedule-cancel-btn danger" id="confirmCancelSchedule">
+                Ya, Batalkan
+            </button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @if($bisaFeedback)
@@ -973,6 +1171,57 @@
 let isEditMode = false;
 
 document.addEventListener('DOMContentLoaded', function () {
+    const cancelModal = document.getElementById('scheduleCancelModal');
+    const confirmCancelButton = document.getElementById('confirmCancelSchedule');
+    let pendingCancelForm = null;
+
+    if (cancelModal && cancelModal.parentElement !== document.body) {
+        document.body.appendChild(cancelModal);
+    }
+
+    function openCancelModal(form) {
+        pendingCancelForm = form;
+        cancelModal?.classList.add('show');
+        cancelModal?.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeCancelModal() {
+        cancelModal?.classList.remove('show');
+        cancelModal?.setAttribute('aria-hidden', 'true');
+        pendingCancelForm = null;
+    }
+
+    document.querySelectorAll('[data-cancel-schedule-form]').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            openCancelModal(form);
+        });
+    });
+
+    document.querySelectorAll('[data-cancel-modal-close]').forEach(function (button) {
+        button.addEventListener('click', closeCancelModal);
+    });
+
+    if (confirmCancelButton) {
+        confirmCancelButton.addEventListener('click', function () {
+            if (!pendingCancelForm) {
+                return;
+            }
+
+            const form = pendingCancelForm;
+            pendingCancelForm = null;
+            confirmCancelButton.disabled = true;
+            confirmCancelButton.textContent = 'Membatalkan...';
+            form.submit();
+        });
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && cancelModal?.classList.contains('show')) {
+            closeCancelModal();
+        }
+    });
+
     const hideIds = ['edit-nama', 'edit-nim', 'edit-jurusan', 'edit-angkatan'];
     hideIds.forEach(id => {
         const el = document.getElementById(id);

@@ -386,6 +386,36 @@
     font-weight: 700;
 }
 
+.edu-action-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.65rem;
+    align-items:center;
+}
+
+.edu-action-secondary{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.4rem;
+    padding:10px 14px;
+    border-radius:12px;
+    border:1px solid rgba(20,108,67,.22);
+    background:#eef7f1;
+    color:#146c43;
+    font-size:14px;
+    font-weight:700;
+    text-decoration:none;
+    font-family:inherit;
+    cursor:pointer;
+}
+
+.edu-action-secondary:hover{
+    color:#0a523a;
+    background:#dff3e8;
+    text-decoration:none;
+}
+
     .edu-content-selected{
         border-color:rgba(10,82,58,.55) !important;
         box-shadow:0 24px 50px rgba(10,82,58,.18) !important;
@@ -401,18 +431,140 @@
         background:linear-gradient(135deg,#c8f3dc,#f7fbf8);
     }
 
-    .edu-inline-detail{
-        display:none;
-        margin-top:2rem;
-        background:#fff;
-        border:1px solid rgba(10,82,58,.12);
-        border-radius:28px;
-        box-shadow:0 24px 50px rgba(13,27,42,.10);
+    .edu-content-modal{
+        position:fixed;
+        inset:0;
+        z-index:99999;
+        display:block;
+        padding:0;
+        background:rgba(15,23,42,.58);
+        opacity:0;
+        visibility:hidden;
+        pointer-events:none;
         overflow:hidden;
+        overscroll-behavior:contain;
+        transition:opacity .28s ease, visibility .28s ease;
     }
 
-    .edu-inline-detail.show{
+    .edu-content-modal.show{
+        opacity:1;
+        visibility:visible;
+        pointer-events:auto;
+    }
+
+    .edu-content-modal-dialog{
+        position:fixed;
+        top:50%;
+        left:var(--edu-modal-left, 50%);
+        width:var(--edu-modal-width, min(1080px, calc(100vw - 2rem)));
+        max-width:calc(100vw - 2rem);
+        max-height:min(88vh, 920px);
+        background:#fff;
+        border-radius:18px;
+        box-shadow:0 28px 70px rgba(13,27,42,.24);
+        overflow:hidden;
+        transform:translate(-50%, calc(-50% + 18px)) scale(.96);
+        transition:transform .28s ease, opacity .28s ease;
+        opacity:.96;
+    }
+
+    .edu-content-modal.show .edu-content-modal-dialog{
+        transform:translate(-50%, -50%) scale(1);
+        opacity:1;
+    }
+
+    .edu-content-modal-body{
+        max-height:min(88vh, 920px);
+        overflow-y:auto;
+        padding:0;
+    }
+
+    .edu-content-modal-close{
+        position:absolute;
+        top:14px;
+        right:14px;
+        z-index:2;
+        width:42px;
+        height:42px;
+        border-radius:999px;
+        border:1px solid rgba(10,82,58,.15);
+        background:#fff;
+        color:#0a523a;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+        transition:.25s ease;
+        box-shadow:0 12px 24px rgba(13,27,42,.12);
+    }
+
+    .edu-content-modal-close:hover{
+        background:#0a523a;
+        color:#fff;
+    }
+
+    .edu-content-modal-embed{
+        position:relative;
+        width:100%;
+        aspect-ratio:16 / 9;
+        border-radius:18px;
+        overflow:hidden;
+        background:#0f172a;
+    }
+
+    .edu-content-modal-embed iframe,
+    .edu-content-modal-embed video{
+        width:100%;
+        height:100%;
+        border:0;
         display:block;
+    }
+
+    .edu-content-modal-pdf{
+        width:100%;
+        height:min(74vh, 760px);
+        border-radius:18px;
+        overflow:hidden;
+        background:#fff;
+        border:1px solid rgba(10,82,58,.10);
+    }
+
+    .edu-content-modal-pdf iframe{
+        width:100%;
+        height:100%;
+        border:0;
+        display:block;
+        background:#fff;
+    }
+
+    .edu-content-modal-article{
+        padding:1.2rem;
+    }
+
+    .edu-content-detail-material{
+        padding:1.35rem;
+    }
+
+    .edu-content-detail-material h4{
+        margin:0 0 .75rem;
+        color:#202020;
+        font-size:1rem;
+        font-weight:800;
+    }
+
+    .edu-content-modal-article h3{
+        margin:0 3rem 1rem 0;
+        color:#202020;
+        font-size:1.55rem;
+        font-weight:800;
+        line-height:1.35;
+    }
+
+    .edu-content-modal-article p{
+        margin:0;
+        color:#52616b;
+        line-height:1.85;
+        white-space:pre-line;
     }
 
     .edu-inline-detail-header{
@@ -690,6 +842,14 @@
             padding:3.5rem 0;
         }
 
+        .edu-content-modal{
+            padding:0;
+        }
+
+        .edu-content-modal-embed{
+            border-radius:14px;
+        }
+
         .edu-hero-actions,
         .edu-emergency-action,
         .edu-inline-action{
@@ -844,7 +1004,7 @@
         </div>
     </section>
 
-    {{-- 3. ARTIKEL & VIDEO EDUKASI --}}
+  
     <section class="edu-section pt-0" id="konten-edukasi">
         <div class="container">
             <div class="edu-section-head">
@@ -859,18 +1019,12 @@
              @foreach($contents as $content)
     <div class="col-md-6 col-lg-4" data-topic-item="{{ $content['category'] }}">
 
-        @if(!empty($content['source_url']))
-            <a href="{{ $content['source_url'] }}"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="edu-content-card edu-content-link">
-        @else
-            <button
-                type="button"
-                class="edu-content-card edu-content-button"
-                data-content-card
-                data-content='@json($content, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)'>
-        @endif
+        <article
+            class="edu-content-card edu-content-button"
+            role="button"
+            tabindex="0"
+            data-content-card
+            data-content='@json($content, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)'>
 
                 <div class="edu-content-media">
                     <span class="edu-content-type">
@@ -897,70 +1051,39 @@
                     <h3>{{ $content['title'] }}</h3>
                     <p>{{ $content['desc'] }}</p>
 
-                    <span class="edu-action-btn">
-                        {{ $content['type'] === 'Video' ? 'Tonton Video' : 'Baca Artikel' }}
-                    </span>
+                    <div class="edu-action-row">
+                        <span class="edu-action-btn">
+                            {{ $content['type'] === 'Video' ? 'Tonton Video' : 'Baca Artikel' }}
+                        </span>
+
+                        @if(!empty($content['material_url']))
+                            <button type="button"
+                                class="edu-action-secondary"
+                                data-pdf-url="{{ $content['material_url'] }}"
+                                data-pdf-title="{{ $content['title'] }}"
+                                data-pdf-link>
+                                <i class="bi bi-file-earmark-pdf"></i>
+                                Lihat PDF
+                            </button>
+                        @endif
+                    </div>
                 </div>
 
-        @if(!empty($content['source_url']))
-            </a>
-        @else
-            </button>
-        @endif
+        </article>
 
     </div>
 @endforeach
 
             </div>
 
-            {{-- DETAIL INLINE --}}
-            <div class="edu-inline-detail" id="contentInlineDetail">
-                <div class="edu-inline-detail-header">
-                    <div class="edu-inline-detail-main">
-                        <div class="edu-inline-detail-icon">
-                            <i id="inlineContentIcon" class="bi bi-file-earmark-text"></i>
-                        </div>
-
-                        <div>
-                            <div class="edu-content-meta mb-2">
-                                <span class="edu-chip" id="inlineContentCategory"></span>
-                                <span class="edu-chip" id="inlineContentType"></span>
-                                <span class="edu-chip" id="inlineContentTime"></span>
-                            </div>
-
-                            <h3 class="edu-inline-detail-title" id="inlineContentTitle"></h3>
-                            <p class="edu-inline-detail-desc" id="inlineContentDesc"></p>
-                        </div>
-                    </div>
-
-                    <button type="button" class="edu-inline-close" id="closeInlineDetail" aria-label="Tutup detail">
+            {{-- POPUP KONTEN --}}
+            <div class="edu-content-modal" id="contentModal" aria-hidden="true">
+                <div class="edu-content-modal-dialog" role="dialog" aria-modal="true" aria-label="Konten edukasi">
+                    <button type="button" class="edu-content-modal-close" id="closeContentModal" aria-label="Tutup konten">
                         <i class="bi bi-x-lg"></i>
                     </button>
-                </div>
 
-                <div class="edu-inline-detail-body">
-                    <div class="edu-inline-detail-grid">
-                        <div class="edu-inline-box">
-                            <h5>Penjelasan</h5>
-                            <p id="inlineContentDetail"></p>
-                        </div>
-
-                        <div class="edu-inline-box">
-                            <h5>Poin Penting</h5>
-                            <ul class="edu-inline-list" id="inlineContentPoints"></ul>
-                        </div>
-                    </div>
-
-                    <div class="edu-inline-action">
-                        <a href="{{ route('konseling') }}" class="edu-btn-primary">
-                            Butuh Konseling?
-                            <i class="bi bi-calendar-check"></i>
-                        </a>
-
-                        <button type="button" class="edu-btn-outline" id="closeInlineDetailBottom">
-                            Tutup Detail
-                        </button>
-                    </div>
+                    <div class="edu-content-modal-body" id="contentModalBody"></div>
                 </div>
             </div>
 
@@ -972,7 +1095,6 @@
         </div>
     </section>
 
-    {{-- 4. KAPAN HARUS KONSELING & BANTUAN DARURAT --}}
     <section class="edu-section pt-0">
         <div class="container">
             <div class="row g-4">
@@ -1046,25 +1168,15 @@
         const contentDesc = document.getElementById('contentSectionDesc');
         const contentSection = document.getElementById('konten-edukasi');
 
-        const inlineDetail = document.getElementById('contentInlineDetail');
-        const closeInlineDetail = document.getElementById('closeInlineDetail');
-        const closeInlineDetailBottom = document.getElementById('closeInlineDetailBottom');
+        const contentModal = document.getElementById('contentModal');
+        const contentModalBody = document.getElementById('contentModalBody');
+        const closeContentModal = document.getElementById('closeContentModal');
+        let modalCloseTimer = null;
+        let activeContentCard = null;
+        let activeModalMode = 'video';
 
-        function renderList(target, items) {
-            target.innerHTML = '';
-
-            if (!items || items.length === 0) {
-                const li = document.createElement('li');
-                li.textContent = 'Belum ada informasi.';
-                target.appendChild(li);
-                return;
-            }
-
-            items.forEach(function (item) {
-                const li = document.createElement('li');
-                li.textContent = item;
-                target.appendChild(li);
-            });
+        if (contentModal && contentModal.parentElement !== document.body) {
+            document.body.appendChild(contentModal);
         }
 
         function clearSelectedContent() {
@@ -1094,40 +1206,173 @@
             }
         }
 
-        function hideInlineDetail() {
-            if (inlineDetail) {
-                inlineDetail.classList.remove('show');
+        function closeModal() {
+            if (contentModal) {
+                contentModal.classList.remove('show');
+                contentModal.setAttribute('aria-hidden', 'true');
             }
-            clearSelectedContent();
+
+            window.clearTimeout(modalCloseTimer);
+            modalCloseTimer = window.setTimeout(function () {
+                if (contentModalBody) {
+                    contentModalBody.innerHTML = '';
+                }
+
+                activeContentCard = null;
+                activeModalMode = 'video';
+                clearSelectedContent();
+            }, 280);
         }
 
-        function showInlineDetail(data, selectedCard) {
-            document.getElementById('inlineContentIcon').className = 'bi ' + data.icon;
-            document.getElementById('inlineContentCategory').textContent = data.category;
-            document.getElementById('inlineContentType').textContent = data.type;
-            document.getElementById('inlineContentTime').textContent = data.time;
-            document.getElementById('inlineContentTitle').textContent = data.title;
-            document.getElementById('inlineContentDesc').textContent = data.desc;
-            document.getElementById('inlineContentDetail').textContent = data.detail;
+        function renderVideoContent(data) {
+            if (!contentModalBody) {
+                return;
+            }
 
-            renderList(document.getElementById('inlineContentPoints'), data.points);
+            if (!data.embed_url || !data.embed_type) {
+                renderArticleContent({
+                    title: data.title || 'Video Edukasi',
+                    detail: 'Video belum dapat ditampilkan di Campus Care.'
+                });
+                return;
+            }
 
+            const embedBox = document.createElement('div');
+            embedBox.className = 'edu-content-modal-embed';
+
+            if (data.embed_type === 'video') {
+                const video = document.createElement('video');
+                video.controls = true;
+                video.src = data.embed_url;
+                embedBox.appendChild(video);
+            } else {
+                const iframe = document.createElement('iframe');
+                iframe.src = data.embed_url;
+                iframe.title = data.title || 'Video edukasi';
+                iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                iframe.allowFullscreen = true;
+                embedBox.appendChild(iframe);
+            }
+
+            contentModalBody.appendChild(embedBox);
+        }
+
+        function renderArticleContent(data) {
+            if (!contentModalBody) {
+                return;
+            }
+
+            const article = document.createElement('article');
+            article.className = 'edu-content-modal-article';
+
+            const title = document.createElement('h3');
+            title.id = 'contentModalTitle';
+            title.textContent = data.title || 'Artikel Edukasi';
+
+            const body = document.createElement('p');
+            body.textContent = data.detail || data.desc || 'Artikel sedang dilengkapi.';
+
+            article.appendChild(title);
+            article.appendChild(body);
+            contentModalBody.appendChild(article);
+        }
+
+        function renderPdfContent(url, title) {
+            if (!contentModalBody) {
+                return;
+            }
+
+            const material = document.createElement('section');
+            material.className = 'edu-content-detail-material';
+
+            const heading = document.createElement('h4');
+            heading.textContent = 'Materi Pendukung';
+
+            const pdfBox = document.createElement('div');
+            pdfBox.className = 'edu-content-modal-pdf';
+
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.title = title || 'Materi PDF';
+
+            pdfBox.appendChild(iframe);
+            material.appendChild(heading);
+            material.appendChild(pdfBox);
+            contentModalBody.appendChild(material);
+        }
+
+        function positionContentModal(selectedCard, mode) {
+            if (!contentModal || !selectedCard) {
+                return;
+            }
+
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            const margin = 16;
+            const maxByWidth = viewportWidth - (margin * 2);
+            const maxByHeight = mode === 'pdf'
+                ? maxByWidth
+                : (viewportHeight - (margin * 2)) * (16 / 9);
+            const targetWidth = viewportWidth <= 767
+                ? maxByWidth
+                : (mode === 'pdf' ? Math.min(980, viewportWidth * 0.78) : Math.min(1120, viewportWidth * 0.74));
+            const width = Math.min(targetWidth, maxByWidth, maxByHeight);
+
+            contentModal.style.setProperty('--edu-modal-left', '50%');
+            contentModal.style.setProperty('--edu-modal-width', width + 'px');
+        }
+
+        function openContentModal(data, selectedCard) {
+            if (!contentModal || !contentModalBody) {
+                return;
+            }
+
+            window.clearTimeout(modalCloseTimer);
+            contentModalBody.innerHTML = '';
             clearSelectedContent();
 
             if (selectedCard) {
+                activeContentCard = selectedCard;
                 selectedCard.classList.add('edu-content-selected');
             }
 
-            if (inlineDetail) {
-                inlineDetail.classList.add('show');
+            positionContentModal(selectedCard, data.type === 'Video' ? 'video' : 'article');
 
-                setTimeout(function () {
-                    inlineDetail.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }, 120);
+            if (data.type === 'Video') {
+                renderVideoContent(data);
+            } else {
+                renderArticleContent(data);
             }
+
+            activeModalMode = data.type === 'Video' ? 'video' : 'article';
+            contentModal.classList.add('show');
+            contentModal.setAttribute('aria-hidden', 'false');
+            contentModal.scrollTop = 0;
+            contentModalBody.scrollTop = 0;
+        }
+
+        function openPdfModal(url, title, selectedCard) {
+            if (!contentModal || !contentModalBody || !url) {
+                return;
+            }
+
+            window.clearTimeout(modalCloseTimer);
+            contentModalBody.innerHTML = '';
+            clearSelectedContent();
+
+            if (selectedCard) {
+                activeContentCard = selectedCard;
+                selectedCard.classList.add('edu-content-selected');
+            }
+
+            positionContentModal(selectedCard, 'pdf');
+            renderPdfContent(url, title);
+
+            activeModalMode = 'pdf';
+            contentModal.classList.add('show');
+            contentModal.setAttribute('aria-hidden', 'false');
+            contentModal.scrollTop = 0;
+            contentModalBody.scrollTop = 0;
         }
 
         function highlightTopic(topic) {
@@ -1181,25 +1426,70 @@
         });
 
         document.querySelectorAll('[data-content-card]').forEach(function (card) {
-            card.addEventListener('click', function () {
-                const data = JSON.parse(card.getAttribute('data-content'));
+            card.addEventListener('click', function (event) {
+                const pdfButton = event.target.closest('[data-pdf-link]');
 
-                if (data.source_url && data.source_url.trim() !== '') {
-                    window.open(data.source_url, '_blank');
+                if (pdfButton) {
+                    openPdfModal(
+                        pdfButton.getAttribute('data-pdf-url'),
+                        pdfButton.getAttribute('data-pdf-title'),
+                        card
+                    );
                     return;
                 }
 
-                showInlineDetail(data, card);
+                const data = JSON.parse(card.getAttribute('data-content'));
+
+                if (data.type === 'Artikel' && data.source_url) {
+                    window.open(data.source_url, '_blank', 'noopener,noreferrer');
+                    return;
+                }
+
+                openContentModal(data, card);
+            });
+
+            card.addEventListener('keydown', function (event) {
+                if (event.target.closest('[data-pdf-link]')) {
+                    return;
+                }
+
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    const data = JSON.parse(card.getAttribute('data-content'));
+
+                    if (data.type === 'Artikel' && data.source_url) {
+                        window.open(data.source_url, '_blank', 'noopener,noreferrer');
+                        return;
+                    }
+
+                    openContentModal(data, card);
+                }
             });
         });
-        
-        if (closeInlineDetail) {
-            closeInlineDetail.addEventListener('click', hideInlineDetail);
+
+        if (closeContentModal) {
+            closeContentModal.addEventListener('click', closeModal);
         }
 
-        if (closeInlineDetailBottom) {
-            closeInlineDetailBottom.addEventListener('click', hideInlineDetail);
+        if (contentModal) {
+            contentModal.addEventListener('click', function (event) {
+                if (event.target === contentModal) {
+                    closeModal();
+                }
+            });
         }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && contentModal && contentModal.classList.contains('show')) {
+                closeModal();
+            }
+        });
+
+        window.addEventListener('resize', function () {
+            if (contentModal && contentModal.classList.contains('show') && activeContentCard) {
+                positionContentModal(activeContentCard, activeModalMode);
+            }
+        });
     });
 </script>
 @endpush

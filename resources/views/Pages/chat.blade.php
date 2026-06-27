@@ -828,7 +828,7 @@ body {
           <span>Ajukan Konseling</span>
         </a>
       </div>
-    @elseif($isBlockedBySchedule)
+    @elseif($isBlockedBySchedule && ! $chatPayload)
       <div class="chat-shell">
         <div class="chat-main">
           <div class="chat-topbar">
@@ -965,7 +965,7 @@ body {
                     class="chat-input"
                     rows="1"
                     maxlength="2000"
-                    placeholder="{{ $readOnlyChat ? 'Sesi konseling sudah selesai.' : 'Tulis pesan Anda di sini...' }}"
+                    placeholder="{{ $readOnlyChat ? 'Sesi konseling sudah selesai.' : ($isBlockedBySchedule ? 'Chat bisa dilakukan pada jam konseling yang sudah ditentukan...' : 'Tulis pesan Anda di sini...') }}"
                     {{ $canSendChat ? '' : 'disabled' }}
                 ></textarea>
 
@@ -977,6 +977,8 @@ body {
             <div id="chatHint" class="chat-hint">
                 @if($readOnlyChat)
                     Pesan baru tidak dapat dikirim karena sesi konseling sudah selesai atau telah melewati batas waktu.
+                @elseif($isBlockedBySchedule)
+                    Anda tetap bisa melihat riwayat chat sebelumnya. Melakukan chat bisa dilakukan pada saat jam konseling yang sudah ditentukan oleh mahasiswa.
                 @elseif(! $canSendChat)
                     Pesan baru dapat dikirim setelah penjadwalan konseling diterima.
                 @endif
@@ -1028,7 +1030,21 @@ body {
       if (hint) {
           hint.textContent = isReadOnly
               ? 'Pesan baru tidak dapat dikirim karena sesi konseling sudah selesai atau telah melewati batas waktu.'
-              : 'Pesan baru dapat dikirim setelah penjadwalan konseling diterima.';
+              : @json($isBlockedBySchedule
+                  ? 'Anda tetap bisa melihat riwayat chat sebelumnya. Melakukan chat bisa dilakukan pada saat jam konseling yang sudah ditentukan oleh mahasiswa.'
+                  : 'Pesan baru dapat dikirim setelah penjadwalan konseling diterima.'
+              );
+      }
+  }
+
+  if (!canSendMessage && !isReadOnly && payload.scheduledStartAt) {
+      const scheduledStartTime = new Date(payload.scheduledStartAt).getTime();
+      const waitUntilStart = scheduledStartTime - Date.now();
+
+      if (waitUntilStart > 0 && waitUntilStart <= 2147483647) {
+          window.setTimeout(() => {
+              window.location.reload();
+          }, waitUntilStart + 1000);
       }
   }
 

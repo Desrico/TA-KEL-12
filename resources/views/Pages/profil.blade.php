@@ -426,11 +426,6 @@
                 <h2 class="profil-main-title">Informasi Profil</h2>
                 <p class="profil-main-sub">Data ini digunakan untuk kebutuhan akun dan layanan konseling.</p>
               </div>
-
-              <button type="button" class="profil-edit-btn" onclick="toggleEdit()">
-                <i class="bi bi-pencil-fill me-1" id="edit-icon"></i>
-                <span id="edit-btn-text">Edit Profil</span>
-                </button>
             </div>
 
             <div class="profil-grid">

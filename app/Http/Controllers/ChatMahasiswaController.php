@@ -44,8 +44,7 @@ class ChatMahasiswaController extends Controller
         ]);
 
         if (
-            ($request->filled('jadwal') || $request->filled('jadwal_id'))
-            && $this->canStartSessionNow($sesi)
+            $this->canStartSessionNow($sesi)
             && ($sesi->jadwalKonseling->status ?? null) === 'disetujui'
             && ! $this->isSessionActive($sesi)
         ) {
@@ -158,22 +157,6 @@ class ChatMahasiswaController extends Controller
             ], 404);
         }
 
-        $readOnlyChat = $this->isReadOnlyChat($sesi);
-
-        if (! $readOnlyChat && ! $this->canStartSessionNow($sesi)) {
-            return response()->json([
-                'success' => false,
-                'message' => $this->getScheduleBlockedMessage($sesi),
-            ], 403);
-        }
-
-        if (! $readOnlyChat && $sesi->status !== 'berlangsung') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Sesi belum dimulai.',
-            ], 403);
-        }
-
         return response()->json([
             'success' => true,
             'messages' => $this->resolveConversationMessages($sesi, $user)->all(),
@@ -216,6 +199,11 @@ class ChatMahasiswaController extends Controller
             'success' => false,
             'message' => $this->getScheduleBlockedMessage($sesi),
         ], 403);
+    }
+
+    if (($sesi->jadwalKonseling->status ?? null) === 'disetujui' && ! $this->isSessionActive($sesi)) {
+        $this->activateSessionIfNeeded($sesi);
+        $sesi->refresh()->load('jadwalKonseling');
     }
 
     if ($sesi->status !== 'berlangsung') {
@@ -498,6 +486,7 @@ class ChatMahasiswaController extends Controller
         $jadwal = $sesi->jadwalKonseling;
         $konselorUser = optional(optional($jadwal)->konselor)->user;
         $konselorProfil = optional($konselorUser)->profil;
+        $scheduledAt = $this->getScheduledAt($sesi);
 
         return [
             'sessionId' => $sesi->id,
@@ -512,6 +501,7 @@ class ChatMahasiswaController extends Controller
             'counselorName' => $konselorUser?->nama ?: env('CIS_KONSELOR_NAME', 'Konselor'),
             'counselorAvatar' => $konselorProfil?->foto ? Storage::url($konselorProfil->foto) : asset('img/default-avatar.png'),
             'canStart' => $isReadyToStart,
+            'scheduledStartAt' => $scheduledAt?->toIso8601String(),
             'threadDateKey' => $this->resolveThreadDateKey($sesi),
             'threadDateLabel' => $this->resolveThreadDateLabel($sesi),
             'messages' => $messages,
