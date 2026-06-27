@@ -180,42 +180,6 @@ class LaporanController extends Controller
         ));
     }
 
-    public function batalkanPenjadwalan($id)
-    {
-        $mahasiswa = auth()->user()->mahasiswa;
-
-        if (! $mahasiswa) {
-            abort(403, 'Data mahasiswa tidak ditemukan.');
-        }
-
-        $jadwal = JadwalKonseling::with('sesiKonseling')
-            ->where('id', $id)
-            ->where('mahasiswa_id', $mahasiswa->id)
-            ->firstOrFail();
-
-        $status = strtolower(str_replace(' ', '_', trim((string) $jadwal->status)));
-
-        if (! in_array($status, ['menunggu', 'menunggu_konfirmasi'], true)) {
-            return redirect()
-                ->route('riwayat')
-                ->with('error', 'Penjadwalan hanya dapat dibatalkan saat masih menunggu konfirmasi konselor.');
-        }
-
-        $jadwal->forceFill([
-            'status' => 'dibatalkan',
-        ])->save();
-
-        if ($jadwal->sesiKonseling && $jadwal->sesiKonseling->status === 'menunggu') {
-            $jadwal->sesiKonseling->forceFill([
-                'status' => 'dibatalkan',
-            ])->save();
-        }
-
-        return redirect()
-            ->route('riwayat')
-            ->with('success', 'Penjadwalan konseling berhasil dibatalkan.');
-    }
-
     public function laporanAdmin(\Illuminate\Http\Request $request)
     {
         $q = trim((string) $request->query('q', ''));

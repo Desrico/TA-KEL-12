@@ -11,13 +11,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http; 
 
 class LoginController extends Controller
 {
     public function showLogin()
     {
         if (Auth::check()) {
+            // Menyelaraskan ulang role aktif agar redirect tidak memakai role lama yang tertinggal di database/session.
             $user = $this->syncResolvedRoleForUser(
                 Auth::user(),
                 Auth::user()->username_cis ?? Auth::user()->email ?? '',
@@ -131,21 +131,6 @@ class LoginController extends Controller
             $request->session()->regenerate();
             $request->session()->forget('cis');
 
-            if ($request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Login lokal berhasil',
-                'role'    => $localUser->role,
-                'user'    => [
-                    'id'    => $localUser->id,
-                    'nama'  => $localUser->nama,
-                    'email' => $localUser->email,
-                    'role'  => $localUser->role,
-                ],
-                'session_id' => session()->getId(),
-            ]);
-        }
-
             return $this->redirectByRole($localUser->role);
         }
 
@@ -201,22 +186,6 @@ class LoginController extends Controller
                     'logged_in_at' => now()->toIso8601String(),
                 ]);
 
-                if ($request->expectsJson()) {
-                return response()->json([
-                    'success'     => true,
-                    'message'     => 'Login konselor berhasil',
-                    'role'        => 'konselor',
-                    'user'        => [
-                        'id'    => $user->id,
-                        'nama'  => $user->nama,
-                        'email' => $user->email,
-                        'role'  => $user->role,
-                    ],
-                    'cis_token'  => $token,
-                    'session_id' => session()->getId(),
-                ]);
-            }
-
                 return redirect()->route('admin.dashboard');
             }
 
@@ -229,13 +198,6 @@ class LoginController extends Controller
 
             if (! $mahasiswaData) {
                 DB::rollBack();
-
-                if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Akun CIS valid, tetapi tidak memiliki akses ke aplikasi Campus Care.',
-                ], 403);
-            }
 
                 return back()->withErrors([
                     'username' => 'Akun CIS valid, tetapi tidak memiliki akses ke aplikasi Campus Care.',
@@ -279,24 +241,6 @@ class LoginController extends Controller
                 'logged_in_at' => now()->toIso8601String(),
             ]);
 
-            if ($request->expectsJson()) {
-            $mahasiswa = \App\Models\Mahasiswa::where('user_id', $user->id)->first();
-            return response()->json([
-                'success'    => true,
-                'message'    => 'Login mahasiswa berhasil',
-                'role'       => 'mahasiswa',
-                'user'       => [
-                    'id'    => $user->id,
-                    'nama'  => $user->nama,
-                    'email' => $user->email,
-                    'role'  => $user->role,
-                    'nim'   => $mahasiswa?->nim,
-                ],
-                'cis_token'  => $token,
-                'session_id' => session()->getId(),
-            ]);
-        }
-
             return $this->redirectByRole($user->role);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -307,13 +251,6 @@ class LoginController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-
-            if ($request->expectsJson()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Login CIS gagal. Username atau password salah.',
-            ], 401);
-        }
 
             return back()->withErrors([
                 'username' => 'Login gagal: ' . $e->getMessage(),

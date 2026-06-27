@@ -31,30 +31,10 @@ class GroupChatMahasiswaController extends Controller
             return redirect()->route('mahasiswa.group-chat.room', ['group' => $request->integer('group')]);
         }
 
-        $joinedRooms = $this->resolveJoinedRooms($user);
-        $pendingInvitations = $this->resolvePendingInvitations($user);
-        $publicTopics = $this->resolvePublicTopicCards($user);
-
-        if ($request->expectsJson() || $request->wantsJson() || $request->query('format') === 'json') {
-            return response()->json([
-                'success' => true,
-                'joined_rooms' => $joinedRooms
-                    ->map(fn (GroupChatRoom $room) => $this->transformRoomSummary($room))
-                    ->values()
-                    ->all(),
-                'pending_invitations' => $pendingInvitations
-                    ->map(fn (GroupChatMember $invitation) => $this->transformInvitationSummary($invitation))
-                    ->values()
-                    ->all(),
-                'public_topics' => $publicTopics,
-                'eligibility_notice' => $eligibility['eligible'] ? null : $eligibility['reason'],
-            ]);
-        }
-
         return view('Pages.group-chat', [
-            'joinedRooms' => $joinedRooms,
-            'pendingInvitations' => $pendingInvitations,
-            'publicTopics' => $publicTopics,
+            'joinedRooms' => $this->resolveJoinedRooms($user),
+            'pendingInvitations' => $this->resolvePendingInvitations($user),
+            'publicTopics' => $this->resolvePublicTopicCards($user),
             'groupRules' => GroupChatSupport::rules(),
             'eligibilityNotice' => $eligibility['eligible'] ? null : $eligibility['reason'],
         ]);
@@ -645,54 +625,6 @@ class GroupChatMahasiswaController extends Controller
         }
 
         return $cards;
-    }
-
-    private function transformRoomSummary(GroupChatRoom $room): array
-    {
-        $latestMessage = $room->latestMessage;
-
-        return [
-            'id' => $room->id,
-            'room_id' => $room->id,
-            'title' => $room->title,
-            'description' => $room->description,
-            'topic' => $room->topic,
-            'topic_label' => $room->topicLabel(),
-            'visibility' => $room->visibility ?? null,
-            'visibility_label' => $room->visibilityLabel(),
-            'member_count' => (int) ($room->active_members_count ?? $room->members_count ?? $room->members->count()),
-            'room_url' => route('mahasiswa.group-chat.room', ['group' => $room->id]),
-            'latest_message' => $latestMessage ? [
-                'id' => $latestMessage->id,
-                'text' => $latestMessage->pesan,
-                'sender_name' => $latestMessage->sender?->nama
-                    ?: $latestMessage->sender?->name
-                    ?: $latestMessage->sender?->username_cis
-                    ?: 'Mahasiswa',
-                'sent_at' => $this->toDisplayDateTime($latestMessage->created_at)?->toIso8601String(),
-            ] : null,
-        ];
-    }
-
-    private function transformInvitationSummary(GroupChatMember $invitation): array
-    {
-        $room = $invitation->room;
-
-        return [
-            'id' => $invitation->id,
-            'room_id' => $room?->id,
-            'title' => $room?->title,
-            'topic' => $room?->topic,
-            'topic_label' => $room?->topicLabel(),
-            'invite_token' => $room?->invite_token,
-            'inviter_name' => $invitation->inviter?->nama
-                ?: $invitation->inviter?->name
-                ?: $invitation->inviter?->username_cis,
-            'invited_at' => $this->toDisplayDateTime($invitation->updated_at)?->toIso8601String(),
-            'invitation_url' => $room?->invite_token
-                ? route('mahasiswa.group-chat.invite', ['token' => $room->invite_token])
-                : null,
-        ];
     }
 
     private function resolveAccessibleRoom(User $user, ?int $roomId): ?GroupChatRoom
