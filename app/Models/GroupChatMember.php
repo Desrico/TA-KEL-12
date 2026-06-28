@@ -14,7 +14,7 @@ class GroupChatMember extends Model
     public const STATUS_ACTIVE = 'active';
     public const STATUS_BLOCKED = 'blocked';
     public const STATUS_REMOVED = 'removed';
-    public const STATUS_LEFT = 'left';
+    public const STATUS_LEFT = 'left'; // Status ketika user keluar grup
 
     protected $table = 'group_chat_members';
 
@@ -22,14 +22,14 @@ class GroupChatMember extends Model
         'room_id',
         'user_id',
         'anonymous_name',
-        'membership_status',
+        'membership_status',    // Status keanggotaan
         'joined_at',
         'consented_at',
         'consent_version',
         'joined_via',
         'invited_by',
-        'removed_at',
-        'removed_reason',
+        'removed_at',       // Waktu keluar
+        'removed_reason',   // Alasan keluar (left_by_member)
     ];
 
     protected $casts = [
