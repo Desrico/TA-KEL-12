@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class JadwalController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
         $user = Auth::user();
 
@@ -25,6 +25,15 @@ class JadwalController extends Controller
         }
 
         $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+        $followUpJadwal = null;
+
+        if ($mahasiswa && $request->filled('follow_up_from')) {
+            // Sesi lanjutan membuat jadwal baru; jadwal lama tetap selesai sebagai riwayat.
+            $followUpJadwal = JadwalKonseling::where('id', $request->integer('follow_up_from'))
+                ->where('mahasiswa_id', $mahasiswa->id)
+                ->whereIn('status', ['selesai', 'perlu_sesi_lanjutan'])
+                ->first();
+        }
 
         return view('Pages.konseling', [
             'namaMahasiswa'    => $user->nama ?? '-',
@@ -32,6 +41,7 @@ class JadwalController extends Controller
             'jurusanMahasiswa' => $mahasiswa->jurusan ?? '-',
             'angkatanMahasiswa' => $mahasiswa->angkatan ?? '-',
             'isAnonim'         => method_exists($user, 'isAnonim') ? $user->isAnonim() : false,
+            'followUpJadwal'   => $followUpJadwal,
         ]);
     }
 
@@ -71,6 +81,7 @@ class JadwalController extends Controller
             'waktu'   => 'required|date_format:H:i',
             'jenis'   => 'required|in:online,offline',
             'topik'   => 'required|string|min:3|max:255',
+            'follow_up_from' => 'nullable|integer',
         ];
 
         if ($requireConfirmation) {
@@ -126,19 +137,21 @@ class JadwalController extends Controller
         );
     }
 
-    private function isSlotBooked(string $tanggal, string $waktu, int $konselorId): bool
+    private function isSlotBooked(string $tanggal, string $waktu, int $konselorId, ?int $excludeJadwalId = null): bool
     {
-        return $this->findSlotConflict($tanggal, $waktu, $konselorId) !== null;
+        return $this->findSlotConflict($tanggal, $waktu, $konselorId, $excludeJadwalId) !== null;
     }
 
-    private function findSlotConflict(string $tanggal, string $waktu, int $konselorId): ?JadwalKonseling
+    private function findSlotConflict(string $tanggal, string $waktu, int $konselorId, ?int $excludeJadwalId = null): ?JadwalKonseling
     {
         return JadwalKonseling::whereDate('tanggal', $tanggal)
             ->whereTime('waktu', $waktu)
             ->where('konselor_id', $konselorId)
-            ->where('status', '!=', 'ditolak')
+            ->when($excludeJadwalId, fn ($query) => $query->whereKeyNot($excludeJadwalId))
+            ->whereNotIn('status', ['ditolak', 'dibatalkan'])
             ->orderByRaw("
                 CASE
+                    WHEN status = 'diterima' THEN 1
                     WHEN status = 'disetujui' THEN 1
                     WHEN status = 'berlangsung' THEN 2
                     WHEN status = 'menunggu' THEN 3
@@ -153,7 +166,7 @@ class JadwalController extends Controller
     {
         $status = strtolower(trim((string) optional($jadwal)->status));
 
-        if (in_array($status, ['disetujui', 'berlangsung'], true)) {
+        if (in_array($status, ['disetujui', 'diterima', 'berlangsung'], true)) {
             return [
                 'success' => false,
                 'message' => 'Jadwal ini telah terjadwal. Silakan pilih waktu lain.',
@@ -263,7 +276,17 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
         ], 409);
     }
 
-        $conflict = $this->findSlotConflict($validated['tanggal'], $jamMulai, $konselor->id);
+        $excludeJadwalId = null;
+
+        if ($request->filled('exclude_jadwal_id') && Auth::user()?->mahasiswa) {
+            // Saat penjadwalan ulang, jadwal yang sedang diedit tidak boleh mengunci slotnya sendiri.
+            $excludeJadwalId = JadwalKonseling::whereKey($request->integer('exclude_jadwal_id'))
+                ->where('mahasiswa_id', Auth::user()->mahasiswa->id)
+                ->where('status', 'perlu_penjadwalan_ulang')
+                ->value('id');
+        }
+
+        $conflict = $this->findSlotConflict($validated['tanggal'], $jamMulai, $konselor->id, $excludeJadwalId);
 
         if ($conflict) {
             return response()->json($this->formatSlotConflictResponse($conflict), 409);
@@ -307,22 +330,16 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
             ], 404);
         }
 
-        $isAnonim = $validated['jenis'] === 'online' && $user->isAnonim();
-        $namaDisplay = $isAnonim
-            ? $user->getAnonimDisplayName()
-            : $user->nama;
-        $identitasUntukKonselor = $isAnonim
-            ? trim($user->getAnonimDisplayName())
-            : $user->nama;
-
         $normalizedWaktu = Carbon::createFromFormat('H:i', $validated['waktu'])
             ->format('H:i:s');
 
-        $isAnonim    = $user->isAnonim();
-        $namaDisplay = $user->getNamaDisplay();
+        $isAnonim = $validated['jenis'] === 'online' && $user->isAnonim();
+        $namaDisplay = $isAnonim
+            ? trim($user->getAnonimDisplayName())
+            : $user->nama;
 
         $identitasUntukKonselor = $isAnonim
-            ? trim($user->getAnonimDisplayName())
+            ? $namaDisplay
             : $user->nama;
 
         try {
@@ -341,7 +358,7 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
                 $existingBooking = JadwalKonseling::whereDate('tanggal', $validated['tanggal'])
                     ->whereTime('waktu', $normalizedWaktu)
                     ->where('konselor_id', $konselor->id)
-                    ->where('status', '!=', 'ditolak')
+                    ->whereNotIn('status', ['ditolak', 'dibatalkan'])
                     ->lockForUpdate()
                     ->orderByRaw("
                     CASE
@@ -404,6 +421,18 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
                     ]);
                 }
 
+                if (! empty($validated['follow_up_from'])) {
+                    // Setelah sesi lanjutan diajukan, sesi lama kembali tampil sebagai selesai di riwayat mahasiswa.
+                    JadwalKonseling::where('id', $validated['follow_up_from'])
+                        ->where('mahasiswa_id', $mahasiswa->id)
+                        ->where('status', 'selesai')
+                        ->where('tindak_lanjut_tipe', 'perlu lanjut')
+                        ->update([
+                            'tindak_lanjut_tipe' => 'sesi lanjutan diajukan',
+                            'updated_at' => now(),
+                        ]);
+                }
+
                 return $jadwal;
             });
         } catch (\Illuminate\Http\Exceptions\HttpResponseException $exception) {
@@ -445,7 +474,7 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
     {
         $validated = $request->validate([
             'tanggal' => 'required|date|after_or_equal:today',
-            'waktu' => 'required',
+            'waktu' => 'required|date_format:H:i',
             'jenis' => 'required|string',
             'topik' => 'required|string|max:255',
         ]);
@@ -479,9 +508,48 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
             ], 409);
         }
 
+        $this->ensureSlotHasNotStarted($validated['tanggal'], $validated['waktu']);
+
+        $normalizedWaktu = Carbon::createFromFormat('H:i', $validated['waktu'])->format('H:i:s');
+        $konselorId = $jadwal->konselor_id ?: optional($this->resolveActiveKonselor())->id;
+
+        if (! $konselorId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Konselor belum tersedia.',
+            ], 404);
+        }
+
+        $jadwalTidakTersedia = $this->findKetidaktersediaanKonselor(
+            $konselorId,
+            $validated['tanggal'],
+            $validated['waktu']
+        );
+
+        if ($jadwalTidakTersedia) {
+            return response()->json([
+                'success' => false,
+                'type' => 'konselor_tidak_tersedia',
+                'title' => 'Konselor Tidak Tersedia',
+                'message' => 'Jadwal tidak dapat dipilih karena konselor tidak tersedia pada tanggal dan waktu tersebut.',
+                'detail' => $this->formatKetidaktersediaanResponse($jadwalTidakTersedia),
+            ], 409);
+        }
+
+        $conflict = $this->findSlotConflict(
+            $validated['tanggal'],
+            $normalizedWaktu,
+            $konselorId,
+            $jadwal->id
+        );
+
+        if ($conflict) {
+            return response()->json($this->formatSlotConflictResponse($conflict), 409);
+        }
+
         $jadwal->update([
             'tanggal' => $validated['tanggal'],
-            'waktu' => $validated['waktu'],
+            'waktu' => $normalizedWaktu,
             'jenis' => $validated['jenis'],
             'topik' => $validated['topik'],
             'status' => 'menunggu',
@@ -491,7 +559,7 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
         \App\Models\Notifikasi::create([
             'user_id' => $user->id,
             'pesan' => 'Jadwal konseling ulang Anda berhasil diajukan dan sedang menunggu konfirmasi konselor.',
-            'status' => 'belum_dibaca',
+            'status' => 'belum',
         ]);
 
         return response()->json([
@@ -506,13 +574,23 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
         $konselor = $this->resolveActiveKonselor();
 
         if (!$konselor) {
-            return response()->json([]);
+            return response()->json([])->header('Cache-Control', 'no-store, max-age=0');
         }
 
         $result = [];
+        $excludeJadwalId = null;
+
+        if ($request->filled('exclude_jadwal_id') && Auth::user()?->mahasiswa) {
+            // Response slot dibuat dinamis per user agar halaman penjadwalan ulang tetap ringan dan akurat.
+            $excludeJadwalId = JadwalKonseling::whereKey($request->integer('exclude_jadwal_id'))
+                ->where('mahasiswa_id', Auth::user()->mahasiswa->id)
+                ->where('status', 'perlu_penjadwalan_ulang')
+                ->value('id');
+        }
 
         $booked = JadwalKonseling::where('konselor_id', $konselor->id)
-            ->where('status', '!=', 'ditolak')
+            ->when($excludeJadwalId, fn ($query) => $query->whereKeyNot($excludeJadwalId))
+            ->whereNotIn('status', ['ditolak', 'dibatalkan'])
             ->whereDate('tanggal', '>=', Carbon::today()->toDateString())
             ->get(['tanggal', 'waktu', 'status'])
             ->map(function ($j) {
@@ -525,7 +603,7 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
                 return [
                     'slot'   => $tanggal . '-' . Carbon::parse($j->waktu)->format('H:i'),
                     'status' => $status,
-                    'label'  => in_array($status, ['disetujui', 'berlangsung'], true)
+                    'label'  => in_array($status, ['disetujui', 'diterima', 'berlangsung'], true)
                         ? 'Telah Terjadwal'
                         : 'Sudah Terisi',
                 ];
@@ -570,6 +648,8 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
             }
         }
 
-        return response()->json(array_values($result));
+        return response()
+            ->json(array_values($result))
+            ->header('Cache-Control', 'no-store, max-age=0');
     }
 }

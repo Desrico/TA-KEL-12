@@ -31,12 +31,14 @@
             @php
                 $status = strtolower(trim($item->status ?? ''));
                 $status = str_replace(' ', '_', $status);
+                $isPerluSesiLanjutan = $status === 'selesai'
+                    && in_array(strtolower(str_replace('_', ' ', (string) ($item->tindak_lanjut_tipe ?? $item->tindak_lanjut ?? ''))), ['perlu lanjut', 'perlu sesi lanjutan', 'on', '1', 'ya'], true);
 
                 $sesi = $item->sesiKonseling;
                 $feedback = $sesi?->feedback;
                 $bisaFeedback = $status === 'selesai' && $sesi;
 
-                $statusLabel = match($status) {
+                $statusLabel = $isPerluSesiLanjutan ? 'Perlu Sesi Lanjutan' : match($status) {
                     'selesai' => 'Selesai',
                     'ditolak' => 'Ditolak',
                     'dibatalkan' => 'Dibatalkan',
@@ -47,7 +49,7 @@
                     default => ucfirst(str_replace('_', ' ', $item->status ?? '-'))
                 };
 
-                $statusClass = match($status) {
+                $statusClass = $isPerluSesiLanjutan ? 'status-follow-up' : match($status) {
                     'selesai' => 'status-selesai',
                     'ditolak' => 'status-ditolak',
                     'dibatalkan' => 'status-dibatalkan',
@@ -57,6 +59,8 @@
                     'perlu_penjadwalan_ulang' => 'status-reschedule',
                     default => 'status-default'
                 };
+
+                $isActionableStatus = $isPerluSesiLanjutan;
 
                 $topikText = '-';
 
@@ -68,7 +72,7 @@
                 }
             @endphp
 
-    <div class="riwayat-card">
+    <div class="riwayat-card" id="jadwal-{{ $item->id }}" data-highlight-target="{{ request('jadwal') == $item->id ? 'true' : 'false' }}">
         <div class="card-left">
             @php
     $userMahasiswa = $item->mahasiswa?->user;
@@ -120,7 +124,20 @@
         </div>
 
         <div class="card-right">
-            <span class="status-pill {{ $statusClass }}">{{ $statusLabel }}</span>
+            @if($isActionableStatus)
+                {{-- Status khusus bisa dibuka untuk menampilkan aksi sesi lanjutan/penjadwalan ulang. --}}
+                <a href="{{ route('detail.riwayat', $item->id) }}" class="status-pill status-link {{ $statusClass }}">
+                    {{ $statusLabel }}
+                </a>
+            @else
+                <span class="status-pill {{ $statusClass }}">{{ $statusLabel }}</span>
+            @endif
+
+            @if($isPerluSesiLanjutan)
+                <a href="{{ route('konseling', ['follow_up_from' => $item->id]) }}" class="btn-riwayat btn-follow-up">
+                    Ajukan Sesi Lanjutan
+                </a>
+            @endif
 
             <a href="{{ route('detail.riwayat', $item->id) }}" class="btn-riwayat">
                 Lihat Riwayat
@@ -422,6 +439,18 @@
     white-space: nowrap;
 }
 
+.status-link {
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.status-link:hover {
+    color: inherit;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+}
+
 /* STATUS COLOR */
 .status-selesai {
     background: #BDE3FF;
@@ -458,6 +487,15 @@
     min-width: 190px;
 }
 
+.status-follow-up {
+    background: #EDE9FE;
+    color: #5B21B6;
+}
+
+.status-pill.status-follow-up {
+    min-width: 180px;
+}
+
 .status-default {
     background: #E5E7EB;
     color: #4B5563;
@@ -484,7 +522,30 @@
 
 .btn-riwayat:hover {
     background: #053B2E;
+    color: #ffffff;
     transform: translateY(-1px);
+}
+
+.btn-riwayat:focus,
+.btn-riwayat:active {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.btn-follow-up {
+    background: #FFFBB8;
+    color: #B8A84A;
+    min-width: 152px;
+}
+
+.btn-follow-up:hover {
+    background: #FFF6A3;
+    color: #9F8F31;
+}
+
+.riwayat-card.is-highlighted {
+    border-color: #7c3aed;
+    box-shadow: 0 14px 32px rgba(91, 33, 182, .14);
 }
 
 /* LOAD MORE */
@@ -796,6 +857,20 @@ body > .modal.feedback-modal-wrapper .modal-content {
     pointer-events: auto !important;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const highlightedCard = document.querySelector('[data-highlight-target="true"]');
+
+    if (!highlightedCard) {
+        return;
+    }
+
+    // Notifikasi membuka riwayat dan langsung mengarahkan perhatian ke status yang perlu aksi.
+    highlightedCard.classList.add('is-highlighted');
+    highlightedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

@@ -1,12 +1,17 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Penjadwalan Konseling')
+@section('page-hero')
+{{-- Header H1 layout disembunyikan supaya kalender langsung mengikuti breadcrumb. --}}
+<div hidden></div>
+@endsection
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
 
 <style>
   .jadwal-page-wrap {
     display: grid;
+    margin-top: .75rem;
   }
 
   .jadwal-calendar-card,
@@ -231,12 +236,13 @@
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 760px;
+    max-width: 620px;
     background: #fff;
-    border-radius: 28px;
-    padding: 28px 28px 24px;
+    border-radius: 22px;
+    padding: 22px 22px 20px;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
     animation: modalFadeIn 0.22s ease;
+    overflow: visible;
   }
 
 @keyframes detailModalIn {
@@ -253,26 +259,26 @@
   .modal-top {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 22px;
+    gap: 12px;
+    margin-bottom: 18px;
   }
 
   .modal-icon {
-    width: 58px;
-    height: 58px;
-    min-width: 58px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
     border-radius: 50%;
     background: #E8F6EE;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--admin-primary);
-    font-size: 28px;
+    font-size: 23px;
   }
 
   .modal-title-wrap h3 {
     margin: 0 0 4px;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
     color: #111827;
   }
@@ -280,7 +286,7 @@
   .modal-title-wrap p {
     margin: 0;
     color: #4B5563;
-    font-size: 15px;
+    font-size: 13px;
   }
 
   .modal-form {
@@ -290,8 +296,8 @@
   .modal-grid {
     display: grid;
     grid-template-columns: 1.2fr 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 18px;
+    gap: 12px;
+    margin-bottom: 14px;
   }
 
   .form-group {
@@ -304,10 +310,10 @@
   }
 
   .form-group label {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
     color: #111827;
-    margin-bottom: 8px;
+    margin-bottom: 7px;
   }
 
   .form-group label span {
@@ -325,10 +331,10 @@
   .form-group textarea {
     width: 100%;
     border: 1.5px solid #E5E7EB;
-    border-radius: 14px;
+    border-radius: 12px;
     background: #fff;
-    padding: 13px 14px;
-    font-size: 14px;
+    padding: 11px 12px;
+    font-size: 13px;
     color: #111827;
     outline: none;
     transition: 0.2s ease;
@@ -343,7 +349,100 @@
 
   .form-group textarea {
     resize: none;
-    min-height: 120px;
+    min-height: 92px;
+  }
+
+  .time-picker-shell {
+    position: relative;
+  }
+
+  .time-picker-trigger {
+    width: 100%;
+    height: 41px;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 12px;
+    background: #fff;
+    color: #111827;
+    padding: 0 11px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+
+  .time-picker-trigger:hover,
+  .time-picker-shell.open .time-picker-trigger {
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 3px rgba(11, 107, 80, 0.08);
+  }
+
+  .time-picker-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 30;
+    width: 242px;
+    padding: 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, .16);
+    display: none;
+  }
+
+  .time-picker-shell.open .time-picker-panel {
+    display: block;
+  }
+
+  .time-picker-panel::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    left: 26px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-left: 1px solid #E5E7EB;
+    border-top: 1px solid #E5E7EB;
+    transform: rotate(45deg);
+  }
+
+  .time-picker-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 9px;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .time-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+  }
+
+  .time-picker-option {
+    border: 0;
+    border-radius: 5px;
+    background: #fff;
+    color: #111827;
+    padding: 7px 0;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .time-picker-option:hover {
+    background: #F3F4F6;
+  }
+
+  .time-picker-option.active {
+    background: #0067D8;
+    color: #fff;
   }
 
   #charCount {
@@ -375,16 +474,16 @@
   .modal-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 14px;
-    margin-top: 22px;
+    gap: 10px;
+    margin-top: 18px;
   }
 
   .btn-batal,
   .btn-simpan {
-    min-width: 138px;
-    height: 50px;
-    border-radius: 14px;
-    font-size: 16px;
+    min-width: 112px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
     transition: 0.2s ease;
@@ -692,6 +791,10 @@
       width: 100%;
     }
 
+    .time-picker-panel {
+      width: min(242px, calc(100vw - 64px));
+    }
+
     .calendar-toolbar-custom {
       grid-template-columns: 46px minmax(0, 1fr) 46px;
       margin-bottom: 16px;
@@ -855,12 +958,40 @@
 
                 <div class="form-group">
                     <label for="jam_mulai">Dari</label>
-                    <input type="time" name="jam_mulai" id="jam_mulai" required>
+                    <div class="time-picker-shell" data-time-picker>
+                        <input type="hidden" name="jam_mulai" id="jam_mulai" required>
+                        <button type="button" class="time-picker-trigger" data-time-picker-trigger data-target="jam_mulai">
+                            <span id="jam_mulai_label">Pilih jam</span>
+                            <i class="ti ti-clock"></i>
+                        </button>
+                        <div class="time-picker-panel" data-time-panel="jam_mulai" aria-label="Pilih jam mulai">
+                            <div class="time-picker-head">
+                                <i class="ti ti-arrow-left"></i>
+                                <span>Pilih Jam</span>
+                                <i class="ti ti-arrow-right"></i>
+                            </div>
+                            <div class="time-picker-grid" data-time-grid="jam_mulai"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="jam_selesai">Sampai</label>
-                    <input type="time" name="jam_selesai" id="jam_selesai" required>
+                    <div class="time-picker-shell" data-time-picker>
+                        <input type="hidden" name="jam_selesai" id="jam_selesai" required>
+                        <button type="button" class="time-picker-trigger" data-time-picker-trigger data-target="jam_selesai">
+                            <span id="jam_selesai_label">Pilih jam</span>
+                            <i class="ti ti-clock"></i>
+                        </button>
+                        <div class="time-picker-panel" data-time-panel="jam_selesai" aria-label="Pilih jam selesai">
+                            <div class="time-picker-head">
+                                <i class="ti ti-arrow-left"></i>
+                                <span>Pilih Jam</span>
+                                <i class="ti ti-arrow-right"></i>
+                            </div>
+                            <div class="time-picker-grid" data-time-grid="jam_selesai"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -901,6 +1032,27 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    const unavailableFlashSuccess = @json(session('success'));
+
+    if (unavailableFlashSuccess && unavailableFlashSuccess.toLowerCase().includes('berhasil dihapus')) {
+        // Hapus ketidaktersediaan memakai redirect, jadi modal sukses ditampilkan dari flash session.
+        Swal.fire({
+            title: 'Berhasil Dihapus',
+            html: `<div class="ketidaktersediaan-popup-text">${unavailableFlashSuccess}</div>`,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            buttonsStyling: false,
+            target: document.body,
+            backdrop: true,
+            customClass: {
+                container: 'campus-alert-container',
+                popup: 'campus-alert-popup',
+                title: 'campus-alert-title',
+                htmlContainer: 'campus-alert-content',
+                confirmButton: 'campus-alert-confirm'
+            }
+        });
+    }
 
       function getTodayYmd() {
         const today = new Date();
@@ -935,6 +1087,9 @@
             if (tanggalSelesai) {
                 tanggalSelesai.value = '';
             }
+            // Reset label picker jam ketika form tambah baru dibuka.
+            setTimePickerValue('jam_mulai', '');
+            setTimePickerValue('jam_selesai', '');
         }
 
         modal.classList.add('show');
@@ -953,7 +1108,85 @@
         if (modal) {
             modal.classList.remove('show');
             document.body.classList.remove('modal-open');
+            closeTimePickerPanels();
         }
+    }
+
+    function normalizeTimeValue(value) {
+        const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+
+        if (!match) {
+            return '';
+        }
+
+        return `${String(match[1]).padStart(2, '0')}:${match[2]}`;
+    }
+
+    function formatTimeLabel(value) {
+        const normalized = normalizeTimeValue(value);
+
+        if (!normalized) {
+            return 'Pilih jam';
+        }
+
+        const [hour, minute] = normalized.split(':');
+
+        return `${Number(hour)}:${minute}`;
+    }
+
+    function setTimePickerValue(inputId, value) {
+        const input = document.getElementById(inputId);
+        const label = document.getElementById(`${inputId}_label`);
+        const normalized = normalizeTimeValue(value);
+
+        if (input) {
+            input.value = normalized;
+        }
+
+        if (label) {
+            label.textContent = formatTimeLabel(normalized);
+        }
+
+        document
+            .querySelectorAll(`[data-time-grid="${inputId}"] .time-picker-option`)
+            .forEach((button) => {
+                button.classList.toggle('active', button.dataset.value === normalized);
+            });
+    }
+
+    function closeTimePickerPanels(exceptShell = null) {
+        document.querySelectorAll('[data-time-picker].open').forEach((shell) => {
+            if (shell !== exceptShell) {
+                shell.classList.remove('open');
+            }
+        });
+    }
+
+    function initTimePickerGrid(inputId) {
+        const grid = document.querySelector(`[data-time-grid="${inputId}"]`);
+
+        if (!grid || grid.dataset.ready === '1') {
+            return;
+        }
+
+        // Picker jam dibuat grid 24 jam supaya dropdown tidak memanjang ke bawah.
+        for (let hour = 0; hour < 24; hour++) {
+            const value = `${String(hour).padStart(2, '0')}:00`;
+            const button = document.createElement('button');
+
+            button.type = 'button';
+            button.className = 'time-picker-option';
+            button.dataset.value = value;
+            button.textContent = `${hour}:00`;
+            button.addEventListener('click', () => {
+                setTimePickerValue(inputId, value);
+                closeTimePickerPanels();
+            });
+
+            grid.appendChild(button);
+        }
+
+        grid.dataset.ready = '1';
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -1002,8 +1235,29 @@
         }
 
         showNativePicker(tanggalMulai);
-        showNativePicker(jamMulai);
-        showNativePicker(jamSelesai);
+
+        initTimePickerGrid('jam_mulai');
+        initTimePickerGrid('jam_selesai');
+
+        document.querySelectorAll('[data-time-picker-trigger]').forEach((trigger) => {
+            trigger.addEventListener('click', function () {
+                const shell = this.closest('[data-time-picker]');
+
+                if (!shell) {
+                    return;
+                }
+
+                const shouldOpen = !shell.classList.contains('open');
+                closeTimePickerPanels(shell);
+                shell.classList.toggle('open', shouldOpen);
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('[data-time-picker]')) {
+                closeTimePickerPanels();
+            }
+        });
 
         if (tanggalMulai) {
             tanggalMulai.setAttribute('min', getTodayYmd());
@@ -1144,14 +1398,20 @@ document.getElementById('nextMonth').addEventListener('click', function () {
    function submitUnavailableForm(event) {
     event.preventDefault();
 
-    const form = event.target;
+    const form = event.target?.closest?.('form') || document.getElementById('unavailableForm');
 
     const tanggal = document.getElementById('tanggal_mulai')?.value;
     const jamMulai = document.getElementById('jam_mulai')?.value;
     const jamSelesai = document.getElementById('jam_selesai')?.value;
     const alasan = document.getElementById('alasan')?.value.trim();
+    const tanggalSelesai = document.getElementById('tanggal_selesai');
 
-    if (!tanggal || !jamMulai || !jamSelesai || !alasan) {
+    if (tanggalSelesai) {
+        // Backend tetap menerima tanggal_selesai walau UI hanya memakai satu kolom tanggal.
+        tanggalSelesai.value = tanggal || '';
+    }
+
+    if (!form || !tanggal || !jamMulai || !jamSelesai || !alasan) {
         showKetidaktersediaanWarning(
             'Data Belum Lengkap',
             'Tanggal, jam mulai, jam selesai, dan alasan wajib diisi.'
@@ -1202,6 +1462,7 @@ document.getElementById('nextMonth').addEventListener('click', function () {
         }
     }).then((result) => {
         if (result.isConfirmed) {
+            // Submit native sengaja dipakai setelah konfirmasi agar handler onsubmit tidak berulang.
             form.submit();
         }
     });
@@ -1227,11 +1488,11 @@ function editUnavailable(data) {
     }
 
     if (jamMulaiInput) {
-        jamMulaiInput.value = data.jam_mulai ?? '';
+        setTimePickerValue('jam_mulai', data.jam_mulai ?? '');
     }
 
     if (jamSelesaiInput) {
-        jamSelesaiInput.value = data.jam_selesai ?? '';
+        setTimePickerValue('jam_selesai', data.jam_selesai ?? '');
     }
 
     if (alasanInput) {

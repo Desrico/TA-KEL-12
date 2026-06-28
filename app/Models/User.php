@@ -79,25 +79,12 @@ class User extends Authenticatable
 
     public function getAnonimAnimal(): array
     {
-        $animals = [
-            ['name' => 'Kelelawar', 'emoji' => '🦇'],
-            ['name' => 'Kucing', 'emoji' => '🐱'],
-            ['name' => 'Kelinci', 'emoji' => '🐰'],
-            ['name' => 'Rubah', 'emoji' => '🦊'],
-            ['name' => 'Panda', 'emoji' => '🐼'],
-            ['name' => 'Koala', 'emoji' => '🐨'],
-            ['name' => 'Beruang', 'emoji' => '🐻'],
-            ['name' => 'Harimau', 'emoji' => '🐯'],
-            ['name' => 'Singa', 'emoji' => '🦁'],
-            ['name' => 'Burung Hantu', 'emoji' => '🦉'],
-            ['name' => 'Kura-kura', 'emoji' => '🐢'],
-            ['name' => 'Paus', 'emoji' => '🐳'],
+        $alias = AnonymousIdentitySupport::buildUserAlias($this);
+
+        return [
+            'name' => $alias,
+            'initials' => AnonymousIdentitySupport::initialsForAlias($alias),
         ];
-
-        $seed = (string) ($this->id ?? $this->username_cis ?? $this->email ?? $this->nama ?? 'anon');
-        $index = abs(crc32($seed)) % count($animals);
-
-        return $animals[$index];
     }
 
     public function getAnonimDisplayName(): string
@@ -110,18 +97,17 @@ class User extends Authenticatable
     public function getAnonimAvatarSvg(): string
     {
         $animal = $this->getAnonimAnimal();
-        $emoji = $animal['emoji'];
+        $initials = $animal['initials'] ?? AnonymousIdentitySupport::initialsForAlias($animal['name'] ?? 'Anonim');
 
         $svg = <<<SVG
 <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
     <rect width="160" height="160" rx="80" fill="#D1FAE5"/>
     <circle cx="80" cy="80" r="58" fill="#ECFDF5"/>
-    <text x="80" y="100" text-anchor="middle" font-size="68" font-family="Arial, sans-serif">{$emoji}</text>
+    <text x="80" y="95" text-anchor="middle" font-size="42" font-weight="700" font-family="Arial, sans-serif" fill="#065F46">{$initials}</text>
 </svg>
 SVG;
 
         return 'data:image/svg+xml;base64,' . base64_encode($svg);
-        return AnonymousIdentitySupport::buildUserAlias($this);
     }
 
     public function getNamaDisplay(): string

@@ -104,6 +104,13 @@ class SesiKonselingController extends Controller
             ->where('konselor_id', $konselor->id)
             ->findOrFail($id);
 
+        $jadwal->syncExpiredSessionStatus();
+
+        if ($jadwal->sesiKonseling?->status === 'berlangsung' && ($jadwal->status ?? '') !== 'berlangsung') {
+            // Detail riwayat harus mengikuti status sesi aktif dari ruang chat.
+            $jadwal->forceFill(['status' => 'berlangsung'])->save();
+        }
+
         $identitasMahasiswa = $this->getIdentitasMahasiswaTampil($jadwal);
 
         return view('admin.detail_riwayat', compact('jadwal', 'identitasMahasiswa'));
@@ -157,7 +164,7 @@ class SesiKonselingController extends Controller
             ->with('success', 'Penjadwalan berhasil ditolak.');
     }
     
-    public function selesai($id)
+    public function selesai(\Illuminate\Http\Request $request, $id)
     {
         $jadwal = JadwalKonseling::with('sesiKonseling')->findOrFail($id);
 
@@ -179,6 +186,12 @@ class SesiKonselingController extends Controller
             return redirect()
                 ->route('admin.riwayat')
                 ->with('success', 'Sesi offline berhasil ditandai selesai.');
+        }
+
+        if ($request->query('from') === 'chat') {
+            return redirect()
+                ->route('admin.chat', ['jadwal' => $jadwal->id])
+                ->with('success', 'Sesi konseling berhasil ditandai selesai.');
         }
 
         return redirect()

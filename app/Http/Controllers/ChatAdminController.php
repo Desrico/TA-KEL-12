@@ -99,6 +99,8 @@ class ChatAdminController extends Controller
                 'chats.pengirim.profil',
                 'chats.pengirim.mahasiswa',
             ]);
+
+            $selectedJadwal = $sesi->jadwalKonseling ?: $selectedJadwal->fresh();
         }
 
         $isBlockedBySchedule = ! $canStartNow;
@@ -137,7 +139,7 @@ class ChatAdminController extends Controller
             return 'Mahasiswa';
         }
 
-        $mahasiswaUser = optional(optional($jadwal->mahasiswa)->user);
+        $mahasiswaUser = optional($jadwal->mahasiswa)->user;
 
         $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
 
@@ -379,7 +381,7 @@ class ChatAdminController extends Controller
                 ->with([
                     'mahasiswa.user.profil',
                     'konselor.user.profil',
-                    'sesiKonseling',
+                    'sesiKonseling.latestChat',
                 ])
                 ->where('konselor_id', $konselorId)
                 ->whereRaw('LOWER(jenis) LIKE ?', ['%online%'])
@@ -409,21 +411,11 @@ class ChatAdminController extends Controller
             })
         );
 
-        $anonymousRooms = $schedules
-            ->filter(function (JadwalKonseling $jadwal) {
+        $anonymousRooms = $this->collapseSchedulesByStudent(
+            $schedules->filter(function (JadwalKonseling $jadwal) {
                 return filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
             })
-            ->map(function (JadwalKonseling $jadwal) {
-                $displayState = $this->getScheduleDisplayState($jadwal);
-
-                $jadwal->display_status_key = $displayState['key'];
-                $jadwal->display_status_label = $displayState['label'];
-                $jadwal->nama_tampil = $this->getStudentDisplayNameForSchedule($jadwal);
-                $jadwal->conversation_dates_label = null;
-
-                return $jadwal;
-            })
-            ->values();
+        );
 
         return $regularRooms
             ->merge($anonymousRooms)
@@ -450,7 +442,10 @@ class ChatAdminController extends Controller
     private function collapseSchedulesByStudent(Collection $schedules): Collection
     {
         return $schedules
-            ->groupBy('mahasiswa_id')
+            ->groupBy(function (JadwalKonseling $jadwal) {
+                // Satu mahasiswa hanya muncul sebagai satu room agar sidebar chat tidak redundan.
+                return $jadwal->mahasiswa_id ?: 'jadwal-' . $jadwal->id;
+            })
             ->map(function (Collection $group) {
                 $sorted = $group->sort(function (JadwalKonseling $left, JadwalKonseling $right) {
                     $leftRank = $this->schedulePriorityRank($left);
@@ -482,6 +477,17 @@ class ChatAdminController extends Controller
 
                 if (! $selected) {
                     return null;
+                }
+
+                $latestChat = $sorted
+                    ->map(fn (JadwalKonseling $item) => optional($item->sesiKonseling)->latestChat)
+                    ->filter()
+                    ->sortByDesc(fn (Chat $chat) => optional($chat->created_at)->getTimestamp() ?? 0)
+                    ->first();
+
+                if ($latestChat && $selected->sesiKonseling) {
+                    // Preview sidebar memakai chat paling baru dari semua jadwal yang digabung.
+                    $selected->sesiKonseling->setRelation('latestChat', $latestChat);
                 }
 
                 $historyLabels = $sorted
@@ -557,18 +563,16 @@ class ChatAdminController extends Controller
             if ($requested) {
                 $isAnonim = filter_var($requested->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
 
-                if ($isAnonim) {
-                    return $requested;
-                }
-
-                $regularRoom = $jadwalList->first(function (JadwalKonseling $jadwal) use ($requested) {
-                    return ! filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN)
+                $matchingRoom = $jadwalList->first(function (JadwalKonseling $jadwal) use ($requested, $isAnonim) {
+                    return filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN) === $isAnonim
                         && (int) $jadwal->mahasiswa_id === (int) $requested->mahasiswa_id;
                 });
 
-                if ($regularRoom) {
-                    return $regularRoom;
+                if ($matchingRoom) {
+                    return $matchingRoom;
                 }
+
+                return $isAnonim ? $requested : null;
             }
         }
 

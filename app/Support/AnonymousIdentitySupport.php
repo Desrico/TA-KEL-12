@@ -8,8 +8,15 @@ class AnonymousIdentitySupport
 {
     public static function namePool(): array
     {
-        return [
+        static $pool = null;
+
+        if ($pool !== null) {
+            return $pool;
+        }
+
+        $animals = [
             'Beruang',
+            'Kanguru',
             'Gajah',
             'Bangau',
             'Burung Gagak',
@@ -39,7 +46,65 @@ class AnonymousIdentitySupport
             'Bison',
             'Landak',
             'Rakun',
+            'Kucing',
+            'Anjing',
+            'Singa',
+            'Kuda',
+            'Zebra',
+            'Badak',
+            'Unta',
+            'Paus',
+            'Hiu',
+            'Gurita',
+            'Bintang Laut',
+            'Kepiting',
+            'Kuda Nil',
+            'Kelelawar',
+            'Musang',
+            'Trenggiling',
+            'Komodo',
+            'Iguana',
+            'Kakaktua',
+            'Pelikan',
+            'Flamingo',
+            'Rajawali',
+            'Macan Tutul',
         ];
+
+        $variants = [
+            '',
+            'Rimba',
+            'Laut',
+            'Gunung',
+            'Senja',
+            'Pagi',
+            'Hujan',
+            'Awan',
+            'Bulan',
+            'Bintang',
+            'Cerah',
+            'Teduh',
+            'Damai',
+            'Tenang',
+            'Lincah',
+            'Cermat',
+            'Tangguh',
+            'Bijak',
+            'Riang',
+            'Sahabat',
+        ];
+
+        $pool = [];
+
+        foreach ($animals as $animal) {
+            foreach ($variants as $variant) {
+                $pool[] = trim($animal . ' ' . $variant);
+            }
+        }
+
+        $pool = array_slice($pool, 0, 1000);
+
+        return $pool;
     }
 
     // Alias anonim dibuat deterministik agar identitas online konsisten untuk user yang sama.
@@ -62,13 +127,19 @@ class AnonymousIdentitySupport
         }
 
         $index = $hash % $poolCount;
-        $cycle = intdiv($hash, $poolCount);
         $alias = $pool[$index] ?? 'Mahasiswa Anonim';
 
-        if ($cycle > 0) {
-            $alias .= ' ' . (($cycle % 9) + 2);
-        }
-
         return $alias;
+    }
+
+    public static function initialsForAlias(string $alias): string
+    {
+        $parts = preg_split('/\s+/', trim($alias)) ?: [];
+
+        return collect($parts)
+            ->filter()
+            ->take(2)
+            ->map(fn (string $part) => strtoupper(substr($part, 0, 1)))
+            ->implode('') ?: 'A';
     }
 }

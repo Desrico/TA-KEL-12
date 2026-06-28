@@ -6,6 +6,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script>
+        // Set tab sebelum CSS diproses agar refresh tidak sempat menampilkan tab Data Mobile.
+        (() => {
+            const key = 'admin.dashboard.activeTab';
+            const hashTab = window.location.hash ? window.location.hash.replace('#', '') : '';
+            const storedTab = localStorage.getItem(key);
+            const activeTab = hashTab || storedTab || 'tab-mobile';
+
+            document.documentElement.dataset.dashboardTab = activeTab;
+        })();
+    </script>
     <style>
         :root {
             --bg-base:    #f8fafc;
@@ -187,6 +198,27 @@
         }
 
         .dashboard-tab-content.active {
+            display: block;
+        }
+
+        /* State awal tab mengikuti localStorage/hash sebelum JavaScript bawah halaman berjalan. */
+        html[data-dashboard-tab="tab-web"] .dashboard-tab-btn[data-tab="tab-mobile"] {
+            background: transparent;
+            color: var(--text-2);
+            box-shadow: none;
+        }
+
+        html[data-dashboard-tab="tab-web"] .dashboard-tab-btn[data-tab="tab-web"] {
+            background: var(--accent);
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
+        }
+
+        html[data-dashboard-tab="tab-web"] #tab-mobile {
+            display: none;
+        }
+
+        html[data-dashboard-tab="tab-web"] #tab-web {
             display: block;
         }
 
@@ -713,7 +745,241 @@
             transition: all 0.2s ease;
         }
 
-        /* today list placeholder removed from CSS */
+        .today-section-card {
+            background: #ffffff;
+            border: 1px solid #e5ece8;
+            border-radius: 14px;
+            padding: 18px 20px 22px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        .today-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .today-section-header h5 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 16px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .today-date-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #334155;
+            font-size: .82rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .today-date-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .today-nav-btn {
+            width: 34px;
+            height: 34px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #64748b;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 3px 8px rgba(15, 23, 42, .04);
+        }
+
+        .today-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .today-row {
+            display: grid;
+            grid-template-columns: 72px 56px minmax(0, 1fr) 120px auto;
+            align-items: center;
+            gap: 14px;
+            min-height: 88px;
+            padding: 14px 16px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 11px;
+            border-left: 3px solid transparent;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        .today-row:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+        }
+
+        .today-row.is-active {
+            border-left-color: #10b981;
+        }
+
+        .today-row.is-cancelled {
+            border-left-color: #bae6fd;
+        }
+
+        .today-time {
+            color: #047857;
+            font-size: 1.18rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .today-time span {
+            display: block;
+            margin-top: 8px;
+            color: #334155;
+            font-size: .76rem;
+            font-weight: 800;
+        }
+
+        .today-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #eff6ff;
+            color: #0f172a;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        .today-main {
+            min-width: 0;
+        }
+
+        .today-name {
+            color: #1f2937;
+            font-size: .95rem;
+            font-weight: 800;
+            overflow-wrap: anywhere;
+        }
+
+        .today-meta {
+            color: #334155;
+            font-size: .8rem;
+            margin-top: 3px;
+        }
+
+        .today-mode {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #475569;
+            font-size: .78rem;
+            margin-top: 4px;
+        }
+
+        .today-status {
+            justify-self: start;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 86px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: .78rem;
+            font-weight: 800;
+        }
+
+        .today-status.status-menunggu {
+            background: #fff7c2;
+            color: #a16207;
+        }
+
+        .today-status.status-diterima,
+        .today-status.status-disetujui {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .today-status.status-berlangsung {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .today-status.status-selesai {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .today-status.status-ditolak,
+        .today-status.status-dibatalkan {
+            background: #ffe4e6;
+            color: #be123c;
+        }
+
+        .today-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .today-action {
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            color: #064e3b;
+            border-radius: 8px;
+            padding: .62rem .9rem;
+            font-size: .78rem;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            white-space: nowrap;
+            min-width: 88px;
+            box-shadow: 0 5px 14px rgba(15, 23, 42, .06);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+        .today-action:hover {
+            color: #064e3b;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+        }
+
+        .today-action.primary {
+            border-color: #065f46;
+            background: #065f46;
+            color: #ffffff;
+        }
+
+        .today-action.primary:hover {
+            color: #ffffff;
+        }
+
+        .today-empty {
+            padding: 18px;
+            color: #64748b;
+            text-align: center;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            background: #f8fafc;
+            font-size: .86rem;
+        }
+
         .today-card h3 {
             font-size: 32px;
             color: #0d6efd;
@@ -772,6 +1038,19 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
+            .today-row {
+                grid-template-columns: 64px 52px minmax(0, 1fr);
+            }
+
+            .today-status,
+            .today-actions {
+                grid-column: 3 / -1;
+            }
+
+            .today-actions {
+                justify-content: flex-start;
+            }
+
             .konseling-chart-card {
                 min-height: 280px;
                 padding: 16px;
@@ -788,8 +1067,27 @@
                 gap: 8px;
             }
 
-            .today-stat-grid {
-                grid-template-columns: 1fr;
+            .today-row {
+                grid-template-columns: 56px minmax(0, 1fr);
+                gap: 10px 12px;
+            }
+
+            .today-avatar {
+                grid-row: 1 / span 2;
+            }
+
+            .today-time,
+            .today-status,
+            .today-actions {
+                grid-column: 1 / -1;
+            }
+
+            .today-actions {
+                width: 100%;
+            }
+
+            .today-action {
+                flex: 1 1 130px;
             }
 
             .konseling-stat-card {
@@ -1144,7 +1442,7 @@
 
         <!-- Total Statistik Konseling - Paling Atas -->
         <div class="today-section-header">
-            <h5>📊 Total Statistik Konseling</h5>
+            <h5><i class="ti ti-chart-bar"></i> Total Statistik Konseling</h5>
         </div>
 
         <div class="konseling-stat-grid">
@@ -1181,33 +1479,95 @@
             </div>
         </div>
 
-        <!-- Daftar Penjadwalan Hari Ini - Di Tengah Atas Grafik -->
-        <div class="today-list" style="margin-bottom:24px;">
-            @if(isset($todayJadwals) && $todayJadwals->count())
-                @foreach($todayJadwals as $jadwal)
-                @php
-                    $namaMahasiswa = optional(optional($jadwal->mahasiswa)->user)->nama
-                        ?? optional($jadwal->mahasiswa)->nama
-                        ?? 'Mahasiswa';
-                @endphp
-                <div class="today-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:#fff; border:1px solid #e9ecef; border-radius:8px; margin-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:12px; min-width:120px;">
-                        <div class="avatar-circle" style="width:44px;height:44px;border-radius:50%;background:#e9f7ff;color:#0d6efd;display:flex;align-items:center;justify-content:center;font-weight:700;">
-                            {{ $loop->iteration }}
+        <div class="today-section-card">
+            <div class="today-section-header">
+                <h5><i class="ti ti-calendar-event"></i> Penjadwalan Hari Ini</h5>
+                <div class="today-date-nav" aria-label="Tanggal penjadwalan hari ini">
+                    <span class="today-date-label">
+                        <i class="ti ti-calendar-event"></i>
+                        {{ \Carbon\Carbon::today(\App\Models\JadwalKonseling::sessionTimezone())->translatedFormat('j F Y') }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="today-list">
+                @forelse(($todayJadwals ?? collect()) as $jadwal)
+                    @php
+                        $isAnonimJadwal = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+                        $jadwalUser = optional(optional($jadwal->mahasiswa)->user);
+                        $namaMahasiswa = $isAnonimJadwal
+                            ? (
+                                $jadwalUser && method_exists($jadwalUser, 'getAnonimDisplayName')
+                                    ? trim($jadwalUser->getAnonimDisplayName())
+                                    : 'Anonim'
+                            )
+                            : ($jadwalUser->nama ?? optional($jadwal->mahasiswa)->nama ?? 'Mahasiswa');
+                        // Label status sudah dinormalisasi di controller agar sama dengan Riwayat Konseling.
+                        $statusJadwalHariIni = $jadwal->dashboard_status_label ?? ucfirst($jadwal->status ?? '-');
+                        $statusKeyHariIni = strtolower(str_replace(' ', '_', (string) ($jadwal->status ?? 'menunggu')));
+                        $rowStateClass = in_array($statusKeyHariIni, ['ditolak', 'dibatalkan'], true)
+                            ? 'is-cancelled'
+                            : (in_array($statusKeyHariIni, ['disetujui', 'diterima', 'berlangsung'], true) ? 'is-active' : '');
+                        $namaUntukInisial = preg_replace('/[^A-Za-z0-9 ]/', '', $namaMahasiswa ?: 'Mahasiswa');
+                        $namaParts = preg_split('/\s+/', trim($namaUntukInisial));
+                        $inisialMahasiswa = collect($namaParts)
+                            ->filter()
+                            ->take(2)
+                            ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
+                            ->implode('') ?: 'M';
+                        $jenisLayananHariIni = strtolower((string) ($jadwal->jenis ?? 'online'));
+                        $isOnlineHariIni = str_contains($jenisLayananHariIni, 'online');
+                        $canOpenSessionToday = $isOnlineHariIni
+                            && in_array($statusKeyHariIni, ['disetujui', 'diterima', 'berlangsung'], true);
+                        $jamHariIni = $jadwal->waktu
+                            ? \Carbon\Carbon::parse($jadwal->waktu)->format('H:i')
+                            : '--:--';
+                    @endphp
+                    <div class="today-row {{ $rowStateClass }}">
+                        <div class="today-time">
+                            {{ $jamHariIni }}
+                            <span>WIB</span>
+                        </div>
+                        <div class="today-avatar">{{ $inisialMahasiswa }}</div>
+                        <div class="today-main">
+                            <div class="today-name">{{ $namaMahasiswa ?: 'Mahasiswa' }}</div>
+                            <div class="today-meta">
+                                {{ optional($jadwal->mahasiswa)->jurusan ?? 'Program studi belum diisi' }}
+                                &bull;
+                                {{ optional($jadwal->mahasiswa)->angkatan ?? '-' }}
+                            </div>
+                            <div class="today-mode">
+                                <i class="ti {{ $isOnlineHariIni ? 'ti-video' : 'ti-map-pin' }}"></i>
+                                {{ $isOnlineHariIni ? 'Online' : 'Offline' }}
+                            </div>
+                        </div>
+                        <span class="today-status status-{{ $statusKeyHariIni }}">
+                            {{ $statusJadwalHariIni }}
+                        </span>
+                        <div class="today-actions">
+                            @if($isOnlineHariIni)
+                                <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="today-action">
+                                    <i class="ti ti-message-circle"></i>
+                                    Chat
+                                </a>
+                            @endif
+                            <a href="{{ route('admin.riwayat.detail', $jadwal->id) }}" class="today-action">
+                                <i class="ti ti-eye"></i>
+                                Lihat Detail
+                            </a>
+                            @if($canOpenSessionToday)
+                                {{-- Mulai sesi tetap diarahkan ke chat agar validasi waktu/status memakai fungsi yang sudah ada. --}}
+                                <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="today-action primary">
+                                    <i class="ti ti-player-play"></i>
+                                    Mulai Sesi
+                                </a>
+                            @endif
                         </div>
                     </div>
-                    <div style="flex:1; text-align:center;">
-                        <div style="font-weight:700;color:#1f2937;font-size:15px;">{{ $namaMahasiswa }}</div>
-                        <div style="font-size:12px;color:#6c757d;">{{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('j F Y') }} · {{ \Carbon\Carbon::parse($jadwal->waktu)->format('H:i') }} WIB</div>
-                    </div>
-                    <div style="min-width:120px; display:flex; justify-content:flex-end;">
-                        <a href="{{ route('admin.riwayat')}}" style="background:#065F46;color:#fff;border:none;border-radius:10px;padding:.5rem 1rem;font-size:.78rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-width:66px;">Lihat</a>
-                    </div>
-                </div>
-                @endforeach
-            @else
-                <div class="text-center" style="padding:18px; color:#6c757d;">Tidak ada penjadwalan hari ini.</div>
-            @endif
+                @empty
+                    <div class="today-empty">Tidak ada penjadwalan hari ini.</div>
+                @endforelse
+            </div>
         </div>
 
         <!-- Charts - Di Bawah -->
@@ -1808,8 +2168,9 @@
 
     let konselingChartInstance = null;
     let topikChartInstance = null;
+    const dashboardTabStorageKey = 'admin.dashboard.activeTab';
 
-    function activateDashboardTab(button, event) {
+    function activateDashboardTab(button, event, persist = true) {
         if (event) {
             event.preventDefault();
         }
@@ -1827,6 +2188,14 @@
             target.classList.add('active');
         }
 
+        // Sinkronkan atribut root agar CSS awal dan state setelah klik selalu sama.
+        document.documentElement.dataset.dashboardTab = button.dataset.tab;
+
+        if (persist) {
+            localStorage.setItem(dashboardTabStorageKey, button.dataset.tab);
+            history.replaceState(null, '', `#${button.dataset.tab}`);
+        }
+
        if (button.dataset.tab === 'tab-web') {
             setTimeout(() => {
                 loadKonselingStatistics();
@@ -1836,16 +2205,23 @@
 
     function initDashboardTabs() {
         const buttons = document.querySelectorAll('.dashboard-tab-btn');
-        const contents = document.querySelectorAll('.dashboard-tab-content');
-
-        console.log('initDashboardTabs called, buttons found:', buttons.length, 'contents found:', contents.length);
 
         buttons.forEach(button => {
             button.addEventListener('click', () => {
-                console.log('Tab clicked:', button.dataset.tab);
                 activateDashboardTab(button);
             });
         });
+
+        const hashTab = window.location.hash ? window.location.hash.replace('#', '') : '';
+        const storedTab = localStorage.getItem(dashboardTabStorageKey);
+        const initialTab = hashTab || storedTab;
+        const initialButton = initialTab
+            ? document.querySelector(`.dashboard-tab-btn[data-tab="${initialTab}"]`)
+            : null;
+
+        if (initialButton) {
+            activateDashboardTab(initialButton, null, false);
+        }
     }
 
     function renderKonselingChart() {

@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Laporan Hasil Konseling')
+@section('page-hero')
+{{-- Header H1 layout disembunyikan; search laporan menjadi elemen utama setelah breadcrumb. --}}
+<div hidden></div>
+@endsection
 
 @push('styles')
 <style>
@@ -10,31 +14,18 @@
         border-radius: 18px;
         box-shadow: 0 8px 22px rgba(6, 78, 59, 0.08);
         max-width: 1100px;
-        margin: 0 auto;
+        margin: .75rem auto 0;
         overflow: hidden;
         width: calc(100% - 48px);
     }
 
     .laporan-head {
-        padding: 24px 28px 18px;
-        border-bottom: 1px solid #edf2ef;
+        padding: 20px 28px 16px;
         display: flex;
         gap: 18px;
-        justify-content: space-between;
+        justify-content: flex-start;
         align-items: flex-start;
-    }
-
-    .laporan-head h5 {
-        margin: 0 0 6px;
-        font-weight: 800;
-        color: #064e3b;
-        font-size: 1.2rem;
-    }
-
-    .laporan-head p {
-        margin: 0;
-        color: #64748b;
-        font-size: .88rem;
+        flex-wrap: wrap;
     }
 
     .laporan-search {
@@ -177,11 +168,6 @@
 @section('konten')
 <div class="laporan-card">
     <div class="laporan-head">
-        <div>
-            <h5>Laporan Hasil Konseling</h5>
-            <p>Daftar mahasiswa yang memiliki laporan sesi konseling.</p>
-        </div>
-
         <form class="laporan-search" method="GET" action="{{ route('admin.laporan') }}">
             <input type="search" name="q" value="{{ $q ?? request('q') }}" placeholder="Cari nama, NIM, prodi, angkatan">
             <button type="submit" class="btn-laporan">Cari</button>

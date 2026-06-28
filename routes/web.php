@@ -74,6 +74,12 @@ Route::post('/notifikasi/{notifikasi}/baca', function (\App\Models\Notifikasi $n
     ]);
 })->middleware('auth')->name('notifikasi.baca');
 
+Route::middleware('auth')->group(function () {
+    Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
+    Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
+    Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
+});
+
 
 // ═══════════════════════════════
 // MAHASISWA
@@ -88,10 +94,6 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
 
     return view('Pages.beranda', compact('feedbacks'));
 })->name('dashboard');
-    Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
-    Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
-    Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
-
     Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
     Route::post('/riwayat/{id}/batalkan', [LaporanController::class, 'batalkanPenjadwalan'])
         ->name('riwayat.batalkan');

@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Riwayat Konseling')
+@section('page-hero')
+{{-- Header H1 layout disembunyikan agar breadcrumb langsung mengarah ke kartu riwayat. --}}
+<div hidden></div>
+@endsection
 
 @push('styles')
 <style>
@@ -11,35 +15,16 @@
         box-shadow: 0 6px 20px rgba(0,0,0,.04);
         overflow: hidden;
         max-width: 1100px;
-        margin: 0 auto;
+        margin: .75rem auto 0;
         width: calc(100% - 48px);
-    }
-
-    .sesi-head {
-        padding: 1.5rem 1.7rem 1rem;
-        border-bottom: 1px solid #edf2ef;
-    }
-
-    .sesi-head h6 {
-        margin: 0 0 .3rem 0;
-        font-weight: 700;
-        color: var(--admin-primary);
-        font-size: 1.25rem;
-        letter-spacing: -0.3px;
-    }
-
-    .sesi-head p {
-        margin: 0;
-        color: var(--admin-text-light);
-        font-size: .85rem;
     }
 
     .sesi-toolbar {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start;
         align-items: center;
         gap: 1rem;
-        padding: 1.2rem 1.5rem 1.2rem;
+        padding: 1.2rem 1.5rem 1rem;
         flex-wrap: wrap;
         border-bottom: none;
     }
@@ -62,6 +47,7 @@
         padding: .7rem 1rem .7rem 2.5rem;
         font-size: .86rem;
         outline: none;
+        transition: border-color .2s ease, box-shadow .2s ease;
     }
 
     .sesi-search i {
@@ -71,6 +57,44 @@
         transform: translateY(-50%);
         color: #9aa8b5;
         font-size: 1rem;
+    }
+
+    .sesi-search-loading {
+        position: absolute;
+        right: .8rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .2s ease, visibility .2s ease;
+    }
+
+    .sesi-search.is-loading .sesi-search-loading {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .sesi-search.is-loading input {
+        border-color: #8fd1b0;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, .08);
+    }
+
+    .sesi-search-spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid #dceee4;
+        border-top-color: #065F46;
+        border-radius: 50%;
+        animation: sesi-search-spin .8s linear infinite;
+    }
+
+    @keyframes sesi-search-spin {
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     .sesi-filter-btn {
@@ -218,6 +242,16 @@
         color: #d93030;
     }
 
+    .status-reschedule {
+        background: #fff0d6;
+        color: #b45309;
+    }
+
+    .status-follow-up {
+        background: #FFFBB8;
+        color: #B8A84A;
+    }
+
     .btn-lihat {
         background: #065F46;
         color: #fff;
@@ -354,16 +388,9 @@
     $search = request('search', '');
 @endphp
 <div class="sesi-card">
-    <div class="sesi-head">
-        <h6>Daftar Riwayat Konseling</h6>
-            <p>Kelola dan lihat detail riwayat konseling mahasiswa yang telah dijadwalkan</p>
-    </div>
-
     <div class="sesi-toolbar">
-        <div></div>
-
         <form class="sesi-search-wrap" id="sesiSearchForm" method="GET" action="{{ route('admin.riwayat') }}">
-            <div class="sesi-search">
+            <div class="sesi-search" id="sesiSearchWrapper">
                 <i class="ti ti-search"></i>
                 <input
                     id="sesiSearchInput"
@@ -373,6 +400,9 @@
                     placeholder="Cari mahasiswa..."
                     autocomplete="off"
                 >
+                <span class="sesi-search-loading" aria-hidden="true">
+                    <span class="sesi-search-spinner"></span>
+                </span>
             </div>
             <button type="submit" class="sesi-filter-btn">Cari</button>
             @if($search !== '')
@@ -429,23 +459,30 @@
                         $layanan = 'Sesi ' . ucfirst($item->jenis ?? 'Online');
 
                         $statusRaw = strtolower($item->status ?? 'menunggu');
+                        $tindakLanjutRaw = strtolower(str_replace('_', ' ', (string) ($item->tindak_lanjut_tipe ?? $item->tindak_lanjut ?? '')));
+                        $isPerluSesiLanjutan = $statusRaw === 'selesai'
+                            && in_array($tindakLanjutRaw, ['perlu lanjut', 'perlu sesi lanjutan', 'perlu_sesi_lanjutan'], true);
 
-                        $statusLabel = match ($statusRaw) {
+                        $statusLabel = $isPerluSesiLanjutan ? 'Perlu Sesi Lanjutan' : match ($statusRaw) {
                             'menunggu' => 'Menunggu Konfirmasi',
                             'disetujui', 'diterima' => 'Diterima',
                             'berlangsung' => 'Sedang Berlangsung',
                             'selesai' => 'Selesai',
                             'ditolak' => 'Dibatalkan',
                             'dibatalkan' => 'Dibatalkan',
-                            default => ucfirst($statusRaw),
+                            'perlu_penjadwalan_ulang' => 'Perlu Penjadwalan Ulang',
+                            'perlu_sesi_lanjutan' => 'Perlu Sesi Lanjutan',
+                            default => ucwords(str_replace('_', ' ', $statusRaw)),
                         };
 
-                        $statusClass = match ($statusRaw) {
+                        $statusClass = $isPerluSesiLanjutan ? 'status-follow-up' : match ($statusRaw) {
                             'menunggu' => 'status-menunggu',
                             'disetujui', 'diterima' => 'status-diterima',
                             'berlangsung' => 'status-berlangsung',
                             'selesai' => 'status-selesai',
                             'ditolak', 'dibatalkan' => 'status-dibatalkan',
+                            'perlu_penjadwalan_ulang' => 'status-reschedule',
+                            'perlu_sesi_lanjutan' => 'status-follow-up',
                             default => 'status-menunggu',
                         };
 
@@ -525,6 +562,7 @@
 (function () {
     const form = document.getElementById('sesiSearchForm');
     const input = document.getElementById('sesiSearchInput');
+    const wrapper = document.getElementById('sesiSearchWrapper');
 
     if (!form || !input) {
         return;
@@ -532,8 +570,25 @@
 
     let debounceTimer = null;
 
+    const setLoadingState = (isLoading) => {
+        wrapper?.classList.toggle('is-loading', isLoading);
+    };
+
+    form.addEventListener('submit', () => {
+        setLoadingState(true);
+    });
+
     input.addEventListener('input', () => {
         window.clearTimeout(debounceTimer);
+
+        const value = input.value.trim();
+
+        if (!value) {
+            setLoadingState(false);
+            return;
+        }
+
+        setLoadingState(true);
 
         debounceTimer = window.setTimeout(() => {
             form.submit();

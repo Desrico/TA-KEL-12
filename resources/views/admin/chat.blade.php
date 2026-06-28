@@ -13,13 +13,8 @@
                 : 'Anonim'
           )
         : ($studentUser->nama ?? 'Mahasiswa');
-    $topik = null;
     $isBlockedBySchedule = $isBlockedBySchedule ?? false;
     $chatAccessGranted = $chatAccessGranted ?? false;
-
-    if (!empty($jadwal?->catatan) && preg_match('/Topik:\s*([^|]+)/i', $jadwal->catatan, $match)) {
-        $topik = trim($match[1]);
-    }
 
     $statusJadwal = strtolower(str_replace(' ', '_', $jadwal?->status ?? ''));
     $statusSesi = strtolower(str_replace(' ', '_', optional($activeSession)->status ?? ''));
@@ -28,18 +23,49 @@
 @endphp
 
 @section('page-title', 'Chat Konseling')
+@section('page-hero')
+{{-- Chat memakai breadcrumb saja; page title disembunyikan agar shell chat punya ruang penuh. --}}
+<div style="display:none !important;"></div>
+@endsection
 
 @push('styles')
 <style>
+  /* Shell chat dikunci ke viewport admin supaya scroll luar tidak muncul. */
+  .pc-content {
+    padding: .75rem !important;
+    height: calc(100vh - 70px);
+    overflow: hidden;
+  }
+
+  .admin-page-inner {
+    max-width: none !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .page-header {
+    display: none !important;
+  }
+
+  .admin-breadcrumb {
+    flex-shrink: 0;
+    margin: 0 0 .5rem !important;
+    padding: 0 !important;
+  }
+
   .admin-chat-page {
     display: grid;
-    grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-columns: 330px minmax(0, 1fr);
     gap: 0;
-    height: calc(100vh - 60px);
+    width: 100%;
+    flex: 1;
+    height: auto;
     min-height: 0;
     background: #fff;
     border: 1px solid #dceee4;
-    border-radius: 28px;
+    border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 18px 44px rgba(6, 78, 59, .08);
   }
@@ -64,7 +90,7 @@
   }
 
   .admin-chat-list-head {
-    padding: 1rem 1rem .85rem;
+    padding: .85rem .85rem .75rem;
     border-bottom: 1px solid #edf7f1;
     background: rgba(255, 255, 255, .92);
     flex-shrink: 0;
@@ -94,8 +120,8 @@
     align-items: center;
     justify-content: center;
     gap: .18rem;
-    min-height: 52px;
-    padding: .48rem .52rem .42rem;
+    min-height: 44px;
+    padding: .4rem .48rem .36rem;
     border-radius: 10px;
     text-decoration: none;
     font-size: .73rem;
@@ -109,15 +135,15 @@
   }
 
   .admin-chat-avatar-fallback {
-    width: 56px;
-    height: 56px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #b7ebc9;
     color: #065f46;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 15px;
     font-weight: 800;
     border: 3px solid #ffffff;
     box-shadow: 0 10px 25px rgba(6, 95, 70, .12);
@@ -145,16 +171,16 @@
 }
 
 .admin-message-avatar-fallback {
-    width: 30px;
-    height: 30px;
-    min-width: 30px;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
     border-radius: 50%;
     background: #b7ebc9;
     color: #065f46;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 800;
     flex-shrink: 0;
     box-shadow: 0 5px 12px rgba(15, 23, 42, 0.08);
@@ -195,7 +221,7 @@
   }
 
   .admin-chat-search {
-    margin-top: .85rem;
+    margin-top: .65rem;
     position: relative;
   }
 
@@ -213,8 +239,8 @@
     width: 100%;
     border: 1px solid #dbece3;
     border-radius: 16px;
-    padding: .78rem 1rem .78rem 2.65rem;
-    font-size: .9rem;
+    padding: .62rem .85rem .62rem 2.35rem;
+    font-size: .84rem;
     color: #0f172a;
     background: #fff;
     outline: none;
@@ -236,8 +262,8 @@
   .admin-chat-filter-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: .55rem;
-    margin-top: .8rem;
+    gap: .45rem;
+    margin-top: .65rem;
   }
 
   .admin-chat-filter-btn {
@@ -245,8 +271,8 @@
     background: #ffffff;
     color: #334155;
     border-radius: 999px;
-    padding: .55rem .9rem;
-    font-size: .8rem;
+    padding: .46rem .72rem;
+    font-size: .76rem;
     font-weight: 800;
     cursor: pointer;
     transition: all .18s ease;
@@ -265,7 +291,7 @@
 
   .admin-chat-session {
     display: block;
-    padding: .95rem 1rem;
+    padding: .78rem .85rem;
     border-top: 1px solid #f4f8f6;
     text-decoration: none;
     transition: background .18s ease, transform .18s ease;
@@ -290,12 +316,12 @@
   .admin-chat-session-name {
     font-weight: 800;
     color: #0f172a;
-    font-size: .92rem;
+    font-size: .86rem;
   }
 
   .admin-chat-session-meta {
     color: #64748b;
-    font-size: .78rem;
+    font-size: .74rem;
     line-height: 1.55;
   }
 
@@ -380,8 +406,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1.15rem 1.3rem;
+    gap: .7rem;
+    padding: .68rem .9rem;
     border-bottom: 1px solid #edf7f1;
     background: rgba(255,255,255,.88);
     backdrop-filter: blur(10px);
@@ -393,14 +419,14 @@
   .admin-chat-person {
     display: flex;
     align-items: center;
-    gap: .95rem;
+    gap: .65rem;
     min-width: 0;
   }
 
   .admin-chat-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
     overflow: hidden;
     background: #dff3e8;
     flex-shrink: 0;
@@ -415,7 +441,7 @@
   }
 
   .admin-chat-title {
-    font-size: 1.1rem;
+    font-size: .94rem;
     font-weight: 800;
     color: #0f172a;
     margin-bottom: .14rem;
@@ -424,19 +450,19 @@
   .admin-chat-subtitle {
     margin: 0;
     color: #64748b;
-    font-size: .84rem;
-    line-height: 1.5;
+    font-size: .72rem;
+    line-height: 1.38;
   }
 
   .admin-chat-badge {
     display: inline-flex;
     align-items: center;
     gap: .45rem;
-    padding: .65rem .95rem;
+    padding: .5rem .75rem;
     border-radius: 999px;
     background: #e8fff1;
     color: #047857;
-    font-size: .78rem;
+    font-size: .74rem;
     font-weight: 800;
   }
 
@@ -452,7 +478,7 @@
   .admin-chat-head-actions {
     display: flex;
     align-items: center;
-    gap: .75rem;
+    gap: .6rem;
     flex-wrap: wrap;
     justify-content: flex-end;
   }
@@ -461,7 +487,7 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 1.35rem 1.35rem 0;
+    padding: .8rem .9rem 0;
     isolation: isolate;
     background:
       radial-gradient(circle at center, rgba(209, 250, 229, 0.28), transparent 42%),
@@ -485,7 +511,7 @@
   .admin-message-row {
     display: flex;
     gap: .35rem;
-    margin-bottom: .85rem;
+    margin-bottom: .62rem;
     align-items: flex-end;
 }
   .admin-message-row.mine {
@@ -527,7 +553,7 @@
   }
 
   .admin-message-content {
-    max-width: min(72%, 420px);
+    max-width: min(68%, 390px);
     width: fit-content;
     position: relative;
 }
@@ -538,7 +564,7 @@
     gap: .5rem;
     margin: 0 .3rem .3rem;
     color: #64748b;
-    font-size: .75rem;
+    font-size: .68rem;
   }
 
   .admin-message-name {
@@ -550,10 +576,10 @@
     display: inline-block;
     width: fit-content;
     max-width: 100%;
-    padding: .65rem .95rem;
-    border-radius: 18px;
-    font-size: .88rem;
-    line-height: 1.45;
+    padding: .5rem .75rem;
+    border-radius: 14px;
+    font-size: .82rem;
+    line-height: 1.38;
     word-break: break-word;
     white-space: pre-wrap;
 }
@@ -721,7 +747,7 @@
   }
 
   .admin-chat-compose {
-    padding: 1rem 1.2rem 1.2rem;
+    padding: .55rem .8rem .7rem;
     border-top: 1px solid #edf7f1;
     background: rgba(255,255,255,.95);
     flex-shrink: 0;
@@ -730,9 +756,9 @@
   .admin-chat-form {
     display: flex;
     align-items: flex-end;
-    gap: .8rem;
-    padding: .75rem;
-    border-radius: 24px;
+    gap: .5rem;
+    padding: .42rem;
+    border-radius: 16px;
     border: 1px solid #d8eee2;
     background: linear-gradient(180deg, #ffffff, #f8fffb);
   }
@@ -743,11 +769,11 @@
     resize: none;
     outline: none;
     background: transparent;
-    min-height: 56px;
-    max-height: 160px;
-    font-size: .94rem;
+    min-height: 32px;
+    max-height: 96px;
+    font-size: .82rem;
     color: #0f172a;
-    padding: .6rem .3rem;
+    padding: .35rem .2rem;
   }
 
   .admin-chat-input:disabled {
@@ -756,13 +782,13 @@
   }
 
   .admin-chat-send {
-    width: 54px;
-    height: 54px;
+    width: 36px;
+    height: 36px;
     border: none;
-    border-radius: 18px;
+    border-radius: 12px;
     background: linear-gradient(135deg, #065f46, #10b981);
     color: #fff;
-    font-size: 1.28rem;
+    font-size: .92rem;
     box-shadow: 0 16px 28px rgba(6,95,70,.22);
   }
 
@@ -913,6 +939,14 @@
     background: #ecfdf5;
     color: #065F46;
     transform: translateY(-1px);
+}
+
+.admin-session-menu-item.disabled {
+    opacity: .48;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: #f8fafc;
+    color: #94a3b8;
 }
 
 .admin-session-menu-item .menu-icon {
@@ -1075,18 +1109,24 @@
  @media (max-width: 1199.98px) {
   .admin-chat-page {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(170px, 32%) minmax(0, 1fr);
     min-height: 0;
   }
 
   .admin-chat-list {
+    height: 100%;
     border-right: none;
     border-bottom: 1px solid #edf7f1;
   }
 }
 
 @media (max-width: 767.98px) {
+  .pc-content {
+    padding: .6rem !important;
+  }
+
   .admin-chat-page {
-    height: calc(100vh - 70px);
+    min-height: 0;
   }
 
   .admin-chat-card {
@@ -1177,31 +1217,16 @@
               !$isActiveAnonimItem
               && optional($activeJadwal)->mahasiswa_id === $item->mahasiswa_id
           );
-      $itemScheduledAt = $item->scheduledAt('Asia/Jakarta');
-      $itemRawStatus = strtolower(str_replace(' ', '_', $item->status ?? ''));
-      $itemIsFinished = $itemRawStatus === 'selesai';
 
-      $itemIsBlockedBySchedule = !$itemIsFinished && $itemScheduledAt
-          ? now('Asia/Jakarta')->lt($itemScheduledAt)
-          : false;
-
-      $itemStatusKey = $itemIsFinished
-          ? 'selesai'
-          : ($itemIsBlockedBySchedule ? 'terjadwal' : $itemRawStatus);
-
-      $itemStatusLabel = $itemIsFinished
-          ? 'Selesai'
-          : ($itemIsBlockedBySchedule ? 'Terjadwal' : ucfirst($item->status ?? '-'));
-
-      $itemTopik = $item->catatan && preg_match('/Topik:\s*([^|]+)/i', $item->catatan, $match)
-          ? trim($match[1])
-          : 'Topik belum tersedia';
+      $latestPersonalChat = optional($item->sesiKonseling)->latestChat;
+      // Sidebar personal hanya menampilkan ringkasan pesan terakhir agar list tetap ringkas.
+      $latestChatPreview = $latestPersonalChat && trim((string) $latestPersonalChat->pesan) !== ''
+          ? \Illuminate\Support\Str::limit($latestPersonalChat->pesan, 56)
+          : 'Belum ada pesan';
 
       $sessionSearchText = strtolower(trim(implode(' ', [
           $itemNamaTampil,
-          \Carbon\Carbon::parse($item->tanggal)->translatedFormat('j F Y'),
-          substr($item->waktu, 0, 5),
-          $itemTopik,
+          $latestChatPreview,
       ])));
   @endphp
      <a href="{{ route('admin.chat', ['jadwal' => $item->id]) }}"
@@ -1212,8 +1237,7 @@
           <div class="admin-chat-session-name">{{ $itemNamaTampil }}</div>
         </div>
         <div class="admin-chat-session-meta">
-          {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('j M Y') }} &bull; {{ substr($item->waktu, 0, 5) }} WIB<br>
-          {{ $itemTopik }}
+          {{ $latestChatPreview }}
         </div>
       </a>
     @empty
@@ -1262,6 +1286,10 @@
     ], true);
 
     $canSendChat = $chatAccessGranted && !$isBlockedBySchedule && !$chatSelesai;
+    // Selesaikan sesi hanya aktif saat chat benar-benar sedang berlangsung.
+    $canFinishSession = $chatAccessGranted
+        && !$chatSelesai
+        && ($statusJadwal === 'berlangsung' || $statusSesi === 'berlangsung');
 
     if ($chatSelesai) {
         $readonlyMessage = 'Sesi konseling sudah selesai. Riwayat chat tetap dapat dilihat, tetapi pesan baru tidak dapat dikirim.';
@@ -1281,11 +1309,8 @@
       </div>
 
       <div>
+        {{-- Header chat personal dibuat ringkas: avatar dan nama mahasiswa saja. --}}
         <div class="admin-chat-title">{{ $chatPayload['studentName'] }}</div>
-        <p class="admin-chat-subtitle">
-          {{ $topik ?: 'Konseling online aktif' }}<br>
-          {{ \Carbon\Carbon::parse($activeJadwal->tanggal)->translatedFormat('j F Y') }} &bull; {{ substr($activeJadwal->waktu, 0, 5) }} WIB
-        </p>
       </div>
     </div>
 
@@ -1298,13 +1323,18 @@
          <div class="admin-session-menu-dropdown" id="adminSessionMenuDropdown">
             <button 
                 type="button" 
-                class="admin-session-menu-item"
+                class="admin-session-menu-item {{ $canFinishSession ? '' : 'disabled' }}"
                 id="openFinishSessionModal"
+                aria-disabled="{{ $canFinishSession ? 'false' : 'true' }}"
+                {{ $canFinishSession ? '' : 'disabled' }}
             >
                 Selesaikan Sesi
             </button>
 
-            <a href="{{ route('admin.riwayat.detail', $activeSession->id) }}" class="admin-session-menu-item">
+            <a
+                href="{{ route('admin.riwayat.detail', ['id' => $activeJadwal->id, 'from' => 'chat']) }}"
+                class="admin-session-menu-item"
+            >
                 Lihat Detail Riwayat
             </a>
         </div>
@@ -1359,7 +1389,7 @@
                   Batal
               </button>
 
-              <form action="{{ route('admin.riwayat.selesai', $activeJadwal->id)}}" method="POST">
+              <form action="{{ route('admin.riwayat.selesai', ['id' => $activeJadwal->id, 'from' => 'chat']) }}" method="POST">
                   @csrf
                   <button type="submit" class="btn-finish-confirm">
                       Ya, Selesaikan

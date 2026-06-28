@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Laporan Hasil Konseling')
+@section('page-hero')
+{{-- Header H1 layout disembunyikan agar daftar/form laporan tidak memiliki judul dobel. --}}
+<div hidden></div>
+@endsection
 
 @push('styles')
 <style>
@@ -12,32 +16,8 @@
         box-shadow: 0 8px 22px rgba(6, 78, 59, 0.08);
         overflow: hidden;
         max-width: 1100px;
-        margin: 0 auto;
+        margin: .75rem auto 0;
         width: calc(100% - 48px);
-    }
-
-    .laporan-head {
-        padding: 1.5rem 1.7rem 1rem;
-        border-bottom: 1px solid #edf2ef;
-    }
-
-    .laporan-head h5 {
-        margin: 0 0 .3rem 0;
-        font-weight: 700;
-        color: var(--admin-primary);
-        font-size: 1.25rem;
-        line-height: 1.2;
-        letter-spacing: -0.3px;
-    }
-
-    .laporan-head h5 .accent {
-        color: var(--admin-primary);
-    }
-
-    .laporan-head p {
-        margin: 0;
-        color: var(--admin-text-light);
-        font-size: .85rem;
     }
 
     .laporan-table-wrap {
@@ -138,7 +118,7 @@
         grid-template-columns: 1fr 1.3fr;
         gap: 24px;
         max-width: 1200px;
-        margin: 0 auto;
+        margin: .75rem auto 0;
         width: calc(100% - 48px);
     }
 
@@ -352,13 +332,14 @@
 
     .date-picker-group {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 12px;
         margin-top: 12px;
         padding-left: 28px;
     }
 
-    .date-picker-group input[type="date"] {
+    .date-picker-group input[type="date"],
+    .date-picker-group textarea {
         flex: 1;
         padding: 10px 12px;
         border: 1px solid #dceee4;
@@ -369,12 +350,29 @@
         transition: border-color .2s, box-shadow .2s;
     }
 
-    .date-picker-group input[type="date"]:focus {
+    .date-picker-group textarea {
+        min-height: 92px;
+        resize: vertical;
+    }
+
+    .follow-up-description-group {
+        flex-direction: column;
+        align-items: stretch;
+        padding-left: 0;
+    }
+
+    .follow-up-description-group .date-picker-label {
+        white-space: normal;
+    }
+
+    .date-picker-group input[type="date"]:focus,
+    .date-picker-group textarea:focus {
         border-color: #059669;
         box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
     }
 
-    .date-picker-group input[type="date"]:disabled {
+    .date-picker-group input[type="date"]:disabled,
+    .date-picker-group textarea:disabled {
         background: #f5f5f5;
         cursor: not-allowed;
         opacity: 0.5;
@@ -396,6 +394,7 @@
         color: #0f172a;
         font-size: .86rem;
         font-weight: 600;
+        white-space: pre-wrap;
     }
 
     .btn-simpan {
@@ -603,11 +602,6 @@
 
 
     @media (max-width: 768px) {
-        .laporan-head {
-            flex-direction: column;
-            align-items: flex-start !important;
-        }
-
         .laporan-toolbar {
             width: 100%;
             margin-left: 0;
@@ -647,27 +641,18 @@
     $isReadOnly = !empty($jadwal) && ($sudahAdaLaporan ?? false);
     $riwayat = $riwayat ?? collect();
     // Normalisasi state tindak lanjut dari data lama dan baru.
+    $tindakLanjutRaw = trim((string) ($jadwal->tindak_lanjut ?? ''));
+    $tindakLanjutTipeRaw = trim((string) ($jadwal->tindak_lanjut_tipe ?? ''));
     $isPerluLanjut = isset($jadwal)
-        && in_array(strtolower(str_replace('_', ' ', (string) ($jadwal->tindak_lanjut_tipe ?? $jadwal->tindak_lanjut ?? ''))), ['perlu lanjut', 'perlu sesi lanjutan', 'on', '1', 'ya'], true);
-    // Format tanggal sesi lanjutan untuk tampilan read-only.
-    $tanggalLanjutLabel = isset($jadwal) && $jadwal->tanggal_lanjut
-        ? \Carbon\Carbon::parse($jadwal->tanggal_lanjut)->translatedFormat('d M Y')
-        : '-';
+        && in_array(strtolower(str_replace('_', ' ', $tindakLanjutTipeRaw ?: $tindakLanjutRaw)), ['perlu lanjut', 'perlu sesi lanjutan', 'on', '1', 'ya'], true);
+    $legacyTindakLanjutLabels = ['perlu sesi lanjutan', 'tidak perlu sesi lanjutan', 'perlu lanjut'];
+    $tindakLanjutDeskripsiValue = old('tindak_lanjut_deskripsi');
 
-    $minTanggalLanjut = now('Asia/Jakarta')->toDateString();
-
-    $tanggalLanjutValue = old('tanggal_lanjut', $jadwal->tanggal_lanjut ?? '');
-
-    if (!empty($tanggalLanjutValue)) {
-        try {
-            $tanggalLanjutValue = \Carbon\Carbon::parse($tanggalLanjutValue)->format('Y-m-d');
-
-            if ($tanggalLanjutValue < $minTanggalLanjut) {
-                $tanggalLanjutValue = '';
-            }
-        } catch (\Exception $e) {
-            $tanggalLanjutValue = '';
-        }
+    if ($tindakLanjutDeskripsiValue === null && $isPerluLanjut) {
+        // Kolom tindak_lanjut sekarang menyimpan keterangan sesi lanjutan, bukan sekadar label ya/tidak.
+        $tindakLanjutDeskripsiValue = in_array(strtolower($tindakLanjutRaw), $legacyTindakLanjutLabels, true)
+            ? ''
+            : $tindakLanjutRaw;
     }
 @endphp
 
@@ -787,25 +772,23 @@
                     </div>
                 </div>
                 @if($isReadOnly)
-                    @if($isPerluLanjut)
-                        <!-- Tanggal lanjutan tetap terlihat pada detail laporan yang sudah tersimpan. -->
-                        <div class="date-picker-group" id="datePickerGroup">
-                            <span class="date-picker-label">Tanggal Sesi Lanjutan</span>
-                            <span class="follow-up-date-value">{{ $tanggalLanjutLabel }}</span>
+                    @if($isPerluLanjut && trim((string) $tindakLanjutDeskripsiValue) !== '')
+                        <div class="date-picker-group follow-up-description-group" id="followUpDescriptionGroup">
+                            <span class="date-picker-label">Keterangan Sesi Lanjutan</span>
+                            <span class="follow-up-date-value">{{ $tindakLanjutDeskripsiValue }}</span>
                         </div>
                     @endif
                 @else
-                    <div class="date-picker-group" id="datePickerGroup" style="display: none;">
-                        <span class="date-picker-label">Pilih Tanggal</span>
-                       <input
-                            type="date"
-                            id="tanggal_lanjut"
-                            name="tanggal_lanjut"
-                            value="{{ $tanggalLanjutValue }}"
-                            min="{{ $minTanggalLanjut }}"
-                            onkeydown="return false"
-                            onpaste="return false"
-                        >
+                    <div class="date-picker-group follow-up-description-group" id="followUpDescriptionGroup" style="display: none;">
+                        <span class="date-picker-label">Keterangan Sesi Lanjutan</span>
+                        <textarea
+                            id="tindak_lanjut_deskripsi"
+                            name="tindak_lanjut_deskripsi"
+                            class="form-control"
+                            rows="3"
+                            maxlength="1000"
+                            placeholder="Tuliskan rencana atau catatan sesi lanjutan bila diperlukan..."
+                        >{{ $tindakLanjutDeskripsiValue }}</textarea>
                     </div>
                 @endif
             </div>
@@ -862,14 +845,12 @@
 <script>
     (function() {
         const perluLanjutCheckbox = document.getElementById('perlu_lanjut');
-        const datePickerGroup = document.getElementById('datePickerGroup');
-        const tanggalLanjutInput = document.getElementById('tanggal_lanjut');
+        const followUpDescriptionGroup = document.getElementById('followUpDescriptionGroup');
+        const followUpDescriptionInput = document.getElementById('tindak_lanjut_deskripsi');
         const laporanForm = document.getElementById('laporanForm');
         const reportConfirmModal = document.getElementById('reportConfirmModal');
         const reportValidationModal = document.getElementById('reportValidationModal');
         const reportValidationMessage = document.getElementById('reportValidationMessage');
-
-        const minTanggalLanjut = @json($minTanggalLanjut);
 
         function showReportValidationModal(message) {
             if (!reportValidationModal || !reportValidationMessage) {
@@ -906,75 +887,26 @@
         return false;
     }
 
-    if (perluLanjutCheckbox && perluLanjutCheckbox.checked) {
-        const tanggal = tanggalLanjutInput ? tanggalLanjutInput.value : '';
-
-        if (!tanggal) {
-            showReportValidationModal('Silakan pilih tanggal tindak lanjut sebelum menyimpan laporan.');
-            setTimeout(() => tanggalLanjutInput?.focus(), 200);
-            return false;
-        }
-
-        if (tanggal < minTanggalLanjut) {
-            if (tanggalLanjutInput) {
-                tanggalLanjutInput.value = '';
-            }
-
-            showReportValidationModal('Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.');
-            setTimeout(() => tanggalLanjutInput?.focus(), 200);
-            return false;
-        }
-    }
-
     return true;
 }
 
-        function updateDatePickerVisibility() {
-            if (!datePickerGroup || !tanggalLanjutInput) {
+        function updateFollowUpDescriptionVisibility() {
+            if (!followUpDescriptionGroup || !followUpDescriptionInput) {
                 return;
             }
 
             if (perluLanjutCheckbox && perluLanjutCheckbox.checked) {
-                datePickerGroup.style.display = 'flex';
-                tanggalLanjutInput.disabled = false;
-                tanggalLanjutInput.required = true;
-                tanggalLanjutInput.setAttribute('min', minTanggalLanjut);
-
-                if (tanggalLanjutInput.value && tanggalLanjutInput.value < minTanggalLanjut) {
-                    tanggalLanjutInput.value = '';
-                }
+                followUpDescriptionGroup.style.display = 'flex';
+                followUpDescriptionInput.disabled = false;
             } else {
-                datePickerGroup.style.display = 'none';
-                tanggalLanjutInput.required = false;
-                tanggalLanjutInput.disabled = true;
-                tanggalLanjutInput.value = '';
+                followUpDescriptionGroup.style.display = 'none';
+                followUpDescriptionInput.disabled = true;
+                followUpDescriptionInput.value = '';
             }
-        }
-
-        if (tanggalLanjutInput) {
-            tanggalLanjutInput.setAttribute('min', minTanggalLanjut);
-
-            if (tanggalLanjutInput.value && tanggalLanjutInput.value < minTanggalLanjut) {
-                tanggalLanjutInput.value = '';
-            }
-
-            tanggalLanjutInput.addEventListener('change', function() {
-                if (this.value && this.value < minTanggalLanjut) {
-                    this.value = '';
-                    showReportValidationModal('Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.');
-                }
-            });
-
-            tanggalLanjutInput.addEventListener('input', function() {
-                if (this.value && this.value < minTanggalLanjut) {
-                    this.value = '';
-                    showReportValidationModal('Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.');
-                }
-            });
         }
 
         if (perluLanjutCheckbox) {
-            perluLanjutCheckbox.addEventListener('change', updateDatePickerVisibility);
+            perluLanjutCheckbox.addEventListener('change', updateFollowUpDescriptionVisibility);
         }
 
         window.openReportConfirmModal = function() {
@@ -1031,7 +963,7 @@
             }
         });
 
-        updateDatePickerVisibility();
+        updateFollowUpDescriptionVisibility();
     })();
 </script>
 @endunless
@@ -1039,13 +971,6 @@
 @else
     {{-- LIST VIEW --}}
     <div class="laporan-card">
-        <div class="laporan-head">
-            <div>
-                <h5>Laporan Hasil Konseling</h5>
-                <p>Dokumentasikan hasil sesi konseling dan perkembangan kondisi mahasiswa.</p>
-            </div>
-        </div>
-
         <div class="laporan-search-area">
             <div class="laporan-toolbar">
                 <div class="laporan-search-box">

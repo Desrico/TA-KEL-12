@@ -1374,11 +1374,22 @@ Pastikan tanggal, waktu, dan metode yang dipilih sudah sesuai.</p>
 
 @php
     $isJadwalUlang = isset($jadwalUlang);
+    $isFollowUpSchedule = isset($followUpJadwal) && $followUpJadwal;
 
     $jadwalUlangPayload = null;
+    $followUpPayload = null;
     $submitUrl = route('jadwal.store');
     $submitMethod = 'POST';
     $successRedirectUrl = url('/riwayat');
+
+    if ($isFollowUpSchedule) {
+        // Sesi lanjutan hanya prefill topik; submit tetap membuat jadwal baru.
+        $followUpPayload = [
+            'id' => $followUpJadwal->id,
+            'jenis' => strtolower($followUpJadwal->jenis ?? 'offline'),
+            'topik' => $followUpJadwal->topik,
+        ];
+    }
 
     if ($isJadwalUlang) {
         $jadwalUlangPayload = [
@@ -1403,6 +1414,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const isJadwalUlang = @js($isJadwalUlang);
   const jadwalUlangData = @js($jadwalUlangPayload);
+  const followUpData = @js($followUpPayload);
 
   const submitUrl = @js($submitUrl);
   const submitMethod = @js($submitMethod);
@@ -1495,7 +1507,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function isApprovedSlotStatus(status) {
-    return ['disetujui', 'berlangsung'].includes(String(status || '').toLowerCase());
+    return ['disetujui', 'diterima', 'berlangsung'].includes(String(status || '').toLowerCase());
+  }
+
+  function isBookedSlotStatus(status) {
+    return ['menunggu', 'menunggu_konfirmasi', 'disetujui', 'diterima', 'berlangsung', 'selesai'].includes(String(status || '').toLowerCase());
   }
 
   function getModalIconMarkup(icon) {
@@ -1791,6 +1807,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const slotInfo = bookedSlots.get(`${ymd}-${time}`);
       const slotStatus = String(slotInfo?.status || '').toLowerCase();
       const isApproved = isApprovedSlotStatus(slotStatus);
+      const isBooked = slotInfo && isBookedSlotStatus(slotStatus);
       const isUnavailable = slotStatus === 'tidak_tersedia';
 
       if (isPastTime) {
@@ -1800,9 +1817,11 @@ document.addEventListener('DOMContentLoaded', function () {
         option.textContent += ` - ${slotInfo?.label || 'Tidak tersedia'}`;
         option.dataset.status = 'tidak_tersedia';
         option.dataset.detail = JSON.stringify(slotInfo?.detail || {});
-      } else if (isApproved) {
+      } else if (isBooked) {
+        // Semua slot yang sudah dipakai dikunci di dropdown agar tidak perlu menunggu submit.
         option.disabled = true;
-        option.textContent += ` - ${slotInfo?.label || 'Telah Terjadwal'}`;
+        option.dataset.status = slotStatus;
+        option.textContent += ` - ${slotInfo?.label || (isApproved ? 'Telah Terjadwal' : 'Sudah Terisi')}`;
       }
 
       waktuEl.appendChild(option);
@@ -1812,7 +1831,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const selectedOption = Array.from(waktuEl.options)
         .find(option => option.value === selectedBeforeRender);
 
-      if (selectedOption) {
+      if (selectedOption && !selectedOption.disabled) {
         waktuEl.value = selectedBeforeRender;
       }
     }
@@ -1824,8 +1843,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function fetchBookedSlots() {
     try {
-      const res = await fetch('{{ route("jadwal.terisi") }}', {
-        headers: { 'Accept': 'application/json' }
+      const url = new URL('{{ route("jadwal.terisi") }}', window.location.origin);
+
+      if (isJadwalUlang && jadwalUlangData?.id) {
+        url.searchParams.set('exclude_jadwal_id', jadwalUlangData.id);
+      }
+
+      const res = await fetch(url.toString(), {
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
       });
 
       const data = await res.json();
@@ -1992,6 +2018,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function initializeFollowUpMode() {
+    if (isJadwalUlang || !followUpData) return;
+
+    selectedService = followUpData.jenis || 'offline';
+    setServiceMode(selectedService, false);
+    setTopikValue(followUpData.topik);
+
+    const pageTitle = document.querySelector('.konseling-title, .page-title, h1');
+    if (pageTitle) {
+      pageTitle.textContent = 'Ajukan Sesi Lanjutan';
+    }
+
+    setSubmitButtonLabel(selectedService);
+
+    if (bookingEl) {
+      bookingEl.classList.add('is-visible');
+      bookingEl.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }
+  }
+
   function openConfirmModal() {
     if (!isLoggedIn) {
       window.location.href = '/login';
@@ -2107,6 +2153,10 @@ document.addEventListener('DOMContentLoaded', function () {
       topik: topikValue,
       konfirmasi: checkbox.checked,
     };
+
+    if (!isJadwalUlang && followUpData?.id) {
+      payload.follow_up_from = followUpData.id;
+    }
 
     const originalText = submitBtn.textContent;
 
@@ -2360,6 +2410,8 @@ document.addEventListener('DOMContentLoaded', function () {
   fetchBookedSlots().then(() => {
     if (isJadwalUlang && jadwalUlangData) {
       initializeJadwalUlangMode();
+    } else if (followUpData) {
+      initializeFollowUpMode();
     } else {
       bookingEl?.classList.remove('is-visible');
 

@@ -70,6 +70,42 @@ class GroupChatMahasiswaController extends Controller
     ]);
 }
 
+    private function buildPublicConsentContext(array $topic): array
+    {
+        return [
+            'headline' => 'Persetujuan Grup Publik',
+            'title' => 'Gabung ke grup “' . ($topic['topic_label'] ?? 'Grup Publik') . '”',
+            'description' => 'Grup publik ini merupakan ruang percakapan anonim untuk mahasiswa dengan topik yang sama. Pastikan Anda setuju dengan aturan grup sebelum bergabung.',
+            'group_name' => $topic['topic_label'] ?? 'Grup Publik',
+            'inviter_name' => 'Sistem',
+            'identity_visibility' => 'Nama Anda akan disamarkan saat berpartisipasi dalam grup publik.',
+            'submit_label' => 'Setuju dan Gabung Grup',
+            'hidden_fields' => [
+                'topic' => $topic['topic_key'] ?? null,
+                'room_id' => $topic['room_id'] ?? null,
+            ],
+        ];
+    }
+
+    private function buildPrivateConsentContext(GroupChatRoom $room, GroupChatMember $membership): array
+    {
+        $inviter = $membership->inviter;
+        $inviterName = $inviter?->nama ?: $inviter?->name ?: 'Pengundang';
+
+        return [
+            'headline' => 'Persetujuan Undangan Grup Privat',
+            'title' => 'Undangan untuk grup “' . $room->title . '”',
+            'description' => 'Anda menerima undangan pribadi untuk bergabung ke grup privat ini. Bacalah aturan grup dengan seksama sebelum menyetujui undangan.',
+            'group_name' => $room->title,
+            'inviter_name' => $inviterName,
+            'identity_visibility' => 'Nama Anda akan ditampilkan sesuai identitas asli di grup privat ini.',
+            'submit_label' => 'Setuju dan Gabung Grup',
+            'hidden_fields' => [
+                'invite_token' => $room->invite_token,
+            ],
+        ];
+    }
+
     public function invitation(Request $request, string $token)
     {
         if (! GroupChatSupport::supportsPrivateGroups()) {
@@ -801,14 +837,15 @@ private function transformMessage(GroupChatMessage $message, User $viewer, Group
 
    private function clearGroupInviteNotification(User $user, GroupChatRoom $room): void
     {
-        $query = Notifikasi::where('user_id', $user->id)
+        $notifications = Notifikasi::where('user_id', $user->id)
             ->where(function ($q) use ($room) {
                 $q->where('pesan', 'like', '%' . $room->title . '%');
 
                 if (! empty($room->invite_token)) {
                     $q->orWhere('cta_target', 'like', '%' . $room->invite_token . '%');
                 }
-            });
+            })
+            ->get();
 
         $updateData = [];
 
@@ -820,8 +857,12 @@ private function transformMessage(GroupChatMessage $message, User $viewer, Group
             $updateData['cta_target'] = route('mahasiswa.group-chat.room', $room->id);
         }
 
-        if (! empty($updateData)) {
-            $query->update($updateData);
+        if (empty($updateData) || $notifications->isEmpty()) {
+            return;
+        }
+
+        foreach ($notifications as $notification) {
+            $notification->update($updateData);
         }
     }
 

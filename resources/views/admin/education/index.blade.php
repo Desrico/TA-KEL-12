@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 
 @section('page-title', 'Edukasi & Intervensi')
+@section('page-hero')
+{{-- Header H1 layout disembunyikan agar kartu edukasi langsung tampil setelah breadcrumb. --}}
+<div hidden></div>
+@endsection
 
 @push('styles')
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -33,30 +37,7 @@
     .edu-page-wrap {
         max-width: 1180px;
         margin: 0 auto;
-        padding: 0 24px 60px;
-    }
-
-    .edu-page-header {
-        padding: 32px 0 28px;
-        border-bottom: 1px solid var(--edu-border);
-        margin-bottom: 40px;
-    }
-
-    .edu-page-header h1 {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 2rem;
-        font-weight: 800;
-        color: var(--edu-text-1);
-        margin: 0 0 10px;
-        letter-spacing: -0.025em;
-    }
-
-    .edu-page-header p {
-        color: var(--edu-text-2);
-        font-size: 0.95rem;
-        line-height: 1.65;
-        max-width: 620px;
-        margin: 0;
+        padding: .75rem 24px 60px;
     }
 
     .edu-card-grid {
@@ -244,7 +225,7 @@
         }
 
         .edu-page-wrap {
-            padding: 0 16px 40px;
+            padding: .75rem 16px 40px;
         }
 
         .edu-card {
@@ -256,15 +237,6 @@
 
 @section('konten')
 <div class="edu-page-wrap">
-
-    <div class="edu-page-header">
-        <p>
-            Pusat manajemen konten edukatif dan program intervensi.
-            Kelola materi pembelajaran, tantangan psikologis, dan trend topik edukasi
-            untuk mendukung kesejahteraan mahasiswa.
-        </p>
-    </div>
-
     <div class="edu-card-grid">
 
         {{-- Manajemen Modul --}}

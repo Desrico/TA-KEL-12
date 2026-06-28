@@ -3,30 +3,15 @@
 @section('page-title', 'Laporan Hasil Konseling')
 @section('breadcrumb-parent', 'Laporan Konseling')
 @section('breadcrumb-parent-url', route('admin.laporan'))
+@section('page-hero')
+{{-- Header H1 layout disembunyikan agar form laporan tidak menampilkan judul dobel. --}}
+<div hidden></div>
+@endsection
 
 @push('styles')
 <style>
     .report-page {
-        padding: 6px 2px 12px;
-    }
-
-    .report-title {
-        font-size: clamp(1.8rem, 2.8vw, 2.6rem);
-        font-weight: 800;
-        line-height: 1;
-        color: #111827;
-        margin: 0 0 .5rem;
-        letter-spacing: -.03em;
-    }
-
-    .report-title span {
-        color: #5f7f67;
-    }
-
-    .report-subtitle {
-        margin: 0;
-        color: #6b7280;
-        font-size: .95rem;
+        padding: .75rem 2px 12px;
     }
 
     .report-grid {
@@ -572,12 +557,6 @@
 @endphp
 
 <div class="report-page">
-    <h1 class="report-title">Laporan <span>Hasil</span> Konseling</h1>
-
-    <p class="report-subtitle">
-        Dokumentasikan hasil sesi konseling serta perkembangan kondisi mahasiswa
-    </p>
-
     <div class="report-grid">
         <div class="report-panel">
             <div class="report-panel-head">

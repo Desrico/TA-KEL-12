@@ -8,6 +8,7 @@ use App\Models\AiLaporanSummary;
 use App\Models\JadwalKonseling;
 use App\Models\Laporan;
 use App\Models\Mahasiswa;
+use App\Models\Notifikasi;
 use App\Models\SesiKonseling;
 use App\Services\GroqSummaryService;
 
@@ -48,6 +49,8 @@ class LaporanController extends Controller
             'disetujui', 'diterima' => ['label' => 'Diterima', 'class' => 'status-diterima'],
             'menunggu', 'menunggu konfirmasi' => ['label' => 'Menunggu Konfirmasi', 'class' => 'status-menunggu'],
             'berlangsung', 'sedang berlangsung' => ['label' => 'Sedang Berlangsung', 'class' => 'status-berlangsung'],
+            'perlu_penjadwalan_ulang', 'perlu penjadwalan ulang' => ['label' => 'Perlu Penjadwalan Ulang', 'class' => 'status-reschedule'],
+            'perlu_sesi_lanjutan', 'perlu sesi lanjutan', 'perlu lanjut' => ['label' => 'Perlu Sesi Lanjutan', 'class' => 'status-follow-up'],
             default => ['label' => ucfirst($normalized ?: '-'), 'class' => 'status-default'],
         };
     }
@@ -157,10 +160,16 @@ class LaporanController extends Controller
         $observasi = trim((string) ($jadwal->observasi_konselor ?? ''));
         $progress = trim((string) ($jadwal->progress ?? ''));
         // Normalisasi state tindak lanjut untuk detail laporan mahasiswa.
-        $tindakLanjutRaw = trim((string) ($jadwal->tindak_lanjut_tipe ?? $jadwal->tindak_lanjut ?? ''));
-        $perluSesiLanjutan = in_array(strtolower(str_replace('_', ' ', $tindakLanjutRaw)), ['perlu lanjut', 'perlu sesi lanjutan', 'on', '1', 'ya'], true);
+        $tindakLanjutRaw = trim((string) ($jadwal->tindak_lanjut ?? ''));
+        $tindakLanjutTipeRaw = trim((string) ($jadwal->tindak_lanjut_tipe ?? ''));
+        $statusNormalized = strtolower(str_replace(' ', '_', trim((string) ($jadwal->status ?? ''))));
+        $perluSesiLanjutan = $statusNormalized === 'perlu_sesi_lanjutan'
+            || in_array(strtolower(str_replace('_', ' ', $tindakLanjutTipeRaw ?: $tindakLanjutRaw)), ['perlu lanjut', 'perlu sesi lanjutan', 'on', '1', 'ya'], true);
+        $legacyTindakLanjutLabels = ['perlu sesi lanjutan', 'tidak perlu sesi lanjutan', 'perlu lanjut'];
         $tindakLanjut = $perluSesiLanjutan ? 'Perlu sesi lanjutan' : 'Tidak perlu sesi lanjutan';
-        $tanggalLanjut = trim((string) ($jadwal->tanggal_lanjut ?? ''));
+        $tindakLanjutDeskripsi = $perluSesiLanjutan && !in_array(strtolower($tindakLanjutRaw), $legacyTindakLanjutLabels, true)
+            ? $tindakLanjutRaw
+            : '';
 
         return view('Pages.detail-riwayat', compact(
             'jadwal',
@@ -175,8 +184,8 @@ class LaporanController extends Controller
             'observasi',
             'progress',
             'tindakLanjut',
-            'perluSesiLanjutan',
-            'tanggalLanjut'
+            'tindakLanjutDeskripsi',
+            'perluSesiLanjutan'
         ));
     }
 
@@ -334,8 +343,6 @@ class LaporanController extends Controller
 
     public function storeLaporan(Request $request, $id)
     {
-        $minTanggalTindakLanjut = now('Asia/Jakarta')->toDateString();
-
         $ringkasanMasalah = trim((string) (
             $request->input('ringkasan_masalah')
             ?: $request->input('catatan')
@@ -344,33 +351,29 @@ class LaporanController extends Controller
         $observasiKonselor = trim((string) $request->input('observasi_konselor'));
 
         $perluLanjut = $request->has('tindak_lanjut') || $request->has('perlu_lanjut');
-
-        $tanggalLanjut = $request->input('tanggal_tindak_lanjut')
-            ?: $request->input('tanggal_lanjut');
+        $tindakLanjutDeskripsi = trim((string) $request->input('tindak_lanjut_deskripsi', ''));
+        $progress = strtolower(trim((string) $request->input('progress')));
 
         $request->merge([
             'ringkasan_masalah' => $ringkasanMasalah,
             'observasi_konselor' => $observasiKonselor,
-            'tanggal_tindak_lanjut' => $tanggalLanjut,
+            'progress' => $progress,
+            // Keterangan sesi lanjutan opsional dan hanya dipakai saat checkbox aktif.
+            'tindak_lanjut_deskripsi' => $perluLanjut ? $tindakLanjutDeskripsi : null,
         ]);
 
         $rules = [
             'ringkasan_masalah' => ['required', 'string', 'min:3'],
             'observasi_konselor' => ['nullable', 'string'],
-            'progress' => ['required', 'in:Membaik,Memburuk'],
-            'tanggal_tindak_lanjut' => [
-                $perluLanjut ? 'required' : 'nullable',
-                'date',
-                'after_or_equal:' . $minTanggalTindakLanjut,
-            ],
+            'progress' => ['required', 'in:membaik,memburuk'],
+            'tindak_lanjut_deskripsi' => ['nullable', 'string', 'max:1000'],
         ];
 
         $messages = [
             'ringkasan_masalah.required' => 'Ringkasan masalah wajib diisi sebelum laporan dapat disimpan.',
             'progress.required' => 'Silakan pilih progress mahasiswa sebelum menyimpan laporan.',
             'progress.in' => 'Progress mahasiswa harus dipilih antara Membaik atau Memburuk.',
-            'tanggal_tindak_lanjut.required' => 'Silakan pilih tanggal tindak lanjut sebelum menyimpan laporan.',
-            'tanggal_tindak_lanjut.after_or_equal' => 'Tanggal tindak lanjut tidak boleh menggunakan tanggal yang sudah lewat.',
+            'tindak_lanjut_deskripsi.max' => 'Keterangan sesi lanjutan maksimal 1000 karakter.',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -400,11 +403,30 @@ class LaporanController extends Controller
             'ringkasan_masalah' => $validated['ringkasan_masalah'],
             'observasi_konselor' => $validated['observasi_konselor'],
             'progress' => $validated['progress'],
-            'tindak_lanjut' => $perluLanjut ? 'Perlu sesi lanjutan' : 'Tidak perlu sesi lanjutan',
+            'tindak_lanjut' => $perluLanjut ? ($validated['tindak_lanjut_deskripsi'] ?? '') : null,
             'tindak_lanjut_tipe' => $perluLanjut ? 'perlu lanjut' : null,
-            'tanggal_lanjut' => $perluLanjut ? $validated['tanggal_tindak_lanjut'] : null,
+            'tanggal_lanjut' => null,
             'laporan' => $isi,
         ]);
+
+        if ($perluLanjut && $jadwal->mahasiswa?->user) {
+            // Notifikasi sesi lanjutan diarahkan ke daftar riwayat agar mahasiswa membuka status terkait.
+            $notifikasiLanjutanTarget = route('riwayat', ['jadwal' => $jadwal->id]);
+            $sudahAdaNotifikasiLanjutan = Notifikasi::where('user_id', $jadwal->mahasiswa->user->id)
+                ->where('cta_target', $notifikasiLanjutanTarget)
+                ->where('pesan', 'like', '%perlu sesi lanjutan%')
+                ->exists();
+
+            if (! $sudahAdaNotifikasiLanjutan) {
+                Notifikasi::create([
+                    'user_id' => $jadwal->mahasiswa->user->id,
+                    'pesan' => 'Konselor menandai sesi konseling Anda perlu sesi lanjutan. Silakan buka riwayat konseling untuk membuat sesi lanjutan.',
+                    'status' => 'belum',
+                    'cta_target' => $notifikasiLanjutanTarget,
+                    'cta_label' => 'Buka Riwayat',
+                ]);
+            }
+        }
 
         return redirect()
             ->route('admin.laporan.mahasiswa', $jadwal->mahasiswa_id)

@@ -11,9 +11,38 @@
 @endphp
 
 @section('page-title', 'Grup Chat')
+@section('page-hero')
+{{-- Group chat memakai breadcrumb saja; page title disembunyikan agar ruang chat penuh. --}}
+<div style="display:none !important;"></div>
+@endsection
 
 @push('styles')
 <style>
+  /* Shell group chat dikunci ke viewport admin supaya scroll luar tidak muncul. */
+  .pc-content {
+      padding: .75rem !important;
+      height: calc(100vh - 70px);
+      overflow: hidden;
+  }
+
+  .admin-page-inner {
+      max-width: none !important;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+  }
+
+  .page-header {
+      display: none !important;
+  }
+
+  .admin-breadcrumb {
+      flex-shrink: 0;
+      margin: 0 0 .5rem !important;
+      padding: 0 !important;
+  }
+
   .admin-chat-page {
       --admin-chat-shell-height: auto;
       --admin-chat-composer-space: 132px;
@@ -22,14 +51,16 @@
       --admin-accent-soft-2: #f3f8f5;
       --admin-accent-border: #cfe2d8;
       display: grid;
-      grid-template-columns: 340px minmax(0, 1fr);
+      grid-template-columns: 330px minmax(0, 1fr);
       gap: 0;
-      min-height: auto;
+      width: 100%;
+      min-height: 0;
+      flex: 1;
       height: auto;
       background: #fff;
       border: 1px solid #dceee4;
-      border-radius: 28px;
-      overflow: visible;
+      border-radius: 20px;
+      overflow: hidden;
       box-shadow: 0 18px 44px rgba(6, 78, 59, .08);
   }
 
@@ -45,6 +76,7 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    height: 100%;
     overflow-y: auto;
     overflow-x: visible;
     align-self: stretch;
@@ -54,7 +86,7 @@
   }
 
   .admin-chat-list-head {
-    padding: 1rem 1rem .85rem;
+    padding: .85rem .85rem .75rem;
     border-bottom: 1px solid #edf7f1;
     background: rgba(255, 255, 255, .92);
     position: sticky;
@@ -80,8 +112,8 @@
     align-items: center;
     justify-content: center;
     gap: .18rem;
-    min-height: 52px;
-    padding: .48rem .52rem .42rem;
+    min-height: 44px;
+    padding: .4rem .48rem .36rem;
     border-radius: 10px;
     text-decoration: none;
     font-size: .73rem;
@@ -142,8 +174,8 @@
     width: 100%;
     border: 1px solid #dbece3;
     border-radius: 16px;
-    padding: .78rem 1rem .78rem 2.65rem;
-    font-size: .9rem;
+    padding: .62rem .85rem .62rem 2.35rem;
+    font-size: .84rem;
     color: #0f172a;
     background: #fff;
     outline: none;
@@ -165,18 +197,18 @@
   .admin-chat-toolbar {
     display: flex;
     align-items: stretch;
-    gap: .65rem;
-    margin-top: .85rem;
+    gap: .5rem;
+    margin-top: .65rem;
   }
 
   .admin-add-toggle {
-    width: 46px;
-    min-width: 46px;
+    width: 40px;
+    min-width: 40px;
     border: 1px solid #dbece3;
-    border-radius: 16px;
+    border-radius: 14px;
     background: #ffffff;
     color: var(--admin-accent);
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 800;
     display: inline-flex;
     align-items: center;
@@ -229,17 +261,17 @@
   .admin-group-filter-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: .65rem;
-    margin-top: .85rem;
+    gap: .45rem;
+    margin-top: .65rem;
 }
 
 .admin-group-filter-btn {
-    height: 44px;
     border: 1px solid #dbece3;
     border-radius: 999px;
     background: #ffffff;
     color: #0f172a;
-    font-size: .84rem;
+    padding: .46rem .72rem;
+    font-size: .76rem;
     font-weight: 800;
     cursor: pointer;
     transition: all .18s ease;
@@ -421,6 +453,32 @@
     font-size: .76rem;
   }
 
+  .admin-student-loading {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .72rem .85rem;
+    color: #64748b;
+    font-size: .76rem;
+    font-weight: 700;
+  }
+
+  .admin-student-loading-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #dbece3;
+    border-top-color: #0b5d45;
+    border-radius: 50%;
+    animation: admin-group-chat-spin .8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes admin-group-chat-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   .admin-create-actions {
     display: flex;
     gap: .65rem;
@@ -455,7 +513,7 @@
 
   .admin-chat-session {
     display: block;
-    padding: .95rem 1rem;
+    padding: .78rem .85rem;
     border-top: 1px solid #f4f8f6;
     text-decoration: none;
     transition: background .18s ease, transform .18s ease;
@@ -492,12 +550,12 @@
   .admin-chat-session-name {
     font-weight: 800;
     color: #0f172a;
-    font-size: .92rem;
+    font-size: .86rem;
   }
 
   .admin-chat-session-meta {
     color: #64748b;
-    font-size: .78rem;
+    font-size: .74rem;
     line-height: 1.55;
   }
 
@@ -585,9 +643,9 @@
   }
 
   .admin-chat-card {
-    overflow: visible;
-    min-height: auto;
-    height: auto;
+    overflow: hidden;
+    min-height: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
     background: #f8fbf9;
@@ -631,25 +689,26 @@
   /* Panel anggota dibuat dropdown agar ruang chat tidak menyusut ke samping. */
   .admin-chat-stage {
       position: relative;
-      min-height: auto;
-      height: auto;
+      flex: 1;
+      min-height: 0;
+      height: 100%;
   }
 
   .admin-chat-main {
       min-width: 0;
-      min-height: auto;
-      height: auto;
+      min-height: 0;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      overflow: visible;
+      overflow: hidden;
   }
 
   .admin-chat-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1.15rem 1.3rem;
+    gap: .7rem;
+    padding: .68rem .9rem;
     border-bottom: 1px solid #edf7f1;
     background: rgba(255,255,255,.88);
     backdrop-filter: blur(10px);
@@ -660,7 +719,12 @@
   .admin-chat-person {
     display: flex;
     align-items: center;
-    gap: .95rem;
+    gap: .65rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .admin-chat-person > div:last-child {
     min-width: 0;
   }
 
@@ -672,12 +736,12 @@
   }
 
   .admin-chat-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
     background: var(--admin-accent);
     color: #fff;
-    font-size: 1.35rem;
+    font-size: 1rem;
     flex-shrink: 0;
     box-shadow: 0 10px 25px rgba(6, 95, 70, .12);
     overflow: hidden;
@@ -697,15 +761,16 @@
     height: 100%;
     display: grid;
     place-items: center;
-    font-size: 1.32rem;
+    font-size: .98rem;
     font-weight: 800;
   }
 
   .admin-chat-title {
-    font-size: 1.1rem;
+    font-size: .94rem;
     font-weight: 800;
     color: #0f172a;
     margin-bottom: .14rem;
+    overflow-wrap: anywhere;
   }
 
   .admin-room-rename-toggle {
@@ -713,8 +778,8 @@
     border-radius: 999px;
     background: #fff;
     color: #065f46;
-    padding: .36rem .68rem;
-    font-size: .72rem;
+    padding: .25rem .52rem;
+    font-size: .66rem;
     font-weight: 800;
     display: inline-flex;
     align-items: center;
@@ -749,14 +814,15 @@
   .admin-chat-subtitle {
     margin: 0;
     color: #64748b;
-    font-size: .84rem;
-    line-height: 1.6;
+    font-size: .72rem;
+    line-height: 1.38;
+    overflow-wrap: anywhere;
   }
 
   .admin-chat-head-actions {
     display: flex;
     align-items: center;
-    gap: .75rem;
+    gap: .55rem;
     justify-content: flex-end;
     position: relative;
     min-width: 0;
@@ -767,14 +833,14 @@
     align-items: center;
     justify-content: center;
     gap: .22rem;
-    width: 52px;
-    height: 44px;
+    width: 40px;
+    height: 34px;
     border: 1px solid #d8eee2;
     border-radius: 14px;
     padding: 0;
     background: #fff;
     color: var(--admin-accent);
-    font-size: 1.16rem;
+    font-size: .92rem;
     font-weight: 800;
     transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
   }
@@ -806,10 +872,10 @@
     border: 0;
   }
   .admin-chat-thread {
-      flex: unset;
-      min-height: 420px;
-      overflow-y: visible;
-      padding: 1.15rem 1.3rem 1.4rem;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: .8rem .9rem .95rem;
       overscroll-behavior: auto;
       scroll-behavior: smooth;
       background: #f8fbf9;
@@ -831,8 +897,8 @@
 
   .admin-message-row {
     display: flex;
-    gap: .6rem;
-    margin-bottom: .75rem;
+    gap: .45rem;
+    margin-bottom: .62rem;
     align-items: flex-end;
   }
 
@@ -877,15 +943,17 @@
   }
 
   .admin-animal-avatar {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: #dcfce7;
     border: 3px solid #ffffff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    color: var(--admin-accent);
+    font-size: .66rem;
+    font-weight: 900;
     box-shadow: 0 8px 18px rgba(15, 118, 110, 0.14);
     flex-shrink: 0;
   }
@@ -899,7 +967,9 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      color: var(--admin-accent);
+      font-size: .72rem;
+      font-weight: 900;
       box-shadow: 0 6px 14px rgba(15, 118, 110, 0.12);
       flex-shrink: 0;
   }
@@ -912,7 +982,7 @@
   }
 
   .admin-message-content {
-      max-width: min(68%, 460px);
+      max-width: min(68%, 390px);
       position: relative;
   }
 
@@ -922,7 +992,7 @@
     gap: .5rem;
     margin: 0 .3rem .3rem;
     color: #64748b;
-    font-size: .75rem;
+    font-size: .68rem;
   }
 
   .admin-message-name {
@@ -934,10 +1004,10 @@
       display: inline-block;
       width: fit-content;
       max-width: 100%;
-      padding: .58rem .9rem;
-      border-radius: 16px;
-      font-size: .88rem;
-      line-height: 1.45;
+      padding: .5rem .75rem;
+      border-radius: 14px;
+      font-size: .82rem;
+      line-height: 1.38;
       word-break: break-word;
   }
 
@@ -1117,7 +1187,7 @@
   }
 
   .admin-chat-compose {
-    max-width: 920px;
+    max-width: none;
     margin: 0 auto;
     padding: 0;
     border-top: none;
@@ -1127,9 +1197,9 @@
   .admin-chat-form {
     display: flex;
     align-items: flex-end;
-    gap: .72rem;
-    padding: .65rem;
-    border-radius: 22px;
+    gap: .5rem;
+    padding: .42rem;
+    border-radius: 16px;
     border: 1px solid #d8eee2;
     background: #ffffff;
     box-shadow: 0 14px 30px rgba(6, 78, 59, .08);
@@ -1141,22 +1211,22 @@
     resize: none;
     outline: none;
     background: transparent;
-    min-height: 46px;
-    max-height: 128px;
-    font-size: .92rem;
-    line-height: 1.55;
+    min-height: 32px;
+    max-height: 96px;
+    font-size: .82rem;
+    line-height: 1.38;
     color: #0f172a;
-    padding: .45rem .25rem;
+    padding: .35rem .2rem;
   }
 
   .admin-chat-send {
-    width: 50px;
-    height: 50px;
+    width: 36px;
+    height: 36px;
     border: none;
-    border-radius: 16px;
+    border-radius: 12px;
     background: var(--admin-accent);
     color: #fff;
-    font-size: 1.14rem;
+    font-size: .92rem;
     box-shadow: 0 14px 26px rgba(6,95,70,.2);
   }
 
@@ -1179,7 +1249,7 @@
     bottom: auto;
     z-index: 5;
     flex-shrink: 0;
-    padding: .75rem 1.2rem 1rem;
+    padding: .55rem .8rem .7rem;
     background:
       linear-gradient(180deg, rgba(248,251,249,0) 0%, rgba(255,255,255,.88) 18%, rgba(255,255,255,.98) 38%, rgba(255,255,255,.98) 100%);
     backdrop-filter: blur(12px);
@@ -1505,11 +1575,12 @@
   @media (max-width: 1199.98px) {
     .admin-chat-page {
       grid-template-columns: 1fr;
+      grid-template-rows: minmax(170px, 32%) minmax(0, 1fr);
       min-height: 0;
-      height: auto;
     }
 
     .admin-chat-list {
+      height: 100%;
       border-right: none;
       border-bottom: 1px solid #edf7f1;
       overflow-x: hidden;
@@ -1517,17 +1588,22 @@
   }
 
  @media (max-width: 767.98px) {
+    .pc-content {
+      padding: .6rem !important;
+    }
+
     .admin-chat-page {
       --admin-chat-shell-height: auto;
       --admin-chat-composer-space: 124px;
+      min-height: 0;
     }
 
     .admin-chat-card {
-      height: auto;
+      height: 100%;
     }
 
     .admin-chat-main {
-      height: auto;
+      height: 100%;
     }
 
     .admin-chat-bottom-stack {
@@ -1651,13 +1727,12 @@
     @forelse($groupList as $room)
       @php
         $isSelected = optional($activeRoom)->id === $room->id;
-        $roomMemberCount = (int) ($room->active_members_count ?? $room->members_count ?? $room->members->count());
+        // Sidebar grup hanya menampilkan pesan terakhir agar tidak penuh metadata.
         $latestMessagePreview = optional($room->latestMessage)->pesan
             ? \Illuminate\Support\Str::limit($room->latestMessage->pesan, 56)
             : 'Belum ada pesan pada grup ini.';
         $sessionSearchText = strtolower(trim(implode(' ', [
             $room->title,
-            $room->topicLabel(),
             $latestMessagePreview,
         ])));
       @endphp
@@ -1669,16 +1744,8 @@
         <a href="{{ route('admin.group-chat', ['group' => $room->id]) }}" class="admin-chat-session {{ $isSelected ? 'active' : '' }}">
           <div class="admin-chat-session-top">
             <div class="admin-chat-session-name">{{ $room->title }}</div>
-            <div class="admin-chat-session-status-wrap">
-              <span class="admin-chat-session-status">{{ $room->visibilityLabel() }}</span>
-            </div>
           </div>
           <div class="admin-chat-session-meta">
-            {{ $room->topicLabel() }} &bull; {{ $roomMemberCount }} anggota aktif
-            @if(($room->invited_members_count ?? 0) > 0)
-              &bull; {{ $room->invited_members_count }} undangan
-            @endif
-            <br>
             {{ $latestMessagePreview }}
           </div>
         </a>
@@ -1771,13 +1838,9 @@
                     </button>
                   @endif
                 </div>
+                {{-- Header group chat dibuat ringkas: nama grup dan anggota yang sudah bergabung saja. --}}
                 <p class="admin-chat-subtitle">
-                  {{ $chatPayload['visibilityLabel'] }} &bull; {{ $chatPayload['topicLabel'] }} &bull; {{ $chatPayload['memberCount'] }} anggota aktif
-                  @if(($chatPayload['pendingInviteCount'] ?? 0) > 0)
-                    &bull; {{ $chatPayload['pendingInviteCount'] }} undangan menunggu
-                  @endif
-                  <br>
-                  {{ implode(', ', array_slice($chatPayload['memberNames'], 0, 5)) }}{{ count($chatPayload['memberNames']) > 5 ? ' dan lainnya' : '' }}
+                  {{ count($chatPayload['memberNames']) ? implode(', ', array_slice($chatPayload['memberNames'], 0, 5)) . (count($chatPayload['memberNames']) > 5 ? ' dan lainnya' : '') : 'Belum ada anggota bergabung' }}
                 </p>
                 @if(!empty($chatPayload['canRenameRoom']))
                   <!-- Rename grup privat dibuat inline agar konselor tetap berada di room yang sama saat memperbarui judul grup. -->
@@ -1959,6 +2022,46 @@
 
 @push('scripts')
 <script>
+window.adminGroupChatFormatAnonymousName = (name) => {
+  const cleanName = String(name || '').trim();
+
+  if (!cleanName) {
+    return 'Anonim';
+  }
+
+  const loweredName = cleanName.toLowerCase();
+
+  if (loweredName.includes('anonim')) {
+    return cleanName;
+  }
+
+  if (loweredName === 'konselor') {
+    return 'Konselor';
+  }
+
+  if (loweredName === 'anda') {
+    return 'Anda';
+  }
+
+  return `${cleanName} Anonim`;
+};
+
+window.adminGroupChatAliasInitials = (name) => {
+  const displayName = window.adminGroupChatFormatAnonymousName(name);
+
+  return displayName
+    .replace(/\s+Anonim$/i, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('') || 'A';
+};
+</script>
+@endpush
+
+@push('scripts')
+<script>
 (() => {
   const searchInput = document.getElementById('adminGroupChatSearchInput');
   const searchEmpty = document.getElementById('adminGroupChatSearchEmpty');
@@ -2095,11 +2198,28 @@
     const closeResults = () => {
       resultsEl.innerHTML = '';
       resultsEl.classList.remove('is-open');
+      resultsEl.classList.remove('is-loading');
+      resultsEl.removeAttribute('aria-busy');
+    };
+
+    const showLoadingState = () => {
+      latestResults = [];
+      resultsEl.innerHTML = '';
+      resultsEl.classList.add('is-open');
+      resultsEl.classList.add('is-loading');
+      resultsEl.setAttribute('aria-busy', 'true');
+
+      const loadingState = document.createElement('div');
+      loadingState.className = 'admin-student-loading';
+      loadingState.innerHTML = '<span class="admin-student-loading-spinner"></span><span>Mencari mahasiswa aktif...</span>';
+      resultsEl.appendChild(loadingState);
     };
 
     const renderResults = (results) => {
       latestResults = Array.isArray(results) ? results : [];
       resultsEl.innerHTML = '';
+      resultsEl.classList.remove('is-loading');
+      resultsEl.removeAttribute('aria-busy');
 
       if (!latestResults.length) {
         const emptyState = document.createElement('div');
@@ -2164,6 +2284,8 @@
       const requestSequence = ++activeRequestSequence;
       activeRequestController?.abort();
       activeRequestController = new AbortController();
+
+      showLoadingState();
 
       try {
         const searchParams = new URLSearchParams({
@@ -2438,55 +2560,6 @@ syncGroupList();
     return element.contains(event.target);
   };
 
-function formatAnonymousName(name) {
-    const cleanName = String(name || '').trim();
-
-    if (!cleanName) {
-        return 'Anonim';
-    }
-
-    if (cleanName.toLowerCase().includes('anonim')) {
-        return cleanName;
-    }
-
-    if (cleanName.toLowerCase() === 'konselor') {
-        return 'Konselor';
-    }
-
-    if (cleanName.toLowerCase() === 'anda') {
-        return 'Anda';
-    }
-
-    return `${cleanName} Anonim`;
-}
-
-function animalIcon(name) {
-    const value = String(name || '').toLowerCase();
-
-    const icons = {
-        beruang: '🐻',
-        kucing: '🐱',
-        kelinci: '🐰',
-        rubah: '🦊',
-        panda: '🐼',
-        koala: '🐨',
-        harimau: '🐯',
-        singa: '🦁',
-        anjing: '🐶',
-        burung: '🐦',
-        kura: '🐢',
-        monyet: '🐵'
-    };
-
-    for (const key in icons) {
-        if (value.includes(key)) {
-            return icons[key];
-        }
-    }
-
-    return '👤';
-}
-
   const renderMembers = () => {
     memberList.innerHTML = '';
 
@@ -2497,7 +2570,7 @@ function animalIcon(name) {
     const label = document.createElement('div');
 
     const rawName = member?.name || 'Pengguna';
-    const name = member?.is_counselor ? 'Konselor' : formatAnonymousName(rawName);
+    const name = member?.is_counselor ? 'Konselor' : window.adminGroupChatFormatAnonymousName(rawName);
 
     item.className = 'admin-member-item';
     item.dataset.memberName = String(name).toLowerCase();
@@ -2507,7 +2580,7 @@ function animalIcon(name) {
         avatar.textContent = 'K';
     } else {
         avatar.className = 'admin-member-animal-avatar';
-        avatar.textContent = animalIcon(name);
+        avatar.textContent = window.adminGroupChatAliasInitials(name);
     }
 
     content.className = 'admin-member-item-content';
@@ -2847,55 +2920,6 @@ function animalIcon(name) {
     row.classList.remove('is-menu-open');
   };
 
-  function formatAnonymousName(name) {
-    const cleanName = String(name || '').trim();
-
-    if (!cleanName) {
-        return 'Anonim';
-    }
-
-    if (cleanName.toLowerCase().includes('anonim')) {
-        return cleanName;
-    }
-
-    if (cleanName.toLowerCase() === 'konselor') {
-        return 'Konselor';
-    }
-
-    if (cleanName.toLowerCase() === 'anda') {
-        return 'Anda';
-    }
-
-    return `${cleanName} Anonim`;
-}
-
-function animalIcon(name) {
-    const value = String(name || '').toLowerCase();
-
-    const icons = {
-        beruang: '🐻',
-        kucing: '🐱',
-        kelinci: '🐰',
-        rubah: '🦊',
-        panda: '🐼',
-        koala: '🐨',
-        harimau: '🐯',
-        singa: '🦁',
-        anjing: '🐶',
-        burung: '🐦',
-        kura: '🐢',
-        monyet: '🐵'
-    };
-
-    for (const key in icons) {
-        if (value.includes(key)) {
-            return icons[key];
-        }
-    }
-
-    return '👤';
-}
-
   const renderMessage = (message) => {
     const row = document.createElement('div');
     const isSystemMessage = Boolean(message.is_system);
@@ -2935,11 +2959,11 @@ function animalIcon(name) {
 
     const displaySenderName = isMine
         ? 'Anda'
-        : formatAnonymousName(rawSenderName);
+        : window.adminGroupChatFormatAnonymousName(rawSenderName);
 
     const avatarMarkup = `
         <div class="admin-animal-avatar">
-            ${animalIcon(rawSenderName)}
+            ${window.adminGroupChatAliasInitials(rawSenderName)}
         </div>
     `;
 

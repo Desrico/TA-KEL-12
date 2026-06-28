@@ -404,6 +404,19 @@
     transform: translateY(-1px);
 }
 
+.btn-follow-up-detail {
+    background: #FFFBB8;
+    color: #B8A84A;
+    border: 2px solid #FFFBB8;
+}
+
+.btn-follow-up-detail:hover {
+    background: #FFF6A3;
+    border-color: #FFF6A3;
+    color: #9F8F31;
+    transform: translateY(-1px);
+}
+
 /* ── Feedback Modal ── */
 #feedbackModal {
     z-index: 10050 !important;
@@ -728,9 +741,15 @@
     $feedback = $feedback ?? optional($jadwal->sesiKonseling)->feedback;
     $bisaFeedback = $bisaFeedback ?? ($jadwal->status === 'selesai' && $jadwal->sesiKonseling && !$feedback);
 
-    $tanggalLanjutLabel = $tanggalLanjut
-        ? Carbon::parse($tanggalLanjut)->translatedFormat('d F Y')
-        : '-';
+    $tindakLanjutDeskripsi = $tindakLanjutDeskripsi ?? '';
+    $sesi = $jadwal->sesiKonseling;
+    $statusJadwalNormalized = strtolower(str_replace(' ', '_', trim((string) ($jadwal->status ?? ''))));
+    $isPerluPenjadwalanUlang = $statusJadwalNormalized === 'perlu_penjadwalan_ulang';
+    // Status lama tetap "selesai", tetapi data lama/baru bisa menyimpan status khusus perlu_sesi_lanjutan.
+    $isPerluSesiLanjutan = $perluSesiLanjutan && in_array($statusJadwalNormalized, ['selesai', 'perlu_sesi_lanjutan'], true);
+    $statusDetailLabel = $isPerluSesiLanjutan
+        ? 'Perlu Sesi Lanjutan'
+        : ($isPerluPenjadwalanUlang ? 'Perlu Penjadwalan Ulang' : ucwords(str_replace('_', ' ', $jadwal->status ?? '-')));
 @endphp
 
 <section class="detail-riwayat-page">
@@ -847,7 +866,7 @@
 
                 <div class="detail-row">
                     <span>Status</span>
-                    <strong>{{ ucwords(str_replace('_', ' ', $jadwal->status ?? '-')) }}</strong>
+                    <strong>{{ $statusDetailLabel }}</strong>
                 </div>
 
                 <div class="section-label mt-4">
@@ -859,15 +878,15 @@
                     <strong>{{ $tindakLanjut }}</strong>
                 </div>
 
-                @if($perluSesiLanjutan)
+                @if($perluSesiLanjutan && trim((string) $tindakLanjutDeskripsi) !== '')
                     <div class="detail-row">
-                        <span>Tanggal Sesi Lanjutan</span>
-                        <strong>{{ $tanggalLanjutLabel }}</strong>
+                        <span>Keterangan Sesi Lanjutan</span>
+                        <strong>{{ $tindakLanjutDeskripsi }}</strong>
                     </div>
                 @endif
 
                 <div class="detail-action-buttons">
-                    @if($bisaFeedback)
+                    @if($bisaFeedback && !$isPerluSesiLanjutan && !$isPerluPenjadwalanUlang)
                         <button
                             type="button"
                             class="btn-detail btn-back"
@@ -889,7 +908,11 @@
                         @endphp
 
                         <div class="detail-action-wrapper">
-                            @if($isSelesai && $isOnline && $sudahMemberiUlasan)
+                            @if($isPerluSesiLanjutan || $isPerluPenjadwalanUlang)
+                                <a href="{{ route('riwayat') }}" class="btn-detail-action">
+                                    Kembali ke riwayat
+                                </a>
+                            @elseif($isSelesai && $isOnline && $sudahMemberiUlasan)
                                 <a href="{{ url('/chat?jadwal_id=' . $jadwal->id) }}" class="btn-detail-action">
                                     Lihat Riwayat Chat
                                 </a>
@@ -901,7 +924,13 @@
                         </div>
                     @endif
 
-                    @if ($jadwal->status === 'perlu_penjadwalan_ulang')
+                    @if ($isPerluSesiLanjutan)
+                        <a href="{{ route('konseling', ['follow_up_from' => $jadwal->id]) }}" class="btn-detail btn-follow-up-detail">
+                            Ajukan Sesi Lanjutan
+                        </a>
+                    @endif
+
+                    @if ($isPerluPenjadwalanUlang)
                         <a href="{{ route('konseling.jadwal_ulang.edit', $jadwal->id) }}" class="btn-detail btn-reschedule">
                             Jadwalkan Ulang
                         </a>

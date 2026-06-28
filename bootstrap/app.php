@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\RoleMiddleware; 
+use App\Http\Middleware\PreventBackHistory;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         'login',
         'logout',
     ]);
+
+    $middleware->append(PreventBackHistory::class);
     
     $middleware->alias([
         'role' => RoleMiddleware::class,

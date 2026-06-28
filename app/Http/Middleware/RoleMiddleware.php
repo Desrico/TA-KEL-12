@@ -16,9 +16,34 @@ class RoleMiddleware
         }
 
         if (Auth::user()->role !== $role) {
-            abort(403, 'Akses ditolak.');
+            if ($request->expectsJson()) {
+                abort(403, 'Akses ditolak.');
+            }
+
+            $previousUrl = url()->previous();
+            $currentUrl = $request->fullUrl();
+
+            // Jika user salah role, kembalikan ke halaman terakhir yang valid dan hindari loop ke URL yang sama.
+            if ($previousUrl && $previousUrl !== $currentUrl && parse_url($previousUrl, PHP_URL_HOST) === $request->getHost()) {
+                return redirect()
+                    ->to($previousUrl)
+                    ->with('error', 'Akses ditolak. Anda tidak memiliki izin membuka halaman tersebut.');
+            }
+
+            return redirect()
+                ->to($this->fallbackUrlByRole(Auth::user()->role))
+                ->with('error', 'Akses ditolak. Anda tidak memiliki izin membuka halaman tersebut.');
         }
 
         return $next($request);
+    }
+
+    private function fallbackUrlByRole(?string $role): string
+    {
+        return match ($role) {
+            'konselor' => route('admin.dashboard'),
+            'mahasiswa' => route('dashboard'),
+            default => route('beranda'),
+        };
     }
 }

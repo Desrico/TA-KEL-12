@@ -5,13 +5,21 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\JadwalKonseling;
+use App\Models\Konselor;
 use App\Models\Notifikasi;
 
 class ProfilController extends Controller
 {
     public function index()
     {
-        $user = Auth::user()->load(['mahasiswa', 'konselor']);
+        $user = Auth::user()->load(['mahasiswa', 'konselor', 'profil']);
+
+        if ($user->role === 'konselor') {
+            $konselor = $user->konselor ?: Konselor::where('user_id', $user->id)->first();
+
+            return view('admin.profil', compact('user', 'konselor'));
+        }
+
         $mahasiswa = $user->mahasiswa;
 
         $totalKonseling = JadwalKonseling::where('mahasiswa_id', optional($mahasiswa)->id)
@@ -41,6 +49,10 @@ class ProfilController extends Controller
         ]);
 
         $user = auth()->user();
+
+        if (! $user || $user->role !== 'mahasiswa') {
+            abort(403);
+        }
 
         $user->update([
             'is_anonim' => $request->boolean('anonim'),

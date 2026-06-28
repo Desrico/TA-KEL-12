@@ -19,6 +19,34 @@ use App\Models\Feedback;
 
 class DashboardController extends Controller
 {
+    private function normalizeScheduleStatus(?string $status): string
+    {
+        return strtolower(str_replace(' ', '_', trim((string) ($status ?: 'menunggu'))));
+    }
+
+    private function scheduleStatusLabel(?string $status): string
+    {
+        return match ($this->normalizeScheduleStatus($status)) {
+            'menunggu' => 'Menunggu',
+            'diterima', 'disetujui' => 'Diterima',
+            'berlangsung' => 'Berlangsung',
+            'selesai' => 'Selesai',
+            'ditolak' => 'Ditolak',
+            'perlu_penjadwalan_ulang' => 'Perlu Penjadwalan Ulang',
+            default => ucwords(str_replace('_', ' ', (string) ($status ?: 'Menunggu'))),
+        };
+    }
+
+    private function applyNormalizedStatusFilter($query, array $statuses): void
+    {
+        // Status riwayat bisa tersimpan beda kapital/alias, jadi dashboard menormalisasi sebelum memfilter.
+        $placeholders = implode(',', array_fill(0, count($statuses), '?'));
+        $query->whereRaw(
+            "LOWER(REPLACE(COALESCE(status, 'menunggu'), ' ', '_')) IN ({$placeholders})",
+            $statuses
+        );
+    }
+
     public function index()
     {
         try {
@@ -40,11 +68,119 @@ class DashboardController extends Controller
                 ? JadwalKonseling::where('konselor_id', $konselor->id)
                 : JadwalKonseling::query();
 
+            $totalPenjadwalan = (clone $baseQuery)->count();
+            $menunggu = (clone $baseQuery)
+                ->where(function ($query) {
+                    $this->applyNormalizedStatusFilter($query, ['menunggu']);
+                })
+                ->count();
+            $disetujui = (clone $baseQuery)
+                ->where(function ($query) {
+                    $this->applyNormalizedStatusFilter($query, ['disetujui', 'diterima']);
+                })
+                ->count();
+            $ditolak = (clone $baseQuery)
+                ->where(function ($query) {
+                    $this->applyNormalizedStatusFilter($query, ['ditolak']);
+                })
+                ->count();
+            $totalSesiSelesai = (clone $baseQuery)
+                ->where(function ($query) {
+                    $query->whereNotNull('laporan')
+                        ->orWhere(function ($statusQuery) {
+                            $this->applyNormalizedStatusFilter($statusQuery, ['selesai']);
+                        });
+                })
+                ->count();
+            $totalDiterima = $disetujui;
+            $totalDitolak = $ditolak;
+            $mahasiswaAktif = (clone $baseQuery)->distinct('mahasiswa_id')->count('mahasiswa_id');
+            $approvalRate = $totalPenjadwalan > 0
+                ? round(($disetujui / $totalPenjadwalan) * 100)
+                : 0;
+
+            $monthlyLabels = [];
+            $monthlyCounts = [];
+
+            for ($i = 5; $i >= 0; $i--) {
+                $month = Carbon::now()->subMonths($i);
+
+                $monthlyLabels[] = $month->translatedFormat('M');
+                $monthlyCounts[] = (clone $baseQuery)
+                    ->whereYear('tanggal', $month->year)
+                    ->whereMonth('tanggal', $month->month)
+                    ->count();
+            }
+
+            $topikStats = (clone $baseQuery)
+                ->when(Schema::hasColumn('jadwal_konseling', 'topik'), function ($query) {
+                    $query->whereNotNull('topik')
+                        ->where('topik', '!=', '');
+                })
+                ->get()
+                ->map(fn ($jadwal) => trim((string) ($jadwal->topik ?? '')))
+                ->filter()
+                ->countBy()
+                ->sortDesc()
+                ->take(8);
+
+            $topikLabels = $topikStats->keys()->values();
+            $topikCounts = $topikStats->values()->values();
+            $totalTopik = $topikCounts->sum();
+
+            // Dashboard mengikuti hari operasional konseling di Asia/Jakarta, bukan APP_TIMEZONE UTC.
+            $today = Carbon::today(JadwalKonseling::sessionTimezone())->toDateString();
+            $todayQuery = (clone $baseQuery)->whereDate('tanggal', $today);
+            $todayScheduled = (clone $todayQuery)
+                ->where(function ($query) {
+                    $this->applyNormalizedStatusFilter($query, ['disetujui', 'diterima', 'menunggu']);
+                })
+                ->count();
+            $todayInProgress = (clone $todayQuery)
+                ->where(function ($query) {
+                    $this->applyNormalizedStatusFilter($query, ['berlangsung']);
+                })
+                ->count();
+            $todayCompleted = (clone $todayQuery)
+                ->where(function ($query) {
+                    $query->whereNotNull('laporan')
+                        ->orWhere(function ($statusQuery) {
+                            $this->applyNormalizedStatusFilter($statusQuery, ['selesai']);
+                        });
+                })
+                ->count();
+            $todayWaiting = (clone $todayQuery)
+                ->where(function ($query) {
+                    $this->applyNormalizedStatusFilter($query, ['menunggu']);
+                })
+                ->count();
+
             $todayJadwals = (clone $baseQuery)
-                ->whereDate('tanggal', Carbon::today())
                 ->with('mahasiswa.user')
+                // Penjadwalan Hari Ini harus hanya mengambil sesi pada tanggal operasional hari ini.
+                ->whereDate('tanggal', $today)
+                ->orderByRaw("
+                    CASE
+                        WHEN waktu IS NULL THEN 2
+                        ELSE 1
+                    END
+                ")
                 ->orderBy('waktu')
-                ->get();
+                ->orderByRaw("
+                    CASE
+                        WHEN LOWER(REPLACE(COALESCE(status, 'menunggu'), ' ', '_')) = 'menunggu' THEN 1
+                        WHEN LOWER(REPLACE(COALESCE(status, 'menunggu'), ' ', '_')) IN ('disetujui', 'diterima') THEN 2
+                        WHEN LOWER(REPLACE(COALESCE(status, 'menunggu'), ' ', '_')) = 'berlangsung' THEN 3
+                        WHEN LOWER(REPLACE(COALESCE(status, 'menunggu'), ' ', '_')) = 'selesai' THEN 4
+                        WHEN LOWER(REPLACE(COALESCE(status, 'menunggu'), ' ', '_')) = 'ditolak' THEN 5
+                        WHEN LOWER(REPLACE(COALESCE(status, 'menunggu'), ' ', '_')) = 'dibatalkan' THEN 5
+                        ELSE 6
+                    END
+                ")
+                ->get()
+                ->each(function (JadwalKonseling $jadwal) {
+                    $jadwal->dashboard_status_label = $this->scheduleStatusLabel($jadwal->status);
+                });
 
             $lastScan = $students->whereNotNull('mental_scanned_at')->max('mental_scanned_at');
 
@@ -59,6 +195,26 @@ class DashboardController extends Controller
             $view = view('admin.dashboard', [
                 'students'     => $students,
                 'lastScan'     => $lastScan,
+                'konselor'      => $konselor,
+                'totalPenjadwalan' => $totalPenjadwalan,
+                'menunggu'      => $menunggu,
+                'disetujui'     => $disetujui,
+                'ditolak'       => $ditolak,
+                'totalSesiSelesai' => $totalSesiSelesai,
+                'totalDiterima' => $totalDiterima,
+                'totalDitolak'  => $totalDitolak,
+                'mahasiswaAktif' => $mahasiswaAktif,
+                'approvalRate'  => $approvalRate,
+                'monthlyLabels' => $monthlyLabels,
+                'monthlyCounts' => $monthlyCounts,
+                'topikStats'    => $topikStats,
+                'topikLabels'   => $topikLabels,
+                'topikCounts'   => $topikCounts,
+                'totalTopik'    => $totalTopik,
+                'todayScheduled' => $todayScheduled,
+                'todayInProgress' => $todayInProgress,
+                'todayCompleted' => $todayCompleted,
+                'todayWaiting'  => $todayWaiting,
                 'todayJadwals' => $todayJadwals,
                 'angkatanList' => $angkatanList,
                 'feedbacks'    => $feedbacks,

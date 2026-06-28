@@ -106,12 +106,17 @@
     $mahasiswa = optional($jadwal)->mahasiswa;
     $user = optional($mahasiswa)->user;
     $status = strtolower($jadwal->status ?? 'menunggu');
+    $fromChat = request('from') === 'chat';
+    $chatUrl = route('admin.chat', ['jadwal' => $jadwal->id]);
 
     $jenisLayanan = strtolower((string) ($jadwal->jenis ?? 'online'));
     $isOfflineSession = str_contains($jenisLayanan, 'offline');
     $isOnlineSession = str_contains($jenisLayanan, 'online');
 
     $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+    $tindakLanjutRaw = strtolower(str_replace('_', ' ', (string) ($jadwal->tindak_lanjut_tipe ?? $jadwal->tindak_lanjut ?? '')));
+    $isPerluSesiLanjutan = $status === 'selesai'
+        && in_array($tindakLanjutRaw, ['perlu lanjut', 'perlu sesi lanjutan'], true);
 
     $namaTampil = $isAnonim
         ? (
@@ -125,12 +130,14 @@
         ? '-'
         : ($mahasiswa->nim ?? '-');
 
-    $statusLabel = match ($status) {
+    $statusLabel = $isPerluSesiLanjutan ? 'Perlu Sesi Lanjutan' : match ($status) {
         'menunggu' => 'Menunggu Konfirmasi',
         'disetujui', 'diterima' => 'Diterima',
         'berlangsung' => $isOfflineSession ? 'Selesai' : 'Sedang Berlangsung',
         'selesai' => 'Selesai',
         'ditolak', 'dibatalkan' => 'Ditolak',
+        'perlu_penjadwalan_ulang' => 'Perlu Penjadwalan Ulang',
+        'perlu_sesi_lanjutan' => 'Perlu Sesi Lanjutan',
         default => ucwords(str_replace('_', ' ', $jadwal->status ?? 'Menunggu')),
     };
 
@@ -223,23 +230,27 @@
     </div>
 
     <div class="detail-actions">
-        <a href="{{ url('/admin/riwayat-konseling') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
-            Kembali ke Riwayat
+        <a href="{{ $fromChat ? $chatUrl : url('/admin/riwayat-konseling') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
+            {{ $fromChat ? 'Kembali ke Chat' : 'Kembali ke Riwayat' }}
         </a>
     </div>
 
    @elseif(in_array($status, ['disetujui', 'diterima'], true))
     <div class="detail-actions">
         @if($isOfflineSession)
-            <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
+            <form action="{{ route('admin.riwayat.selesai', ['id' => $jadwal->id, 'from' => $fromChat ? 'chat' : null]) }}" method="POST">
                 @csrf
                 <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
                     Tandai Selesai
                 </button>
             </form>
         @elseif($canStartNow)
-            <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
+            <a href="{{ $chatUrl }}" class="btn-terima" style="min-width:220px;text-align:center;">
                 Mulai Sesi
+            </a>
+        @elseif($fromChat)
+            <a href="{{ $chatUrl }}" class="btn-terima" style="min-width:220px;text-align:center;">
+                Kembali ke Chat
             </a>
         @else
             <button type="button" class="btn-terima" style="min-width:220px;text-align:center;opacity:.6;cursor:not-allowed;" disabled>
@@ -250,18 +261,18 @@
     @elseif($status === 'berlangsung')
         <div class="detail-actions">
             @if($isOnlineSession)
-                <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="btn-terima" style="min-width:220px;text-align:center;">
+                <a href="{{ $chatUrl }}" class="btn-terima" style="min-width:220px;text-align:center;">
                     Lanjutkan Chat
                 </a>
 
-                <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
+                <form action="{{ route('admin.riwayat.selesai', ['id' => $jadwal->id, 'from' => $fromChat ? 'chat' : null]) }}" method="POST">
                     @csrf
                     <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
                         Tandai Selesai
                     </button>
                 </form>
             @else
-                <form action="{{ route('admin.riwayat.selesai', $jadwal->id) }}" method="POST">
+                <form action="{{ route('admin.riwayat.selesai', ['id' => $jadwal->id, 'from' => $fromChat ? 'chat' : null]) }}" method="POST">
                     @csrf
                     <button type="submit" class="btn-laporan" style="min-width:220px;text-align:center;">
                         Tandai Selesai
@@ -271,8 +282,8 @@
         </div>
     @elseif($status === 'selesai')
         <div class="detail-actions">
-            <a href="{{ url('/admin/riwayat-konseling') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
-                Kembali
+            <a href="{{ $fromChat ? $chatUrl : url('/admin/riwayat-konseling') }}" class="btn-laporan" style="min-width:220px;text-align:center;">
+                {{ $fromChat ? 'Kembali ke Chat' : 'Kembali' }}
             </a>
         </div>
     @endif

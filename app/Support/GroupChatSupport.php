@@ -378,6 +378,11 @@ class GroupChatSupport
             ->all();
 
         $usedLookup = array_flip($usedAliases);
+        $preferredAlias = self::buildDeterministicAlias($room->id, $member->user_id ?: $member->id ?: 0);
+
+        if (! isset($usedLookup[$preferredAlias])) {
+            return $preferredAlias;
+        }
 
         foreach (self::anonymousNamePool() as $alias) {
             if (! isset($usedLookup[$alias])) {
@@ -404,14 +409,8 @@ class GroupChatSupport
         $pool = self::anonymousNamePool();
         $poolCount = count($pool);
         $index = $poolCount > 0 ? $hash % $poolCount : 0;
-        $cycle = $poolCount > 0 ? intdiv($hash, $poolCount) : 0;
-        $alias = $pool[$index] ?? 'Mahasiswa Anonim';
 
-        if ($cycle > 0) {
-            $alias .= ' ' . (($cycle % 9) + 2);
-        }
-
-        return $alias;
+        return $pool[$index] ?? 'Mahasiswa Anonim';
     }
 
     private static function hasColumn(string $table, string $column): bool

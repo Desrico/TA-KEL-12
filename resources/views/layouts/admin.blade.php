@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="{{ asset('template/dist') }}/assets/fonts/tabler-icons.min.css">
@@ -1169,6 +1172,13 @@
 <script src="{{ asset('template/dist') }}/assets/js/plugins/feather.min.js"></script>
 
 <script>
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+      // Halaman admin dari browser back-forward cache harus dicek ulang ke server setelah logout.
+      window.location.reload();
+    }
+  });
+
   // Global confirm modal handler: elements can use data-confirm, data-confirm-title, data-confirm-text, data-confirm-ok, data-confirm-url
   document.addEventListener('click', function (e) {
     const trigger = e.target.closest('[data-confirm]');

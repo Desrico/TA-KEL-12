@@ -479,6 +479,11 @@
         padding:0;
     }
 
+    /* Modal video tidak perlu scroll internal karena kontennya selalu rasio 16:9. */
+    .edu-content-modal[data-content-mode="video"] .edu-content-modal-body{
+        overflow:hidden;
+    }
+
     .edu-content-modal-close{
         position:absolute;
         top:14px;
@@ -507,6 +512,7 @@
         position:relative;
         width:100%;
         aspect-ratio:16 / 9;
+        max-height:calc(100vh - 2rem);
         border-radius:18px;
         overflow:hidden;
         background:#0f172a;
@@ -518,6 +524,7 @@
         height:100%;
         border:0;
         display:block;
+        overflow:hidden;
     }
 
     .edu-content-modal-pdf{
@@ -1210,6 +1217,7 @@
             if (contentModal) {
                 contentModal.classList.remove('show');
                 contentModal.setAttribute('aria-hidden', 'true');
+                contentModal.removeAttribute('data-content-mode');
             }
 
             window.clearTimeout(modalCloseTimer);
@@ -1251,6 +1259,7 @@
                 iframe.title = data.title || 'Video edukasi';
                 iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
                 iframe.allowFullscreen = true;
+                iframe.setAttribute('scrolling', 'no');
                 embedBox.appendChild(iframe);
             }
 
@@ -1336,7 +1345,9 @@
                 selectedCard.classList.add('edu-content-selected');
             }
 
-            positionContentModal(selectedCard, data.type === 'Video' ? 'video' : 'article');
+            activeModalMode = data.type === 'Video' ? 'video' : 'article';
+            contentModal.setAttribute('data-content-mode', activeModalMode);
+            positionContentModal(selectedCard, activeModalMode);
 
             if (data.type === 'Video') {
                 renderVideoContent(data);
@@ -1344,7 +1355,6 @@
                 renderArticleContent(data);
             }
 
-            activeModalMode = data.type === 'Video' ? 'video' : 'article';
             contentModal.classList.add('show');
             contentModal.setAttribute('aria-hidden', 'false');
             contentModal.scrollTop = 0;
@@ -1365,6 +1375,7 @@
                 selectedCard.classList.add('edu-content-selected');
             }
 
+            contentModal.setAttribute('data-content-mode', 'pdf');
             positionContentModal(selectedCard, 'pdf');
             renderPdfContent(url, title);
 

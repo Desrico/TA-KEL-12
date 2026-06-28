@@ -32,8 +32,9 @@ class KetidaktersediaanKonselorController extends Controller
     }
 
     $validated['tanggal_selesai'] = $validated['tanggal_selesai'] ?? $validated['tanggal_mulai'];
-    $validated['jam_mulai'] = $validated['jam_mulai'] ?? null;
-    $validated['jam_selesai'] = $validated['jam_selesai'] ?? null;
+    // Normalisasi input jam dari picker custom agar tersimpan konsisten dan tetap terbaca JadwalController.
+    $validated['jam_mulai'] = isset($validated['jam_mulai']) ? Carbon::createFromFormat('H:i', $validated['jam_mulai'])->format('H:i:s') : null;
+    $validated['jam_selesai'] = isset($validated['jam_selesai']) ? Carbon::createFromFormat('H:i', $validated['jam_selesai'])->format('H:i:s') : null;
 
     $ulangMingguan = $request->boolean('ulang_mingguan');
 
@@ -108,6 +109,10 @@ class KetidaktersediaanKonselorController extends Controller
         if (!$konselor) {
             return back()->with('error', 'Data konselor tidak ditemukan.');
         }
+
+        $validated['tanggal_selesai'] = $validated['tanggal_selesai'] ?? $validated['tanggal_mulai'];
+        $validated['jam_mulai'] = isset($validated['jam_mulai']) ? Carbon::createFromFormat('H:i', $validated['jam_mulai'])->format('H:i:s') : null;
+        $validated['jam_selesai'] = isset($validated['jam_selesai']) ? Carbon::createFromFormat('H:i', $validated['jam_selesai'])->format('H:i:s') : null;
 
         $jumlahJadwalTerdampak = 0;
 
@@ -226,8 +231,9 @@ private function tandaiJadwalTerdampak($konselorId, array $data)
                     Carbon::parse($jadwal->waktu)->format('H:i') .
                     ' perlu dijadwalkan ulang karena konselor tidak tersedia.',
                 'status' => 'belum',
-                'cta_target' => route('riwayat.detail', $jadwal->id),
-                'cta_label' => 'Lihat Riwayat',
+                // Notifikasi penjadwalan ulang dibuka dari daftar riwayat agar status khususnya terlihat.
+                'cta_target' => route('riwayat', ['jadwal' => $jadwal->id]),
+                'cta_label' => 'Buka Riwayat',
             ]);
         }
     }

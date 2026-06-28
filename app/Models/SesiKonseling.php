@@ -60,6 +60,12 @@ class SesiKonseling extends Model
         return $this->hasMany(Chat::class, 'sesi_id');
     }
 
+    public function latestChat(): HasOne
+    {
+        // Dipakai list chat admin agar cukup mengambil satu pesan terakhir per sesi.
+        return $this->hasOne(Chat::class, 'sesi_id')->latestOfMany();
+    }
+
     public function laporan(): HasOne
     {
         return $this->hasOne(Laporan::class, 'sesi_id');
@@ -70,4 +76,3 @@ class SesiKonseling extends Model
         return $this->hasOne(Feedback::class, 'sesi_id');
     }
 }
-

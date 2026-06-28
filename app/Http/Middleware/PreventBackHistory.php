@@ -13,9 +13,10 @@ class PreventBackHistory
         $response = $next($request);
 
         // Cegah browser menampilkan halaman auth dari cache saat user menekan tombol Back setelah logout.
-        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private');
         $response->headers->set('Pragma', 'no-cache');
         $response->headers->set('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
+        $response->headers->set('Surrogate-Control', 'no-store');
 
         return $response;
     }

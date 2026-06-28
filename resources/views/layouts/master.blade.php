@@ -4,6 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Campus Care - IT Del Mental Health</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
@@ -199,6 +202,14 @@
     font-size: .84rem;
     color: var(--text-dark);
     line-height: 1.45;
+  }
+
+  .notif-unread {
+    background: #fbfffd;
+  }
+
+  .notif-unread p {
+    font-weight: 700;
   }
 
   .notif-time {
@@ -2200,6 +2211,15 @@ footer a:hover {
                 if ($notif->is_group_invite) {
                   // comment: Label notifikasi lama dinormalisasi agar undangan grup privat selalu tampil konsisten.
                   $notif->cta_label = 'Buka Undangan Grup';
+                  $notif->is_letter_prompt = true;
+                  $notif->prompt_title = 'Undangan Grup Privat';
+                  $notif->prompt_message = 'Anda telah diundang ke grup privat ini. Klik tombol untuk melihat peraturan dan bergabung.';
+                  $notif->prompt_cta = 'Setuju dan Gabung Grup';
+                  $notif->prompt_note = 'Setelah bergabung, Anda akan langsung diarahkan ke ruang grup privat.';
+                  $notif->prompt_locked = false;
+                  $inviteTokenParts = explode('/', (string) $notif->cta_target);
+                  $notif->letter_hidden_fields = json_encode(['invite_token' => end($inviteTokenParts)]);
+                  $notif->letter_action = route('mahasiswa.group-chat.join');
                 }
                 $notifText = strtolower((string) $pesan);
                 $matchedApprovedJadwal = $jadwalByApprovedMessage->get($pesan);
@@ -2415,9 +2435,10 @@ footer a:hover {
                 data-letter-title="{{ $notif->prompt_title }}"
                 data-letter-message="{{ $notif->prompt_message }}"
                 data-letter-cta="{{ $notif->prompt_cta }}"
-                data-letter-action="{{ $notif->cta_target }}"
+                data-letter-action="{{ $notif->letter_action ?? $notif->cta_target }}"
                 data-letter-note="{{ $notif->prompt_note }}"
                 data-letter-locked="{{ !empty($notif->prompt_locked) ? '1' : '0' }}"
+                data-letter-hidden="{{ $notif->letter_hidden_fields ?? '' }}"
               >
                 <p>{{ $notif->pesan }}</p>
                 <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
@@ -2432,11 +2453,6 @@ footer a:hover {
                 >
                 <p>{{ $notif->pesan }}</p>
                 <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
-              @if(!empty($notif->cta_target) && !empty($notif->cta_label))
-                  <a href="{{ $notif->cta_target }}" class="notification-cta">
-                      {{ $notif->cta_label }}
-                  </a>
-              @endif
               </a>
               @endif
             @empty
@@ -2736,6 +2752,13 @@ footer a:hover {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+window.addEventListener('pageshow', function (event) {
+  if (event.persisted) {
+    // Halaman dari browser back-forward cache harus dicek ulang ke server setelah logout.
+    window.location.reload();
+  }
+});
+
 window.addEventListener('scroll',()=>{
   document.getElementById('mainNav').classList.toggle('scrolled',window.scrollY>20);
 });
@@ -2847,6 +2870,7 @@ const letterEnvelope = document.getElementById('letterEnvelope');
 const envelopeStage = letterModal?.querySelector('.envelope-stage');
 const letterSpeechActions = document.getElementById('letterSpeechActions');
 const letterActionForm = document.getElementById('letterActionForm');
+const letterActionHiddenFields = document.getElementById('letterActionHiddenFields');
 const letterActionButton = document.getElementById('letterActionButton');
 const letterActionIcon = letterActionButton?.querySelector('i');
 const letterModalTitle = document.getElementById('letterModalTitle');
@@ -2870,6 +2894,44 @@ let envelopeGreetingTimer = null;
 const syncBodyScrollLock = () => {
   const hasOpenModal = letterModal?.classList.contains('show') || scheduleGuardModal?.classList.contains('show');
   document.body.style.overflow = hasOpenModal ? 'hidden' : '';
+};
+
+const resetLetterActionHiddenFields = () => {
+  if (!letterActionHiddenFields) {
+    return;
+  }
+
+  letterActionHiddenFields.innerHTML = '';
+};
+
+const setLetterActionHiddenFields = (fields = {}) => {
+  if (!letterActionHiddenFields || typeof fields !== 'object' || fields === null) {
+    return;
+  }
+
+  Object.entries(fields).forEach(([name, value]) => {
+    if (value === null || value === undefined) {
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = String(value);
+    letterActionHiddenFields.appendChild(input);
+  });
+};
+
+const parseJson = (value) => {
+  if (!value) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    return {};
+  }
 };
 
 const isReducedMotion = () => Boolean(reduceMotionPreference?.matches);
@@ -3120,7 +3182,7 @@ const playLetterReveal = () => {
   );
 };
 
-const openLetterModal = ({ title, message, cta, action, note, locked }) => {
+const openLetterModal = ({ title, message, cta, action, note, locked, hiddenFields = {} }) => {
   if (!letterModal || !letterEnvelope || !letterActionForm) {
     return;
   }
@@ -3138,6 +3200,8 @@ const openLetterModal = ({ title, message, cta, action, note, locked }) => {
   letterModalTitle.textContent = isLocked ? 'Jadwal Sesi Online' : title;
   envelopeLetterPreview.textContent = formatEnvelopePaperMessage(message, isLocked);
   letterActionForm.setAttribute('action', action);
+  resetLetterActionHiddenFields();
+  setLetterActionHiddenFields(hiddenFields);
   letterActionButton.querySelector('span').textContent = cta;
   letterActionButton.disabled = isLocked;
   letterModal.classList.add('show');
@@ -3307,6 +3371,7 @@ document.querySelectorAll('.notif-item-trigger').forEach((button) => {
       action: button.dataset.letterAction || "{{ route('mahasiswa.chat.start') }}",
       note: button.dataset.letterNote || 'Saat siap, Anda bisa langsung masuk ke ruang chat konseling.',
       locked: button.dataset.letterLocked || '0',
+      hiddenFields: parseJson(button.dataset.letterHidden),
     });
   });
 });
@@ -3316,6 +3381,20 @@ document.querySelectorAll('a.notif-readable').forEach((item) => {
     const targetUrl = item.getAttribute('href');
 
     event.preventDefault();
+
+    if (item.dataset.letterAction) {
+      markNotifAsRead(item);
+      openLetterModal({
+        title: item.dataset.letterTitle || 'Undangan Sesi Konseling',
+        message: item.dataset.letterMessage || 'Saat Anda siap, mari mulai sesi konseling.',
+        cta: item.dataset.letterCta || 'Mulai Sesi Konseling',
+        action: item.dataset.letterAction || targetUrl || "{{ route('mahasiswa.chat.start') }}",
+        note: item.dataset.letterNote || 'Saat siap, Anda bisa langsung masuk ke ruang chat konseling.',
+        locked: item.dataset.letterLocked || '0',
+        hiddenFields: parseJson(item.dataset.letterHidden),
+      });
+      return;
+    }
 
     markNotifAsRead(item).finally(() => {
       if (targetUrl && targetUrl !== '#') {
