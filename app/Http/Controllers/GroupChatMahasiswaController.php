@@ -7,7 +7,7 @@ use App\Models\GroupChatMember;
 use App\Models\GroupChatMessage;
 use App\Models\GroupChatRoom;
 use App\Models\User;
-use App\Models\Notifikasi;  
+use App\Models\Notifikasi;
 use App\Support\GroupChatSupport;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -40,35 +40,35 @@ class GroupChatMahasiswaController extends Controller
         ]);
     }
 
-   public function create(Request $request)
-{
-    $user = $request->user();
-    $eligibility = GroupChatSupport::syncMemberEligibilityStatus($user);
+    public function create(Request $request)
+    {
+        $user = $request->user();
+        $eligibility = GroupChatSupport::syncMemberEligibilityStatus($user);
 
-    if (! $eligibility['eligible']) {
-        return redirect()
-            ->route('mahasiswa.group-chat')
-            ->with('error', $eligibility['reason']);
+        if (! $eligibility['eligible']) {
+            return redirect()
+                ->route('mahasiswa.group-chat')
+                ->with('error', $eligibility['reason']);
+        }
+
+        $topic = $request->query('topic');
+        $selectedTopic = null;
+
+        $publicTopics = $this->resolvePublicTopicCards($user);
+
+        if ($topic && array_key_exists($topic, GroupChatRoom::topicOptions())) {
+            $selectedTopic = collect($publicTopics)->firstWhere('topic_key', $topic);
+        }
+
+        return view('Pages.group-chat-create', [
+            'publicTopics' => $publicTopics,
+            'pendingInvitations' => $this->resolvePendingInvitations($user),
+            'groupRules' => GroupChatSupport::rules(),
+            'consentVersion' => GroupChatSupport::consentVersion(),
+            'consentContext' => $selectedTopic ? $this->buildPublicConsentContext($selectedTopic) : null,
+            'topicOptions' => GroupChatRoom::topicOptions(),
+        ]);
     }
-
-    $topic = $request->query('topic');
-    $selectedTopic = null;
-
-    $publicTopics = $this->resolvePublicTopicCards($user);
-
-    if ($topic && array_key_exists($topic, GroupChatRoom::topicOptions())) {
-        $selectedTopic = collect($publicTopics)->firstWhere('topic_key', $topic);
-    }
-
-    return view('Pages.group-chat-create', [
-        'publicTopics' => $publicTopics,
-        'pendingInvitations' => $this->resolvePendingInvitations($user),
-        'groupRules' => GroupChatSupport::rules(),
-        'consentVersion' => GroupChatSupport::consentVersion(),
-        'consentContext' => $selectedTopic ? $this->buildPublicConsentContext($selectedTopic) : null,
-        'topicOptions' => GroupChatRoom::topicOptions(),
-    ]);
-}
 
     private function buildPublicConsentContext(array $topic): array
     {
@@ -125,7 +125,7 @@ class GroupChatMahasiswaController extends Controller
 
         $room = GroupChatRoom::query()
             ->withCount([
-                'members as active_members_count' => fn ($query) => $query->where('membership_status', GroupChatMember::STATUS_ACTIVE),
+                'members as active_members_count' => fn($query) => $query->where('membership_status', GroupChatMember::STATUS_ACTIVE),
             ])
             ->where('invite_token', $token)
             ->where('visibility', GroupChatRoom::VISIBILITY_PRIVATE)
@@ -140,7 +140,7 @@ class GroupChatMahasiswaController extends Controller
 
         try {
             // Undangan privat harus tetap terikat ke mahasiswa yang memang diundang, bukan token saja.
-            $membership = $this->resolvePrivateInvitationMembership($user, $room);
+            $membership = $this->resolvePrivateInvitationMembership($user, $room, $token);
         } catch (ValidationException $exception) {
             return redirect()
                 ->route('mahasiswa.group-chat')
@@ -185,7 +185,7 @@ class GroupChatMahasiswaController extends Controller
         $messages = $activeRoom->messages
             ->sortBy('created_at')
             ->values()
-            ->map(fn (GroupChatMessage $message) => $this->transformMessage($message, $user, $activeRoom))
+            ->map(fn(GroupChatMessage $message) => $this->transformMessage($message, $user, $activeRoom))
             ->all();
 
         return view('Pages.group-chat-room', [
@@ -267,7 +267,7 @@ class GroupChatMahasiswaController extends Controller
             'messages' => $room->messages
                 ->sortBy('created_at')
                 ->values()
-                ->map(fn (GroupChatMessage $message) => $this->transformMessage($message, $request->user(), $room))
+                ->map(fn(GroupChatMessage $message) => $this->transformMessage($message, $request->user(), $room))
                 ->all(),
         ]);
     }
@@ -381,6 +381,50 @@ class GroupChatMahasiswaController extends Controller
         ]);
     }
 
+    public function leave(Request $request, GroupChatRoom $group): RedirectResponse
+    {
+        $user = $request->user();
+        $room = $this->resolveAccessibleRoom($user, (int) $group->id);
+
+        if (! $room) {
+            return redirect()
+                ->route('mahasiswa.group-chat')
+                ->with('error', 'Grup chat tidak ditemukan atau Anda belum menjadi anggota aktif.');
+        }
+
+        if ($room->isPrivate()) {
+            return redirect()
+                ->route('mahasiswa.group-chat.room', ['group' => $room->id])
+                ->with('error', 'Keluar grup hanya tersedia untuk grup publik.');
+        }
+
+        $member = GroupChatSupport::resolveRoomMember($user, $room);
+
+        if (! $member) {
+            return redirect()
+                ->route('mahasiswa.group-chat')
+                ->with('error', 'Keanggotaan grup tidak ditemukan.');
+        }
+
+        DB::transaction(function () use ($member) {
+            // Keluar grup publik tidak menghapus histori pesan, hanya menonaktifkan membership user.
+            if (GroupChatSupport::supportsMembershipStatus()) {
+                $member->membership_status = GroupChatMember::STATUS_LEFT;
+            }
+
+            if (GroupChatSupport::supportsMembershipLifecycleFields()) {
+                $member->removed_at = $this->nowInDisplayTimezone();
+                $member->removed_reason = 'left_by_member';
+            }
+
+            $member->save();
+        });
+
+        return redirect()
+            ->route('mahasiswa.group-chat')
+            ->with('success', 'Anda berhasil keluar dari grup publik.');
+    }
+
     private function joinPublicRoom(User $user, array $validated): array
     {
         $roomId = (int) ($validated['room_id'] ?? 0);
@@ -397,7 +441,7 @@ class GroupChatMahasiswaController extends Controller
                 ->whereKey($roomId)
                 ->when(
                     GroupChatSupport::supportsRoomVisibility(),
-                    fn ($query) => $query->where('visibility', GroupChatRoom::VISIBILITY_PUBLIC)
+                    fn($query) => $query->where('visibility', GroupChatRoom::VISIBILITY_PUBLIC)
                 )
                 ->where('is_active', true)
                 ->first();
@@ -419,7 +463,7 @@ class GroupChatMahasiswaController extends Controller
                     'visibility' => GroupChatSupport::supportsRoomVisibility() ? GroupChatRoom::VISIBILITY_PUBLIC : null,
                     'created_by' => $user->id,
                     'is_active' => true,
-                ], fn ($value) => $value !== null)
+                ], fn($value) => $value !== null)
             );
         }
 
@@ -443,7 +487,7 @@ class GroupChatMahasiswaController extends Controller
             ]);
         }
 
-        $this->resolvePrivateInvitationMembership($user, $room);
+        $this->resolvePrivateInvitationMembership($user, $room, $inviteToken);
 
         $member = $this->activateMembership($room, $user, 'invite_link');
 
@@ -452,14 +496,20 @@ class GroupChatMahasiswaController extends Controller
         return [$room, $member];
     }
 
-    private function resolvePrivateInvitationMembership(User $user, GroupChatRoom $room): GroupChatMember
+    private function resolvePrivateInvitationMembership(User $user, GroupChatRoom $room, ?string $inviteToken = null): GroupChatMember
     {
         $member = GroupChatSupport::resolveRoomMember($user, $room);
 
         if (! $member) {
-            throw ValidationException::withMessages([
-                'invite_token' => 'Anda tidak terdaftar sebagai penerima undangan grup privat ini.',
-            ]);
+            // Fallback untuk undangan lama: jika notifikasi milik user memuat token grup ini,
+            // buat membership invited sebelum consent mengaktifkan member.
+            $member = $this->createInvitationMembershipFromNotification($user, $room, $inviteToken);
+
+            if (! $member) {
+                throw ValidationException::withMessages([
+                    'invite_token' => 'Anda tidak terdaftar sebagai penerima undangan grup privat ini.',
+                ]);
+            }
         }
 
         $this->guardMembershipReactivation($member);
@@ -474,6 +524,50 @@ class GroupChatMahasiswaController extends Controller
         }
 
         return $member;
+    }
+
+    private function createInvitationMembershipFromNotification(User $user, GroupChatRoom $room, ?string $inviteToken): ?GroupChatMember
+    {
+        if (! filled($inviteToken) || ! Schema::hasColumn('notifikasi', 'cta_target')) {
+            return null;
+        }
+
+        $hasInviteNotification = Notifikasi::query()
+            ->where('user_id', $user->id)
+            ->where(function ($query) use ($room, $inviteToken) {
+                $query->where('cta_target', 'like', '%' . $inviteToken . '%')
+                    ->orWhere('pesan', 'like', '%' . $room->title . '%');
+            })
+            ->exists();
+
+        if (! $hasInviteNotification) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($user, $room) {
+            $member = GroupChatMember::query()->firstOrNew([
+                'room_id' => $room->id,
+                'user_id' => $user->id,
+            ]);
+
+            $fill = [];
+
+            if (GroupChatSupport::supportsMembershipStatus()) {
+                $fill['membership_status'] = GroupChatMember::STATUS_INVITED;
+            }
+
+            if (GroupChatSupport::supportsMembershipLifecycleFields()) {
+                $fill['joined_via'] = 'notification_invite';
+                $fill['invited_by'] = $room->created_by;
+                $fill['removed_at'] = null;
+                $fill['removed_reason'] = null;
+            }
+
+            $member->fill($fill);
+            $member->save();
+
+            return GroupChatSupport::ensureMemberAlias($room, $member);
+        });
     }
 
     private function activateMembership(GroupChatRoom $room, User $user, string $joinedVia): GroupChatMember
@@ -556,10 +650,10 @@ class GroupChatMahasiswaController extends Controller
         if (GroupChatSupport::supportsMembershipStatus()) {
             $roomsQuery
                 ->withCount([
-                    'members as active_members_count' => fn ($query) => $query->where('membership_status', GroupChatMember::STATUS_ACTIVE),
+                    'members as active_members_count' => fn($query) => $query->where('membership_status', GroupChatMember::STATUS_ACTIVE),
                 ])
                 ->with([
-                    'members' => fn ($query) => $query
+                    'members' => fn($query) => $query
                         ->where('membership_status', GroupChatMember::STATUS_ACTIVE)
                         ->with('user.mahasiswa'),
                 ])
@@ -574,7 +668,7 @@ class GroupChatMahasiswaController extends Controller
                 ->with([
                     'members.user.mahasiswa',
                 ])
-                ->whereHas('members', fn ($query) => $query->where('user_id', $user->id));
+                ->whereHas('members', fn($query) => $query->where('user_id', $user->id));
         }
 
         $rooms = $roomsQuery->get()
@@ -609,7 +703,7 @@ class GroupChatMahasiswaController extends Controller
             ])
             ->where('user_id', $user->id)
             ->where('membership_status', GroupChatMember::STATUS_INVITED)
-            ->whereHas('room', fn ($query) => $query->where('is_active', true))
+            ->whereHas('room', fn($query) => $query->where('is_active', true))
             ->orderByDesc('updated_at')
             ->get();
 
@@ -630,7 +724,7 @@ class GroupChatMahasiswaController extends Controller
 
         if (GroupChatSupport::supportsMembershipStatus()) {
             $publicRoomsQuery->withCount([
-                'members as active_members_count' => fn ($query) => $query->where('membership_status', GroupChatMember::STATUS_ACTIVE),
+                'members as active_members_count' => fn($query) => $query->where('membership_status', GroupChatMember::STATUS_ACTIVE),
             ]);
         } else {
             $publicRoomsQuery->withCount('members');
@@ -679,10 +773,10 @@ class GroupChatMahasiswaController extends Controller
         if (GroupChatSupport::supportsMembershipStatus()) {
             $roomQuery
                 ->withCount([
-                    'members as active_members_count' => fn ($query) => $query->where('membership_status', GroupChatMember::STATUS_ACTIVE),
+                    'members as active_members_count' => fn($query) => $query->where('membership_status', GroupChatMember::STATUS_ACTIVE),
                 ])
                 ->with([
-                    'members' => fn ($query) => $query
+                    'members' => fn($query) => $query
                         ->where('membership_status', GroupChatMember::STATUS_ACTIVE)
                         ->with('user.mahasiswa'),
                 ])
@@ -697,7 +791,7 @@ class GroupChatMahasiswaController extends Controller
                 ->with([
                     'members.user.mahasiswa',
                 ])
-                ->whereHas('members', fn ($query) => $query->where('user_id', $user->id));
+                ->whereHas('members', fn($query) => $query->where('user_id', $user->id));
         }
 
         $room = $roomQuery->first();
@@ -712,130 +806,152 @@ class GroupChatMahasiswaController extends Controller
     }
 
     private function buildChatPayload(GroupChatRoom $room, array $messages, ?User $viewer = null): array
-{
-    return [
-        'roomId' => $room->id,
-        'isPrivate' => $room->isPrivate(),
-        'currentMemberName' => $viewer
-        ? $this->resolveRoomDisplayName(
-            $viewer,
-            $room,
-            GroupChatSupport::resolveRoomMember($viewer, $room)
-        )
-        : null,
-        'channel' => 'chat.group.' . $room->id,
-        'sendUrl' => route('mahasiswa.group-chat.store'),
-        'messagesUrl' => route('mahasiswa.group-chat.messages'),
-        'updateUrlTemplate' => route('mahasiswa.group-chat.update', ['message' => '__MESSAGE_ID__']),
-        'deleteUrlTemplate' => route('mahasiswa.group-chat.destroy', ['message' => '__MESSAGE_ID__']),
-        'roomTitle' => $room->title,
-        'roomDescription' => $room->description,
-        'topicLabel' => $room->topicLabel(),
-        'visibilityLabel' => $room->visibilityLabel(),
-        'memberCount' => (int) ($room->active_members_count ?? $room->members_count ?? $room->members->count()),
-        'memberNames' => $this->resolveMemberNames($room),
-        'memberProfiles' => $this->resolveMemberProfiles($room),
-        'rules' => GroupChatSupport::rules(),
-        'messages' => $messages,
-    ];
-}
-
-private function resolveRoomDisplayName(?User $user, GroupChatRoom $room, ?GroupChatMember $membership = null): string
-{
-    if (! $user) {
-        return 'Mahasiswa';
+    {
+        return [
+            'roomId' => $room->id,
+            'isPrivate' => $room->isPrivate(),
+            'currentMemberName' => $viewer
+                ? $this->resolveRoomDisplayName(
+                    $viewer,
+                    $room,
+                    GroupChatSupport::resolveRoomMember($viewer, $room)
+                )
+                : null,
+            'channel' => 'chat.group.' . $room->id,
+            'sendUrl' => route('mahasiswa.group-chat.store'),
+            'messagesUrl' => route('mahasiswa.group-chat.messages'),
+            'updateUrlTemplate' => route('mahasiswa.group-chat.update', ['message' => '__MESSAGE_ID__']),
+            'deleteUrlTemplate' => route('mahasiswa.group-chat.destroy', ['message' => '__MESSAGE_ID__']),
+            'roomTitle' => $room->title,
+            'roomDescription' => $room->description,
+            'counselorName' => $this->resolveCisCounselorName(),
+            'topicLabel' => $room->topicLabel(),
+            'visibilityLabel' => $room->visibilityLabel(),
+            'memberCount' => (int) ($room->active_members_count ?? $room->members_count ?? $room->members->count()),
+            'memberNames' => $this->resolveMemberNames($room),
+            'memberProfiles' => $this->resolveMemberProfiles($room),
+            'canLeave' => ! $room->isPrivate(),
+            'leaveUrl' => ! $room->isPrivate() ? route('mahasiswa.group-chat.leave', ['group' => $room->id]) : null,
+            'rules' => GroupChatSupport::rules(),
+            'messages' => $messages,
+        ];
     }
 
-    if ($room->isPrivate()) {
-        return trim((string) (
-            $user->nama
-            ?: $user->name
-            ?: $user->username_cis
-            ?: $user->email
-            ?: 'Mahasiswa'
-        ));
+    private function resolveRoomDisplayName(?User $user, GroupChatRoom $room, ?GroupChatMember $membership = null): string
+    {
+        if (! $user) {
+            return 'Mahasiswa';
+        }
+
+        if ($room->isPrivate()) {
+            return trim((string) (
+                $user->nama
+                ?: $user->name
+                ?: $user->username_cis
+                ?: $user->email
+                ?: 'Mahasiswa'
+            ));
+        }
+
+        return GroupChatSupport::resolveDisplayName($user, $room, $membership);
     }
 
-    return GroupChatSupport::resolveDisplayName($user, $room, $membership);
-}
-
-private function resolveRoomAvatarUrl(?User $user, GroupChatRoom $room, ?GroupChatMember $membership = null): string
-{
-    if ($room->isPrivate()) {
-        $name = trim((string) (
-            $user?->nama
-            ?: $user?->name
-            ?: $user?->username_cis
-            ?: $user?->email
-            ?: 'Mahasiswa'
-        ));
-
-        return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=d9f7e7&color=065f46';
+    private function resolveCisCounselorName(?User $user = null): string
+    {
+        // Nama konselor grup mengikuti environment CIS supaya tampil sama di grup privat dan publik.
+        return env(
+            'CIS_KONSELOR_NAME',
+            $user?->getNamaDisplay()
+                ?? $user?->nama
+                ?? $user?->name
+                ?? 'Konselor'
+        );
     }
 
-    return GroupChatSupport::resolveAvatarUrl();
-}
+    private function resolveRoomAvatarUrl(?User $user, GroupChatRoom $room, ?GroupChatMember $membership = null): string
+    {
+        if ($room->isPrivate()) {
+            $name = trim((string) (
+                $user?->nama
+                ?: $user?->name
+                ?: $user?->username_cis
+                ?: $user?->email
+                ?: 'Mahasiswa'
+            ));
 
-private function resolveMemberNames(GroupChatRoom $room): array
-{
-    return $room->members
-        ->sortBy(fn (GroupChatMember $member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
-        ->map(function (GroupChatMember $member) use ($room) {
-            return $this->resolveRoomDisplayName($member->user, $room, $member);
-        })
-        ->filter()
-        ->values()
-        ->all();
-}
+            return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=d9f7e7&color=065f46';
+        }
 
-private function resolveMemberProfiles(GroupChatRoom $room): array
-{
-    return $room->members
-        ->sortBy(fn (GroupChatMember $member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
-        ->map(function (GroupChatMember $member) use ($room) {
-            return [
-                'name' => $this->resolveRoomDisplayName($member->user, $room, $member),
-                'avatar_url' => $this->resolveRoomAvatarUrl($member->user, $room, $member),
-                'is_private' => $room->isPrivate(),
-            ];
-        })
-        ->filter(fn (array $member) => filled($member['name']))
-        ->values()
-        ->all();
-}
+        return GroupChatSupport::resolveAvatarUrl();
+    }
 
-private function transformMessage(GroupChatMessage $message, User $viewer, GroupChatRoom $room): array
-{
-    $message->loadMissing([
-        'sender.mahasiswa',
-    ]);
+    private function resolveMemberNames(GroupChatRoom $room): array
+    {
+        return $room->members
+            ->sortBy(fn(GroupChatMember $member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
+            ->map(function (GroupChatMember $member) use ($room) {
+                return $this->resolveRoomDisplayName($member->user, $room, $member);
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
 
-    $sender = $message->sender;
-    $membership = $sender ? GroupChatSupport::resolveRoomMember($sender, $room) : null;
+    private function resolveMemberProfiles(GroupChatRoom $room): array
+    {
+        return $room->members
+            ->sortBy(fn(GroupChatMember $member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
+            ->map(function (GroupChatMember $member) use ($room) {
+                return [
+                    'name' => $this->resolveRoomDisplayName($member->user, $room, $member),
+                    'avatar_url' => $this->resolveRoomAvatarUrl($member->user, $room, $member),
+                    'role' => $member->user?->role,
+                    'is_private' => $room->isPrivate(),
+                ];
+            })
+            ->filter(fn(array $member) => filled($member['name']))
+            ->values()
+            ->all();
+    }
 
-    $senderDisplayName = $sender
-    ? $this->resolveRoomDisplayName($sender, $room, $membership)
-    : 'Mahasiswa';
+    private function transformMessage(GroupChatMessage $message, User $viewer, GroupChatRoom $room): array
+    {
+        $message->loadMissing([
+            'sender.mahasiswa',
+        ]);
 
-    return [
-        'id' => $message->id,
-        'room_id' => $message->room_id,
-        'sender_id' => $message->user_id,
-        'sender_name' => $senderDisplayName,
-        'sender_anonymous_name' => $senderDisplayName,
-        'sender_role' => $sender?->role ?? 'pengguna',
-        'avatar_url' => $this->resolveRoomAvatarUrl($sender, $room, $membership),
-        'text' => $message->pesan,
-        'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
-        'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
-        'updated_at' => $this->toDisplayDateTime($message->updated_at)?->toIso8601String(),
-        'is_edited' => (bool) ($message->updated_at && $message->created_at && $message->updated_at->ne($message->created_at)),
-        'is_mine' => $message->user_id === $viewer->id,
-        'is_private_room' => $room->isPrivate(),
-    ];
-}   
+        $sender = $message->sender;
+        $membership = $sender ? GroupChatSupport::resolveRoomMember($sender, $room) : null;
 
-   private function clearGroupInviteNotification(User $user, GroupChatRoom $room): void
+        $senderRole = strtolower((string) ($sender?->role ?? 'pengguna'));
+        $isCounselorSender = in_array($senderRole, ['konselor', 'admin'], true);
+
+        $senderDisplayName = $isCounselorSender
+            ? $this->resolveCisCounselorName($sender)
+            : ($sender
+                ? $this->resolveRoomDisplayName($sender, $room, $membership)
+                : 'Mahasiswa');
+
+        return [
+            'id' => $message->id,
+            'room_id' => $message->room_id,
+            'sender_id' => $message->user_id,
+            'sender_name' => $senderDisplayName,
+            'sender_anonymous_name' => $senderDisplayName,
+            'sender_role' => $sender?->role ?? 'pengguna',
+            'is_counselor' => $isCounselorSender,
+            'avatar_url' => $this->resolveRoomAvatarUrl($sender, $room, $membership),
+            'text' => $message->pesan,
+            'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
+            'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
+            'updated_at' => $this->toDisplayDateTime($message->updated_at)?->toIso8601String(),
+            'is_edited' => (bool) ($message->updated_at && $message->created_at && $message->updated_at->ne($message->created_at)),
+            'is_mine' => $message->user_id === $viewer->id,
+            'is_private_room' => $room->isPrivate(),
+        ];
+    }
+
+    private function clearGroupInviteNotification(User $user, GroupChatRoom $room): void
     {
         $notifications = Notifikasi::where('user_id', $user->id)
             ->where(function ($q) use ($room) {
@@ -847,7 +963,10 @@ private function transformMessage(GroupChatMessage $message, User $viewer, Group
             })
             ->get();
 
-        $updateData = [];
+        // Setelah consent disetujui sekali, notifikasi lama menjadi link biasa ke grup terkait.
+        $updateData = [
+            'pesan' => 'Anda telah diundang ke grup "' . $room->title . '".',
+        ];
 
         if (Schema::hasColumn('notifikasi', 'cta_label')) {
             $updateData['cta_label'] = null;
@@ -857,7 +976,7 @@ private function transformMessage(GroupChatMessage $message, User $viewer, Group
             $updateData['cta_target'] = route('mahasiswa.group-chat.room', $room->id);
         }
 
-        if (empty($updateData) || $notifications->isEmpty()) {
+        if ($notifications->isEmpty()) {
             return;
         }
 

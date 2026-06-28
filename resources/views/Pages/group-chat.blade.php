@@ -274,20 +274,6 @@
     color: #0f172a;
   }
 
-  .group-topic-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    padding: .28rem .58rem;
-    border-radius: 999px;
-    background: #e8fff1;
-    color: #047857;
-    font-size: .67rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-  }
-
   .group-my-meta {
     color: #64748b;
     font-size: .8rem;
@@ -343,6 +329,15 @@
     place-items: center;
     color: #047857;
     font-size: .95rem;
+  }
+
+  .group-member-animal {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    font-size: 1.15rem;
+    background: #ecfdf5;
   }
 
   .group-member-text {
@@ -521,14 +516,57 @@
 
                       return $memberUser?->getAnonimAvatarSvg();
                   };
+
+                  $animalIcon = function ($name) {
+                      $name = strtolower((string) $name);
+                      $icons = [
+                          'lobster' => '🦞',
+                          'kanguru' => '🦘',
+                          'gajah' => '🐘',
+                          'serigala' => '🐺',
+                          'kuda' => '🐴',
+                          'zebra' => '🦓',
+                          'badak' => '🦏',
+                          'jerapah' => '🦒',
+                          'bison' => '🦬',
+                          'paus' => '🐋',
+                          'hiu' => '🦈',
+                          'gurita' => '🐙',
+                          'kepiting' => '🦀',
+                          'penyu' => '🐢',
+                          'elang' => '🦅',
+                          'flamingo' => '🦩',
+                          'bebek' => '🦆',
+                          'kupu' => '🦋',
+                          'kelelawar' => '🦇',
+                          'landak' => '🦔',
+                          'beruang' => '🐻',
+                          'kucing' => '🐱',
+                          'kelinci' => '🐰',
+                          'rubah' => '🦊',
+                          'panda' => '🐼',
+                          'koala' => '🐨',
+                          'harimau' => '🐯',
+                          'singa' => '🦁',
+                          'anjing' => '🐶',
+                          'burung' => '🐦',
+                          'kura' => '🐢',
+                      ];
+
+                      foreach ($icons as $keyword => $icon) {
+                          if (str_contains($name, $keyword)) {
+                              return $icon;
+                          }
+                      }
+
+                      return '🐾';
+                  };
                 @endphp
                 <a href="{{ route('mahasiswa.group-chat.room', ['group' => $room->id]) }}" class="group-my-item">
                   <div class="group-my-item-top">
                     <div>
                       <h3 class="group-my-name">{{ $room->title }}</h3>
-                      <span class="group-topic-pill">{{ $room->topicLabel() }}</span>
                     </div>
-                    <span class="group-card-badge">{{ $room->members_count }} anggota</span>
                   </div>
 
                   <div class="group-my-meta">
@@ -545,7 +583,9 @@
                           @endphp
 
                           <div class="group-member-avatar">
-                            @if($memberAvatar)
+                            @if(! $isPrivateRoom)
+                              <div class="group-member-animal" title="{{ $memberName }}">{{ $animalIcon($memberName) }}</div>
+                            @elseif($memberAvatar)
                               <img src="{{ $memberAvatar }}" alt="{{ $memberName }}">
                             @else
                               <div class="group-member-fallback">

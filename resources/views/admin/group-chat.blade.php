@@ -20,7 +20,7 @@
 <style>
   /* Shell group chat dikunci ke viewport admin supaya scroll luar tidak muncul. */
   .pc-content {
-      padding: .75rem !important;
+      padding: .55rem .75rem .75rem !important;
       height: calc(100vh - 70px);
       overflow: hidden;
   }
@@ -39,7 +39,7 @@
 
   .admin-breadcrumb {
       flex-shrink: 0;
-      margin: 0 0 .5rem !important;
+      margin: 0 0 .55rem !important;
       padding: 0 !important;
   }
 
@@ -56,7 +56,8 @@
       width: 100%;
       min-height: 0;
       flex: 1;
-      height: auto;
+      height: 100%;
+      align-self: stretch;
       background: #fff;
       border: 1px solid #dceee4;
       border-radius: 20px;
@@ -319,6 +320,28 @@
     line-height: 1.6;
   }
 
+  .admin-picker-validation {
+    display: none;
+    margin-top: .48rem;
+    padding: .52rem .68rem;
+    border: 1px solid #fed7aa;
+    border-radius: 10px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: .68rem;
+    font-weight: 800;
+    line-height: 1.45;
+  }
+
+  .admin-student-picker.is-invalid .admin-student-picker-input {
+    border-color: #fb923c;
+    box-shadow: 0 0 0 4px rgba(251, 146, 60, .12);
+  }
+
+  .admin-student-picker.is-invalid .admin-picker-validation {
+    display: block;
+  }
+
   .admin-student-picker {
     position: relative;
     margin-top: .7rem;
@@ -327,6 +350,12 @@
 
   .admin-student-picker-create {
     z-index: 28;
+  }
+
+  .admin-private-create .admin-student-picker,
+  .admin-profile-section .admin-student-picker {
+    position: relative;
+    overflow: visible;
   }
 
   .admin-student-picker-tags {
@@ -407,6 +436,15 @@
 
   .admin-student-picker-create .admin-student-results {
     top: calc(100% + .45rem);
+  }
+
+  /* Hasil pencarian di panel kiri/kanan dibuat ikut flow agar tidak terpotong batas scroll card. */
+  .admin-private-create .admin-student-results,
+  .admin-profile-section .admin-student-results {
+    position: static;
+    margin-top: .45rem;
+    max-height: min(190px, 28vh);
+    box-shadow: inset 0 0 0 1px rgba(219, 236, 227, .82);
   }
 
   .admin-student-result {
@@ -959,8 +997,8 @@
   }
 
   .admin-member-animal-avatar {
-      width: 34px;
-      height: 34px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       background: #dcfce7;
       border: 2px solid #ffffff;
@@ -968,7 +1006,7 @@
       align-items: center;
       justify-content: center;
       color: var(--admin-accent);
-      font-size: .72rem;
+      font-size: .66rem;
       font-weight: 900;
       box-shadow: 0 6px 14px rgba(15, 118, 110, 0.12);
       flex-shrink: 0;
@@ -1259,7 +1297,7 @@
     position: absolute;
     top: calc(100% + .65rem);
     right: 0;
-    width: 320px;
+    width: 292px;
     max-width: calc(100vw - 2rem);
     max-height: 0;
     display: flex;
@@ -1277,14 +1315,14 @@
   }
 
   .admin-chat-stage.is-profile-open .admin-chat-profile {
-    max-height: min(620px, 78vh);
+    max-height: min(560px, calc(100vh - 132px));
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
   }
 
   .admin-chat-profile-head {
-    padding: 1rem 1.1rem .85rem;
+    padding: .82rem .9rem .72rem;
     border-bottom: 1px solid #edf7f1;
     background: #f6faf8;
     position: sticky;
@@ -1294,8 +1332,8 @@
   }
 
   .admin-chat-profile-head h3 {
-    margin: 0 0 .28rem;
-    font-size: .98rem;
+    margin: 0 0 .18rem;
+    font-size: .88rem;
     font-weight: 800;
     color: #0f172a;
   }
@@ -1303,42 +1341,44 @@
   .admin-chat-profile-head p {
     margin: 0;
     color: #4b7a68;
-    font-size: .84rem;
-    line-height: 1.6;
+    font-size: .75rem;
+    line-height: 1.5;
   }
 
   .admin-chat-profile-body {
-    padding: .95rem 1.1rem 1.35rem;
+    padding: .78rem .9rem 1.35rem;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    max-height: min(510px, 66vh);
+    max-height: none;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
   }
 
   .admin-profile-section {
-    margin-top: 1.35rem;
-    padding-top: 1.2rem;
-    padding-bottom: .9rem;
+    margin-top: 1rem;
+    padding-top: .95rem;
+    padding-bottom: 1.05rem;
     border-top: 1px solid #edf7f1;
   }
 
   .admin-profile-section form {
     display: grid;
-    gap: .9rem;
+    gap: .68rem;
   }
 
   .admin-profile-section h4 {
-    margin: 0 0 .28rem;
+    margin: 0 0 .18rem;
     color: #0f172a;
-    font-size: .86rem;
+    font-size: .78rem;
     font-weight: 800;
   }
 
   .admin-profile-section p {
-    margin: 0 0 .8rem;
+    margin: 0 0 .62rem;
     color: #64748b;
-    font-size: .76rem;
-    line-height: 1.6;
+    font-size: .69rem;
+    line-height: 1.5;
   }
 
   .admin-profile-section .admin-inline-note {
@@ -1346,38 +1386,78 @@
   }
 
   .admin-profile-section .admin-create-actions {
-    margin-top: .7rem;
-    padding-bottom: .75rem;
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin: .68rem -.9rem -1.35rem;
+    padding: .62rem .9rem .92rem;
+    background:
+      linear-gradient(180deg, rgba(251, 253, 252, 0), rgba(251, 253, 252, .96) 30%, #fbfdfc 100%);
+    border-radius: 0 0 16px 16px;
+  }
+
+  .admin-profile-section .admin-student-picker-input {
+    border-radius: 11px;
+    padding: .58rem .72rem;
+    font-size: .74rem;
+    margin-top: .32rem;
+  }
+
+  .admin-profile-section .admin-student-results {
+    max-height: min(210px, 30vh);
+    border-radius: 12px;
+  }
+
+  .admin-profile-section .admin-student-result {
+    padding: .58rem .72rem;
+  }
+
+  .admin-profile-section .admin-student-result strong {
+    font-size: .72rem;
+  }
+
+  .admin-profile-section .admin-student-result span,
+  .admin-profile-section .admin-student-empty,
+  .admin-profile-section .admin-student-loading {
+    font-size: .68rem;
+  }
+
+  .admin-profile-section .admin-create-btn {
+    min-height: 34px;
+    border-radius: 11px;
+    padding: .52rem .78rem;
+    font-size: .72rem;
+    box-shadow: 0 10px 18px rgba(6, 95, 70, .16);
   }
 
   .admin-member-search {
     position: relative;
-    margin-bottom: .9rem;
+    margin-bottom: .7rem;
     position: sticky;
     top: 0;
     z-index: 2;
-    padding-bottom: .65rem;
+    padding-bottom: .5rem;
     background: #fbfdfc;
   }
 
   .admin-member-search i {
     position: absolute;
-    left: .82rem;
+    left: .72rem;
     top: 50%;
     transform: translateY(-50%);
     color: #94a3b8;
-    font-size: .95rem;
+    font-size: .84rem;
     pointer-events: none;
   }
 
   .admin-member-search input {
     width: 100%;
     border: 1px solid #dbece3;
-    border-radius: 13px;
-    padding: .68rem .85rem .68rem 2.35rem;
+    border-radius: 11px;
+    padding: .54rem .72rem .54rem 2.05rem;
     background: #fff;
     color: #0f172a;
-    font-size: .84rem;
+    font-size: .74rem;
     outline: none;
   }
 
@@ -1388,21 +1468,21 @@
 
   .admin-member-list {
     display: grid;
-    gap: .58rem;
+    gap: .42rem;
     padding-right: .15rem;
-    padding-bottom: .35rem;
+    padding-bottom: .25rem;
   }
 
   .admin-member-avatar-fallback {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: #b7ebc9;
     color: #065f46;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: .9rem;
+    font-size: .76rem;
     font-weight: 800;
     flex-shrink: 0;
 }
@@ -1411,8 +1491,8 @@
   .admin-member-item {
     display: flex;
     align-items: center;
-    gap: .72rem;
-    padding: .3rem 0;
+    gap: .58rem;
+    padding: .24rem 0;
   }
 
   .admin-member-item-content {
@@ -1421,8 +1501,8 @@
   }
 
   .admin-member-avatar {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
@@ -1439,7 +1519,7 @@
   }
 
   .admin-member-name {
-    font-size: .92rem;
+    font-size: .8rem;
     font-weight: 800;
     color: #0f172a;
     line-height: 1.35;
@@ -1713,11 +1793,9 @@
 
         <div class="admin-create-actions">
           <button type="button" class="admin-copy-link" id="adminPrivateGroupCancelBtn">
-            <i class="ti ti-x"></i>
             <span>Batal</span>
           </button>
           <button type="submit" class="admin-create-btn">
-            <i class="ti ti-lock-plus"></i>
             <span>Buat Grup Privat</span>
           </button>
         </div>
@@ -1866,11 +1944,9 @@
                     <div class="admin-inline-note">Gunakan nama grup yang singkat dan mudah dipahami anggota.</div>
                     <div class="admin-room-rename-actions">
                       <button type="button" class="admin-copy-link" id="adminRoomRenameCancelBtn">
-                        <i class="ti ti-x"></i>
                         <span>Batal</span>
                       </button>
                       <button type="submit" class="admin-create-btn">
-                        <i class="ti ti-check"></i>
                         <span>Simpan Nama</span>
                       </button>
                     </div>
@@ -1917,7 +1993,7 @@
 
                       <form action="{{ route('admin.group-chat.rooms.invite', ['group' => $activeRoom->id]) }}" method="POST">
                         @csrf
-                        <div class="admin-student-picker" data-student-picker data-hidden-input-name="invite_nims" data-room-id="{{ $activeRoom->id }}">
+                        <div class="admin-student-picker" data-student-picker data-hidden-input-name="invite_nims" data-room-id="{{ $activeRoom->id }}" data-require-selection="true" data-picker-validation-message="Belum ada anggota yang Anda pilih.">
                           <div class="admin-student-picker-tags is-empty" data-picker-tags></div>
                           <input
                             type="search"
@@ -1928,6 +2004,7 @@
                           >
                           <div class="admin-student-results" data-picker-results></div>
                           <input type="hidden" name="invite_nims" value="" data-picker-hidden>
+                          <div class="admin-picker-validation" data-picker-validation>Belum ada anggota yang Anda pilih.</div>
                         </div>
                         <div class="admin-create-actions">
                           <button type="submit" class="admin-create-btn">
@@ -2134,7 +2211,11 @@ window.adminGroupChatAliasInitials = (name) => {
     const inputEl = root.querySelector('[data-picker-input]');
     const resultsEl = root.querySelector('[data-picker-results]');
     const hiddenEl = root.querySelector('[data-picker-hidden]');
+    const formEl = root.closest('form');
+    const validationEl = root.querySelector('[data-picker-validation]');
     const roomId = String(root.dataset.roomId || '').trim();
+    const requiresSelection = root.dataset.requireSelection === 'true';
+    const validationMessage = root.dataset.pickerValidationMessage || 'Belum ada anggota yang Anda pilih.';
 
     if (!tagsEl || !inputEl || !resultsEl || !hiddenEl) {
       return;
@@ -2146,6 +2227,15 @@ window.adminGroupChatAliasInitials = (name) => {
     let latestResults = [];
     let activeRequestController = null;
     let activeRequestSequence = 0;
+
+    const setPickerValidation = (message = '') => {
+      root.classList.toggle('is-invalid', Boolean(message));
+      inputEl.setCustomValidity(message);
+
+      if (validationEl) {
+        validationEl.textContent = message || validationMessage;
+      }
+    };
 
     const eventCameFrom = (event, element) => {
       if (!event || !element) {
@@ -2161,6 +2251,10 @@ window.adminGroupChatAliasInitials = (name) => {
 
     const syncHiddenValue = () => {
       hiddenEl.value = items.map((item) => item.nim).join(',');
+
+      if (items.length > 0) {
+        setPickerValidation('');
+      }
     };
 
     const renderTags = () => {
@@ -2352,6 +2446,7 @@ window.adminGroupChatAliasInitials = (name) => {
     };
 
     inputEl.addEventListener('input', () => {
+      setPickerValidation('');
       const nim = normalizeKeyword(inputEl.value);
 
       if (inputEl.value !== nim) {
@@ -2375,6 +2470,17 @@ window.adminGroupChatAliasInitials = (name) => {
       if (!eventCameFrom(event, root)) {
         closeResults();
       }
+    });
+
+    formEl?.addEventListener('submit', (event) => {
+      if (!requiresSelection || String(hiddenEl.value || '').trim() !== '') {
+        return;
+      }
+
+      event.preventDefault();
+      setPickerValidation(validationMessage);
+      inputEl.focus();
+      inputEl.reportValidity();
     });
 
     hydrateInitialTags();
@@ -3155,19 +3261,6 @@ syncGroupList();
           },
           body: JSON.stringify({ pesan }),
         });
-
-        const data = await response.json();
-        hint.textContent = response.ok && data.success
-          ? 'Pesan berhasil diedit.'
-          : (data.message ?? 'Pesan gagal diedit.');
-
-        if (response.ok && data.success) {
-          syncMessages(true);
-        }
-      } catch (error) {
-        console.error(error);
-        hint.textContent = 'Terjadi kendala saat mengedit pesan.';
-      }
 
       return;
     }

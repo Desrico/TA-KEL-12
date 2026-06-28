@@ -32,7 +32,7 @@
 <style>
   /* Shell chat dikunci ke viewport admin supaya scroll luar tidak muncul. */
   .pc-content {
-    padding: .75rem !important;
+    padding: .55rem .75rem .75rem !important;
     height: calc(100vh - 70px);
     overflow: hidden;
   }
@@ -51,7 +51,7 @@
 
   .admin-breadcrumb {
     flex-shrink: 0;
-    margin: 0 0 .5rem !important;
+    margin: 0 0 .55rem !important;
     padding: 0 !important;
   }
 
@@ -61,8 +61,9 @@
     gap: 0;
     width: 100%;
     flex: 1;
-    height: auto;
+    height: 100%;
     min-height: 0;
+    align-self: stretch;
     background: #fff;
     border: 1px solid #dceee4;
     border-radius: 20px;
@@ -1832,11 +1833,6 @@ if (form && input && sendBtn && canSendMessage) {
           },
           body: JSON.stringify({ pesan }),
         });
-
-        const data = await response.json();
-        hint.textContent = response.ok && data.success
-          ? 'Pesan berhasil diedit.'
-          : (data.message ?? 'Pesan gagal diedit.');
 
         if (response.ok && data.success) {
           syncMessages(true);

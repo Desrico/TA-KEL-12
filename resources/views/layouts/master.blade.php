@@ -166,6 +166,8 @@
     overscroll-behavior: contain;
     background: var(--white);
     z-index: 2051;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(6, 95, 70, .35) transparent;
   }
 
   .notif-dropdown.show {
@@ -188,9 +190,15 @@
 
   .notif-item {
     display: block;
-    padding: .7rem 1rem;
+    padding: .8rem 1rem;
     text-decoration: none;
-    border-top: 1px solid #F1F5F9;
+    border: none;
+    border-bottom: 1px solid rgba(221, 239, 231, .7);
+    text-align: left;
+  }
+
+  .notif-item:last-child {
+    border-bottom: none;
   }
 
   .notif-item:hover {
@@ -202,6 +210,7 @@
     font-size: .84rem;
     color: var(--text-dark);
     line-height: 1.45;
+    text-align: left;
   }
 
   .notif-unread {
@@ -233,6 +242,242 @@
     cursor: pointer;
   }
 
+  .group-consent-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.32);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+  }
+
+  .group-consent-modal.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .group-consent-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, .35);
+  }
+
+  .group-consent-dialog {
+    position: relative;
+    width: min(760px, calc(100vw - 2rem));
+    max-height: calc(100vh - 2rem);
+    overflow: hidden;
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px solid rgba(209, 250, 229, 0.95);
+    box-shadow: 0 32px 90px rgba(15, 23, 42, .16);
+    z-index: 1;
+  }
+
+  .group-consent-body {
+    padding: .78rem 1rem 1rem;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, .9fr);
+    grid-template-areas:
+      "copy copy"
+      "info rules"
+      "form form";
+    gap: .68rem;
+  }
+
+  .group-consent-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .78rem 1rem .5rem;
+    background: linear-gradient(135deg, #f8fffb 0%, #ecfdf5 100%);
+  }
+
+  .group-consent-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    color: #047857;
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    width: fit-content;
+    padding: .42rem .72rem;
+    border-radius: 999px;
+    background: #ecfdf5;
+  }
+
+  .group-consent-close {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 999px;
+    background: #f8faf9;
+    color: #065f46;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    cursor: pointer;
+  }
+
+  .group-consent-copy h1 {
+    margin: 0;
+    font-size: clamp(1.18rem, 1.8vw, 1.48rem);
+    font-weight: 900;
+    color: #064e3b;
+    line-height: 1.15;
+  }
+
+  .group-consent-copy p {
+    margin: .42rem 0 0;
+    color: #475569;
+    line-height: 1.42;
+    max-width: 690px;
+    font-size: .84rem;
+  }
+
+  .group-consent-copy {
+    grid-area: copy;
+  }
+
+  .group-consent-info {
+    grid-area: info;
+    margin: 0;
+    padding: .75rem;
+    border-radius: 14px;
+    background: #fbfffd;
+    border: 1px solid #dbece3;
+  }
+
+  .group-consent-info h3 {
+    margin: 0 0 .6rem;
+    color: #064e3b;
+    font-size: .92rem;
+    font-weight: 900;
+  }
+
+  .group-consent-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .65rem;
+  }
+
+  .group-consent-info-grid > div {
+    min-width: 0;
+  }
+
+  .group-consent-info strong {
+    display: block;
+    margin-bottom: .45rem;
+    color: #047857;
+    font-size: .72rem;
+    line-height: 1.35;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .group-consent-info p {
+    margin: 0;
+    color: #334155;
+    line-height: 1.45;
+    font-size: .8rem;
+    font-weight: 800;
+  }
+
+  .group-consent-rules-card {
+    grid-area: rules;
+    border-radius: 14px;
+    padding: .75rem .88rem;
+    background: #f8fffb;
+    border: 1px solid #dbece3;
+  }
+
+  .group-consent-rules-card h3 {
+    margin: 0 0 .55rem;
+    font-size: .92rem;
+    font-weight: 900;
+    color: #064e3b;
+  }
+
+  .group-consent-rules-card ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: #475569;
+    line-height: 1.38;
+    font-size: .8rem;
+  }
+
+  .group-consent-rules-card li + li {
+    margin-top: .22rem;
+  }
+
+  .group-consent-form {
+    grid-area: form;
+  }
+
+  .group-consent-checkbox {
+    margin-top: 0;
+  }
+
+  .group-consent-checkbox label {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .9rem;
+    align-items: flex-start;
+    padding: .64rem .8rem;
+    border-radius: 12px;
+    border: 1px solid #d1fae5;
+    background: #f8faf9;
+    color: #0f172a;
+    font-size: .82rem;
+    line-height: 1.38;
+  }
+
+  .group-consent-checkbox input {
+    width: 19px;
+    height: 19px;
+    margin-top: .15rem;
+    accent-color: #059669;
+  }
+
+  .group-consent-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem;
+    margin-top: .65rem;
+  }
+
+  .group-consent-submit {
+    border-radius: 13px;
+    min-height: 40px;
+    padding: .62rem 1rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+  }
+
+  .group-consent-submit {
+    border: none;
+    color: #ffffff;
+    background: linear-gradient(135deg, #065f46, #10b981);
+  }
+
+  .group-consent-submit:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
   .notif-tag {
     display: inline-flex;
     align-items: center;
@@ -246,6 +491,60 @@
     font-weight: 800;
     letter-spacing: .04em;
     text-transform: uppercase;
+    text-align: left;
+  }
+
+  @media (max-width: 860px) {
+    .group-consent-modal {
+      align-items: flex-start;
+      padding: .85rem;
+    }
+
+    .group-consent-dialog {
+      width: 100%;
+      max-height: calc(100vh - 1.7rem);
+      overflow-y: auto;
+      border-radius: 18px;
+    }
+
+    .group-consent-body {
+      display: block;
+      padding: .95rem;
+    }
+
+    .group-consent-info {
+      grid-template-columns: 1fr;
+      margin: .85rem 0;
+    }
+
+    .group-consent-info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .group-consent-rules-card {
+      margin-bottom: .85rem;
+    }
+  }
+
+  @media (max-height: 720px) {
+    .group-consent-modal {
+      align-items: flex-start;
+      padding: .7rem;
+    }
+
+    .group-consent-dialog {
+      max-height: calc(100vh - 1.4rem);
+      overflow-y: auto;
+    }
+
+    .group-consent-head {
+      padding: .65rem .85rem .45rem;
+    }
+
+    .group-consent-body {
+      padding: .62rem .85rem .85rem;
+      gap: .55rem;
+    }
   }
 
   .letter-modal {
@@ -2168,6 +2467,8 @@ footer a:hover {
                 ->where('status', 'belum')
                 ->count();
 
+              $notificationViewer = Auth::user();
+
               $notifItems = Auth::user()
                   ->notifikasi()
                   ->latest()
@@ -2196,7 +2497,7 @@ footer a:hover {
                   ];
               });
 
-              $notifItems = $notifItems->map(function ($notif) use ($jadwalById, $jadwalByApprovedMessage, $chatGuardBlocked, $nextOnlineChatSchedule) {
+              $notifItems = $notifItems->map(function ($notif) use ($jadwalById, $jadwalByApprovedMessage, $chatGuardBlocked, $nextOnlineChatSchedule, $notificationViewer) {
                 $pesan = $notif->pesan;
                 $notif->cta_target = $notif->cta_target ?: route('riwayat');
                 $notif->cta_label = $notif->cta_label ?: null;
@@ -2206,20 +2507,46 @@ footer a:hover {
                 $notif->prompt_cta = null;
                 $notif->prompt_note = null;
                 $notif->prompt_locked = false;
-                // comment: Notifikasi undangan grup privat dipertahankan sebagai CTA langsung ke halaman consent grup.
                 $notif->is_group_invite = filled($notif->cta_target) && str_contains((string) $notif->cta_target, '/group-chat/undangan/');
                 if ($notif->is_group_invite) {
-                  // comment: Label notifikasi lama dinormalisasi agar undangan grup privat selalu tampil konsisten.
+                  $invitePath = parse_url((string) $notif->cta_target, PHP_URL_PATH) ?: '';
+                  $inviteToken = basename($invitePath);
+                  $inviteRoom = $inviteToken
+                    ? \App\Models\GroupChatRoom::query()
+                        ->where('invite_token', $inviteToken)
+                        ->where('visibility', \App\Models\GroupChatRoom::VISIBILITY_PRIVATE)
+                        ->where('is_active', true)
+                        ->first()
+                    : null;
+                  $inviteMembership = $inviteRoom
+                    ? \App\Support\GroupChatSupport::resolveRoomMember($notificationViewer, $inviteRoom)
+                    : null;
+                  $alreadyJoinedInvite = $inviteRoom && $inviteMembership && (
+                    ! \App\Support\GroupChatSupport::supportsMembershipStatus()
+                    || $inviteMembership->membership_status === \App\Models\GroupChatMember::STATUS_ACTIVE
+                  );
+
+                  // Jika consent sudah pernah disetujui, notifikasi tidak lagi membuka modal consent.
+                  if ($alreadyJoinedInvite) {
+                    $notif->is_group_invite = false;
+                    $notif->cta_target = route('mahasiswa.group-chat.room', ['group' => $inviteRoom->id]);
+                    $notif->cta_label = null;
+                    $notif->pesan = 'Anda telah diundang ke grup "' . $inviteRoom->title . '".';
+
+                    return $notif;
+                  }
+
                   $notif->cta_label = 'Buka Undangan Grup';
-                  $notif->is_letter_prompt = true;
-                  $notif->prompt_title = 'Undangan Grup Privat';
-                  $notif->prompt_message = 'Anda telah diundang ke grup privat ini. Klik tombol untuk melihat peraturan dan bergabung.';
-                  $notif->prompt_cta = 'Setuju dan Gabung Grup';
-                  $notif->prompt_note = 'Setelah bergabung, Anda akan langsung diarahkan ke ruang grup privat.';
-                  $notif->prompt_locked = false;
-                  $inviteTokenParts = explode('/', (string) $notif->cta_target);
-                  $notif->letter_hidden_fields = json_encode(['invite_token' => end($inviteTokenParts)]);
-                  $notif->letter_action = route('mahasiswa.group-chat.join');
+                  $notif->group_invite_group_name = $inviteRoom?->title ?: 'Grup Privat';
+                  if (preg_match('/Anda telah diundang ke grup "(.+?)"/i', $pesan, $matches)) {
+                      $notif->group_invite_group_name = $matches[1];
+                  }
+                  $notif->group_invite_title = 'Undangan ke grup privat "' . $notif->group_invite_group_name . '"';
+                  $notif->group_invite_message = 'Pastikan Anda memahami identitas yang tampil, tujuan grup, dan aturan komunikasi sebelum bergabung.';
+                  $notif->group_invite_inviter_name = 'Konselor';
+                  $notif->group_invite_identity_visibility = 'Nama asli Anda akan ditampilkan kepada anggota grup privat ini.';
+                  $notif->group_invite_token = $inviteToken;
+                  $notif->group_invite_hidden_fields = json_encode(['invite_token' => $inviteToken]);
                 }
                 $notifText = strtolower((string) $pesan);
                 $matchedApprovedJadwal = $jadwalByApprovedMessage->get($pesan);
@@ -2426,7 +2753,26 @@ footer a:hover {
           <div class="dropdown-menu dropdown-menu-end notif-dropdown" aria-labelledby="notifDropdownBtn">
             <div class="notif-header">Notifikasi</div>
             @forelse($notifItems as $notif)
-              @if(!empty($notif->is_letter_prompt))
+              @if(!empty($notif->is_group_invite))
+              <button
+                type="button"
+                class="notif-item notif-readable notif-group-invite {{ $notif->status === 'dibaca' ? 'notif-read' : 'notif-unread' }}"
+                data-read-url="{{ route('notifikasi.baca', $notif->id) }}"
+                data-read="{{ $notif->status === 'dibaca' ? '1' : '0' }}"
+                data-group-invite="1"
+                data-group-title="{{ $notif->group_invite_title }}"
+                data-group-description="{{ $notif->group_invite_message }}"
+                data-group-name="{{ $notif->group_invite_group_name }}"
+                data-group-inviter="{{ $notif->group_invite_inviter_name }}"
+                data-group-visibility="{{ $notif->group_invite_identity_visibility }}"
+                data-group-invite-token="{{ $notif->group_invite_token ?? '' }}"
+                data-group-invite-hidden="{{ $notif->group_invite_hidden_fields ?? '' }}"
+              >
+                <p>{{ $notif->pesan }}</p>
+                <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
+                <span class="notif-tag"><i class="bi bi-shield-check"></i> Buka Undangan Grup</span>
+              </button>
+            @elseif(!empty($notif->is_letter_prompt))
               <button
                 type="button"
                 class="notif-item notif-readable notif-item-trigger {{ $notif->status === 'dibaca' ? 'notif-read' : 'notif-unread' }}"
@@ -2444,7 +2790,7 @@ footer a:hover {
                 <span class="notif-time">{{ $notif->created_at?->diffForHumans() ?? 'Baru saja' }}</span>
                 <span class="notif-tag"><i class="bi bi-envelope-paper-heart"></i> Buka Undangan</span>
               </button>
-              @else
+            @else
               <a
                     href="{{ $notif->cta_target ?? route('riwayat') }}"
                     class="notif-item notif-readable {{ $notif->status === 'dibaca' ? 'notif-read' : 'notif-unread' }}"
@@ -2647,6 +2993,79 @@ footer a:hover {
         </div>
         <div class="envelope-helper">Gerakkan kursor atau ketuk amplop untuk membuka pesanmu.</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="group-consent-modal" id="groupConsentModal" aria-hidden="true">
+  <div class="group-consent-backdrop" data-group-consent-close></div>
+  <div class="group-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="groupConsentTitle">
+    <div class="group-consent-head">
+      <div class="group-consent-label">
+        <i class="bi bi-shield-check"></i>
+        <span>Persetujuan Grup</span>
+      </div>
+      <button type="button" class="group-consent-close" data-group-consent-close aria-label="Tutup">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="group-consent-body">
+      <div class="group-consent-copy">
+        <h1 id="groupConsentTitle">Undangan ke grup privat</h1>
+        <p id="groupConsentDescription">Pastikan Anda memahami identitas yang tampil, tujuan grup, dan aturan komunikasi sebelum bergabung.</p>
+      </div>
+      <div class="group-consent-info">
+        <h3>Informasi Undangan</h3>
+        <div class="group-consent-info-grid">
+          <div>
+            <strong>Nama Grup</strong>
+            <p id="groupConsentGroupName">Grup Privat</p>
+          </div>
+          <div>
+            <strong>Pengundang</strong>
+            <p id="groupConsentInviterName">Konselor</p>
+          </div>
+          <div>
+            <strong>Visibilitas Identitas</strong>
+            <p id="groupConsentIdentityVisibility">Nama asli Anda akan ditampilkan.</p>
+          </div>
+        </div>
+      </div>
+      <div class="group-consent-rules-card">
+        <h3>Aturan Sebelum Bergabung</h3>
+        <ul>
+          <li>Gunakan grup ini untuk diskusi yang relevan dengan tujuan konseling.</li>
+          <li>Jangan spam atau mengirim pesan yang mengganggu anggota lain.</li>
+          <li>Gunakan bahasa yang sopan, tanpa kata-kata kasar atau menghina.</li>
+          <li>Jaga privasi isi percakapan dan identitas anggota grup.</li>
+        </ul>
+      </div>
+      <form id="groupConsentForm" class="group-consent-form" method="POST" action="{{ route('mahasiswa.group-chat.join') }}">
+        @csrf
+        <input type="hidden" name="invite_token" id="groupConsentInviteToken" value="">
+        <input type="hidden" name="consent_version" value="{{ \App\Support\GroupChatSupport::consentVersion() }}">
+        <div id="groupConsentHiddenFields" hidden></div>
+        <div class="group-consent-checkbox">
+          <label for="groupConsentCheckbox">
+            <input
+              type="checkbox"
+              id="groupConsentCheckbox"
+              name="consent_acknowledged"
+              value="1"
+              required
+              onchange="document.getElementById('groupConsentSubmit').disabled = !this.checked;"
+              onclick="document.getElementById('groupConsentSubmit').disabled = !this.checked;"
+            >
+            Saya memahami bahwa grup privat ini akan menampilkan nama asli saya kepada anggota grup dan konselor, dan saya setuju untuk bergabung.
+          </label>
+        </div>
+        <div class="group-consent-actions">
+          <button type="submit" class="group-consent-submit" id="groupConsentSubmit" disabled>
+            <i class="bi bi-check2-circle"></i>
+            <span>Setuju dan Gabung Grup</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -2891,8 +3310,31 @@ const scheduleGuardMessage = document.getElementById('scheduleGuardMessage');
 let envelopeSurpriseTimer = null;
 let envelopeGreetingTimer = null;
 
+const groupConsentModal = document.getElementById('groupConsentModal');
+const groupConsentForm = document.getElementById('groupConsentForm');
+const groupConsentTitle = document.getElementById('groupConsentTitle');
+const groupConsentDescription = document.getElementById('groupConsentDescription');
+const groupConsentGroupName = document.getElementById('groupConsentGroupName');
+const groupConsentInviterName = document.getElementById('groupConsentInviterName');
+const groupConsentIdentityVisibility = document.getElementById('groupConsentIdentityVisibility');
+const groupConsentInviteToken = document.getElementById('groupConsentInviteToken');
+const groupConsentCheckbox = document.getElementById('groupConsentCheckbox');
+const groupConsentSubmit = document.getElementById('groupConsentSubmit');
+const groupConsentHiddenFields = document.getElementById('groupConsentHiddenFields');
+let groupConsentSubmitting = false;
+let activeGroupInviteToken = '';
+
+const syncGroupConsentSubmitState = () => {
+  if (!groupConsentCheckbox || !groupConsentSubmit) {
+    return;
+  }
+
+  groupConsentSubmit.disabled = !groupConsentCheckbox.checked || groupConsentSubmitting;
+  groupConsentSubmit.setAttribute('aria-disabled', groupConsentSubmit.disabled ? 'true' : 'false');
+};
+
 const syncBodyScrollLock = () => {
-  const hasOpenModal = letterModal?.classList.contains('show') || scheduleGuardModal?.classList.contains('show');
+  const hasOpenModal = letterModal?.classList.contains('show') || scheduleGuardModal?.classList.contains('show') || groupConsentModal?.classList.contains('show');
   document.body.style.overflow = hasOpenModal ? 'hidden' : '';
 };
 
@@ -2919,6 +3361,32 @@ const setLetterActionHiddenFields = (fields = {}) => {
     input.name = name;
     input.value = String(value);
     letterActionHiddenFields.appendChild(input);
+  });
+};
+
+const resetGroupConsentHiddenFields = () => {
+  if (!groupConsentHiddenFields) {
+    return;
+  }
+
+  groupConsentHiddenFields.innerHTML = '';
+};
+
+const setGroupConsentHiddenFields = (fields = {}) => {
+  if (!groupConsentHiddenFields || typeof fields !== 'object' || fields === null) {
+    return;
+  }
+
+  Object.entries(fields).forEach(([name, value]) => {
+    if (value === null || value === undefined) {
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = String(value);
+    groupConsentHiddenFields.appendChild(input);
   });
 };
 
@@ -3234,6 +3702,44 @@ const closeLetterModal = () => {
   syncBodyScrollLock();
 };
 
+const openGroupConsentModal = ({ title, description, groupName, inviterName, identityVisibility, inviteToken, hiddenFields = {} }) => {
+  if (!groupConsentModal || !groupConsentTitle || !groupConsentDescription || !groupConsentGroupName || !groupConsentInviterName || !groupConsentIdentityVisibility || !groupConsentInviteToken || !groupConsentCheckbox || !groupConsentSubmit) {
+    return;
+  }
+
+  groupConsentTitle.textContent = title || 'Undangan ke grup privat';
+  groupConsentDescription.textContent = description || 'Pastikan Anda memahami tujuan grup ini sebelum bergabung.';
+  groupConsentGroupName.textContent = groupName || 'Grup Privat';
+  groupConsentInviterName.textContent = inviterName || 'Konselor';
+  groupConsentIdentityVisibility.textContent = identityVisibility || 'Nama asli Anda akan ditampilkan kepada anggota grup privat ini.';
+  groupConsentInviteToken.value = inviteToken || '';
+  groupConsentCheckbox.checked = false;
+  groupConsentSubmit.innerHTML = '<i class="bi bi-check2-circle"></i><span>Setuju dan Gabung Grup</span>';
+  groupConsentSubmitting = false;
+  activeGroupInviteToken = inviteToken || '';
+  syncGroupConsentSubmitState();
+  resetGroupConsentHiddenFields();
+  setGroupConsentHiddenFields(hiddenFields);
+  closeNotifDropdown();
+  closeLetterModal();
+  groupConsentModal.classList.add('show');
+  groupConsentModal.setAttribute('aria-hidden', 'false');
+  syncBodyScrollLock();
+  window.setTimeout(() => {
+    groupConsentCheckbox.focus();
+  }, 60);
+};
+
+const closeGroupConsentModal = () => {
+  if (!groupConsentModal) {
+    return;
+  }
+
+  groupConsentModal.classList.remove('show');
+  groupConsentModal.setAttribute('aria-hidden', 'true');
+  syncBodyScrollLock();
+};
+
 const openScheduleGuardModal = ({ title, message }) => {
   if (!scheduleGuardModal || !scheduleGuardTitle || !scheduleGuardMessage) {
     return;
@@ -3244,16 +3750,6 @@ const openScheduleGuardModal = ({ title, message }) => {
   scheduleGuardModal.classList.add('show');
   scheduleGuardModal.setAttribute('aria-hidden', 'false');
   closeLetterModal();
-  syncBodyScrollLock();
-};
-
-const closeScheduleGuardModal = () => {
-  if (!scheduleGuardModal) {
-    return;
-  }
-
-  scheduleGuardModal.classList.remove('show');
-  scheduleGuardModal.setAttribute('aria-hidden', 'true');
   syncBodyScrollLock();
 };
 
@@ -3360,6 +3856,10 @@ document.querySelectorAll('[data-letter-close]').forEach((element) => {
   element.addEventListener('click', closeLetterModal);
 });
 
+document.querySelectorAll('[data-group-consent-close]').forEach((element) => {
+  element.addEventListener('click', closeGroupConsentModal);
+});
+
 document.querySelectorAll('.notif-item-trigger').forEach((button) => {
   button.addEventListener('click', () => {
     markNotifAsRead(button);
@@ -3372,6 +3872,28 @@ document.querySelectorAll('.notif-item-trigger').forEach((button) => {
       note: button.dataset.letterNote || 'Saat siap, Anda bisa langsung masuk ke ruang chat konseling.',
       locked: button.dataset.letterLocked || '0',
       hiddenFields: parseJson(button.dataset.letterHidden),
+    });
+  });
+});
+
+document.querySelectorAll('[data-group-invite="1"]').forEach((button) => {
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    markNotifAsRead(button);
+
+    const hiddenFields = button.dataset.groupInviteHidden ? parseJson(button.dataset.groupInviteHidden) : {};
+    const inviteToken = button.dataset.groupInviteToken || hiddenFields.invite_token || '';
+    const otherHiddenFields = { ...hiddenFields };
+    delete otherHiddenFields.invite_token;
+
+    openGroupConsentModal({
+      title: button.dataset.groupTitle || 'Undangan Grup Privat',
+      description: button.dataset.groupDescription || 'Anda telah menerima undangan grup privat. Baca aturan dan setujui sebelum bergabung.',
+      groupName: button.dataset.groupName,
+      inviterName: button.dataset.groupInviter,
+      identityVisibility: button.dataset.groupVisibility,
+      inviteToken: inviteToken,
+      hiddenFields: otherHiddenFields,
     });
   });
 });
@@ -3418,10 +3940,64 @@ document.querySelectorAll('[data-schedule-guard-close]').forEach((element) => {
   element.addEventListener('click', closeScheduleGuardModal);
 });
 
+if (groupConsentCheckbox && groupConsentSubmit) {
+  ['change', 'input', 'click'].forEach((eventName) => {
+    groupConsentCheckbox.addEventListener(eventName, () => {
+      window.setTimeout(syncGroupConsentSubmitState, 0);
+    });
+  });
+}
+
+// Listener delegasi memastikan tombol consent tetap aktif walau checkbox diklik lewat label.
+document.addEventListener('change', (event) => {
+  if (event.target?.id === 'groupConsentCheckbox') {
+    window.setTimeout(syncGroupConsentSubmitState, 0);
+  }
+}, true);
+
+document.addEventListener('click', (event) => {
+  if (event.target?.id === 'groupConsentCheckbox' || event.target?.closest?.('label[for="groupConsentCheckbox"]')) {
+    window.setTimeout(syncGroupConsentSubmitState, 0);
+  }
+}, true);
+
+if (groupConsentForm && groupConsentSubmit) {
+  groupConsentForm.addEventListener('submit', (event) => {
+    if (!groupConsentCheckbox?.checked) {
+      event.preventDefault();
+      syncGroupConsentSubmitState();
+      return;
+    }
+
+    if (groupConsentInviteToken && !groupConsentInviteToken.value && activeGroupInviteToken) {
+      groupConsentInviteToken.value = activeGroupInviteToken;
+    }
+
+    if (!groupConsentInviteToken?.value?.trim()) {
+      event.preventDefault();
+      groupConsentSubmitting = false;
+      groupConsentSubmit.disabled = false;
+      groupConsentSubmit.innerHTML = '<i class="bi bi-check2-circle"></i><span>Setuju dan Gabung Grup</span>';
+      alert('Token undangan grup tidak ditemukan. Silakan buka ulang notifikasi undangan grup.');
+      return;
+    }
+
+    if (groupConsentSubmitting) {
+      event.preventDefault();
+      return;
+    }
+
+    groupConsentSubmitting = true;
+    groupConsentSubmit.disabled = true;
+    groupConsentSubmit.innerHTML = '<span>Memproses...</span>';
+  });
+}
+
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     closeLetterModal();
     closeScheduleGuardModal();
+    closeGroupConsentModal();
   }
 });
 

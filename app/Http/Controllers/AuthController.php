@@ -127,7 +127,7 @@ class AuthController extends Controller
             DB::rollBack();
 
             return back()->withErrors([
-                'username' => 'Login CIS gagal. Username/NIM atau password salah.',
+                'username' => 'Username atau password yang anda masukkan salah',
             ])->withInput();
         }
     }

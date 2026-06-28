@@ -789,20 +789,6 @@
             gap: 7px;
         }
 
-        .today-nav-btn {
-            width: 34px;
-            height: 34px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            background: #ffffff;
-            color: #64748b;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            box-shadow: 0 3px 8px rgba(15, 23, 42, .04);
-        }
-
         .today-list {
             display: grid;
             gap: 8px;
