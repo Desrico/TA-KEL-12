@@ -375,6 +375,68 @@
     background: #ecfdf5;
   }
 
+  .group-lobby-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, .45);
+  }
+
+  .group-lobby-modal.show {
+    display: flex;
+  }
+
+  .group-lobby-modal-dialog {
+    width: min(390px, 100%);
+    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid rgba(187, 247, 208, .95);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, .2);
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .group-lobby-modal-icon {
+    width: 54px;
+    height: 54px;
+    margin: 0 auto .85rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #dcfce7;
+    color: #047857;
+    font-size: 1.55rem;
+  }
+
+  .group-lobby-modal-dialog h3 {
+    margin: 0 0 .5rem;
+    color: #0f172a;
+    font-size: 1.08rem;
+    font-weight: 900;
+  }
+
+  .group-lobby-modal-dialog p {
+    margin: 0;
+    color: #475569;
+    font-size: .9rem;
+    line-height: 1.65;
+  }
+
+  .group-lobby-modal-close {
+    margin-top: 1rem;
+    border: none;
+    border-radius: 999px;
+    background: #047857;
+    color: #ffffff;
+    padding: .68rem 1.2rem;
+    font-size: .84rem;
+    font-weight: 800;
+  }
+
   @media (max-width: 991.98px) {
     .group-card-head {
       flex-direction: column;
@@ -628,7 +690,51 @@
     </div>
   </div>
 </section>
+
+@if(session('group_left_success_modal'))
+  @php($groupLeftModal = session('group_left_success_modal'))
+  <div class="group-lobby-modal show" id="groupLeftSuccessModal" aria-hidden="false">
+    <div class="group-lobby-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="groupLeftSuccessTitle">
+      <div class="group-lobby-modal-icon">
+        <i class="bi bi-check2"></i>
+      </div>
+      <h3 id="groupLeftSuccessTitle">{{ $groupLeftModal['title'] ?? 'Berhasil Keluar dari Grup' }}</h3>
+      <p>{{ $groupLeftModal['message'] ?? 'Anda berhasil keluar dari grup.' }}</p>
+      <button type="button" class="group-lobby-modal-close" id="groupLeftSuccessClose">Tutup</button>
+    </div>
+  </div>
+@endif
 @endsection
+
+@push('scripts')
+<script>
+(() => {
+  const modal = document.getElementById('groupLeftSuccessModal');
+  const closeBtn = document.getElementById('groupLeftSuccessClose');
+
+  if (!modal || !closeBtn) {
+    return;
+  }
+
+  const closeModal = () => {
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeModal();
+    }
+  });
+})();
+</script>
+@endpush
 
 @push('scripts')
 

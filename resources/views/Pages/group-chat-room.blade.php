@@ -262,6 +262,27 @@
     border-bottom-left-radius: 10px;
   }
 
+  .group-message-row.system {
+    justify-content: center;
+    margin: .85rem 0 1.05rem;
+  }
+
+  .group-message-row.system .group-message-content {
+    max-width: min(92%, 520px);
+  }
+
+  .group-message-row.system .group-message-bubble {
+    border-radius: 999px;
+    border: 1px solid rgba(187, 247, 208, .95);
+    background: #f0fdf4;
+    color: #166534;
+    padding: .55rem .9rem;
+    font-size: .78rem;
+    font-weight: 800;
+    text-align: center;
+    box-shadow: none;
+  }
+
   .group-message-avatar {
     width: 40px;
     height: 40px;
@@ -856,6 +877,7 @@
     $isPrivateRoom = ($chatPayload['isPrivate'] ?? false)
         || ($chatPayload['is_private'] ?? false)
         || str_contains(strtolower($chatPayload['topicLabel'] ?? ''), 'privat');
+    $counselorName = trim((string) ($chatPayload['counselorName'] ?? env('CIS_KONSELOR_NAME', 'Konselor'))) ?: 'Konselor';
 
     $cleanMemberName = function ($name) use ($isPrivateRoom) {
         $name = trim((string) $name);
@@ -963,16 +985,16 @@
                   </div>
 
                   <div class="group-member-list" id="groupRoomMemberList">
-                    <div class="group-member-item" data-member-name="konselor">
+                    <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($counselorName) }}">
                       <div class="group-member-avatar-fallback">K</div>
-                      <div class="group-member-name">Konselor</div>
+                      <div class="group-member-name">{{ $counselorName }}</div>
                     </div>
 
                     @foreach(($chatPayload['memberProfiles'] ?? []) as $memberProfile)
                       @php
                           $memberName = $cleanMemberName($memberProfile['name'] ?? 'Mahasiswa');
                           $memberRole = strtolower((string) ($memberProfile['role'] ?? ''));
-                          $isKonselorMember = $memberRole === 'konselor' || strtolower($memberName) === 'konselor';
+                          $isKonselorMember = in_array($memberRole, ['konselor', 'admin'], true);
                           $avatarUrl = $memberProfile['avatar_url'] ?? null;
                           $initial = strtoupper(mb_substr($memberName, 0, 1));
                       @endphp
@@ -1152,6 +1174,7 @@
 (() => {
   const payload = @json($chatPayload);
   const currentUserId = {{ auth()->id() }};
+  const counselorName = @json($counselorName);
   const isPrivateRoom = Boolean(
     payload.isPrivate ||
     payload.is_private ||
@@ -1175,7 +1198,7 @@
     }
 
     if (value.toLowerCase() === 'konselor') {
-      return 'Konselor';
+      return counselorName;
     }
 
     if (isPrivateRoom) {
@@ -1364,6 +1387,7 @@
 
   const renderMessage = (message) => {
     const row = document.createElement('div');
+    const isSystemMessage = Boolean(message.is_system);
     const isMine = Boolean(message.is_mine ?? (Number(message.sender_id) === Number(currentUserId)));
     const dateParts = resolveDateParts(message.sent_at);
     const senderRole = String(message.sender_role || '').toLowerCase();
@@ -1381,7 +1405,7 @@
       'Anonim';
 
     const displaySenderName = isCounselorMessage
-      ? 'Konselor'
+      ? counselorName
       : cleanPrivateName(rawName);
 
     const avatarInitial = String(displaySenderName || 'M').charAt(0).toUpperCase();
@@ -1397,6 +1421,24 @@
         : `<div class="group-animal-avatar">${animalIcon(displaySenderName)}</div>`;
 
     ensureDateSeparator(dateParts.key, dateParts.label);
+
+    if (isSystemMessage) {
+      row.className = 'group-message-row system';
+      row.dataset.messageId = String(message.id);
+      row.dataset.messageText = message.text ?? '';
+      row.dataset.messageEdited = '0';
+
+      row.innerHTML = `
+        <div class="group-message-content">
+          <div class="group-message-bubble-shell">
+            <div class="group-message-bubble">${escapeHtml(message.text || '').replace(/\n/g, '<br>')}</div>
+          </div>
+        </div>
+      `;
+
+      thread.appendChild(row);
+      return row;
+    }
 
     row.className = `group-message-row ${isMine ? 'mine' : 'other'}`;
     row.dataset.messageId = message.id;

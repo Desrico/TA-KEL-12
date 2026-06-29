@@ -90,7 +90,10 @@ class GroupChatMahasiswaController extends Controller
     private function buildPrivateConsentContext(GroupChatRoom $room, GroupChatMember $membership): array
     {
         $inviter = $membership->inviter;
-        $inviterName = $inviter?->nama ?: $inviter?->name ?: 'Pengundang';
+        $inviterRole = strtolower((string) ($inviter?->role ?? ''));
+        $inviterName = in_array($inviterRole, ['konselor', 'admin'], true)
+            ? $this->resolveCisCounselorName($inviter)
+            : ($inviter?->nama ?: $inviter?->name ?: 'Pengundang');
 
         return [
             'headline' => 'Persetujuan Undangan Grup Privat',
@@ -406,6 +409,8 @@ class GroupChatMahasiswaController extends Controller
                 ->with('error', 'Keanggotaan grup tidak ditemukan.');
         }
 
+        $leftMessage = $this->buildMembershipSystemText($room, $user, $member, 'left');
+
         DB::transaction(function () use ($member) {
             // Keluar grup publik tidak menghapus histori pesan, hanya menonaktifkan membership user.
             if (GroupChatSupport::supportsMembershipStatus()) {
@@ -420,9 +425,15 @@ class GroupChatMahasiswaController extends Controller
             $member->save();
         });
 
+        $this->createMembershipSystemMessage($room, $user, $leftMessage, 'left');
+
         return redirect()
             ->route('mahasiswa.group-chat')
-            ->with('success', 'Anda berhasil keluar dari grup publik.');
+            ->with('success', 'Anda berhasil keluar dari grup publik.')
+            ->with('group_left_success_modal', [
+                'title' => 'Berhasil Keluar dari Grup',
+                'message' => 'Anda berhasil keluar dari grup publik. Grup tidak lagi tampil di daftar grup Anda.',
+            ]);
     }
 
     private function joinPublicRoom(User $user, array $validated): array
@@ -468,7 +479,17 @@ class GroupChatMahasiswaController extends Controller
         }
 
         $topicLabel = $room->topicLabel();
-        $member = $this->activateMembership($room, $user, 'public_topic');
+        $joinedNow = false;
+        $member = $this->activateMembership($room, $user, 'public_topic', $joinedNow);
+
+        if ($joinedNow) {
+            $this->createMembershipSystemMessage(
+                $room,
+                $user,
+                $this->buildMembershipSystemText($room, $user, $member, 'joined'),
+                'joined'
+            );
+        }
 
         return [$room, $member, $topicLabel];
     }
@@ -489,7 +510,17 @@ class GroupChatMahasiswaController extends Controller
 
         $this->resolvePrivateInvitationMembership($user, $room, $inviteToken);
 
-        $member = $this->activateMembership($room, $user, 'invite_link');
+        $joinedNow = false;
+        $member = $this->activateMembership($room, $user, 'invite_link', $joinedNow);
+
+        if ($joinedNow) {
+            $this->createMembershipSystemMessage(
+                $room,
+                $user,
+                $this->buildMembershipSystemText($room, $user, $member, 'joined'),
+                'joined'
+            );
+        }
 
         $this->clearGroupInviteNotification($user, $room);
 
@@ -570,15 +601,19 @@ class GroupChatMahasiswaController extends Controller
         });
     }
 
-    private function activateMembership(GroupChatRoom $room, User $user, string $joinedVia): GroupChatMember
+    private function activateMembership(GroupChatRoom $room, User $user, string $joinedVia, ?bool &$joinedNow = null): GroupChatMember
     {
-        return DB::transaction(function () use ($room, $user, $joinedVia) {
+        return DB::transaction(function () use ($room, $user, $joinedVia, &$joinedNow) {
             $member = GroupChatMember::query()->firstOrNew([
                 'room_id' => $room->id,
                 'user_id' => $user->id,
             ]);
 
             $this->guardMembershipReactivation($member);
+            $previousStatus = $member->exists ? $member->membership_status : null;
+            $joinedNow = GroupChatSupport::supportsMembershipStatus()
+                ? (! $member->exists || $previousStatus !== GroupChatMember::STATUS_ACTIVE)
+                : ! $member->exists;
 
             $fill = [];
 
@@ -843,6 +878,12 @@ class GroupChatMahasiswaController extends Controller
             return 'Mahasiswa';
         }
 
+        $role = strtolower((string) ($user->role ?? ''));
+
+        if (in_array($role, ['konselor', 'admin'], true)) {
+            return $this->resolveCisCounselorName($user);
+        }
+
         if ($room->isPrivate()) {
             return trim((string) (
                 $user->nama
@@ -871,12 +912,15 @@ class GroupChatMahasiswaController extends Controller
     private function resolveRoomAvatarUrl(?User $user, GroupChatRoom $room, ?GroupChatMember $membership = null): string
     {
         if ($room->isPrivate()) {
+            $role = strtolower((string) ($user?->role ?? ''));
             $name = trim((string) (
-                $user?->nama
+                in_array($role, ['konselor', 'admin'], true)
+                    ? $this->resolveCisCounselorName($user)
+                    : ($user?->nama
                 ?: $user?->name
                 ?: $user?->username_cis
                 ?: $user?->email
-                ?: 'Mahasiswa'
+                ?: 'Mahasiswa')
             ));
 
             return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=d9f7e7&color=065f46';
@@ -948,7 +992,37 @@ class GroupChatMahasiswaController extends Controller
             'is_edited' => (bool) ($message->updated_at && $message->created_at && $message->updated_at->ne($message->created_at)),
             'is_mine' => $message->user_id === $viewer->id,
             'is_private_room' => $room->isPrivate(),
+            'is_system' => (bool) $message->is_system,
+            'system_event' => $message->system_event,
         ];
+    }
+
+    private function buildMembershipSystemText(GroupChatRoom $room, User $user, ?GroupChatMember $member, string $event): string
+    {
+        $displayName = $this->resolveRoomDisplayName($user, $room, $member);
+
+        return match ($event) {
+            'joined' => $displayName . ' telah bergabung ke Grup',
+            'left' => $displayName . ' telah meninggalkan Grup',
+            'removed' => $displayName . ' telah dikeluarkan dari Grup',
+            default => $displayName,
+        };
+    }
+
+    private function createMembershipSystemMessage(GroupChatRoom $room, User $user, string $text, string $event): GroupChatMessage
+    {
+        $payload = [
+            'room_id' => $room->id,
+            'user_id' => $user->id,
+            'pesan' => $text,
+        ];
+
+        if (GroupChatSupport::supportsSystemMessages()) {
+            $payload['is_system'] = true;
+            $payload['system_event'] = $event;
+        }
+
+        return GroupChatMessage::create($payload);
     }
 
     private function clearGroupInviteNotification(User $user, GroupChatRoom $room): void

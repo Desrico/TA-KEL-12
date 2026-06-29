@@ -1487,6 +1487,38 @@
     box-shadow: 0 0 0 4px rgba(16, 185, 129, .08);
   }
 
+  .admin-member-status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+    margin-bottom: .72rem;
+  }
+
+  .admin-member-status-item {
+    border: 1px solid rgba(209, 250, 229, 0.95);
+    border-radius: 12px;
+    background: #ffffff;
+    padding: .62rem .7rem;
+  }
+
+  .admin-member-status-label {
+    display: block;
+    color: #64748b;
+    font-size: .66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .admin-member-status-value {
+    display: block;
+    margin-top: .16rem;
+    color: #064e3b;
+    font-size: 1.05rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
   .admin-member-list {
     display: grid;
     gap: .42rem;
@@ -1989,6 +2021,19 @@
                 </div>
 
                 <div class="admin-chat-profile-body">
+                  @if($activeRoom->isPrivate())
+                    <div class="admin-member-status-grid" aria-label="Status anggota grup privat">
+                      <div class="admin-member-status-item">
+                        <span class="admin-member-status-label">Sudah Masuk</span>
+                        <span class="admin-member-status-value">{{ $chatPayload['memberCount'] ?? 0 }}</span>
+                      </div>
+                      <div class="admin-member-status-item">
+                        <span class="admin-member-status-label">Diundang</span>
+                        <span class="admin-member-status-value">{{ $chatPayload['pendingInviteCount'] ?? 0 }}</span>
+                      </div>
+                    </div>
+                  @endif
+
                   {{-- Search lokal membantu admin menemukan anggota tanpa menunggu request baru. --}}
                   <div class="admin-member-search">
                     <i class="ti ti-search"></i>
@@ -2115,6 +2160,35 @@
       </div>
     </div>
   @endif
+
+  @if(session('admin_invite_success_modal') || session('admin_success_modal') || session('admin_member_action_modal'))
+    @php($adminActionModal = session('admin_invite_success_modal') ?: (session('admin_member_action_modal') ?: session('admin_success_modal')))
+    <div class="admin-member-remove-modal-overlay is-open" id="adminMemberActionSuccessModal" aria-hidden="false">
+      <div class="admin-member-remove-modal" role="dialog" aria-modal="true" aria-labelledby="adminMemberActionSuccessModalTitle">
+        <div class="admin-member-remove-modal-icon is-success">
+          <i class="ti ti-check"></i>
+        </div>
+        <h3 id="adminMemberActionSuccessModalTitle">{{ $adminActionModal['title'] ?? 'Berhasil' }}</h3>
+        @if(!empty($adminActionModal['message']))
+          <p id="adminMemberActionSuccessModalText">{{ $adminActionModal['message'] }}</p>
+        @endif
+        @if(!empty($adminActionModal['stats']))
+          <p style="margin-top:10px;font-weight:800;">
+            {{ (int) ($adminActionModal['stats']['invited_count'] ?? 0) }} diundang,
+            {{ (int) ($adminActionModal['stats']['active_count'] ?? 0) }} sudah masuk
+          </p>
+        @endif
+        @if(!empty($adminActionModal['details']))
+          <p style="margin-top:10px;">{{ implode(' ', $adminActionModal['details']) }}</p>
+        @endif
+        <div class="admin-member-remove-modal-actions">
+          <button type="button" class="admin-member-remove-modal-btn primary" id="adminMemberActionSuccessClose">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  @endif
 </div>
 @endsection
 
@@ -2171,6 +2245,8 @@ window.adminGroupChatAliasInitials = (name) => {
   const privateGroupDeleteCancel = document.getElementById('adminPrivateGroupDeleteCancel');
   const privateGroupDeletedSuccessModal = document.getElementById('adminPrivateGroupDeletedSuccessModal');
   const privateGroupDeletedSuccessClose = document.getElementById('adminPrivateGroupDeletedSuccessClose');
+  const memberActionSuccessModal = document.getElementById('adminMemberActionSuccessModal');
+  const memberActionSuccessClose = document.getElementById('adminMemberActionSuccessClose');
   const addToggleBtn = document.getElementById('adminPrivateGroupToggle');
   const createPanel = document.getElementById('adminPrivateGroupCreatePanel');
   const cancelCreateBtn = document.getElementById('adminPrivateGroupCancelBtn');
@@ -2575,6 +2651,11 @@ syncGroupList();
     privateGroupDeletedSuccessModal?.setAttribute('aria-hidden', 'true');
   };
 
+  const closeMemberActionSuccessModal = () => {
+    memberActionSuccessModal?.classList.remove('is-open');
+    memberActionSuccessModal?.setAttribute('aria-hidden', 'true');
+  };
+
   roomMenuShells.forEach((shell) => {
     const toggle = shell.querySelector('[data-room-menu-toggle]');
     const deleteTrigger = shell.querySelector('[data-room-delete-trigger]');
@@ -2625,6 +2706,12 @@ syncGroupList();
       closePrivateGroupDeletedSuccessModal();
     }
   });
+  memberActionSuccessClose?.addEventListener('click', closeMemberActionSuccessModal);
+  memberActionSuccessModal?.addEventListener('click', (event) => {
+    if (event.target === memberActionSuccessModal) {
+      closeMemberActionSuccessModal();
+    }
+  });
 
   document.addEventListener('click', (event) => {
     if (!event.target.closest('[data-room-menu]')) {
@@ -2637,6 +2724,7 @@ syncGroupList();
       closeRoomMenus();
       closePrivateGroupDeleteModal();
       closePrivateGroupDeletedSuccessModal();
+      closeMemberActionSuccessModal();
     }
   });
 
@@ -2661,6 +2749,7 @@ syncGroupList();
   const memberRemoveModalText = document.getElementById('adminMemberRemoveModalText');
   const membersUrl = @json($chatPayload['membersUrl']);
   const activeRoomId = @json($chatPayload['roomId']);
+  const activeRoomIsPrivate = @json($activeRoom->isPrivate());
 
   if (!stage || !toggle || !profile || !memberList) {
     return;
@@ -2699,7 +2788,9 @@ syncGroupList();
     const label = document.createElement('div');
 
     const rawName = member?.name || 'Pengguna';
-    const name = member?.is_counselor ? 'Konselor' : window.adminGroupChatFormatAnonymousName(rawName);
+    const name = member?.is_counselor
+        ? 'Konselor'
+        : (activeRoomIsPrivate ? rawName : window.adminGroupChatFormatAnonymousName(rawName));
 
     item.className = 'admin-member-item';
     item.dataset.memberName = String(name).toLowerCase();
