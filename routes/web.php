@@ -61,6 +61,11 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+Route::middleware('auth')->group(function () {
+    Route::get('/security-pin', [LoginController::class, 'showSecurityPin'])->name('security-pin.show');
+    Route::post('/security-pin', [LoginController::class, 'submitSecurityPin'])->name('security-pin.submit');
+});
+
 Route::post('/notifikasi/{notifikasi}/baca', function (\App\Models\Notifikasi $notifikasi) {
     if ((int) $notifikasi->user_id !== (int) auth()->id()) {
         abort(403);

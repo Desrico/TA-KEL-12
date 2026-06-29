@@ -54,7 +54,8 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
 @push('styles')
 <style>
   .chat-page {
-      min-height: calc(100vh - 82px);
+      height: 100%;
+      min-height: 0;
       background:
         radial-gradient(circle at top left, rgba(16, 185, 129, 0.18), transparent 30%),
         radial-gradient(circle at top right, rgba(110, 231, 183, 0.18), transparent 24%),
@@ -63,19 +64,34 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
       margin-left: calc(50% - 50vw);
       margin-right: calc(50% - 50vw);
       padding: 0;
+      overflow: hidden;
   }
 
   .chat-page-inner {
     width: 100%;
-    min-height: inherit;
+    height: 100%;
+    min-height: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .page-in:has(.chat-page:not(.is-empty-state)) {
+    height: calc(100dvh - var(--chat-nav-height, 82px));
+    overflow: hidden;
+  }
+
+  .page-in:has(.chat-page:not(.is-empty-state)) + footer {
+    display: none;
   }
 
   .chat-shell {
     width: 100%;
     max-width: none;
     margin: 0;
-    display: block;
+    min-height: 0;
+    flex: 1;
+    display: flex;
   }
 
   .chat-main,
@@ -88,20 +104,22 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
   }
 
   .chat-main {
-      overflow: visible;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      min-height: calc(100vh - 82px);
-      max-height: none;
+      min-height: 0;
+      height: 100%;
+      max-height: 100%;
+      flex: 1;
       border-radius: 0;
       border-inline: 0;
       box-shadow: none;
   }
 
   .chat-topbar {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 3;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -171,12 +189,12 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
   }
 
   .chat-thread {
-      flex: 1;
-      min-height: calc(100vh - 245px);
+      flex: 1 1 auto;
+      min-height: 0;
       padding: 1rem 1.5rem .75rem;
-      overflow-y: visible;
+      overflow-y: auto;
       overflow-x: hidden;
-      overscroll-behavior: auto;
+      overscroll-behavior: contain;
       scroll-behavior: smooth;
       background:
         linear-gradient(180deg, rgba(248, 255, 251, 0.72), rgba(255, 255, 255, 0.98)),
@@ -508,7 +526,7 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
     color: #fff;
   }
 
- .chat-composer {
+  .chat-composer {
     padding: 1rem 1.35rem;
     border-top: 1px solid #dceee4;
     background: #ffffff;
@@ -709,15 +727,16 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
 
   @media (max-width: 991.98px) {
       .chat-main {
-        min-height: calc(100vh - 78px);
-        max-height: none;
+        min-height: 0;
+        max-height: 100%;
       }
   }
 
   @media (max-width: 767.98px) {
     .chat-page {
-      min-height: calc(100vh - 78px);
-      padding: .95rem 0 2rem;
+      height: 100%;
+      min-height: 0;
+      padding: 0;
     }
 
     .chat-main,
@@ -749,8 +768,8 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
     }
 
     .chat-main {
-      min-height: calc(100vh - 78px);
-      max-height: none;
+      min-height: 0;
+      max-height: 100%;
     }
 
     .chat-thread {
@@ -790,22 +809,40 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
 
 html,
 body {
+    overflow-y: hidden !important;
+}
+
+body:has(.chat-page.is-empty-state) {
     overflow-y: auto !important;
 }
 
-.chat-main,
+body:has(.chat-page:not(.is-empty-state)) {
+    overflow-y: hidden !important;
+}
+
+.chat-main {
+    overflow: hidden !important;
+    max-height: 100% !important;
+}
+
 .chat-thread {
-    overflow-y: visible !important;
+    overflow-y: auto !important;
     max-height: none !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(6, 95, 70, .28) transparent;
 }
 
 .chat-thread::-webkit-scrollbar {
-    display: none;
+    width: 8px;
 }
 
-.chat-thread {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+.chat-thread::-webkit-scrollbar-thumb {
+    background: rgba(6, 95, 70, .24);
+    border-radius: 999px;
+}
+
+.chat-thread::-webkit-scrollbar-track {
+    background: transparent;
 }
 </style>
 @endpush
@@ -1030,6 +1067,16 @@ body {
   const sendBtn = document.getElementById('chatSendBtn');
   const hint = document.getElementById('chatHint');
 
+  const syncChatViewport = () => {
+    const nav = document.getElementById('mainNav');
+    const navHeight = Math.ceil(nav?.getBoundingClientRect().height || 82);
+    document.documentElement.style.setProperty('--chat-nav-height', `${navHeight}px`);
+  };
+
+  syncChatViewport();
+  window.addEventListener('resize', syncChatViewport);
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
   if (!thread || !form || !input || !sendBtn) {
     return;
   }
@@ -1093,6 +1140,16 @@ body {
   const scrollToBottom = (behavior = 'auto') => {
     requestAnimationFrame(() => {
       thread.scrollTo({ top: thread.scrollHeight, behavior });
+    });
+  };
+
+  const isNearThreadBottom = (threshold = 120) => (
+    thread.scrollHeight - thread.scrollTop - thread.clientHeight <= threshold
+  );
+
+  const restoreThreadOffsetFromBottom = (offsetFromBottom) => {
+    requestAnimationFrame(() => {
+      thread.scrollTop = Math.max(0, thread.scrollHeight - thread.clientHeight - offsetFromBottom);
     });
   };
 
@@ -1249,19 +1306,28 @@ body {
 };
 
   const renderInitialMessages = () => {
-    renderMessages(payload.messages || []);
+    renderMessages(payload.messages || [], true, { scrollToBottom: true });
   };
 
-  const renderMessages = (messages, force = false) => {
+  const renderMessages = (messages, force = false, options = {}) => {
     // Render ulang penuh agar edit dan delete tersinkron untuk semua client.
     if (!force && hasActiveInlineState()) {
       return;
     }
 
+    const shouldScrollToBottom = Boolean(options.scrollToBottom) || isNearThreadBottom();
+    const offsetFromBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight;
+
     thread.innerHTML = '';
     messages.forEach((message) => renderMessage(message));
     closeAllMenus();
-    scrollToBottom();
+
+    if (shouldScrollToBottom) {
+      scrollToBottom();
+      return;
+    }
+
+    restoreThreadOffsetFromBottom(offsetFromBottom);
   };
 
   // Force dipakai setelah simpan/hapus sukses supaya hasil server langsung mengganti state inline.
@@ -1307,12 +1373,16 @@ body {
           return;
         }
 
+        const shouldScrollToBottom = isNearThreadBottom();
+
         renderMessage({
           ...event.message,
           is_mine: Number(event.message.sender_id) === currentUserId,
         });
 
-        scrollToBottom();
+        if (shouldScrollToBottom || Number(event.message.sender_id) === currentUserId) {
+          scrollToBottom();
+        }
       })                          // ← pakai koma, BUKAN titik koma
       .listen('.sesi.selesai', (event) => {
         input.disabled = true;
@@ -1633,124 +1703,6 @@ body {
       return;
     }
   });
-
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const pesan = input.value.trim();
-
-  if (!pesan) {
-    input.value = '';
-    autoResize();
-    return;
-  }
-
-  if (isSending) {
-    return;
-  }
-
-  isSending = true;
-  sendBtn.disabled = true;
-
-  const now = new Date();
-
-  const tempMessage = {
-    id: `temp-${Date.now()}`,
-    sender_id: currentUserId,
-    sender_name: 'Anda',
-    text: pesan,
-    time: now.toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-    sent_at: now.toISOString(),
-    updated_at: now.toISOString(),
-    is_edited: false,
-    is_mine: true,
-    is_pending: true,
-  };
-
-  const tempRow = renderMessage(tempMessage);
-  scrollToBottom();
-
-  input.value = '';
-  autoResize();
-
-  if (hint) {
-    hint.textContent = '';
-  }
-
-  try {
-    const response = await fetch(payload.sendUrl, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify({
-        sesi_id: payload.sessionId,
-        jadwal_id: payload.jadwalId,
-        pesan,
-      }),
-    });
-
-    const rawText = await response.text();
-    let data = {};
-
-    try {
-      data = rawText ? JSON.parse(rawText) : {};
-    } catch (error) {
-      console.error(rawText);
-      tempRow?.remove();
-      input.value = pesan;
-      autoResize();
-
-      if (hint) {
-        hint.textContent = 'Server mengembalikan response tidak valid.';
-      }
-
-      return;
-    }
-
-    if (!response.ok || !data.success) {
-      tempRow?.remove();
-      input.value = pesan;
-      autoResize();
-
-      if (hint) {
-        hint.textContent = data.message ?? 'Pesan gagal dikirim.';
-      }
-
-      return;
-    }
-
-    tempRow?.remove();
-
-    const existingRealMessage = thread.querySelector(`[data-message-id="${data.message.id}"]`);
-    if (existingRealMessage) {
-      existingRealMessage.remove();
-    }
-
-    renderMessage(data.message);
-    scrollToBottom();
-
-  } catch (error) {
-    console.error(error);
-    tempRow?.remove();
-    input.value = pesan;
-    autoResize();
-
-    if (hint) {
-      hint.textContent = 'Terjadi kendala saat mengirim pesan.';
-    }
-  } finally {
-    isSending = false;
-    sendBtn.disabled = false;
-    input.focus();
-  }
-});
 })();
 </script>
 @endpush

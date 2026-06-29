@@ -1286,12 +1286,9 @@
               <label class="field-label" for="topik">Topik Konseling</label>
               <select class="schedule-select" id="topik" onchange="handleTopikChange()">
                 <option value="">Pilih topik konseling</option>
-                <option value="Akademik (TA, Kuliah, KP, MBKM, others)">Akademik (TA, Kuliah, KP, MBKM, others)</option>
-                <option value="Kehidupan di Kampus">Kehidupan di Kampus</option>
-                <option value="Intrapersonal (Kecemasan, Kejenuhan, Motivasi Belajar, dll)">Intrapersonal (Kecemasan, Kejenuhan, Motivasi Belajar, dll)</option>
-                <option value="Keluarga">Keluarga</option>
-                <option value="Masalah di asrama">Masalah di asrama</option>
-                <option value="Relasi (pertemanan, pacaran, ketidaknyamanan di asrama, kesalahpahaman)">Relasi (pertemanan, pacaran, ketidaknyamanan di asrama, kesalahpahaman)</option>
+                @foreach(($topicOptions ?? []) as $topicValue => $topicLabel)
+                  <option value="{{ $topicValue }}">{{ $topicLabel }}</option>
+                @endforeach
                 <option value="lainnya">Lainnya</option>
               </select>
               <input

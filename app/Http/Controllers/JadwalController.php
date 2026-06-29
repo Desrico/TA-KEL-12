@@ -12,6 +12,7 @@ use App\Models\Konselor;
 use App\Models\User;
 use App\Models\Notifikasi;
 use App\Models\KetidaktersediaanKonselor;
+use App\Models\GroupChatRoom;
 use Illuminate\Validation\ValidationException;
 
 class JadwalController extends Controller
@@ -42,6 +43,7 @@ class JadwalController extends Controller
             'angkatanMahasiswa' => $mahasiswa->angkatan ?? '-',
             'isAnonim'         => method_exists($user, 'isAnonim') ? $user->isAnonim() : false,
             'followUpJadwal'   => $followUpJadwal,
+            'topicOptions'      => GroupChatRoom::schedulingTopicOptions(),
         ]);
     }
 

@@ -448,14 +448,12 @@
   <div class="container">
     <div class="group-create-shell">
       <a href="{{ route('mahasiswa.group-chat') }}" class="group-create-back">
-        <i class="bi bi-arrow-left"></i>
         <span>Kembali ke daftar grup</span>
       </a>
 
       <div class="group-create-card">
         <div class="group-create-head">
           <div class="group-create-kicker">
-            <i class="bi bi-plus-circle-fill"></i>
             <span>Tambah Grup</span>
           </div>
 
@@ -498,12 +496,12 @@
             </div>
 
             <div class="group-form-help">
-              Topik yang tersedia: Akademik, Kehidupan di Kampus, Intrapersonal, Keluarga, Masalah di Asrama, Relasi, dan Lainnya.
+              Topik bawaan tetap tersedia. Topik publik tambahan dari konselor akan muncul di bawah daftar topik bawaan.
             </div>
 
             <div class="group-create-actions">
               <button type="submit" class="group-create-submit">
-                <span>Gabung Bergabung</span>
+                <span>Gabung Grup</span>
               </button>
 
               <a href="{{ route('mahasiswa.group-chat') }}" class="group-create-cancel">

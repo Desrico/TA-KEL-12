@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Schema;
 
 class GroupChatRoom extends Model
 {
@@ -22,7 +23,6 @@ class GroupChatRoom extends Model
         'keluarga' => 'Keluarga',
         'masalah_asrama' => 'Masalah di Asrama',
         'relasi' => 'Relasi',
-        'lainnya' => 'Lainnya',
     ];
 
     protected $table = 'group_chat_rooms';
@@ -47,7 +47,46 @@ class GroupChatRoom extends Model
 
     public static function topicOptions(): array
     {
+        return self::TOPIC_OPTIONS + self::customPublicTopicOptions();
+    }
+
+    public static function defaultTopicOptions(): array
+    {
         return self::TOPIC_OPTIONS;
+    }
+
+    public static function customPublicTopicOptions(): array
+    {
+        try {
+            if (! Schema::hasTable('group_chat_rooms')) {
+                return [];
+            }
+
+            return self::query()
+                ->where('visibility', self::VISIBILITY_PUBLIC)
+                ->where('is_active', true)
+                ->whereNotIn('topic', array_keys(self::TOPIC_OPTIONS))
+                ->orderBy('title')
+                ->pluck('title', 'topic')
+                ->filter(fn($title) => filled($title))
+                ->all();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    public static function schedulingTopicOptions(): array
+    {
+        return [
+            'Akademik (TA, Kuliah, KP, MBKM, others)' => 'Akademik (TA, Kuliah, KP, MBKM, others)',
+            'Kehidupan di Kampus' => 'Kehidupan di Kampus',
+            'Intrapersonal (Kecemasan, Kejenuhan, Motivasi Belajar, dll)' => 'Intrapersonal (Kecemasan, Kejenuhan, Motivasi Belajar, dll)',
+            'Keluarga' => 'Keluarga',
+            'Masalah di asrama' => 'Masalah di asrama',
+            'Relasi (pertemanan, pacaran, ketidaknyamanan di asrama, kesalahpahaman)' => 'Relasi (pertemanan, pacaran, ketidaknyamanan di asrama, kesalahpahaman)',
+        ] + collect(self::customPublicTopicOptions())
+            ->mapWithKeys(fn($title) => [$title => $title])
+            ->all();
     }
 
     public function creator(): BelongsTo
@@ -76,7 +115,7 @@ class GroupChatRoom extends Model
             return 'Grup Privat';
         }
 
-        return self::TOPIC_OPTIONS[$this->topic] ?? ucfirst(str_replace('_', ' ', (string) $this->topic));
+        return self::TOPIC_OPTIONS[$this->topic] ?? ($this->title ?: ucfirst(str_replace('_', ' ', (string) $this->topic)));
     }
 
     public function isPublic(): bool

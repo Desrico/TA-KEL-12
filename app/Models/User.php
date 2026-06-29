@@ -21,10 +21,15 @@ class User extends Authenticatable
         'password',
         'role',
         'is_anonim',
+        'security_pin_hash',
+        'security_pin_set_at',
+        'security_pin_failed_attempts',
+        'security_pin_locked_until',
     ];
 
     protected $hidden = [
         'password',
+        'security_pin_hash',
         'remember_token',
     ];
 
@@ -34,7 +39,14 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_anonim' => 'boolean',
+            'security_pin_set_at' => 'datetime',
+            'security_pin_locked_until' => 'datetime',
         ];
+    }
+
+    public function hasSecurityPin(): bool
+    {
+        return filled($this->security_pin_hash);
     }
 
     public function mahasiswa(): HasOne

@@ -707,10 +707,23 @@ class GroupChatMahasiswaController extends Controller
         }
 
         $rooms = $roomsQuery->get()
-            ->sortByDesc(function (GroupChatRoom $room) {
-                return optional($room->latestMessage)->created_at?->getTimestamp()
-                    ?? optional($room->updated_at)?->getTimestamp()
+            ->sort(function (GroupChatRoom $firstRoom, GroupChatRoom $secondRoom) {
+                $firstPrivateRank = $firstRoom->isPrivate() ? 1 : 0;
+                $secondPrivateRank = $secondRoom->isPrivate() ? 1 : 0;
+
+                if ($firstPrivateRank !== $secondPrivateRank) {
+                    return $secondPrivateRank <=> $firstPrivateRank;
+                }
+
+                $firstActivity = optional($firstRoom->latestMessage)->created_at?->getTimestamp()
+                    ?? optional($firstRoom->updated_at)?->getTimestamp()
                     ?? 0;
+
+                $secondActivity = optional($secondRoom->latestMessage)->created_at?->getTimestamp()
+                    ?? optional($secondRoom->updated_at)?->getTimestamp()
+                    ?? 0;
+
+                return $secondActivity <=> $firstActivity;
             })
             ->values();
 

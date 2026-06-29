@@ -274,6 +274,37 @@
     color: #0f172a;
   }
 
+  .group-my-title-row {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    flex-wrap: wrap;
+  }
+
+  .group-my-visibility {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    border-radius: 999px;
+    padding: .28rem .62rem;
+    font-size: .68rem;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .group-my-visibility.is-private {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+  }
+
+  .group-my-visibility.is-public {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #bbf7d0;
+  }
+
   .group-my-meta {
     color: #64748b;
     font-size: .8rem;
@@ -486,6 +517,25 @@
 @php
   $user = Auth::user();
   $isAnonim = $user ? $user->isAnonim() : false;
+  [$privateRooms, $publicRooms] = $joinedRooms->partition(fn ($room) => method_exists($room, 'isPrivate')
+      ? $room->isPrivate()
+      : (($room->visibility ?? 'public') === 'private'));
+  $groupSections = [
+      [
+          'title' => 'Grup Privat',
+          'copy' => 'Grup undangan dari konselor yang menampilkan identitas asli anggota.',
+          'rooms' => $privateRooms,
+          'empty' => 'Kamu belum bergabung ke grup privat mana pun.',
+          'show_join_action' => false,
+      ],
+      [
+          'title' => 'Grup Publik',
+          'copy' => 'Grup konseling berdasarkan topik yang bisa kamu ikuti dengan identitas anonim.',
+          'rooms' => $publicRooms,
+          'empty' => 'Kamu belum bergabung ke grup publik mana pun.',
+          'show_join_action' => true,
+      ],
+  ];
 @endphp
 <section class="group-lobby-page">
   <div class="container">
@@ -514,32 +564,34 @@
     </div>
 
     <div class="group-lobby-grid">
+      @foreach($groupSections as $section)
       <div class="group-card">
         <div class="group-card-head">
           <div>
-            <h2 class="group-card-title">Grup Saya</h2>
-            <p class="group-card-copy">Buka kembali ruang chat yang sudah pernah kamu ikuti tanpa perlu masuk dari awal.</p>
+            <h2 class="group-card-title">{{ $section['title'] }}</h2>
+            <p class="group-card-copy">{{ $section['copy'] }}</p>
           </div>
           <div class="group-card-head-actions">
-            <div class="group-card-badge">{{ $joinedRooms->count() }} grup</div>
+            <div class="group-card-badge">{{ $section['rooms']->count() }} grup</div>
+            @if($section['show_join_action'])
             <a href="{{ route('mahasiswa.group-chat.create') }}" class="group-card-action-link">
-              <i class="bi bi-plus-circle-fill"></i>
               <span>Gabung Grup</span>
             </a>
+            @endif
           </div>
         </div>
 
         <div class="group-card-body">
           {{-- Daftar ini sengaja hanya menampilkan grup yang sudah pernah diikuti mahasiswa. --}}
-          @if($joinedRooms->isEmpty())
+          @if($section['rooms']->isEmpty())
             <div class="group-empty">
-              Kamu belum bergabung ke grup konseling mana pun.
+              {{ $section['empty'] }}
               <div class="group-empty-actions">
               </div>
             </div>
           @else
             <div class="group-my-list">
-              @foreach($joinedRooms as $room)
+              @foreach($section['rooms'] as $room)
                 @php
                   $isPrivateRoom = method_exists($room, 'isPrivate') ? $room->isPrivate() : ($room->visibility === 'private');
 
@@ -627,7 +679,12 @@
                 <a href="{{ route('mahasiswa.group-chat.room', ['group' => $room->id]) }}" class="group-my-item">
                   <div class="group-my-item-top">
                     <div>
-                      <h3 class="group-my-name">{{ $room->title }}</h3>
+                      <div class="group-my-title-row">
+                        <h3 class="group-my-name">{{ $room->title }}</h3>
+                        <span class="group-my-visibility {{ $isPrivateRoom ? 'is-private' : 'is-public' }}">
+                          <span>{{ $isPrivateRoom ? 'Privat' : 'Publik' }}</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -687,6 +744,7 @@
           @endif
         </div>
       </div>
+      @endforeach
     </div>
   </div>
 </section>

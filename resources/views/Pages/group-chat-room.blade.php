@@ -941,7 +941,6 @@
     @endif
 
     <a href="{{ route('mahasiswa.group-chat') }}" class="group-room-back">
-      <i class="bi bi-arrow-left"></i>
       <span>Kembali ke daftar grup</span>
     </a>
 
@@ -964,7 +963,6 @@
             <div class="group-room-actions">
               <button type="button" class="group-room-toggle" id="groupRoomProfileToggle" aria-expanded="false" aria-controls="groupRoomProfile" aria-label="Lihat anggota grup" title="Lihat anggota grup">
                 <i class="bi bi-people"></i>
-                <i class="bi bi-chevron-down group-room-toggle-chevron"></i>
                 <span class="group-room-toggle-text">Lihat anggota grup</span>
               </button>
 

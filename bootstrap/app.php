@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\EnsureStudentSecurityPinVerified;
 use App\Http\Middleware\RoleMiddleware; 
 use App\Http\Middleware\PreventBackHistory;
 
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ]);
 
     $middleware->append(PreventBackHistory::class);
+    $middleware->append(EnsureStudentSecurityPinVerified::class);
     
     $middleware->alias([
         'role' => RoleMiddleware::class,

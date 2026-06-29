@@ -98,14 +98,38 @@ class GroupChatAdminController extends Controller
 
     public function createRoom(Request $request): RedirectResponse
     {
-        if (! GroupChatSupport::supportsPrivateGroups()) {
-            return back()->with('error', 'Grup privat membutuhkan migration database group chat terbaru sebelum dapat digunakan.');
-        }
+        $visibility = $request->input('visibility') === GroupChatRoom::VISIBILITY_PUBLIC
+            ? GroupChatRoom::VISIBILITY_PUBLIC
+            : GroupChatRoom::VISIBILITY_PRIVATE;
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:120'],
             'invite_nims' => ['nullable', 'string'],
         ]);
+
+        if ($visibility === GroupChatRoom::VISIBILITY_PRIVATE && ! GroupChatSupport::supportsPrivateGroups()) {
+            return back()->with('error', 'Grup privat membutuhkan migration database group chat terbaru sebelum dapat digunakan.');
+        }
+
+        if ($visibility === GroupChatRoom::VISIBILITY_PUBLIC) {
+            $room = DB::transaction(function () use ($request, $validated) {
+                $title = trim($validated['title']);
+                $topic = $this->makeUniquePublicTopicKey($title);
+
+                return GroupChatRoom::query()->create([
+                    'topic' => $topic,
+                    'title' => $title,
+                    'description' => 'Grup publik yang dibuat oleh konselor.',
+                    'visibility' => GroupChatRoom::VISIBILITY_PUBLIC,
+                    'created_by' => $request->user()->id,
+                    'is_active' => true,
+                ]);
+            });
+
+            return redirect()
+                ->route('admin.group-chat', ['group' => $room->id])
+                ->with('success', 'Grup publik "' . $room->title . '" berhasil dibuat dan akan muncul sebagai topik konseling mahasiswa.');
+        }
 
         [$room, $inviteSummary] = DB::transaction(function () use ($request, $validated) {
             $room = GroupChatRoom::query()->create([
@@ -138,6 +162,20 @@ class GroupChatAdminController extends Controller
                 'Grup privat "' . $room->title . '" telah berhasil dibuat.',
                 $inviteSummary
             ));
+    }
+
+    private function makeUniquePublicTopicKey(string $title): string
+    {
+        $base = Str::slug($title, '_') ?: 'grup_publik';
+        $topic = $base;
+        $suffix = 2;
+
+        while (GroupChatRoom::query()->where('topic', $topic)->exists()) {
+            $topic = $base . '_' . $suffix;
+            $suffix++;
+        }
+
+        return $topic;
     }
 
     public function inviteMembers(Request $request, GroupChatRoom $group): RedirectResponse

@@ -1799,7 +1799,7 @@
             autocomplete="off"
           >
         </div>
-        <button type="button" class="admin-add-toggle" id="adminPrivateGroupToggle" aria-expanded="false" aria-controls="adminPrivateGroupCreatePanel" title="Tambah grup privat">
+        <button type="button" class="admin-add-toggle" id="adminPrivateGroupToggle" aria-expanded="false" aria-controls="adminPrivateGroupCreatePanel" title="Tambah grup">
           <i class="ti ti-plus"></i>
         </button>
       </div>
@@ -1823,32 +1823,44 @@
     </div>
 
       <!-- Panel create dibuat inline agar konselor tetap berada di halaman group chat yang sama. -->
-      <form action="{{ route('admin.group-chat.rooms.store') }}" method="POST" class="admin-private-create" id="adminPrivateGroupCreatePanel" {{ old('create_private_group') ? '' : 'hidden' }}>
+      <form action="{{ route('admin.group-chat.rooms.store') }}" method="POST" class="admin-private-create" id="adminPrivateGroupCreatePanel" {{ old('visibility') ? '' : 'hidden' }}>
         @csrf
-        <input type="hidden" name="create_private_group" value="1">
-        <h3>Buat Grup Privat</h3>
-        <p>Grup privat dipakai untuk undangan terbatas. Mahasiswa yang diundang akan menerima notifikasi, lalu melihat aturan dan consent sebelum resmi bergabung.</p>
-        <input type="text" name="title" class="admin-field" placeholder="Nama grup privat" value="{{ old('title') }}" required>
+        <input type="hidden" name="visibility" id="adminCreateGroupVisibility" value="{{ old('visibility', $initialGroupFilter) === 'private' ? 'private' : 'public' }}">
 
-        <div class="admin-student-picker admin-student-picker-create" data-student-picker data-hidden-input-name="invite_nims">
-          <div class="admin-student-picker-tags is-empty" data-picker-tags></div>
-          <input
-            type="search"
-            class="admin-student-picker-input"
-            data-picker-input
-            placeholder="Cari mahasiswa aktif berdasarkan NIM, misalnya 11S278"
-            autocomplete="off"
-          >
-          <div class="admin-student-results" data-picker-results></div>
-          <input type="hidden" name="invite_nims" value="{{ old('invite_nims') }}" data-picker-hidden>
+        <div data-create-section="public">
+          <h3>Buat Grup Publik</h3>
+          <p>Grup publik akan tampil sebagai topik konseling yang bisa dipilih mahasiswa saat bergabung ke grup dan saat membuat penjadwalan.</p>
+          <input type="text" name="title" class="admin-field" placeholder="Nama grup publik / topik konseling" value="{{ old('visibility') === 'public' ? old('title') : '' }}" required data-create-field="public">
+          <div class="admin-inline-note">Contoh: Manajemen Stres Akademik, Adaptasi Kampus, atau Relasi Teman Sebaya.</div>
         </div>
-        <div class="admin-inline-note">Ketik minimal 3 karakter NIM untuk melihat mahasiswa aktif yang benar-benar bisa diundang.</div>
+
+        <div data-create-section="private" hidden>
+          <h3>Buat Grup Privat</h3>
+          <p>Grup privat dipakai untuk undangan terbatas. Mahasiswa yang diundang akan menerima notifikasi, lalu melihat aturan dan consent sebelum resmi bergabung.</p>
+          <input type="text" name="title" class="admin-field" placeholder="Nama grup privat" value="{{ old('visibility') === 'private' ? old('title') : '' }}" required disabled data-create-field="private">
+
+          <div class="admin-student-picker admin-student-picker-create" data-student-picker data-hidden-input-name="invite_nims">
+            <div class="admin-student-picker-tags is-empty" data-picker-tags></div>
+            <input
+              type="search"
+              class="admin-student-picker-input"
+              data-picker-input
+              placeholder="Cari mahasiswa aktif berdasarkan NIM, misalnya 11S278"
+              autocomplete="off"
+              disabled
+              data-create-field="private"
+            >
+            <div class="admin-student-results" data-picker-results></div>
+            <input type="hidden" name="invite_nims" value="{{ old('invite_nims') }}" data-picker-hidden disabled data-create-field="private">
+          </div>
+          <div class="admin-inline-note">Ketik minimal 3 karakter NIM untuk melihat mahasiswa aktif yang benar-benar bisa diundang.</div>
+        </div>
 
         <div class="admin-create-actions">
           <button type="button" class="admin-copy-link" id="adminPrivateGroupCancelBtn">
             <span>Batal</span>
           </button>
-          <button type="submit" class="admin-create-btn">
+          <button type="submit" class="admin-create-btn" id="adminCreateGroupSubmitBtn">
             <span>Buat Grup Privat</span>
           </button>
         </div>
@@ -2250,12 +2262,47 @@ window.adminGroupChatAliasInitials = (name) => {
   const addToggleBtn = document.getElementById('adminPrivateGroupToggle');
   const createPanel = document.getElementById('adminPrivateGroupCreatePanel');
   const cancelCreateBtn = document.getElementById('adminPrivateGroupCancelBtn');
+  const createVisibilityInput = document.getElementById('adminCreateGroupVisibility');
+  const createSubmitBtn = document.getElementById('adminCreateGroupSubmitBtn');
+  const createSections = Array.from(document.querySelectorAll('[data-create-section]'));
   const renameToggleBtn = document.getElementById('adminRoomRenameToggle');
   const renameForm = document.getElementById('adminRoomRenameForm');
   const cancelRenameBtn = document.getElementById('adminRoomRenameCancelBtn');
   const pickerNodes = Array.from(document.querySelectorAll('[data-student-picker]'));
   const searchStudentsUrl = @json(route('admin.group-chat.students.search'));
   let activeRoomDeleteForm = null;
+  let activeGroupFilter = @json(old('visibility', $initialGroupFilter) === 'private' ? 'private' : 'public');
+
+  const syncCreateMode = () => {
+    if (!createPanel) {
+      return;
+    }
+
+    const mode = activeGroupFilter === 'private' ? 'private' : 'public';
+
+    if (createVisibilityInput) {
+      createVisibilityInput.value = mode;
+    }
+
+    if (addToggleBtn) {
+      addToggleBtn.title = mode === 'private' ? 'Tambah grup privat' : 'Tambah grup publik';
+    }
+
+    if (createSubmitBtn) {
+      createSubmitBtn.querySelector('span').textContent = mode === 'private'
+        ? 'Buat Grup Privat'
+        : 'Buat Grup Publik';
+    }
+
+    createSections.forEach((section) => {
+      const isActive = section.dataset.createSection === mode;
+      section.hidden = !isActive;
+
+      section.querySelectorAll('[data-create-field]').forEach((field) => {
+        field.disabled = !isActive;
+      });
+    });
+  };
 
   // Toggle panel create tetap dibuat inline agar admin tidak perlu pindah halaman.
   const syncCreatePanelState = (isOpen) => {
@@ -2266,6 +2313,10 @@ window.adminGroupChatAliasInitials = (name) => {
     createPanel.hidden = !isOpen;
     addToggleBtn.classList.toggle('is-open', isOpen);
     addToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+    if (isOpen) {
+      syncCreateMode();
+    }
   };
 
   addToggleBtn?.addEventListener('click', () => {
@@ -2584,7 +2635,6 @@ window.adminGroupChatAliasInitials = (name) => {
   };
 
   const groupFilterButtons = Array.from(document.querySelectorAll('[data-group-filter]'));
-  let activeGroupFilter = @json($initialGroupFilter);
 
   const syncGroupList = () => {
       const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
@@ -2622,6 +2672,7 @@ window.adminGroupChatAliasInitials = (name) => {
               btn.classList.toggle('active', btn === button);
           });
 
+          syncCreateMode();
           syncGroupList();
       });
   });
@@ -2630,6 +2681,7 @@ window.adminGroupChatAliasInitials = (name) => {
       searchInput.addEventListener('input', syncGroupList);
   }
 
+syncCreateMode();
 syncGroupList();
 
   const closeRoomMenus = () => {
