@@ -253,7 +253,8 @@ class LoginController extends Controller
             ]);
 
             return back()->withErrors([
-                'username' => 'Login gagal: ' . $e->getMessage(),
+                // Detail teknis CIS/cURL cukup dicatat di log, jangan ditampilkan ke user.
+                'username' => 'Username atau password yang anda masukkan salah',
             ])->withInput();
         }
     }

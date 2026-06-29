@@ -498,7 +498,14 @@ class ChatMahasiswaController extends Controller
             'updateUrlTemplate' => route('mahasiswa.chat.update', ['chat' => '__CHAT_ID__']),
             'deleteUrlTemplate' => route('mahasiswa.chat.destroy', ['chat' => '__CHAT_ID__']),
             'status' => $jadwal->status ?? 'disetujui',
-            'counselorName' => $konselorUser?->nama ?: env('CIS_KONSELOR_NAME', 'Konselor'),
+            // Nama konselor chat mengikuti environment CIS agar konsisten dengan header dan pesan realtime.
+            'counselorName' => env(
+                'CIS_KONSELOR_NAME',
+                $konselorUser?->getNamaDisplay()
+                    ?? $konselorUser?->nama
+                    ?? $konselorUser?->name
+                    ?? 'Konselor'
+            ),
             'counselorAvatar' => $konselorProfil?->foto ? Storage::url($konselorProfil->foto) : asset('img/default-avatar.png'),
             'canStart' => $isReadyToStart,
             'scheduledStartAt' => $scheduledAt?->toIso8601String(),

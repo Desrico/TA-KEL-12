@@ -20,7 +20,7 @@
 <style>
   /* Shell group chat dikunci ke viewport admin supaya scroll luar tidak muncul. */
   .pc-content {
-      padding: .75rem !important;
+      padding: .55rem .75rem .75rem !important;
       height: calc(100vh - 70px);
       overflow: hidden;
   }
@@ -39,7 +39,7 @@
 
   .admin-breadcrumb {
       flex-shrink: 0;
-      margin: 0 0 .5rem !important;
+      margin: 0 0 .55rem !important;
       padding: 0 !important;
   }
 
@@ -56,7 +56,8 @@
       width: 100%;
       min-height: 0;
       flex: 1;
-      height: auto;
+      height: 100%;
+      align-self: stretch;
       background: #fff;
       border: 1px solid #dceee4;
       border-radius: 20px;
@@ -319,6 +320,28 @@
     line-height: 1.6;
   }
 
+  .admin-picker-validation {
+    display: none;
+    margin-top: .48rem;
+    padding: .52rem .68rem;
+    border: 1px solid #fed7aa;
+    border-radius: 10px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: .68rem;
+    font-weight: 800;
+    line-height: 1.45;
+  }
+
+  .admin-student-picker.is-invalid .admin-student-picker-input {
+    border-color: #fb923c;
+    box-shadow: 0 0 0 4px rgba(251, 146, 60, .12);
+  }
+
+  .admin-student-picker.is-invalid .admin-picker-validation {
+    display: block;
+  }
+
   .admin-student-picker {
     position: relative;
     margin-top: .7rem;
@@ -327,6 +350,12 @@
 
   .admin-student-picker-create {
     z-index: 28;
+  }
+
+  .admin-private-create .admin-student-picker,
+  .admin-profile-section .admin-student-picker {
+    position: relative;
+    overflow: visible;
   }
 
   .admin-student-picker-tags {
@@ -407,6 +436,15 @@
 
   .admin-student-picker-create .admin-student-results {
     top: calc(100% + .45rem);
+  }
+
+  /* Hasil pencarian di panel kiri/kanan dibuat ikut flow agar tidak terpotong batas scroll card. */
+  .admin-private-create .admin-student-results,
+  .admin-profile-section .admin-student-results {
+    position: static;
+    margin-top: .45rem;
+    max-height: min(190px, 28vh);
+    box-shadow: inset 0 0 0 1px rgba(219, 236, 227, .82);
   }
 
   .admin-student-result {
@@ -523,6 +561,10 @@
     position: relative;
   }
 
+  .admin-chat-session-item.has-room-menu.is-room-menu-open {
+    padding-bottom: 3.3rem;
+  }
+
   .admin-chat-session-item.is-hidden {
     display: none;
   }
@@ -617,6 +659,7 @@
     border: 1px solid rgba(221, 239, 231, 0.96);
     box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
     display: none;
+    z-index: 20;
   }
 
   .admin-room-menu-shell.is-open .admin-room-menu {
@@ -959,8 +1002,8 @@
   }
 
   .admin-member-animal-avatar {
-      width: 34px;
-      height: 34px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       background: #dcfce7;
       border: 2px solid #ffffff;
@@ -968,7 +1011,7 @@
       align-items: center;
       justify-content: center;
       color: var(--admin-accent);
-      font-size: .72rem;
+      font-size: .66rem;
       font-weight: 900;
       box-shadow: 0 6px 14px rgba(15, 118, 110, 0.12);
       flex-shrink: 0;
@@ -1155,6 +1198,18 @@
     gap: .75rem;
   }
 
+  .admin-message-delete-preview {
+    padding: .64rem .75rem;
+    border-radius: 12px;
+    background: rgba(248, 250, 252, .94);
+    border: 1px solid rgba(226, 232, 240, .95);
+    color: #334155;
+    font-size: .8rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
   .admin-message-delete-confirm-text {
     font-size: .83rem;
     line-height: 1.6;
@@ -1244,6 +1299,10 @@
     padding: 0 .25rem;
   }
 
+  .admin-chat-hint:empty {
+    display: none;
+  }
+
   .admin-chat-bottom-stack {
     position: relative;
     bottom: auto;
@@ -1259,7 +1318,7 @@
     position: absolute;
     top: calc(100% + .65rem);
     right: 0;
-    width: 320px;
+    width: 292px;
     max-width: calc(100vw - 2rem);
     max-height: 0;
     display: flex;
@@ -1277,14 +1336,14 @@
   }
 
   .admin-chat-stage.is-profile-open .admin-chat-profile {
-    max-height: min(620px, 78vh);
+    max-height: min(560px, calc(100vh - 132px));
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
   }
 
   .admin-chat-profile-head {
-    padding: 1rem 1.1rem .85rem;
+    padding: .82rem .9rem .72rem;
     border-bottom: 1px solid #edf7f1;
     background: #f6faf8;
     position: sticky;
@@ -1294,8 +1353,8 @@
   }
 
   .admin-chat-profile-head h3 {
-    margin: 0 0 .28rem;
-    font-size: .98rem;
+    margin: 0 0 .18rem;
+    font-size: .88rem;
     font-weight: 800;
     color: #0f172a;
   }
@@ -1303,42 +1362,44 @@
   .admin-chat-profile-head p {
     margin: 0;
     color: #4b7a68;
-    font-size: .84rem;
-    line-height: 1.6;
+    font-size: .75rem;
+    line-height: 1.5;
   }
 
   .admin-chat-profile-body {
-    padding: .95rem 1.1rem 1.35rem;
+    padding: .78rem .9rem 1.35rem;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    max-height: min(510px, 66vh);
+    max-height: none;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
   }
 
   .admin-profile-section {
-    margin-top: 1.35rem;
-    padding-top: 1.2rem;
-    padding-bottom: .9rem;
+    margin-top: 1rem;
+    padding-top: .95rem;
+    padding-bottom: 1.05rem;
     border-top: 1px solid #edf7f1;
   }
 
   .admin-profile-section form {
     display: grid;
-    gap: .9rem;
+    gap: .68rem;
   }
 
   .admin-profile-section h4 {
-    margin: 0 0 .28rem;
+    margin: 0 0 .18rem;
     color: #0f172a;
-    font-size: .86rem;
+    font-size: .78rem;
     font-weight: 800;
   }
 
   .admin-profile-section p {
-    margin: 0 0 .8rem;
+    margin: 0 0 .62rem;
     color: #64748b;
-    font-size: .76rem;
-    line-height: 1.6;
+    font-size: .69rem;
+    line-height: 1.5;
   }
 
   .admin-profile-section .admin-inline-note {
@@ -1346,38 +1407,78 @@
   }
 
   .admin-profile-section .admin-create-actions {
-    margin-top: .7rem;
-    padding-bottom: .75rem;
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin: .68rem -.9rem -1.35rem;
+    padding: .62rem .9rem .92rem;
+    background:
+      linear-gradient(180deg, rgba(251, 253, 252, 0), rgba(251, 253, 252, .96) 30%, #fbfdfc 100%);
+    border-radius: 0 0 16px 16px;
+  }
+
+  .admin-profile-section .admin-student-picker-input {
+    border-radius: 11px;
+    padding: .58rem .72rem;
+    font-size: .74rem;
+    margin-top: .32rem;
+  }
+
+  .admin-profile-section .admin-student-results {
+    max-height: min(210px, 30vh);
+    border-radius: 12px;
+  }
+
+  .admin-profile-section .admin-student-result {
+    padding: .58rem .72rem;
+  }
+
+  .admin-profile-section .admin-student-result strong {
+    font-size: .72rem;
+  }
+
+  .admin-profile-section .admin-student-result span,
+  .admin-profile-section .admin-student-empty,
+  .admin-profile-section .admin-student-loading {
+    font-size: .68rem;
+  }
+
+  .admin-profile-section .admin-create-btn {
+    min-height: 34px;
+    border-radius: 11px;
+    padding: .52rem .78rem;
+    font-size: .72rem;
+    box-shadow: 0 10px 18px rgba(6, 95, 70, .16);
   }
 
   .admin-member-search {
     position: relative;
-    margin-bottom: .9rem;
+    margin-bottom: .7rem;
     position: sticky;
     top: 0;
     z-index: 2;
-    padding-bottom: .65rem;
+    padding-bottom: .5rem;
     background: #fbfdfc;
   }
 
   .admin-member-search i {
     position: absolute;
-    left: .82rem;
+    left: .72rem;
     top: 50%;
     transform: translateY(-50%);
     color: #94a3b8;
-    font-size: .95rem;
+    font-size: .84rem;
     pointer-events: none;
   }
 
   .admin-member-search input {
     width: 100%;
     border: 1px solid #dbece3;
-    border-radius: 13px;
-    padding: .68rem .85rem .68rem 2.35rem;
+    border-radius: 11px;
+    padding: .54rem .72rem .54rem 2.05rem;
     background: #fff;
     color: #0f172a;
-    font-size: .84rem;
+    font-size: .74rem;
     outline: none;
   }
 
@@ -1386,23 +1487,55 @@
     box-shadow: 0 0 0 4px rgba(16, 185, 129, .08);
   }
 
+  .admin-member-status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+    margin-bottom: .72rem;
+  }
+
+  .admin-member-status-item {
+    border: 1px solid rgba(209, 250, 229, 0.95);
+    border-radius: 12px;
+    background: #ffffff;
+    padding: .62rem .7rem;
+  }
+
+  .admin-member-status-label {
+    display: block;
+    color: #64748b;
+    font-size: .66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .admin-member-status-value {
+    display: block;
+    margin-top: .16rem;
+    color: #064e3b;
+    font-size: 1.05rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
   .admin-member-list {
     display: grid;
-    gap: .58rem;
+    gap: .42rem;
     padding-right: .15rem;
-    padding-bottom: .35rem;
+    padding-bottom: .25rem;
   }
 
   .admin-member-avatar-fallback {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: #b7ebc9;
     color: #065f46;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: .9rem;
+    font-size: .76rem;
     font-weight: 800;
     flex-shrink: 0;
 }
@@ -1411,8 +1544,8 @@
   .admin-member-item {
     display: flex;
     align-items: center;
-    gap: .72rem;
-    padding: .3rem 0;
+    gap: .58rem;
+    padding: .24rem 0;
   }
 
   .admin-member-item-content {
@@ -1421,8 +1554,8 @@
   }
 
   .admin-member-avatar {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
@@ -1439,7 +1572,7 @@
   }
 
   .admin-member-name {
-    font-size: .92rem;
+    font-size: .8rem;
     font-weight: 800;
     color: #0f172a;
     line-height: 1.35;
@@ -1713,11 +1846,9 @@
 
         <div class="admin-create-actions">
           <button type="button" class="admin-copy-link" id="adminPrivateGroupCancelBtn">
-            <i class="ti ti-x"></i>
             <span>Batal</span>
           </button>
           <button type="submit" class="admin-create-btn">
-            <i class="ti ti-lock-plus"></i>
             <span>Buat Grup Privat</span>
           </button>
         </div>
@@ -1866,11 +1997,9 @@
                     <div class="admin-inline-note">Gunakan nama grup yang singkat dan mudah dipahami anggota.</div>
                     <div class="admin-room-rename-actions">
                       <button type="button" class="admin-copy-link" id="adminRoomRenameCancelBtn">
-                        <i class="ti ti-x"></i>
                         <span>Batal</span>
                       </button>
                       <button type="submit" class="admin-create-btn">
-                        <i class="ti ti-check"></i>
                         <span>Simpan Nama</span>
                       </button>
                     </div>
@@ -1892,6 +2021,19 @@
                 </div>
 
                 <div class="admin-chat-profile-body">
+                  @if($activeRoom->isPrivate())
+                    <div class="admin-member-status-grid" aria-label="Status anggota grup privat">
+                      <div class="admin-member-status-item">
+                        <span class="admin-member-status-label">Sudah Masuk</span>
+                        <span class="admin-member-status-value">{{ $chatPayload['memberCount'] ?? 0 }}</span>
+                      </div>
+                      <div class="admin-member-status-item">
+                        <span class="admin-member-status-label">Diundang</span>
+                        <span class="admin-member-status-value">{{ $chatPayload['pendingInviteCount'] ?? 0 }}</span>
+                      </div>
+                    </div>
+                  @endif
+
                   {{-- Search lokal membantu admin menemukan anggota tanpa menunggu request baru. --}}
                   <div class="admin-member-search">
                     <i class="ti ti-search"></i>
@@ -1917,7 +2059,7 @@
 
                       <form action="{{ route('admin.group-chat.rooms.invite', ['group' => $activeRoom->id]) }}" method="POST">
                         @csrf
-                        <div class="admin-student-picker" data-student-picker data-hidden-input-name="invite_nims" data-room-id="{{ $activeRoom->id }}">
+                        <div class="admin-student-picker" data-student-picker data-hidden-input-name="invite_nims" data-room-id="{{ $activeRoom->id }}" data-require-selection="true" data-picker-validation-message="Belum ada anggota yang Anda pilih.">
                           <div class="admin-student-picker-tags is-empty" data-picker-tags></div>
                           <input
                             type="search"
@@ -1928,6 +2070,7 @@
                           >
                           <div class="admin-student-results" data-picker-results></div>
                           <input type="hidden" name="invite_nims" value="" data-picker-hidden>
+                          <div class="admin-picker-validation" data-picker-validation>Belum ada anggota yang Anda pilih.</div>
                         </div>
                         <div class="admin-create-actions">
                           <button type="submit" class="admin-create-btn">
@@ -2017,6 +2160,35 @@
       </div>
     </div>
   @endif
+
+  @if(session('admin_invite_success_modal') || session('admin_success_modal') || session('admin_member_action_modal'))
+    @php($adminActionModal = session('admin_invite_success_modal') ?: (session('admin_member_action_modal') ?: session('admin_success_modal')))
+    <div class="admin-member-remove-modal-overlay is-open" id="adminMemberActionSuccessModal" aria-hidden="false">
+      <div class="admin-member-remove-modal" role="dialog" aria-modal="true" aria-labelledby="adminMemberActionSuccessModalTitle">
+        <div class="admin-member-remove-modal-icon is-success">
+          <i class="ti ti-check"></i>
+        </div>
+        <h3 id="adminMemberActionSuccessModalTitle">{{ $adminActionModal['title'] ?? 'Berhasil' }}</h3>
+        @if(!empty($adminActionModal['message']))
+          <p id="adminMemberActionSuccessModalText">{{ $adminActionModal['message'] }}</p>
+        @endif
+        @if(!empty($adminActionModal['stats']))
+          <p style="margin-top:10px;font-weight:800;">
+            {{ (int) ($adminActionModal['stats']['invited_count'] ?? 0) }} diundang,
+            {{ (int) ($adminActionModal['stats']['active_count'] ?? 0) }} sudah masuk
+          </p>
+        @endif
+        @if(!empty($adminActionModal['details']))
+          <p style="margin-top:10px;">{{ implode(' ', $adminActionModal['details']) }}</p>
+        @endif
+        <div class="admin-member-remove-modal-actions">
+          <button type="button" class="admin-member-remove-modal-btn primary" id="adminMemberActionSuccessClose">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  @endif
 </div>
 @endsection
 
@@ -2073,6 +2245,8 @@ window.adminGroupChatAliasInitials = (name) => {
   const privateGroupDeleteCancel = document.getElementById('adminPrivateGroupDeleteCancel');
   const privateGroupDeletedSuccessModal = document.getElementById('adminPrivateGroupDeletedSuccessModal');
   const privateGroupDeletedSuccessClose = document.getElementById('adminPrivateGroupDeletedSuccessClose');
+  const memberActionSuccessModal = document.getElementById('adminMemberActionSuccessModal');
+  const memberActionSuccessClose = document.getElementById('adminMemberActionSuccessClose');
   const addToggleBtn = document.getElementById('adminPrivateGroupToggle');
   const createPanel = document.getElementById('adminPrivateGroupCreatePanel');
   const cancelCreateBtn = document.getElementById('adminPrivateGroupCancelBtn');
@@ -2134,7 +2308,11 @@ window.adminGroupChatAliasInitials = (name) => {
     const inputEl = root.querySelector('[data-picker-input]');
     const resultsEl = root.querySelector('[data-picker-results]');
     const hiddenEl = root.querySelector('[data-picker-hidden]');
+    const formEl = root.closest('form');
+    const validationEl = root.querySelector('[data-picker-validation]');
     const roomId = String(root.dataset.roomId || '').trim();
+    const requiresSelection = root.dataset.requireSelection === 'true';
+    const validationMessage = root.dataset.pickerValidationMessage || 'Belum ada anggota yang Anda pilih.';
 
     if (!tagsEl || !inputEl || !resultsEl || !hiddenEl) {
       return;
@@ -2146,6 +2324,15 @@ window.adminGroupChatAliasInitials = (name) => {
     let latestResults = [];
     let activeRequestController = null;
     let activeRequestSequence = 0;
+
+    const setPickerValidation = (message = '') => {
+      root.classList.toggle('is-invalid', Boolean(message));
+      inputEl.setCustomValidity(message);
+
+      if (validationEl) {
+        validationEl.textContent = message || validationMessage;
+      }
+    };
 
     const eventCameFrom = (event, element) => {
       if (!event || !element) {
@@ -2161,6 +2348,10 @@ window.adminGroupChatAliasInitials = (name) => {
 
     const syncHiddenValue = () => {
       hiddenEl.value = items.map((item) => item.nim).join(',');
+
+      if (items.length > 0) {
+        setPickerValidation('');
+      }
     };
 
     const renderTags = () => {
@@ -2352,6 +2543,7 @@ window.adminGroupChatAliasInitials = (name) => {
     };
 
     inputEl.addEventListener('input', () => {
+      setPickerValidation('');
       const nim = normalizeKeyword(inputEl.value);
 
       if (inputEl.value !== nim) {
@@ -2375,6 +2567,17 @@ window.adminGroupChatAliasInitials = (name) => {
       if (!eventCameFrom(event, root)) {
         closeResults();
       }
+    });
+
+    formEl?.addEventListener('submit', (event) => {
+      if (!requiresSelection || String(hiddenEl.value || '').trim() !== '') {
+        return;
+      }
+
+      event.preventDefault();
+      setPickerValidation(validationMessage);
+      inputEl.focus();
+      inputEl.reportValidity();
     });
 
     hydrateInitialTags();
@@ -2432,6 +2635,7 @@ syncGroupList();
   const closeRoomMenus = () => {
     roomMenuShells.forEach((shell) => {
       shell.classList.remove('is-open');
+      shell.closest('.admin-chat-session-item')?.classList.remove('is-room-menu-open');
       shell.querySelector('[data-room-menu-toggle]')?.setAttribute('aria-expanded', 'false');
     });
   };
@@ -2447,6 +2651,11 @@ syncGroupList();
     privateGroupDeletedSuccessModal?.setAttribute('aria-hidden', 'true');
   };
 
+  const closeMemberActionSuccessModal = () => {
+    memberActionSuccessModal?.classList.remove('is-open');
+    memberActionSuccessModal?.setAttribute('aria-hidden', 'true');
+  };
+
   roomMenuShells.forEach((shell) => {
     const toggle = shell.querySelector('[data-room-menu-toggle]');
     const deleteTrigger = shell.querySelector('[data-room-delete-trigger]');
@@ -2458,6 +2667,7 @@ syncGroupList();
       const willOpen = !shell.classList.contains('is-open');
       closeRoomMenus();
       shell.classList.toggle('is-open', willOpen);
+      shell.closest('.admin-chat-session-item')?.classList.toggle('is-room-menu-open', willOpen);
       toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
     });
 
@@ -2496,6 +2706,12 @@ syncGroupList();
       closePrivateGroupDeletedSuccessModal();
     }
   });
+  memberActionSuccessClose?.addEventListener('click', closeMemberActionSuccessModal);
+  memberActionSuccessModal?.addEventListener('click', (event) => {
+    if (event.target === memberActionSuccessModal) {
+      closeMemberActionSuccessModal();
+    }
+  });
 
   document.addEventListener('click', (event) => {
     if (!event.target.closest('[data-room-menu]')) {
@@ -2508,6 +2724,7 @@ syncGroupList();
       closeRoomMenus();
       closePrivateGroupDeleteModal();
       closePrivateGroupDeletedSuccessModal();
+      closeMemberActionSuccessModal();
     }
   });
 
@@ -2532,6 +2749,7 @@ syncGroupList();
   const memberRemoveModalText = document.getElementById('adminMemberRemoveModalText');
   const membersUrl = @json($chatPayload['membersUrl']);
   const activeRoomId = @json($chatPayload['roomId']);
+  const activeRoomIsPrivate = @json($activeRoom->isPrivate());
 
   if (!stage || !toggle || !profile || !memberList) {
     return;
@@ -2570,7 +2788,9 @@ syncGroupList();
     const label = document.createElement('div');
 
     const rawName = member?.name || 'Pengguna';
-    const name = member?.is_counselor ? 'Konselor' : window.adminGroupChatFormatAnonymousName(rawName);
+    const name = member?.is_counselor
+        ? 'Konselor'
+        : (activeRoomIsPrivate ? rawName : window.adminGroupChatFormatAnonymousName(rawName));
 
     item.className = 'admin-member-item';
     item.dataset.memberName = String(name).toLowerCase();
@@ -2594,6 +2814,7 @@ syncGroupList();
     if (member?.can_remove && member?.remove_url) {
         const form = document.createElement('form');
         const csrf = document.createElement('input');
+        const method = document.createElement('input');
         const button = document.createElement('button');
 
         form.className = 'admin-member-remove-form';
@@ -2604,6 +2825,10 @@ syncGroupList();
         csrf.type = 'hidden';
         csrf.name = '_token';
         csrf.value = @json(csrf_token());
+
+        method.type = 'hidden';
+        method.name = '_method';
+        method.value = 'DELETE';
 
         button.type = 'button';
         button.className = 'admin-member-remove-btn';
@@ -2620,6 +2845,7 @@ syncGroupList();
         });
 
         form.appendChild(csrf);
+        form.appendChild(method);
         form.appendChild(button);
         item.appendChild(form);
     }
@@ -2888,8 +3114,9 @@ syncGroupList();
     </div>
   `;
 
-  const buildDeleteConfirmMarkup = (messageId) => `
+  const buildDeleteConfirmMarkup = (messageId, text = '') => `
     <div class="admin-message-delete-confirm" data-delete-message-id="${messageId}">
+      <div class="admin-message-delete-preview">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
       <div class="admin-message-delete-confirm-text">Hapus pesan ini secara permanen?</div>
       <div class="admin-message-delete-confirm-actions">
         <button type="button" class="admin-message-delete-confirm-btn cancel" data-action="cancel-delete" data-message-id="${messageId}">Batal</button>
@@ -2974,7 +3201,6 @@ syncGroupList();
           <div class="admin-message-meta">
               <span class="admin-message-name">${escapeHtml(displaySenderName)}</span>
               <span>${escapeHtml(message.time)}</span>
-              ${message.is_edited ? '<span class="admin-message-edited">telah diedit</span>' : ''}
           </div>
 
           <div class="admin-message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
@@ -3134,7 +3360,7 @@ syncGroupList();
       }
 
       if (!pesan) {
-        hint.textContent = 'Pesan tidak boleh kosong.';
+        setHint('');
         textarea.focus();
         return;
       }
@@ -3157,16 +3383,16 @@ syncGroupList();
         });
 
         const data = await response.json();
-        hint.textContent = response.ok && data.success
-          ? 'Pesan berhasil diedit.'
-          : (data.message ?? 'Pesan gagal diedit.');
 
         if (response.ok && data.success) {
+          setHint('');
           syncMessages(true);
+        } else {
+          alert(data.message ?? 'Pesan gagal diedit.');
         }
       } catch (error) {
         console.error(error);
-        hint.textContent = 'Terjadi kendala saat mengedit pesan.';
+        alert('Terjadi kendala saat mengedit pesan.');
       }
 
       return;
@@ -3176,13 +3402,14 @@ syncGroupList();
       const messageId = Number(deleteButton.dataset.messageId);
       const row = deleteButton.closest('.admin-message-row');
       const bubbleShell = row?.querySelector('.admin-message-bubble-shell');
+      const currentText = row?.dataset.messageText ?? '';
       closeAllMenus();
 
       if (!row || !bubbleShell) {
         return;
       }
 
-      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId);
+      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId, currentText);
       return;
     }
 
@@ -3200,16 +3427,16 @@ syncGroupList();
         });
 
         const data = await response.json();
-        hint.textContent = response.ok && data.success
-          ? 'Pesan berhasil dihapus.'
-          : (data.message ?? 'Pesan gagal dihapus.');
 
         if (response.ok && data.success) {
+          setHint('');
           syncMessages(true);
+        } else {
+          alert(data.message ?? 'Pesan gagal dihapus.');
         }
       } catch (error) {
         console.error(error);
-        hint.textContent = 'Terjadi kendala saat menghapus pesan.';
+        alert('Terjadi kendala saat menghapus pesan.');
       }
 
       return;

@@ -391,7 +391,7 @@
 
                 <div>
                   <span>Pengundang</span>
-                  <strong>{{ $consentContext['inviter_name'] ?? 'Konselor' }}</strong>
+                  <strong>{{ $consentContext['inviter_name'] ?? 'Pengundang' }}</strong>
                 </div>
 
                 <div>

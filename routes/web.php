@@ -126,6 +126,7 @@ Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
     Route::post('/group-chat/pesan', [GroupChatMahasiswaController::class, 'store'])->name('mahasiswa.group-chat.store');
     Route::patch('/group-chat/pesan/{message}', [GroupChatMahasiswaController::class, 'update'])->name('mahasiswa.group-chat.update');
     Route::delete('/group-chat/pesan/{message}', [GroupChatMahasiswaController::class, 'destroy'])->name('mahasiswa.group-chat.destroy');
+    Route::post('/group-chat/room/{group}/keluar', [GroupChatMahasiswaController::class, 'leave'])->name('mahasiswa.group-chat.leave');
 
     Route::get('/chat/{jadwalId}', [ChatController::class, 'studentSession'])->name('chat.student');
     Route::post('/chat/{jadwalId}', [ChatController::class, 'studentStore'])->name('chat.student.store');

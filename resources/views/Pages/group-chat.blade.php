@@ -274,20 +274,6 @@
     color: #0f172a;
   }
 
-  .group-topic-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    padding: .28rem .58rem;
-    border-radius: 999px;
-    background: #e8fff1;
-    color: #047857;
-    font-size: .67rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-  }
-
   .group-my-meta {
     color: #64748b;
     font-size: .8rem;
@@ -345,6 +331,15 @@
     font-size: .95rem;
   }
 
+  .group-member-animal {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    font-size: 1.15rem;
+    background: #ecfdf5;
+  }
+
   .group-member-text {
     min-width: 0;
   }
@@ -378,6 +373,68 @@
     white-space: nowrap;
     color: #065f46;
     background: #ecfdf5;
+  }
+
+  .group-lobby-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, .45);
+  }
+
+  .group-lobby-modal.show {
+    display: flex;
+  }
+
+  .group-lobby-modal-dialog {
+    width: min(390px, 100%);
+    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid rgba(187, 247, 208, .95);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, .2);
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .group-lobby-modal-icon {
+    width: 54px;
+    height: 54px;
+    margin: 0 auto .85rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #dcfce7;
+    color: #047857;
+    font-size: 1.55rem;
+  }
+
+  .group-lobby-modal-dialog h3 {
+    margin: 0 0 .5rem;
+    color: #0f172a;
+    font-size: 1.08rem;
+    font-weight: 900;
+  }
+
+  .group-lobby-modal-dialog p {
+    margin: 0;
+    color: #475569;
+    font-size: .9rem;
+    line-height: 1.65;
+  }
+
+  .group-lobby-modal-close {
+    margin-top: 1rem;
+    border: none;
+    border-radius: 999px;
+    background: #047857;
+    color: #ffffff;
+    padding: .68rem 1.2rem;
+    font-size: .84rem;
+    font-weight: 800;
   }
 
   @media (max-width: 991.98px) {
@@ -521,14 +578,57 @@
 
                       return $memberUser?->getAnonimAvatarSvg();
                   };
+
+                  $animalIcon = function ($name) {
+                      $name = strtolower((string) $name);
+                      $icons = [
+                          'lobster' => '🦞',
+                          'kanguru' => '🦘',
+                          'gajah' => '🐘',
+                          'serigala' => '🐺',
+                          'kuda' => '🐴',
+                          'zebra' => '🦓',
+                          'badak' => '🦏',
+                          'jerapah' => '🦒',
+                          'bison' => '🦬',
+                          'paus' => '🐋',
+                          'hiu' => '🦈',
+                          'gurita' => '🐙',
+                          'kepiting' => '🦀',
+                          'penyu' => '🐢',
+                          'elang' => '🦅',
+                          'flamingo' => '🦩',
+                          'bebek' => '🦆',
+                          'kupu' => '🦋',
+                          'kelelawar' => '🦇',
+                          'landak' => '🦔',
+                          'beruang' => '🐻',
+                          'kucing' => '🐱',
+                          'kelinci' => '🐰',
+                          'rubah' => '🦊',
+                          'panda' => '🐼',
+                          'koala' => '🐨',
+                          'harimau' => '🐯',
+                          'singa' => '🦁',
+                          'anjing' => '🐶',
+                          'burung' => '🐦',
+                          'kura' => '🐢',
+                      ];
+
+                      foreach ($icons as $keyword => $icon) {
+                          if (str_contains($name, $keyword)) {
+                              return $icon;
+                          }
+                      }
+
+                      return '🐾';
+                  };
                 @endphp
                 <a href="{{ route('mahasiswa.group-chat.room', ['group' => $room->id]) }}" class="group-my-item">
                   <div class="group-my-item-top">
                     <div>
                       <h3 class="group-my-name">{{ $room->title }}</h3>
-                      <span class="group-topic-pill">{{ $room->topicLabel() }}</span>
                     </div>
-                    <span class="group-card-badge">{{ $room->members_count }} anggota</span>
                   </div>
 
                   <div class="group-my-meta">
@@ -545,7 +645,9 @@
                           @endphp
 
                           <div class="group-member-avatar">
-                            @if($memberAvatar)
+                            @if(! $isPrivateRoom)
+                              <div class="group-member-animal" title="{{ $memberName }}">{{ $animalIcon($memberName) }}</div>
+                            @elseif($memberAvatar)
                               <img src="{{ $memberAvatar }}" alt="{{ $memberName }}">
                             @else
                               <div class="group-member-fallback">
@@ -588,7 +690,51 @@
     </div>
   </div>
 </section>
+
+@if(session('group_left_success_modal'))
+  @php($groupLeftModal = session('group_left_success_modal'))
+  <div class="group-lobby-modal show" id="groupLeftSuccessModal" aria-hidden="false">
+    <div class="group-lobby-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="groupLeftSuccessTitle">
+      <div class="group-lobby-modal-icon">
+        <i class="bi bi-check2"></i>
+      </div>
+      <h3 id="groupLeftSuccessTitle">{{ $groupLeftModal['title'] ?? 'Berhasil Keluar dari Grup' }}</h3>
+      <p>{{ $groupLeftModal['message'] ?? 'Anda berhasil keluar dari grup.' }}</p>
+      <button type="button" class="group-lobby-modal-close" id="groupLeftSuccessClose">Tutup</button>
+    </div>
+  </div>
+@endif
 @endsection
+
+@push('scripts')
+<script>
+(() => {
+  const modal = document.getElementById('groupLeftSuccessModal');
+  const closeBtn = document.getElementById('groupLeftSuccessClose');
+
+  if (!modal || !closeBtn) {
+    return;
+  }
+
+  const closeModal = () => {
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeModal();
+    }
+  });
+})();
+</script>
+@endpush
 
 @push('scripts')
 

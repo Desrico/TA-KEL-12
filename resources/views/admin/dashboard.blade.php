@@ -7,12 +7,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <script>
-        // Set tab sebelum CSS diproses agar refresh tidak sempat menampilkan tab Data Mobile.
+        // Set tab sebelum CSS diproses; aksi dari tab Statistik tetap kembali ke tab Statistik.
         (() => {
-            const key = 'admin.dashboard.activeTab';
             const hashTab = window.location.hash ? window.location.hash.replace('#', '') : '';
-            const storedTab = localStorage.getItem(key);
-            const activeTab = hashTab || storedTab || 'tab-mobile';
+            const preferredTab = @json(session('dashboard_tab'));
+            const activeTab = hashTab || preferredTab || 'tab-mobile';
 
             document.documentElement.dataset.dashboardTab = activeTab;
         })();
@@ -195,10 +194,15 @@
 
         .dashboard-tab-content {
             display: none;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity .22s ease, transform .22s ease;
         }
 
         .dashboard-tab-content.active {
             display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         /* State awal tab mengikuti localStorage/hash sebelum JavaScript bawah halaman berjalan. */
@@ -789,20 +793,6 @@
             gap: 7px;
         }
 
-        .today-nav-btn {
-            width: 34px;
-            height: 34px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            background: #ffffff;
-            color: #64748b;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            box-shadow: 0 3px 8px rgba(15, 23, 42, .04);
-        }
-
         .today-list {
             display: grid;
             gap: 8px;
@@ -810,11 +800,11 @@
 
         .today-row {
             display: grid;
-            grid-template-columns: 72px 56px minmax(0, 1fr) 120px auto;
+            grid-template-columns: 64px 46px minmax(0, 1fr) max-content auto;
             align-items: center;
-            gap: 14px;
-            min-height: 88px;
-            padding: 14px 16px;
+            gap: 12px;
+            min-height: 72px;
+            padding: 10px 14px;
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 11px;
@@ -835,24 +825,32 @@
             border-left-color: #bae6fd;
         }
 
+        .today-row.is-reschedule {
+            border-left-color: #f59e0b;
+        }
+
+        .today-row.is-complete {
+            border-left-color: #60a5fa;
+        }
+
         .today-time {
             color: #047857;
-            font-size: 1.18rem;
+            font-size: 1.04rem;
             font-weight: 900;
             line-height: 1;
         }
 
         .today-time span {
             display: block;
-            margin-top: 8px;
+            margin-top: 6px;
             color: #334155;
-            font-size: .76rem;
+            font-size: .68rem;
             font-weight: 800;
         }
 
         .today-avatar {
-            width: 52px;
-            height: 52px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             background: #eff6ff;
             color: #0f172a;
@@ -868,15 +866,9 @@
 
         .today-name {
             color: #1f2937;
-            font-size: .95rem;
+            font-size: .88rem;
             font-weight: 800;
             overflow-wrap: anywhere;
-        }
-
-        .today-meta {
-            color: #334155;
-            font-size: .8rem;
-            margin-top: 3px;
         }
 
         .today-mode {
@@ -884,8 +876,8 @@
             align-items: center;
             gap: 5px;
             color: #475569;
-            font-size: .78rem;
-            margin-top: 4px;
+            font-size: .72rem;
+            margin-top: 3px;
         }
 
         .today-status {
@@ -893,11 +885,13 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 86px;
-            padding: 7px 12px;
+            min-width: 74px;
+            padding: 6px 10px;
             border-radius: 8px;
-            font-size: .78rem;
+            font-size: .72rem;
             font-weight: 800;
+            line-height: 1.15;
+            white-space: nowrap;
         }
 
         .today-status.status-menunggu {
@@ -927,6 +921,29 @@
             color: #be123c;
         }
 
+        .today-status.status-perlu_penjadwalan_ulang {
+            background: #fff0d8;
+            color: #c45a05;
+            border-radius: 999px;
+            min-width: 178px;
+            max-width: none;
+            padding: 7px 14px;
+            font-size: .72rem;
+            white-space: nowrap;
+            text-align: center;
+            box-shadow: inset 0 0 0 1px rgba(251, 191, 36, .18);
+        }
+
+        #tab-web.is-loading .konseling-stat-card,
+        #tab-web.is-loading .konseling-chart-card {
+            opacity: .72;
+        }
+
+        .konseling-stat-card,
+        .konseling-chart-card {
+            transition: opacity .22s ease, transform .22s ease, box-shadow .22s ease;
+        }
+
         .today-actions {
             display: flex;
             align-items: center;
@@ -940,8 +957,8 @@
             background: #ffffff;
             color: #064e3b;
             border-radius: 8px;
-            padding: .62rem .9rem;
-            font-size: .78rem;
+            padding: .5rem .78rem;
+            font-size: .74rem;
             font-weight: 800;
             text-decoration: none;
             display: inline-flex;
@@ -949,7 +966,7 @@
             justify-content: center;
             gap: 7px;
             white-space: nowrap;
-            min-width: 88px;
+            min-width: 82px;
             box-shadow: 0 5px 14px rgba(15, 23, 42, .06);
             transition: transform .18s ease, box-shadow .18s ease;
         }
@@ -1039,7 +1056,7 @@
             }
 
             .today-row {
-                grid-template-columns: 64px 52px minmax(0, 1fr);
+                grid-template-columns: 58px 44px minmax(0, 1fr);
             }
 
             .today-status,
@@ -1068,7 +1085,7 @@
             }
 
             .today-row {
-                grid-template-columns: 56px minmax(0, 1fr);
+                grid-template-columns: 46px minmax(0, 1fr);
                 gap: 10px 12px;
             }
 
@@ -1494,20 +1511,24 @@
                 @forelse(($todayJadwals ?? collect()) as $jadwal)
                     @php
                         $isAnonimJadwal = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
-                        $jadwalUser = optional(optional($jadwal->mahasiswa)->user);
+                        $jadwalUser = optional($jadwal->mahasiswa)->user;
                         $namaMahasiswa = $isAnonimJadwal
                             ? (
                                 $jadwalUser && method_exists($jadwalUser, 'getAnonimDisplayName')
                                     ? trim($jadwalUser->getAnonimDisplayName())
-                                    : 'Anonim'
+                                    : 'Mahasiswa Anonim'
                             )
                             : ($jadwalUser->nama ?? optional($jadwal->mahasiswa)->nama ?? 'Mahasiswa');
                         // Label status sudah dinormalisasi di controller agar sama dengan Riwayat Konseling.
                         $statusJadwalHariIni = $jadwal->dashboard_status_label ?? ucfirst($jadwal->status ?? '-');
                         $statusKeyHariIni = strtolower(str_replace(' ', '_', (string) ($jadwal->status ?? 'menunggu')));
-                        $rowStateClass = in_array($statusKeyHariIni, ['ditolak', 'dibatalkan'], true)
-                            ? 'is-cancelled'
-                            : (in_array($statusKeyHariIni, ['disetujui', 'diterima', 'berlangsung'], true) ? 'is-active' : '');
+                        $rowStateClass = $statusKeyHariIni === 'perlu_penjadwalan_ulang'
+                            ? 'is-reschedule'
+                            : ($statusKeyHariIni === 'selesai'
+                                ? 'is-complete'
+                                : (in_array($statusKeyHariIni, ['ditolak', 'dibatalkan'], true)
+                                    ? 'is-cancelled'
+                                    : (in_array($statusKeyHariIni, ['disetujui', 'diterima', 'berlangsung'], true) ? 'is-active' : '')));
                         $namaUntukInisial = preg_replace('/[^A-Za-z0-9 ]/', '', $namaMahasiswa ?: 'Mahasiswa');
                         $namaParts = preg_split('/\s+/', trim($namaUntukInisial));
                         $inisialMahasiswa = collect($namaParts)
@@ -1517,8 +1538,6 @@
                             ->implode('') ?: 'M';
                         $jenisLayananHariIni = strtolower((string) ($jadwal->jenis ?? 'online'));
                         $isOnlineHariIni = str_contains($jenisLayananHariIni, 'online');
-                        $canOpenSessionToday = $isOnlineHariIni
-                            && in_array($statusKeyHariIni, ['disetujui', 'diterima', 'berlangsung'], true);
                         $jamHariIni = $jadwal->waktu
                             ? \Carbon\Carbon::parse($jadwal->waktu)->format('H:i')
                             : '--:--';
@@ -1531,11 +1550,6 @@
                         <div class="today-avatar">{{ $inisialMahasiswa }}</div>
                         <div class="today-main">
                             <div class="today-name">{{ $namaMahasiswa ?: 'Mahasiswa' }}</div>
-                            <div class="today-meta">
-                                {{ optional($jadwal->mahasiswa)->jurusan ?? 'Program studi belum diisi' }}
-                                &bull;
-                                {{ optional($jadwal->mahasiswa)->angkatan ?? '-' }}
-                            </div>
                             <div class="today-mode">
                                 <i class="ti {{ $isOnlineHariIni ? 'ti-video' : 'ti-map-pin' }}"></i>
                                 {{ $isOnlineHariIni ? 'Online' : 'Offline' }}
@@ -1545,23 +1559,10 @@
                             {{ $statusJadwalHariIni }}
                         </span>
                         <div class="today-actions">
-                            @if($isOnlineHariIni)
-                                <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="today-action">
-                                    <i class="ti ti-message-circle"></i>
-                                    Chat
-                                </a>
-                            @endif
                             <a href="{{ route('admin.riwayat.detail', $jadwal->id) }}" class="today-action">
                                 <i class="ti ti-eye"></i>
                                 Lihat Detail
                             </a>
-                            @if($canOpenSessionToday)
-                                {{-- Mulai sesi tetap diarahkan ke chat agar validasi waktu/status memakai fungsi yang sudah ada. --}}
-                                <a href="{{ route('admin.chat', ['jadwal' => $jadwal->id]) }}" class="today-action primary">
-                                    <i class="ti ti-player-play"></i>
-                                    Mulai Sesi
-                                </a>
-                            @endif
                         </div>
                     </div>
                 @empty
@@ -1719,6 +1720,8 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        localStorage.setItem('admin.dashboard.activeTab', 'tab-web');
+                        history.replaceState(null, '', '#tab-web');
                         form.submit();
                     }
                 });
@@ -2169,6 +2172,8 @@
     let konselingChartInstance = null;
     let topikChartInstance = null;
     const dashboardTabStorageKey = 'admin.dashboard.activeTab';
+    const dashboardPreferredTab = @json(session('dashboard_tab'));
+    let konselingStatisticsLoaded = false;
 
     function activateDashboardTab(button, event, persist = true) {
         if (event) {
@@ -2197,9 +2202,9 @@
         }
 
        if (button.dataset.tab === 'tab-web') {
-            setTimeout(() => {
+            window.requestAnimationFrame(() => {
                 loadKonselingStatistics();
-            }, 100);
+            });
         }
     }
 
@@ -2213,8 +2218,7 @@
         });
 
         const hashTab = window.location.hash ? window.location.hash.replace('#', '') : '';
-        const storedTab = localStorage.getItem(dashboardTabStorageKey);
-        const initialTab = hashTab || storedTab;
+        const initialTab = hashTab || dashboardPreferredTab || 'tab-mobile';
         const initialButton = initialTab
             ? document.querySelector(`.dashboard-tab-btn[data-tab="${initialTab}"]`)
             : null;
@@ -2436,6 +2440,9 @@
     }
 
     async function loadKonselingStatistics() {
+        const tabWeb = document.getElementById('tab-web');
+        tabWeb?.classList.toggle('is-loading', !konselingStatisticsLoaded);
+
         try {
             const response = await fetch('{{ route("counselor.web.jadwal-data") }}');
             const data = await response.json();
@@ -2465,8 +2472,14 @@
                 Object.values(data.problem_distribution ?? {})
             );
 
+            konselingStatisticsLoaded = true;
+
         } catch (error) {
             console.error('Gagal memuat statistik konseling:', error);
+        } finally {
+            window.setTimeout(() => {
+                tabWeb?.classList.remove('is-loading');
+            }, 180);
         }
     }
 
