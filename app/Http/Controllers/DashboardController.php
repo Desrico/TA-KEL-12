@@ -231,7 +231,9 @@ class DashboardController extends Controller
         $feedback->is_published = 1;
         $feedback->save();
 
-        return back()->with('feedback_success', 'Ulasan berhasil dipublish ke halaman beranda.');
+        return back()
+            ->with('feedback_success', 'Ulasan berhasil dipublish ke halaman beranda.')
+            ->with('dashboard_tab', 'tab-web');
     }
 
     public function unpublishFeedback(\App\Models\Feedback $feedback)
@@ -239,7 +241,9 @@ class DashboardController extends Controller
         $feedback->is_published = 0;
         $feedback->save();
 
-        return back()->with('feedback_success', 'Ulasan berhasil disembunyikan dari halaman beranda.');
+        return back()
+            ->with('feedback_success', 'Ulasan berhasil disembunyikan dari halaman beranda.')
+            ->with('dashboard_tab', 'tab-web');
     }
 
     public function getChartData(Request $request)

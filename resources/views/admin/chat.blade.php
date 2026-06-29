@@ -716,6 +716,18 @@
     gap: .75rem;
   }
 
+  .admin-message-delete-preview {
+    padding: .64rem .75rem;
+    border-radius: 12px;
+    background: rgba(248, 250, 252, .94);
+    border: 1px solid rgba(226, 232, 240, .95);
+    color: #334155;
+    font-size: .8rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
   .admin-message-delete-confirm-text {
     font-size: .83rem;
     line-height: 1.6;
@@ -804,6 +816,10 @@
     color: #64748b;
     font-size: .78rem;
     padding: 0 .25rem;
+  }
+
+  .admin-chat-hint:empty {
+    display: none;
   }
 
   .admin-chat-gate {
@@ -1561,8 +1577,9 @@
     </div>
   `;
 
-  const buildDeleteConfirmMarkup = (messageId) => `
+  const buildDeleteConfirmMarkup = (messageId, text = '') => `
     <div class="admin-message-delete-confirm" data-delete-message-id="${messageId}">
+      <div class="admin-message-delete-preview">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
       <div class="admin-message-delete-confirm-text">Hapus pesan ini secara permanen?</div>
       <div class="admin-message-delete-confirm-actions">
         <button type="button" class="admin-message-delete-confirm-btn cancel" data-action="cancel-delete" data-message-id="${messageId}">Batal</button>
@@ -1644,7 +1661,6 @@
         <div class="admin-message-meta">
           ${senderNameHtml}
           <span>${escapeHtml(message.time)}</span>
-          ${message.is_edited ? '<span class="admin-message-edited">telah diedit</span>' : ''}
         </div>
 
         <div class="admin-message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
@@ -1812,7 +1828,9 @@ if (form && input && sendBtn && canSendMessage) {
       }
 
       if (!pesan) {
-        hint.textContent = 'Pesan tidak boleh kosong.';
+        if (hint) {
+          hint.textContent = '';
+        }
         textarea.focus();
         return;
       }
@@ -1834,12 +1852,19 @@ if (form && input && sendBtn && canSendMessage) {
           body: JSON.stringify({ pesan }),
         });
 
+        const data = await response.json();
+
         if (response.ok && data.success) {
+          if (hint) {
+            hint.textContent = '';
+          }
           syncMessages(true);
+        } else {
+          alert(data.message ?? 'Pesan gagal diedit.');
         }
       } catch (error) {
         console.error(error);
-        hint.textContent = 'Terjadi kendala saat mengedit pesan.';
+        alert('Terjadi kendala saat mengedit pesan.');
       }
 
       return;
@@ -1849,13 +1874,14 @@ if (form && input && sendBtn && canSendMessage) {
       const messageId = Number(deleteButton.dataset.messageId);
       const row = deleteButton.closest('.admin-message-row');
       const bubbleShell = row?.querySelector('.admin-message-bubble-shell');
+      const currentText = row?.dataset.messageText ?? '';
       closeAllMenus();
 
       if (!row || !bubbleShell) {
         return;
       }
 
-      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId);
+      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId, currentText);
       return;
     }
 
@@ -1873,16 +1899,18 @@ if (form && input && sendBtn && canSendMessage) {
         });
 
         const data = await response.json();
-        hint.textContent = response.ok && data.success
-          ? 'Pesan berhasil dihapus.'
-          : (data.message ?? 'Pesan gagal dihapus.');
 
         if (response.ok && data.success) {
+          if (hint) {
+            hint.textContent = '';
+          }
           syncMessages(true);
+        } else {
+          alert(data.message ?? 'Pesan gagal dihapus.');
         }
       } catch (error) {
         console.error(error);
-        hint.textContent = 'Terjadi kendala saat menghapus pesan.';
+        alert('Terjadi kendala saat menghapus pesan.');
       }
 
       return;
@@ -1946,10 +1974,13 @@ if (form && input && sendBtn && canSendMessage) {
       tempRow?.remove();
       input.value = pesan;
       autoResize();
-      hint.textContent = data.message ?? 'Pesan gagal dikirim.';
+      alert(data.message ?? 'Pesan gagal dikirim.');
       return;
     }
 
+    if (hint) {
+      hint.textContent = '';
+    }
     tempRow?.remove();
     renderMessage(data.message);
     scrollToBottom();
@@ -1959,7 +1990,7 @@ if (form && input && sendBtn && canSendMessage) {
     tempRow?.remove();
     input.value = pesan;
     autoResize();
-    hint.textContent = 'Terjadi kendala saat mengirim pesan.';
+    alert('Terjadi kendala saat mengirim pesan.');
   } finally {
     isSending = false;
     sendBtn.disabled = false;

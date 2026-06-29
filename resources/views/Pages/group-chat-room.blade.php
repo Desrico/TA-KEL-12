@@ -441,14 +441,15 @@
   }
 
   .group-message-delete-preview {
-    padding: .7rem .82rem;
-    border-radius: 14px;
-    background: rgba(248, 250, 252, .92);
+    padding: .64rem .75rem;
+    border-radius: 12px;
+    background: rgba(248, 250, 252, .94);
     border: 1px solid rgba(226, 232, 240, .95);
     color: #334155;
-    font-size: .84rem;
-    line-height: 1.5;
+    font-size: .8rem;
+    line-height: 1.45;
     white-space: pre-wrap;
+    word-break: break-word;
   }
 
   .group-message-delete-confirm-text {
@@ -1302,8 +1303,9 @@
     </div>
   `;
 
-  const buildDeleteConfirmMarkup = (messageId) => `
+  const buildDeleteConfirmMarkup = (messageId, text = '') => `
     <div class="group-message-delete-confirm" data-delete-message-id="${messageId}">
+      <div class="group-message-delete-preview">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
       <div class="group-message-delete-confirm-text">Hapus pesan ini secara permanen?</div>
       <div class="group-message-delete-confirm-actions">
         <button type="button" class="group-message-delete-confirm-btn cancel" data-action="cancel-delete" data-message-id="${messageId}">Batal</button>
@@ -1622,6 +1624,7 @@
       const messageId = deleteButton.dataset.messageId;
       const row = deleteButton.closest('.group-message-row');
       const bubbleShell = row?.querySelector('.group-message-bubble-shell');
+      const currentText = row?.dataset.messageText ?? '';
 
       closeAllMenus();
 
@@ -1629,7 +1632,7 @@
         return;
       }
 
-      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId);
+      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId, currentText);
       return;
     }
 

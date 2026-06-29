@@ -465,6 +465,18 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
     gap: .75rem;
   }
 
+  .message-delete-preview {
+    padding: .64rem .75rem;
+    border-radius: 12px;
+    background: rgba(248, 250, 252, .94);
+    border: 1px solid rgba(226, 232, 240, .95);
+    color: #334155;
+    font-size: .8rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
   .message-delete-confirm-text {
     font-size: .83rem;
     line-height: 1.6;
@@ -1155,8 +1167,9 @@ body {
     </div>
   `;
 
-  const buildDeleteConfirmMarkup = (messageId) => `
+  const buildDeleteConfirmMarkup = (messageId, text = '') => `
     <div class="message-delete-confirm" data-delete-message-id="${messageId}">
+      <div class="message-delete-preview">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
       <div class="message-delete-confirm-text">Hapus pesan ini secara permanen?</div>
       <div class="message-delete-confirm-actions">
         <button type="button" class="message-delete-confirm-btn cancel" data-action="cancel-delete" data-message-id="${messageId}">Batal</button>
@@ -1580,13 +1593,14 @@ body {
       const messageId = Number(deleteButton.dataset.messageId);
       const row = deleteButton.closest('.message-row');
       const bubbleShell = row?.querySelector('.message-bubble-shell');
+      const currentText = row?.dataset.messageText ?? '';
       closeAllMenus();
 
       if (!row || !bubbleShell) {
         return;
       }
 
-      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId);
+      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId, currentText);
       return;
     }
 

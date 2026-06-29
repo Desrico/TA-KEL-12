@@ -561,6 +561,10 @@
     position: relative;
   }
 
+  .admin-chat-session-item.has-room-menu.is-room-menu-open {
+    padding-bottom: 3.3rem;
+  }
+
   .admin-chat-session-item.is-hidden {
     display: none;
   }
@@ -655,6 +659,7 @@
     border: 1px solid rgba(221, 239, 231, 0.96);
     box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
     display: none;
+    z-index: 20;
   }
 
   .admin-room-menu-shell.is-open .admin-room-menu {
@@ -1193,6 +1198,18 @@
     gap: .75rem;
   }
 
+  .admin-message-delete-preview {
+    padding: .64rem .75rem;
+    border-radius: 12px;
+    background: rgba(248, 250, 252, .94);
+    border: 1px solid rgba(226, 232, 240, .95);
+    color: #334155;
+    font-size: .8rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
   .admin-message-delete-confirm-text {
     font-size: .83rem;
     line-height: 1.6;
@@ -1280,6 +1297,10 @@
     color: #64748b;
     font-size: .78rem;
     padding: 0 .25rem;
+  }
+
+  .admin-chat-hint:empty {
+    display: none;
   }
 
   .admin-chat-bottom-stack {
@@ -2538,6 +2559,7 @@ syncGroupList();
   const closeRoomMenus = () => {
     roomMenuShells.forEach((shell) => {
       shell.classList.remove('is-open');
+      shell.closest('.admin-chat-session-item')?.classList.remove('is-room-menu-open');
       shell.querySelector('[data-room-menu-toggle]')?.setAttribute('aria-expanded', 'false');
     });
   };
@@ -2564,6 +2586,7 @@ syncGroupList();
       const willOpen = !shell.classList.contains('is-open');
       closeRoomMenus();
       shell.classList.toggle('is-open', willOpen);
+      shell.closest('.admin-chat-session-item')?.classList.toggle('is-room-menu-open', willOpen);
       toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
     });
 
@@ -2700,6 +2723,7 @@ syncGroupList();
     if (member?.can_remove && member?.remove_url) {
         const form = document.createElement('form');
         const csrf = document.createElement('input');
+        const method = document.createElement('input');
         const button = document.createElement('button');
 
         form.className = 'admin-member-remove-form';
@@ -2710,6 +2734,10 @@ syncGroupList();
         csrf.type = 'hidden';
         csrf.name = '_token';
         csrf.value = @json(csrf_token());
+
+        method.type = 'hidden';
+        method.name = '_method';
+        method.value = 'DELETE';
 
         button.type = 'button';
         button.className = 'admin-member-remove-btn';
@@ -2726,6 +2754,7 @@ syncGroupList();
         });
 
         form.appendChild(csrf);
+        form.appendChild(method);
         form.appendChild(button);
         item.appendChild(form);
     }
@@ -2994,8 +3023,9 @@ syncGroupList();
     </div>
   `;
 
-  const buildDeleteConfirmMarkup = (messageId) => `
+  const buildDeleteConfirmMarkup = (messageId, text = '') => `
     <div class="admin-message-delete-confirm" data-delete-message-id="${messageId}">
+      <div class="admin-message-delete-preview">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
       <div class="admin-message-delete-confirm-text">Hapus pesan ini secara permanen?</div>
       <div class="admin-message-delete-confirm-actions">
         <button type="button" class="admin-message-delete-confirm-btn cancel" data-action="cancel-delete" data-message-id="${messageId}">Batal</button>
@@ -3080,7 +3110,6 @@ syncGroupList();
           <div class="admin-message-meta">
               <span class="admin-message-name">${escapeHtml(displaySenderName)}</span>
               <span>${escapeHtml(message.time)}</span>
-              ${message.is_edited ? '<span class="admin-message-edited">telah diedit</span>' : ''}
           </div>
 
           <div class="admin-message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
@@ -3240,7 +3269,7 @@ syncGroupList();
       }
 
       if (!pesan) {
-        hint.textContent = 'Pesan tidak boleh kosong.';
+        setHint('');
         textarea.focus();
         return;
       }
@@ -3262,6 +3291,19 @@ syncGroupList();
           body: JSON.stringify({ pesan }),
         });
 
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          setHint('');
+          syncMessages(true);
+        } else {
+          alert(data.message ?? 'Pesan gagal diedit.');
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Terjadi kendala saat mengedit pesan.');
+      }
+
       return;
     }
 
@@ -3269,13 +3311,14 @@ syncGroupList();
       const messageId = Number(deleteButton.dataset.messageId);
       const row = deleteButton.closest('.admin-message-row');
       const bubbleShell = row?.querySelector('.admin-message-bubble-shell');
+      const currentText = row?.dataset.messageText ?? '';
       closeAllMenus();
 
       if (!row || !bubbleShell) {
         return;
       }
 
-      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId);
+      bubbleShell.innerHTML = buildDeleteConfirmMarkup(messageId, currentText);
       return;
     }
 
@@ -3293,16 +3336,16 @@ syncGroupList();
         });
 
         const data = await response.json();
-        hint.textContent = response.ok && data.success
-          ? 'Pesan berhasil dihapus.'
-          : (data.message ?? 'Pesan gagal dihapus.');
 
         if (response.ok && data.success) {
+          setHint('');
           syncMessages(true);
+        } else {
+          alert(data.message ?? 'Pesan gagal dihapus.');
         }
       } catch (error) {
         console.error(error);
-        hint.textContent = 'Terjadi kendala saat menghapus pesan.';
+        alert('Terjadi kendala saat menghapus pesan.');
       }
 
       return;
