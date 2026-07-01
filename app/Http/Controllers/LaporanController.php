@@ -189,6 +189,46 @@ class LaporanController extends Controller
         ));
     }
 
+    public function batalkanPenjadwalan($id)
+    {
+        $mahasiswa = auth()->user()->mahasiswa;
+
+        if (! $mahasiswa) {
+            abort(403, 'Data mahasiswa tidak ditemukan.');
+        }
+
+        $jadwal = JadwalKonseling::with(['mahasiswa.user', 'konselor.user'])
+            ->where('id', $id)
+            ->where('mahasiswa_id', $mahasiswa->id)
+            ->firstOrFail();
+
+        $status = strtolower(trim((string) ($jadwal->status ?? '')));
+
+        if (! in_array($status, ['menunggu', 'menunggu konfirmasi'], true)) {
+            return back()->with('error', 'Penjadwalan hanya bisa dibatalkan saat masih menunggu konfirmasi.');
+        }
+
+        $jadwal->update([
+            'status' => 'dibatalkan',
+        ]);
+
+        $konselorUserId = $jadwal->konselor?->user?->id;
+
+        if ($konselorUserId) {
+            Notifikasi::create([
+                'user_id' => $konselorUserId,
+                'pesan' => 'Mahasiswa membatalkan penjadwalan konseling yang masih menunggu konfirmasi.',
+                'status' => 'belum',
+                'cta_target' => route('admin.riwayat'),
+                'cta_label' => 'Lihat Riwayat',
+            ]);
+        }
+
+        return redirect()
+            ->route('riwayat', ['jadwal' => $jadwal->id])
+            ->with('success', 'Penjadwalan berhasil dibatalkan.');
+    }
+
     public function laporanAdmin(\Illuminate\Http\Request $request)
     {
         $q = trim((string) $request->query('q', ''));

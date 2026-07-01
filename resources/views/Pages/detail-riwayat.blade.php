@@ -219,6 +219,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
     margin-top: 0;
     padding-top: 0;
     border-top: none;
@@ -398,6 +400,35 @@
 }
 
 .btn-reschedule:hover {
+    background: #ecfdf5;
+    border-color: #10b981;
+    color: #065f46;
+    transform: translateY(-1px);
+}
+
+.btn-action-cancel {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+    box-shadow: 0 10px 24px rgba(239, 68, 68, 0.14);
+    min-width: 260px;
+}
+
+.btn-action-cancel:hover {
+    background: #fecaca;
+    border-color: #f87171;
+    color: #7f1d1d;
+    transform: translateY(-1px);
+}
+
+.btn-back-riwayat-detail {
+    background: #ffffff;
+    color: #064e3b;
+    border: 2px solid #064e3b;
+    min-width: 260px;
+}
+
+.btn-back-riwayat-detail:hover {
     background: #ecfdf5;
     border-color: #10b981;
     color: #065f46;
@@ -745,6 +776,7 @@
     $sesi = $jadwal->sesiKonseling;
     $statusJadwalNormalized = strtolower(str_replace(' ', '_', trim((string) ($jadwal->status ?? ''))));
     $isPerluPenjadwalanUlang = $statusJadwalNormalized === 'perlu_penjadwalan_ulang';
+    $isMenungguKonfirmasi = in_array($statusJadwalNormalized, ['menunggu', 'menunggu_konfirmasi'], true);
     // Status lama tetap "selesai", tetapi data lama/baru bisa menyimpan status khusus perlu_sesi_lanjutan.
     $isPerluSesiLanjutan = $perluSesiLanjutan && in_array($statusJadwalNormalized, ['selesai', 'perlu_sesi_lanjutan'], true);
     $statusDetailLabel = $isPerluSesiLanjutan
@@ -908,7 +940,17 @@
                         @endphp
 
                         <div class="detail-action-wrapper">
-                            @if($isPerluSesiLanjutan || $isPerluPenjadwalanUlang)
+                            @if($isMenungguKonfirmasi)
+                                <form method="POST" action="{{ route('riwayat.batalkan', $jadwal->id) }}" onsubmit="return confirm('Yakin ingin membatalkan penjadwalan ini?');" style="display:inline-flex;">
+                                    @csrf
+                                    <button type="submit" class="btn-detail-action btn-action-cancel">
+                                        Batalkan Penjadwalan
+                                    </button>
+                                </form>
+                                <a href="{{ route('riwayat') }}" class="btn-detail-action btn-back-riwayat-detail">
+                                    Kembali ke Riwayat
+                                </a>
+                            @elseif($isPerluSesiLanjutan || $isPerluPenjadwalanUlang)
                                 <a href="{{ route('riwayat') }}" class="btn-detail-action">
                                     Kembali ke riwayat
                                 </a>
