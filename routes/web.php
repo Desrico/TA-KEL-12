@@ -64,6 +64,8 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
     Route::get('/security-pin', [LoginController::class, 'showSecurityPin'])->name('security-pin.show');
     Route::post('/security-pin', [LoginController::class, 'submitSecurityPin'])->name('security-pin.submit');
+    Route::get('/security-pin/lupa', [LoginController::class, 'showSecurityPinReset'])->name('security-pin.reset.show');
+    Route::post('/security-pin/lupa', [LoginController::class, 'submitSecurityPinReset'])->name('security-pin.reset.submit');
 });
 
 Route::post('/notifikasi/{notifikasi}/baca', function (\App\Models\Notifikasi $notifikasi) {

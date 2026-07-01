@@ -295,6 +295,28 @@ class LoginController extends Controller
         ]);
     }
 
+    public function showSecurityPinReset(Request $request)
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if ($user->role !== 'mahasiswa') {
+            return $this->redirectByRole($user->role);
+        }
+
+        if (! $user->hasSecurityPin()) {
+            return redirect()->route('security-pin.show');
+        }
+
+        return view('auth.security-pin', [
+            'mode' => 'reset',
+            'lockedUntil' => $user->security_pin_locked_until,
+        ]);
+    }
+
     public function submitSecurityPin(Request $request)
     {
         $user = $request->user();
@@ -365,6 +387,53 @@ class LoginController extends Controller
         $request->session()->put('security_pin_verified_at', now()->toIso8601String());
 
         return redirect()->route('dashboard');
+    }
+
+    public function submitSecurityPinReset(Request $request, KampusApiService $kampusApi)
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if ($user->role !== 'mahasiswa') {
+            return $this->redirectByRole($user->role);
+        }
+
+        if (! $user->hasSecurityPin()) {
+            return redirect()->route('security-pin.show');
+        }
+
+        $validated = $request->validate([
+            'password' => ['required', 'string'],
+            'pin' => ['required', 'digits:6'],
+        ], [
+            'password.required' => 'Password CIS wajib diisi untuk reset PIN.',
+            'pin.required' => 'PIN keamanan wajib diisi.',
+            'pin.digits' => 'PIN keamanan harus terdiri dari tepat 6 digit angka.',
+        ]);
+
+        try {
+            $kampusApi->loginWithCredentials($user->username_cis ?? '', $validated['password']);
+        } catch (\Throwable $e) {
+            return back()->withErrors([
+                'password' => 'Password CIS tidak valid. PIN belum diubah.',
+            ])->withInput();
+        }
+
+        $user->forceFill([
+            'security_pin_hash' => Hash::make($validated['pin']),
+            'security_pin_set_at' => now(),
+            'security_pin_failed_attempts' => 0,
+            'security_pin_locked_until' => null,
+        ])->save();
+
+        $request->session()->put('security_pin_verified_at', now()->toIso8601String());
+
+        $request->session()->forget('security_pin_verified_at');
+
+        return redirect()->route('security-pin.reset.show', ['reset_success' => 1]);
     }
 
     private function attemptLocalLogin(string $username, string $password): ?User
