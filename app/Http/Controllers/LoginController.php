@@ -144,10 +144,16 @@ class LoginController extends Controller
             );
 
             $token = $cisLogin['token'];
+            $counselorIdentity = $this->resolveCisCounselorIdentity(
+                $validated['username'],
+                $cisLogin['raw'] ?? [],
+                $kampusApi,
+                $token
+            );
 
-            if ($this->isKnownCounselorLogin($validated['username'])) {
-                $konselorName = env('CIS_KONSELOR_NAME', 'Ibu Laura');
-                $konselorEmail = env('CIS_KONSELOR_EMAIL') ?: ($validated['username'] . '@cis.local');
+            if ($counselorIdentity) {
+                $konselorName = $counselorIdentity['nama'] ?: $validated['username'];
+                $konselorEmail = $counselorIdentity['email'] ?: ($validated['username'] . '@cis.local');
 
                 $user = User::firstOrNew([
                     'username_cis' => $validated['username'],
@@ -163,16 +169,13 @@ class LoginController extends Controller
 
                 $user->save();
 
-                $konselor = Konselor::query()->orderBy('id')->first();
-
-                if (! $konselor) {
-                    $konselor = new Konselor();
-                }
-
-                $konselor->user_id = $user->id;
+                // Jangan mengambil konselor pertama karena itu dapat memindahkan
+                // relasi milik akun konselor lain ke akun yang sedang login.
+                $konselor = Konselor::firstOrNew(['user_id' => $user->id]);
 
                 if (empty($konselor->spesialisasi)) {
-                    $konselor->spesialisasi = 'Psikolog / Konselor';
+                    $konselor->spesialisasi = $counselorIdentity['jabatan']
+                        ?: $this->adminSpecializationFallback();
                 }
 
                 $konselor->save();
@@ -476,14 +479,506 @@ class LoginController extends Controller
 
     private function isKnownCounselorLogin(string $username): bool
     {
+        if (! $this->hasRequiredAdminAccessConfig()) {
+            return false;
+        }
+
         $loginIdentifier = strtolower(trim($username));
 
-        $allowedIdentifiers = array_filter([
-            strtolower(trim((string) env('CIS_KONSELOR_USERNAME', ''))),
-            strtolower(trim((string) env('CIS_KONSELOR_EMAIL', ''))),
-        ]);
+        $allowedIdentifiers = array_merge(
+            $this->csvConfig('services.kampus_api.admin.usernames'),
+            $this->csvConfig('services.kampus_api.admin.emails')
+        );
 
         return in_array($loginIdentifier, $allowedIdentifiers, true);
+    }
+
+    private function resolveCisCounselorIdentity(
+        string $username,
+        array $cisLoginRaw,
+        KampusApiService $kampusApi,
+        string $token
+    ): ?array {
+        $loginIdentifiers = $this->collectLoginIdentifiers($username, $cisLoginRaw);
+        $loginPegawaiIds = $this->collectLoginPegawaiIds($cisLoginRaw);
+        $pegawaiIds = $this->csvConfig('services.kampus_api.admin.pegawai_ids', false);
+        $jabatans = $this->adminAccessJabatans();
+
+        // Akses admin CIS wajib dikunci oleh pegawai_id dan jabatan. Username,
+        // email, dan nama hanya dipakai sebagai pengikat identitas/fallback saat
+        // endpoint pejabat CIS gagal teknis setelah kredensial CIS valid.
+        if (empty($pegawaiIds) || empty($jabatans)) {
+            Log::warning('Konfigurasi admin CIS tidak lengkap. CIS_ADMIN_PEGAWAI_IDS wajib diisi dan salah satu dari CIS_ADMIN_JABATAN atau CIS_ADMIN_SPECIALIZATION harus valid.');
+
+            return null;
+        }
+
+        if (! $this->isKnownCounselorLogin($username)) {
+            Log::warning('Username login CIS tidak termasuk daftar admin CIS yang dikonfigurasi.', [
+                'username' => $username,
+            ]);
+
+            return null;
+        }
+
+        return $this->resolvePejabatCounselorIdentity(
+            $loginIdentifiers,
+            $loginPegawaiIds,
+            $pegawaiIds,
+            $jabatans,
+            $kampusApi,
+            $token
+        );
+    }
+
+    private function hasRequiredAdminAccessConfig(): bool
+    {
+        return ! empty($this->csvConfig('services.kampus_api.admin.pegawai_ids', false))
+            && ! empty($this->adminAccessJabatans());
+    }
+
+    private function hasConfiguredIdentifierMatch(array $loginIdentifiers): bool
+    {
+        $allowedIdentifiers = array_merge(
+            $this->csvConfig('services.kampus_api.admin.usernames'),
+            $this->csvConfig('services.kampus_api.admin.emails')
+        );
+
+        if ((bool) array_intersect($loginIdentifiers, $allowedIdentifiers)) {
+            return true;
+        }
+
+        foreach ($loginIdentifiers as $identifier) {
+            if ($this->matchesConfiguredAdminName($identifier)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function resolvePejabatCounselorIdentity(
+        array $loginIdentifiers,
+        array $loginPegawaiIds,
+        array $pegawaiIds,
+        array $jabatans,
+        KampusApiService $kampusApi,
+        string $token
+    ): ?array {
+        $receivedCisResponse = false;
+
+        foreach ($this->buildPejabatFilterSets($pegawaiIds, $jabatans) as $filters) {
+            try {
+                $payload = $kampusApi->listPejabat($filters, $token);
+                $receivedCisResponse = true;
+            } catch (\Throwable $e) {
+                Log::warning('Gagal mengambil data pejabat CIS untuk validasi admin.', [
+                    'filters' => $filters,
+                    'message' => $e->getMessage(),
+                ]);
+
+                continue;
+            }
+
+            foreach ($this->extractPejabatRows($payload) as $row) {
+                if (! $this->pejabatMatchesConfiguredAccess($row, $pegawaiIds, $jabatans)) {
+                    continue;
+                }
+
+                if (! $this->pejabatBelongsToAuthenticatedAdmin($row, $loginIdentifiers, $loginPegawaiIds, $pegawaiIds)) {
+                    continue;
+                }
+
+                return [
+                    'nama' => trim((string) ($row['nama'] ?? $row['name'] ?? ''))
+                        ?: $this->firstAdminNameConfigValue(),
+                    'email' => trim((string) ($row['email'] ?? ''))
+                        ?: $this->firstCsvConfigValue('services.kampus_api.admin.emails'),
+                    'pegawai_id' => trim((string) ($row['pegawai_id'] ?? $row['id_pegawai'] ?? '')),
+                    'jabatan' => trim((string) ($row['jabatan'] ?? ''))
+                        ?: $this->firstAdminAccessJabatanValue(),
+                ];
+            }
+        }
+
+        // Kredensial tetap sudah diverifikasi oleh do-auth CIS. Fallback ini
+        // hanya berlaku saat endpoint list-pejabat gagal secara teknis, bukan
+        // ketika CIS merespons sukses dengan pegawai/jabatan yang tidak cocok.
+        if (! $receivedCisResponse && $this->hasConfiguredIdentifierMatch($loginIdentifiers)) {
+            Log::warning('Validasi admin memakai fallback identifier karena endpoint pejabat CIS tidak tersedia.');
+
+            return $this->configuredCounselorIdentity(
+                $loginIdentifiers[0] ?? '',
+                $pegawaiIds[0] ?? null,
+                $jabatans[0] ?? null
+            );
+        }
+
+        return null;
+    }
+
+    private function pejabatBelongsToAuthenticatedAdmin(
+        array $row,
+        array $loginIdentifiers,
+        array $loginPegawaiIds,
+        array $configuredPegawaiIds
+    ): bool {
+        $rowPegawaiId = trim((string) ($row['pegawai_id'] ?? $row['id_pegawai'] ?? ''));
+
+        // Jika response login CIS membawa pegawai_id, itu menjadi bukti terkuat:
+        // pegawai_id login, .env, dan row pejabat harus sama.
+        if (! empty($loginPegawaiIds)) {
+            return $rowPegawaiId !== ''
+                && in_array($rowPegawaiId, $loginPegawaiIds, true)
+                && in_array($rowPegawaiId, $configuredPegawaiIds, true);
+        }
+
+        $rowIdentifiers = $this->collectPejabatIdentifiers($row);
+
+        if ((bool) array_intersect($loginIdentifiers, $rowIdentifiers)) {
+            return true;
+        }
+
+        // Sebagian response login CIS hanya berisi token, dan response pejabat
+        // kadang tidak berisi username/email. Dalam kondisi itu row pejabat
+        // tetap harus cocok dengan identitas admin yang dikonfigurasi. Nama
+        // dibandingkan lebih longgar agar beda titik/gelar tidak memblokir
+        // pegawai_id + jabatan + username yang sudah benar.
+        return $this->hasConfiguredIdentifierMatch($loginIdentifiers)
+            && $this->rowMatchesConfiguredAdminIdentity($row);
+    }
+
+    private function configuredCounselorIdentity(
+        string $username,
+        ?string $pegawaiId = null,
+        ?string $jabatan = null
+    ): array {
+        return [
+            'nama' => $this->firstAdminNameConfigValue() ?: $username,
+            'email' => $this->firstCsvConfigValue('services.kampus_api.admin.emails'),
+            'pegawai_id' => $pegawaiId,
+            'jabatan' => $jabatan
+                ?: $this->adminSpecializationFallback(),
+        ];
+    }
+
+    private function pejabatMatchesConfiguredAccess(array $row, array $pegawaiIds, array $jabatans): bool
+    {
+        $rowPegawaiId = trim((string) ($row['pegawai_id'] ?? $row['id_pegawai'] ?? ''));
+        $rowJabatan = $this->normalizeIdentifier((string) ($row['jabatan'] ?? ''));
+        $normalizedJabatans = array_map(
+            fn (string $jabatan) => $this->normalizeIdentifier($jabatan),
+            $jabatans
+        );
+
+        return (empty($pegawaiIds) || in_array($rowPegawaiId, $pegawaiIds, true))
+            && (empty($normalizedJabatans) || in_array($rowJabatan, $normalizedJabatans, true));
+    }
+
+    private function buildPejabatFilterSets(array $pegawaiIds, array $jabatans): array
+    {
+        if (! empty($pegawaiIds) && ! empty($jabatans)) {
+            $filters = [];
+
+            foreach ($pegawaiIds as $pegawaiId) {
+                foreach ($jabatans as $jabatan) {
+                    $filters[] = [
+                        'pegawai_id' => $pegawaiId,
+                        'jabatan' => $jabatan,
+                    ];
+                }
+            }
+
+            return $filters;
+        }
+
+        if (! empty($pegawaiIds)) {
+            return array_map(fn (string $pegawaiId) => ['pegawai_id' => $pegawaiId], $pegawaiIds);
+        }
+
+        return array_map(fn (string $jabatan) => ['jabatan' => $jabatan], $jabatans);
+    }
+
+    private function collectLoginIdentifiers(string $username, array $payload): array
+    {
+        $identifiers = [$this->normalizeIdentifier($username)];
+        $candidateKeys = [
+            'username',
+            'user_name',
+            'userid',
+            'user_id',
+            'uid',
+            'email',
+            'mail',
+            'nama',
+            'name',
+            'full_name',
+            'pegawai_id',
+            'id_pegawai',
+        ];
+
+        $walk = function (array $items) use (&$walk, &$identifiers, $candidateKeys): void {
+            foreach ($items as $key => $value) {
+                $normalizedKey = strtolower((string) $key);
+
+                if (is_array($value)) {
+                    $walk($value);
+                    continue;
+                }
+
+                if (in_array($normalizedKey, $candidateKeys, true) && is_scalar($value)) {
+                    $identifiers[] = $this->normalizeIdentifier((string) $value);
+                }
+            }
+        };
+
+        $walk($payload);
+
+        return array_values(array_unique(array_filter($identifiers)));
+    }
+
+    private function collectLoginPegawaiIds(array $payload): array
+    {
+        $pegawaiIds = [];
+        $candidateKeys = [
+            'pegawaiid',
+            'idpegawai',
+            'employee_id',
+            'employeeid',
+        ];
+
+        $walk = function (array $items) use (&$walk, &$pegawaiIds, $candidateKeys): void {
+            foreach ($items as $key => $value) {
+                $normalizedKey = strtolower(str_replace(['-', '_', ' '], '', (string) $key));
+
+                if (is_array($value)) {
+                    $walk($value);
+                    continue;
+                }
+
+                if (in_array($normalizedKey, $candidateKeys, true) && is_scalar($value)) {
+                    $pegawaiIds[] = trim((string) $value);
+                }
+            }
+        };
+
+        $walk($payload);
+
+        return array_values(array_unique(array_filter($pegawaiIds)));
+    }
+
+    private function collectPejabatIdentifiers(array $row): array
+    {
+        return array_values(array_unique(array_filter([
+            $this->normalizeIdentifier((string) ($row['pegawai_id'] ?? '')),
+            $this->normalizeIdentifier((string) ($row['id_pegawai'] ?? '')),
+            $this->normalizeIdentifier((string) ($row['username'] ?? '')),
+            $this->normalizeIdentifier((string) ($row['email'] ?? '')),
+            $this->normalizeIdentifier((string) ($row['nama'] ?? '')),
+            $this->normalizeIdentifier((string) ($row['name'] ?? '')),
+        ])));
+    }
+
+    private function rowMatchesConfiguredAdminIdentity(array $row): bool
+    {
+        $rowUsernames = array_values(array_unique(array_filter([
+            $this->normalizeIdentifier((string) ($row['username'] ?? '')),
+            $this->normalizeIdentifier((string) ($row['user_name'] ?? '')),
+            $this->normalizeIdentifier((string) ($row['userid'] ?? '')),
+            $this->normalizeIdentifier((string) ($row['user_id'] ?? '')),
+        ])));
+        $rowEmails = array_values(array_unique(array_filter([
+            $this->normalizeIdentifier((string) ($row['email'] ?? '')),
+            $this->normalizeIdentifier((string) ($row['mail'] ?? '')),
+        ])));
+        $rowNames = array_values(array_unique(array_filter([
+            (string) ($row['nama'] ?? ''),
+            (string) ($row['name'] ?? ''),
+            (string) ($row['full_name'] ?? ''),
+        ])));
+
+        if ((bool) array_intersect($rowUsernames, $this->csvConfig('services.kampus_api.admin.usernames'))) {
+            return true;
+        }
+
+        if ((bool) array_intersect($rowEmails, $this->csvConfig('services.kampus_api.admin.emails'))) {
+            return true;
+        }
+
+        foreach ($rowNames as $rowName) {
+            if ($this->matchesConfiguredAdminName($rowName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function matchesConfiguredAdminName(string $name): bool
+    {
+        $normalizedName = $this->normalizeLooseName($name);
+
+        if ($normalizedName === '') {
+            return false;
+        }
+
+        foreach ($this->adminNameConfigValues() as $configuredName) {
+            $normalizedConfiguredName = $this->normalizeLooseName($configuredName);
+
+            if ($normalizedConfiguredName === '') {
+                continue;
+            }
+
+            if ($normalizedName === $normalizedConfiguredName) {
+                return true;
+            }
+
+            if (str_contains($normalizedName, $normalizedConfiguredName)
+                || str_contains($normalizedConfiguredName, $normalizedName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function adminNameConfigValues(): array
+    {
+        $value = trim((string) config('services.kampus_api.admin.names', ''));
+
+        if ($value === '') {
+            return [];
+        }
+
+        // Nama admin sering berisi koma untuk gelar, misalnya
+        // "Malino Win Krisnando Sihotang, S.Tr.Kom". Karena itu koma tidak
+        // dipakai sebagai delimiter nama. Jika perlu beberapa nama, pakai titik
+        // koma agar tidak bentrok dengan format gelar.
+        return collect(explode(';', $value))
+            ->map(fn (string $item) => trim($item))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function firstAdminNameConfigValue(): ?string
+    {
+        $values = $this->adminNameConfigValues();
+
+        return $values[0] ?? null;
+    }
+
+    private function extractPejabatRows(mixed $payload): array
+    {
+        if (! is_array($payload)) {
+            return [];
+        }
+
+        if ($this->looksLikePejabatRow($payload)) {
+            return [$payload];
+        }
+
+        $rows = [];
+
+        foreach ($payload as $value) {
+            if (is_array($value)) {
+                $rows = array_merge($rows, $this->extractPejabatRows($value));
+            }
+        }
+
+        return $rows;
+    }
+
+    private function looksLikePejabatRow(array $row): bool
+    {
+        $keys = array_map(fn ($key) => strtolower((string) $key), array_keys($row));
+
+        return in_array('pegawai_id', $keys, true)
+            || in_array('id_pegawai', $keys, true)
+            || (in_array('nama', $keys, true) && in_array('jabatan', $keys, true));
+    }
+
+    private function adminAccessJabatans(): array
+    {
+        $jabatans = $this->csvConfig('services.kampus_api.admin.jabatan', false);
+        $specializations = $this->csvConfig('services.kampus_api.admin.specialization', false);
+
+        if (! empty($jabatans) && ! empty($specializations)) {
+            $normalizedJabatans = $this->normalizeConfigList($jabatans);
+            $normalizedSpecializations = $this->normalizeConfigList($specializations);
+
+            if ($normalizedJabatans !== $normalizedSpecializations) {
+                Log::warning('Konfigurasi admin CIS tidak konsisten. CIS_ADMIN_JABATAN dan CIS_ADMIN_SPECIALIZATION harus sama jika keduanya diisi.');
+
+                return [];
+            }
+
+            return $jabatans;
+        }
+
+        return ! empty($jabatans) ? $jabatans : $specializations;
+    }
+
+    private function firstAdminAccessJabatanValue(): ?string
+    {
+        $values = $this->adminAccessJabatans();
+
+        return $values[0] ?? null;
+    }
+
+    private function adminSpecializationFallback(): string
+    {
+        return $this->firstCsvConfigValue('services.kampus_api.admin.specialization')
+            ?: 'Staf Kemahasiswaan';
+    }
+
+    private function normalizeConfigList(array $values): array
+    {
+        $normalized = array_map(
+            fn (string $value) => $this->normalizeIdentifier($value),
+            $values
+        );
+
+        sort($normalized);
+
+        return $normalized;
+    }
+
+    private function csvConfig(string $key, bool $normalize = true): array
+    {
+        $value = (string) config($key, '');
+
+        if (trim($value) === '') {
+            return [];
+        }
+
+        return collect(explode(',', $value))
+            ->map(fn (string $item) => $normalize ? $this->normalizeIdentifier($item) : trim($item))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function firstCsvConfigValue(string $key): ?string
+    {
+        $values = $this->csvConfig($key, false);
+
+        return $values[0] ?? null;
+    }
+
+    private function normalizeIdentifier(string $value): string
+    {
+        return strtolower(preg_replace('/\s+/', ' ', trim($value)) ?? '');
+    }
+
+    private function normalizeLooseName(string $value): string
+    {
+        $normalized = strtolower(trim($value));
+        $normalized = preg_replace('/[^\pL\pN]+/u', ' ', $normalized) ?? '';
+
+        return preg_replace('/\s+/', ' ', trim($normalized)) ?? '';
     }
 
     private function redirectAfterLogin(User $user)

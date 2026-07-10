@@ -32,11 +32,19 @@ return [
     ],
 
     'kampus_api' => [
-    'base_url' => env('KAMPUS_API_BASE_URL'),
-    'username' => env('KAMPUS_API_USERNAME'),
-    'password' => env('KAMPUS_API_PASSWORD'),
-    'static_token' => env('KAMPUS_API_STATIC_TOKEN'),
-    'timeout'  => env('KAMPUS_API_TIMEOUT', 20),
+        'base_url' => env('KAMPUS_API_BASE_URL'),
+        'username' => env('KAMPUS_API_USERNAME'),
+        'password' => env('KAMPUS_API_PASSWORD'),
+        'static_token' => env('KAMPUS_API_STATIC_TOKEN'),
+        'timeout'  => env('KAMPUS_API_TIMEOUT', 20),
+        'admin' => [
+            'usernames' => env('CIS_ADMIN_USERNAMES') ?: env('CIS_KONSELOR_USERNAME'),
+            'emails' => env('CIS_ADMIN_EMAILS') ?: env('CIS_KONSELOR_EMAIL'),
+            'names' => env('CIS_ADMIN_NAMES') ?: env('CIS_KONSELOR_NAME'),
+            'pegawai_ids' => env('CIS_ADMIN_PEGAWAI_IDS'),
+            'jabatan' => env('CIS_ADMIN_JABATAN'),
+            'specialization' => env('CIS_ADMIN_SPECIALIZATION'),
+        ],
     ],
 
     'groq' => [

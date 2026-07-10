@@ -156,6 +156,16 @@ class KampusApiService
         ], $token);
     }
 
+    public function listPejabat(array $filters = [], ?string $token = null, ?int $timeout = null): array
+    {
+        $payload = array_merge([
+            'pegawai_id' => '',
+            'jabatan' => '',
+        ], $filters);
+
+        return $this->performPejabatRequest($payload, $token, $timeout);
+    }
+
     public function searchActiveMahasiswaByNim(
         string $keyword,
         int $limit = 12,
@@ -224,6 +234,36 @@ class KampusApiService
         return $response->json();
     }
 
+    private function performPejabatRequest(array $filters, ?string $token = null, ?int $timeout = null): array
+    {
+        $usingProvidedToken = filled($token);
+        $token ??= $this->getStaticToken();
+        $requestTimeout = $timeout && $timeout > 0 ? $timeout : $this->timeout;
+
+        if (! $token && $this->isConfigured()) {
+            $token = $this->getServiceToken();
+        }
+
+        $response = $this->sendPejabatRequest($filters, $requestTimeout, $token);
+
+        if ($response->status() === 401 && ! $usingProvidedToken && $this->isConfigured()) {
+            $refreshedToken = $this->getServiceToken(true);
+            $response = $this->sendPejabatRequest($filters, $requestTimeout, $refreshedToken);
+        }
+
+        if (in_array($response->status(), [401, 403], true) && ! $usingProvidedToken) {
+            $guestResponse = $this->sendPejabatRequest($filters, $requestTimeout, null);
+
+            if ($guestResponse->successful()) {
+                return $guestResponse->json();
+            }
+        }
+
+        $response->throw();
+
+        return $response->json();
+    }
+
     private function sendMahasiswaRequest(array $filters, int $timeout, ?string $token = null)
     {
         $request = Http::acceptJson()->timeout($timeout);
@@ -233,6 +273,17 @@ class KampusApiService
         }
 
         return $request->get($this->baseUrl . '/library-api/mahasiswa', $filters);
+    }
+
+    private function sendPejabatRequest(array $filters, int $timeout, ?string $token = null)
+    {
+        $request = Http::acceptJson()->timeout($timeout);
+
+        if (filled($token)) {
+            $request = $request->withToken($token);
+        }
+
+        return $request->get($this->baseUrl . '/library-api/list-pejabat', $filters);
     }
 
     private function normalizeMahasiswaRows(array $payload): array
