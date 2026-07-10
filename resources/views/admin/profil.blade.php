@@ -212,18 +212,19 @@
 
 @section('konten')
 @php
-    $profil = $user->profil;
-    $namaKonselor = $user->nama ?: env('CIS_KONSELOR_NAME', 'Konselor');
+    $namaKonselor = $counselorProfile['nama'] ?? ($user->nama ?: 'Konselor');
     $inisialKonselor = collect(explode(' ', trim($namaKonselor)))
         ->filter()
         ->take(2)
         ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
         ->implode('') ?: 'K';
-    $fotoProfil = optional($profil)->foto
-        ? \Illuminate\Support\Facades\Storage::url($profil->foto)
+    $fotoProfil = !empty($counselorProfile['foto'])
+        ? \Illuminate\Support\Facades\Storage::url($counselorProfile['foto'])
         : null;
-    $jabatan = trim((string) ($konselor->jabatan ?? ''));
-    $nomorTelepon = trim((string) (optional($profil)->nomor_telepon ?? ''));
+    $usernameCis = trim((string) ($counselorProfile['username_cis'] ?? ''));
+    $emailKonselor = trim((string) ($counselorProfile['email'] ?? ''));
+    $jabatan = trim((string) ($counselorProfile['jabatan'] ?? ''));
+    $nomorTelepon = trim((string) ($counselorProfile['nomor_telepon'] ?? ''));
 @endphp
 
 <div class="admin-profile-wrap">
@@ -238,11 +239,6 @@
             </div>
 
             <h1 class="admin-profile-name">{{ $namaKonselor }}</h1>
-            <div class="admin-profile-role">
-                <i class="ti ti-stethoscope"></i>
-                <span>Konselor</span>
-            </div>
-            <div class="admin-profile-email">{{ $user->email ?? '-' }}</div>
         </div>
 
     </aside>
@@ -269,8 +265,8 @@
                     <i class="ti ti-id"></i>
                     Username CIS
                 </div>
-                <div class="admin-profile-value {{ $user->username_cis ? '' : 'admin-profile-muted' }}">
-                    {{ $user->username_cis ?: 'Belum tersedia' }}
+                <div class="admin-profile-value {{ $usernameCis !== '' ? '' : 'admin-profile-muted' }}">
+                    {{ $usernameCis !== '' ? $usernameCis : 'Belum tersedia' }}
                 </div>
             </div>
 
@@ -279,21 +275,13 @@
                     <i class="ti ti-mail"></i>
                     Email
                 </div>
-                <div class="admin-profile-value">{{ $user->email ?? '-' }}</div>
-            </div>
-
-            <div class="admin-profile-field">
-                <div class="admin-profile-label">
-                    <i class="ti ti-shield-check"></i>
-                    Role Sistem
-                </div>
-                <div class="admin-profile-value">{{ ucfirst($user->role ?? 'konselor') }}</div>
+                <div class="admin-profile-value">{{ $emailKonselor !== '' ? $emailKonselor : '-' }}</div>
             </div>
 
             <div class="admin-profile-field full">
                 <div class="admin-profile-label">
                     <i class="ti ti-certificate"></i>
-                    Jabatan (Kemahasiswaan)
+                    Jabatan
                 </div>
                 <div class="admin-profile-value {{ $jabatan !== '' ? '' : 'admin-profile-muted' }}">
                     {{ $jabatan !== '' ? $jabatan : 'Belum tersedia' }}
@@ -308,24 +296,6 @@
                 <div class="admin-profile-value {{ $nomorTelepon !== '' ? '' : 'admin-profile-muted' }}">
                     {{ $nomorTelepon !== '' ? $nomorTelepon : 'Belum tersedia' }}
                 </div>
-            </div>
-
-            <div class="admin-profile-field">
-                <div class="admin-profile-label">
-                    <i class="ti ti-calendar-plus"></i>
-                    Terdaftar Sejak
-                </div>
-                <div class="admin-profile-value">
-                    {{ $user->created_at ? $user->created_at->translatedFormat('j F Y') : '-' }}
-                </div>
-            </div>
-
-            <div class="admin-profile-field">
-                <div class="admin-profile-label">
-                    <i class="ti ti-activity"></i>
-                    Status Akun
-                </div>
-                <div class="admin-profile-value">Aktif</div>
             </div>
         </div>
     </section>
