@@ -100,12 +100,6 @@
     color:#202020;
 }
 
-.counselor-profile p{
-    margin:4px 0 0;
-    color:#65806c;
-    font-size:15px;
-}
-
 .side-row{
     display:flex;
     justify-content:space-between;
@@ -408,7 +402,7 @@
 
 .btn-action-cancel {
     background: #fee2e2;
-    color: #991b1b;
+    color: #991b1b !important;
     border: 1px solid #fca5a5;
     box-shadow: 0 10px 24px rgba(239, 68, 68, 0.14);
     min-width: 260px;
@@ -417,21 +411,22 @@
 .btn-action-cancel:hover {
     background: #fecaca;
     border-color: #f87171;
-    color: #7f1d1d;
+    color: #7f1d1d !important;
     transform: translateY(-1px);
 }
 
 .btn-back-riwayat-detail {
-    background: #ffffff;
-    color: #064e3b;
-    border: 2px solid #064e3b;
+    background: #064e3b;
+    color: #ffffff !important;
+    border: 1px solid #064e3b;
+    box-shadow: 0 14px 28px rgba(6, 78, 59, 0.22);
     min-width: 260px;
 }
 
 .btn-back-riwayat-detail:hover {
-    background: #ecfdf5;
-    border-color: #10b981;
-    color: #065f46;
+    background: #043f30;
+    border-color: #043f30;
+    color: #ffffff !important;
     transform: translateY(-1px);
 }
 
@@ -763,7 +758,9 @@
 
     $isOnline = $jenisKonseling === 'online';
 
-    $mediaTampil = $isOnline ? 'Chat' : 'Tatap Muka';
+    $durasiTampil = $isOnline
+        ? 'Hingga Sesi Selesai<br>(Maks. 24 Jam)'
+        : ($jadwal->durasi ?? '60 Menit');
 
     $lokasiTampil = $isOnline
         ? 'Jarak Jauh<br>Akses dari ruang personalmu'
@@ -809,18 +806,17 @@
 
                         <div>
                             <h5>{{ $namaKonselor }}</h5>
-                            <p>Konselor</p>
                         </div>
                     </div>
 
                     <div class="side-row">
                         <span><i class="bi bi-stopwatch"></i> Durasi</span>
-                        <strong>{{ $jadwal->durasi ?? '60 Menit' }}</strong>
+                        <strong>{!! $durasiTampil !!}</strong>
                     </div>
 
                     <div class="side-row">
-                        <span><i class="bi bi-camera-video"></i> Media</span>
-                        <strong>{{ $mediaTampil }}</strong>
+                        <span><i class="bi bi-briefcase-fill"></i> Jabatan</span>
+                        <strong>Konselor</strong>
                     </div>
 
                     <div class="side-row">
@@ -941,15 +937,15 @@
 
                         <div class="detail-action-wrapper">
                             @if($isMenungguKonfirmasi)
+                                <a href="{{ route('riwayat') }}" class="btn-detail-action btn-back-riwayat-detail">
+                                    Kembali ke Riwayat
+                                </a>
                                 <form method="POST" action="{{ route('riwayat.batalkan', $jadwal->id) }}" onsubmit="return confirm('Yakin ingin membatalkan penjadwalan ini?');" style="display:inline-flex;">
                                     @csrf
                                     <button type="submit" class="btn-detail-action btn-action-cancel">
                                         Batalkan Penjadwalan
                                     </button>
                                 </form>
-                                <a href="{{ route('riwayat') }}" class="btn-detail-action btn-back-riwayat-detail">
-                                    Kembali ke Riwayat
-                                </a>
                             @elseif($isPerluSesiLanjutan || $isPerluPenjadwalanUlang)
                                 <a href="{{ route('riwayat') }}" class="btn-detail-action">
                                     Kembali ke riwayat

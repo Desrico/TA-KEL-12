@@ -44,7 +44,7 @@
         width: 240px;
         border: 1px solid #d9e8df;
         border-radius: 12px;
-        padding: .7rem 1rem .7rem 2.5rem;
+        padding: .7rem 2.5rem .7rem 2.5rem;
         font-size: .86rem;
         outline: none;
         transition: border-color .2s ease, box-shadow .2s ease;
@@ -59,52 +59,46 @@
         font-size: 1rem;
     }
 
-    .sesi-search-loading {
+    .sesi-search-clear {
         position: absolute;
-        right: .8rem;
+        right: .7rem;
         top: 50%;
         transform: translateY(-50%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity .2s ease, visibility .2s ease;
-    }
-
-    .sesi-search.is-loading .sesi-search-loading {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .sesi-search.is-loading input {
-        border-color: #8fd1b0;
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, .08);
-    }
-
-    .sesi-search-spinner {
-        width: 14px;
-        height: 14px;
-        border: 2px solid #dceee4;
-        border-top-color: #065F46;
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        border: 0;
         border-radius: 50%;
-        animation: sesi-search-spin .8s linear infinite;
+        background: transparent;
+        color: #64748b;
+        font-size: 1.25rem;
+        line-height: 1;
+        cursor: pointer;
     }
 
-    @keyframes sesi-search-spin {
-        to {
-            transform: rotate(360deg);
-        }
+    .sesi-search-clear:hover {
+        background: #eef7f2;
+        color: #065F46;
+    }
+
+    .sesi-search-clear[hidden] {
+        display: none;
     }
 
     .sesi-filter-btn {
-        border: 1px solid #d9e8df;
-        background: #fff;
-        color: #64748b;
-        border-radius: 12px;
+        border: 0;
+        background: #065f46;
+        color: #fff;
+        border-radius: 10px;
         padding: .7rem 1rem;
         font-size: .84rem;
-        font-weight: 600;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .sesi-filter-btn:hover {
+        background: #064e3b;
+        color: #fff;
     }
 
     .sesi-table-wrap {
@@ -183,9 +177,14 @@
     }
 
     .mahasiswa-name {
-        font-weight: 700;
+        font-weight: 500;
         color: #0f172a;
         line-height: 1.2;
+    }
+
+    .sesi-table tr.is-selected td:nth-child(-n+3),
+    .sesi-table tr.is-selected td:nth-child(-n+3) * {
+        font-weight: 800;
     }
 
     .mahasiswa-sub {
@@ -400,17 +399,20 @@
                     placeholder="Cari mahasiswa..."
                     autocomplete="off"
                 >
-                <span class="sesi-search-loading" aria-hidden="true">
-                    <span class="sesi-search-spinner"></span>
-                </span>
+                <button
+                    type="button"
+                    class="sesi-search-clear"
+                    id="sesiSearchClear"
+                    aria-label="Hapus pencarian"
+                    title="Hapus pencarian"
+                    {{ $search === '' ? 'hidden' : '' }}
+                >&times;</button>
             </div>
             <button type="submit" class="sesi-filter-btn">Cari</button>
-            @if($search !== '')
-                <a href="{{ route('admin.riwayat') }}" class="sesi-filter-btn text-decoration-none">Reset</a>
-            @endif
         </form>
     </div>
 
+    <div id="sesiSearchResults">
     <div class="sesi-table-wrap">
         <table class="sesi-table">
             <thead>
@@ -495,7 +497,7 @@
                         $bisaBuatLaporan = $statusRaw === 'selesai' && !$sudahAdaLaporan;
                     @endphp
 
-                    <tr>
+                    <tr class="{{ request()->integer('jadwal') === (int) $item->id ? 'is-selected' : '' }}">
                         <td>
                             <div class="mahasiswa-cell">
                                 <div class="mahasiswa-avatar">
@@ -554,6 +556,7 @@
             {{ $jadwal->links('pagination::bootstrap-4') }}
         </div>
     @endif
+    </div>
 </div>
 @endsection
 
@@ -562,37 +565,73 @@
 (function () {
     const form = document.getElementById('sesiSearchForm');
     const input = document.getElementById('sesiSearchInput');
-    const wrapper = document.getElementById('sesiSearchWrapper');
+    const clearButton = document.getElementById('sesiSearchClear');
+    const results = document.getElementById('sesiSearchResults');
 
-    if (!form || !input) {
+    if (!form || !input || !results) {
         return;
     }
 
-    let debounceTimer = null;
+    let activeRequest = null;
 
-    const setLoadingState = (isLoading) => {
-        wrapper?.classList.toggle('is-loading', isLoading);
+    const updateClearButton = () => {
+        if (clearButton) {
+            clearButton.hidden = input.value.length === 0;
+        }
     };
 
-    form.addEventListener('submit', () => {
-        setLoadingState(true);
+    const runSearch = async () => {
+        activeRequest?.abort();
+        const requestController = new AbortController();
+        activeRequest = requestController;
+
+        const url = new URL(form.action, window.location.origin);
+        const value = input.value.trim();
+
+        if (value) {
+            url.searchParams.set('search', value);
+        }
+
+        try {
+            const response = await fetch(url.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: requestController.signal
+            });
+
+            if (!response.ok) {
+                throw new Error('Pencarian gagal dimuat.');
+            }
+
+            const html = await response.text();
+            const documentResult = new DOMParser().parseFromString(html, 'text/html');
+            const newResults = documentResult.getElementById('sesiSearchResults');
+
+            if (newResults) {
+                results.innerHTML = newResults.innerHTML;
+                window.history.replaceState({}, '', url.toString());
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                form.submit();
+            }
+        }
+    };
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        runSearch();
     });
 
     input.addEventListener('input', () => {
-        window.clearTimeout(debounceTimer);
+        updateClearButton();
+        runSearch();
+    });
 
-        const value = input.value.trim();
-
-        if (!value) {
-            setLoadingState(false);
-            return;
-        }
-
-        setLoadingState(true);
-
-        debounceTimer = window.setTimeout(() => {
-            form.submit();
-        }, 300);
+    clearButton?.addEventListener('click', () => {
+        input.value = '';
+        updateClearButton();
+        input.focus();
+        runSearch();
     });
 })();
 </script>

@@ -250,7 +250,7 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
     display: flex;
     gap: .65rem;
     margin-bottom: .78rem;
-    align-items: flex-end;
+    align-items: flex-start;
   }
 
   .message-row.mine {
@@ -268,15 +268,108 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
   .message-row.mine .message-bubble {
     background: linear-gradient(135deg, #047857, #059669);
     color: #fff;
+    border-radius: 10px;
+    border-top-right-radius: 4px;
     border-bottom-right-radius: 10px;
-    box-shadow: 0 10px 24px rgba(5, 150, 105, 0.16);
+    box-shadow: 0 1px 1px rgba(15, 23, 42, 0.12);
+    overflow: visible;
+  }
+
+  .message-row.mine .message-bubble::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -7px;
+    width: 9px;
+    height: 10px;
+    background: #059669;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    pointer-events: none;
   }
 
   .message-row.other .message-bubble {
     background: #ffffff;
     color: #1f2937;
     border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 10px;
+    border-top-left-radius: 0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    overflow: visible;
+  }
+
+  .message-row.other .message-bubble::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -9px;
+    width: 9px;
+    height: 11px;
+    background: rgba(226, 232, 240, 0.9);
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    pointer-events: none;
+  }
+
+  .message-row.other .message-bubble::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -7px;
+    width: 7px;
+    height: 9px;
+    background: #ffffff;
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    pointer-events: none;
+  }
+
+  /*
+   * Legacy overrides below are intentionally neutralized by the WhatsApp-style
+   * bubble rules above.
+   */
+  .message-row.mine .message-bubble.legacy-unused {
+    background: linear-gradient(135deg, #047857, #059669);
+    color: #fff;
+    border-bottom-right-radius: 10px;
+    box-shadow: 0 10px 24px rgba(5, 150, 105, 0.16);
+    overflow: visible;
+  }
+
+  .message-row.mine .message-bubble.legacy-unused::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(135deg, #047857, #059669);
+    border-top-right-radius: 4px;
+    transform: skewX(45deg);
+    transform-origin: top right;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .message-row.other .message-bubble.legacy-unused {
+    background: #ffffff;
+    color: #1f2937;
+    border: 1px solid rgba(226, 232, 240, 0.9);
     border-bottom-left-radius: 10px;
+    overflow: visible;
+  }
+
+  .message-row.other .message-bubble.legacy-unused::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 14px;
+    height: 14px;
+    background: #ffffff;
+    border-top-left-radius: 4px;
+    transform: skewX(-45deg);
+    transform-origin: top left;
+    box-shadow: -1px 0 0 rgba(226, 232, 240, 0.9);
+    z-index: 1;
+    pointer-events: none;
   }
 
   .message-avatar {
@@ -340,12 +433,14 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
     display: inline-block;
     width: fit-content;
     max-width: 100%;
-    padding: .62rem .9rem;
-    border-radius: 18px;
-    font-size: .88rem;
-    line-height: 1.45;
+    padding: .36rem .58rem;
+    border-radius: 10px;
+    font-size: .84rem;
+    line-height: 1.28;
     word-break: break-word;
     white-space: pre-wrap;
+    position: relative;
+    overflow: visible;
 }
 
   .message-bubble-shell {
@@ -367,8 +462,24 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
     transition: opacity .18s ease;
   }
 
+  .message-row.mine .message-actions {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-left: -.2rem;
+  }
+
+  .message-row.other .message-actions {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-left: -.2rem;
+  }
+
   .message-row.mine:hover .message-actions,
-  .message-row.mine.is-menu-open .message-actions {
+  .message-row.other:hover .message-actions,
+  .message-row.mine.is-menu-open .message-actions,
+  .message-row.other.is-menu-open .message-actions {
     opacity: 1;
     pointer-events: auto;
   }
@@ -383,6 +494,21 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+  }
+
+  .message-row.other .message-action-toggle {
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    color: #64748b;
+  }
+
+  .message-row.mine .message-action-toggle {
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    color: #64748b;
   }
 
   .message-action-menu {
@@ -428,6 +554,100 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
 
   .message-action-item.delete {
     color: #b91c1c;
+  }
+
+  .message-reply-preview {
+    margin-bottom: .08rem;
+    padding: .38rem .48rem;
+    border-left: 3px solid #10b981;
+    border-radius: 8px;
+    background: rgba(236, 253, 245, .92);
+    color: #334155;
+    font-size: .72rem;
+    line-height: 1.25;
+    max-width: 230px;
+    width: fit-content;
+    white-space: normal;
+  }
+
+  .message-row.mine .message-reply-preview {
+    background: rgba(255, 255, 255, .18);
+    color: rgba(255, 255, 255, .86);
+    border-left-color: rgba(255, 255, 255, .8);
+  }
+
+  .message-reply-name {
+    display: block;
+    margin-bottom: .08rem;
+    font-weight: 800;
+    color: #047857;
+  }
+
+  .message-bubble:has(.message-reply-preview) {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    width: fit-content;
+    padding: .28rem .52rem .16rem;
+    line-height: 1.25;
+  }
+
+  .message-text {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  .message-row.mine .message-bubble:has(.message-reply-preview) {
+    padding-right: .58rem;
+  }
+
+  .message-row.mine .message-reply-name {
+    color: #ffffff;
+  }
+
+  .chat-reply-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: .8rem;
+    margin-bottom: .65rem;
+    padding: .72rem .85rem;
+    border-left: 4px solid #10b981;
+    border-radius: 16px;
+    background: #ecfdf5;
+    color: #334155;
+  }
+
+  .chat-reply-bar.is-active {
+    display: flex;
+  }
+
+  .chat-reply-label {
+    display: block;
+    font-size: .72rem;
+    font-weight: 800;
+    color: #047857;
+    margin-bottom: .12rem;
+  }
+
+  .chat-reply-text {
+    font-size: .82rem;
+    line-height: 1.35;
+  }
+
+  .chat-reply-cancel {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(6, 95, 70, .1);
+    color: #065f46;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
   .message-row.is-editing .message-actions {
@@ -1008,6 +1228,16 @@ body:has(.chat-page:not(.is-empty-state)) {
           <div class="chat-thread" id="chatThread"></div>
 
           <div class="chat-composer">
+            <div id="chatReplyBar" class="chat-reply-bar">
+                <div>
+                    <span class="chat-reply-label" id="chatReplyLabel">Membalas pesan</span>
+                    <div class="chat-reply-text" id="chatReplyText"></div>
+                </div>
+                <button type="button" class="chat-reply-cancel" id="chatReplyCancel" aria-label="Batalkan reply">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
             <form id="chatForm" class="chat-form {{ $canSendChat ? '' : 'is-disabled' }}">
                 <textarea
                     id="chatInput"
@@ -1066,6 +1296,11 @@ body:has(.chat-page:not(.is-empty-state)) {
   const input = document.getElementById('chatInput');
   const sendBtn = document.getElementById('chatSendBtn');
   const hint = document.getElementById('chatHint');
+  const replyBar = document.getElementById('chatReplyBar');
+  const replyLabel = document.getElementById('chatReplyLabel');
+  const replyText = document.getElementById('chatReplyText');
+  const replyCancel = document.getElementById('chatReplyCancel');
+  let replyTarget = null;
 
   const syncChatViewport = () => {
     const nav = document.getElementById('mainNav');
@@ -1185,6 +1420,10 @@ body:has(.chat-page:not(.is-empty-state)) {
 
   const messageUpdateUrl = (messageId) => payload.updateUrlTemplate.replace('__CHAT_ID__', String(messageId));
   const messageDeleteUrl = (messageId) => payload.deleteUrlTemplate.replace('__CHAT_ID__', String(messageId));
+  const limitPreview = (value, max = 68) => {
+    const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+    return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+  };
 
   const closeAllMenus = () => {
     thread.querySelectorAll('.message-row.is-menu-open').forEach((element) => {
@@ -1192,26 +1431,72 @@ body:has(.chat-page:not(.is-empty-state)) {
     });
   };
 
-  // Bubble dan editor inline dipisah supaya mode edit terasa seperti chat modern, bukan popup.
-  const buildMessageBubbleMarkup = (message, isMine) => `
-    <div class="message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
-    ${isMine && !message.is_pending && canSendMessage ? `
+  const clearReplyTarget = () => {
+    replyTarget = null;
+    replyBar?.classList.remove('is-active');
+    if (replyText) {
+      replyText.textContent = '';
+    }
+  };
+
+  const setReplyTarget = (message) => {
+    if (!message?.id || !canSendMessage || isReadOnly) {
+      return;
+    }
+
+    replyTarget = {
+      id: message.id,
+      sender_name: message.sender_name || 'Pengguna',
+      text: message.text || '',
+    };
+
+    if (replyLabel) {
+      replyLabel.textContent = `Membalas ${replyTarget.sender_name}`;
+    }
+
+    if (replyText) {
+      replyText.textContent = limitPreview(replyTarget.text);
+    }
+
+    replyBar?.classList.add('is-active');
+    input.focus();
+  };
+
+  replyCancel?.addEventListener('click', clearReplyTarget);
+
+  const buildReplyPreviewMarkup = (replyTo) => replyTo
+    ? `<div class="message-reply-preview"><span class="message-reply-name">${escapeHtml(replyTo.sender_name || 'Pengguna')}</span><span>${escapeHtml(limitPreview(replyTo.text || '')).replace(/\n/g, '<br>')}</span></div>`
+    : '';
+
+  const buildMessageActionsMarkup = (message, isMine) => `
+    ${!message.is_pending && canSendMessage && !isReadOnly ? `
       <div class="message-actions">
         <button type="button" class="message-action-toggle" data-action="toggle-menu" aria-label="Opsi pesan">
-          <i class="bi bi-three-dots"></i>
+          <i class="bi bi-chevron-down"></i>
         </button>
         <div class="message-action-menu">
+          <button type="button" class="message-action-item" data-action="reply-message" data-message-id="${message.id}">
+            <i class="bi bi-reply-fill"></i>
+            <span>Reply</span>
+          </button>
+          ${isMine ? `
           <button type="button" class="message-action-item" data-action="edit-message" data-message-id="${message.id}">
             <i class="bi bi-pencil-square"></i>
-            <span>Edit pesan</span>
+            <span>Edit</span>
           </button>
           <button type="button" class="message-action-item delete" data-action="delete-message" data-message-id="${message.id}">
             <i class="bi bi-trash3"></i>
-            <span>Hapus pesan</span>
+            <span>Hapus</span>
           </button>
+          ` : ''}
         </div>
       </div>
     ` : ''}
+  `;
+
+  // Bubble dan editor inline dipisah supaya mode edit terasa seperti chat modern, bukan popup.
+  const buildMessageBubbleMarkup = (message, isMine) => `
+    <div class="message-bubble">${buildReplyPreviewMarkup(message.reply_to)}<span class="message-text">${escapeHtml(message.text).replace(/\n/g, '<br>')}</span></div>
   `;
 
   const buildInlineEditorMarkup = (text, messageId) => `
@@ -1252,6 +1537,7 @@ body:has(.chat-page:not(.is-empty-state)) {
     bubbleShell.innerHTML = buildMessageBubbleMarkup({
       id: Number(row.dataset.messageId),
       text: row.dataset.messageText ?? '',
+      reply_to: row.dataset.replyTo ? JSON.parse(row.dataset.replyTo) : null,
     }, isMine);
     row.classList.remove('is-editing');
     row.classList.remove('is-menu-open');
@@ -1267,6 +1553,8 @@ body:has(.chat-page:not(.is-empty-state)) {
     row.className = `message-row ${isMine ? 'mine' : 'other'}`;
     row.dataset.messageId = message.id;
     row.dataset.messageText = message.text ?? '';
+    row.dataset.senderName = message.sender_name || (isMine ? 'Anda' : 'Pengguna');
+    row.dataset.replyTo = message.reply_to ? JSON.stringify(message.reply_to) : '';
     row.dataset.messageEdited = message.is_edited ? '1' : '0';
 
     const counselorDisplayName = payload.counselorName || @json(env('CIS_KONSELOR_NAME', 'Konselor'));
@@ -1295,6 +1583,7 @@ body:has(.chat-page:not(.is-empty-state)) {
           ${senderNameHtml}
           <span>${escapeHtml(message.time)}</span>
           ${message.is_pending ? '<span class="admin-message-edited">mengirim...</span>' : (message.is_edited ? '<span class="admin-message-edited">telah diedit</span>' : '')}
+          ${buildMessageActionsMarkup(message, isMine)}
         </div>
 
         <div class="message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
@@ -1432,6 +1721,7 @@ body:has(.chat-page:not(.is-empty-state)) {
 
         isSending = true;
         sendBtn.disabled = true;
+        const activeReplyTarget = replyTarget;
 
         const tempId = `temp-${Date.now()}`;
         const now = new Date();
@@ -1451,6 +1741,7 @@ body:has(.chat-page:not(.is-empty-state)) {
             is_edited: false,
             is_mine: true,
             is_pending: true,
+            reply_to: activeReplyTarget,
         };
 
         const tempRow = renderMessage(tempMessage);
@@ -1476,6 +1767,7 @@ body:has(.chat-page:not(.is-empty-state)) {
                     sesi_id: payload.sessionId,
                     jadwal_id: payload.jadwalId,
                     pesan: pesan,
+                    reply_to_id: activeReplyTarget?.id ?? null,
                 }),
             });
 
@@ -1511,6 +1803,7 @@ body:has(.chat-page:not(.is-empty-state)) {
 
             tempRow?.remove();
             renderMessage(data.message);
+            clearReplyTarget();
             scrollToBottom();
 
         } catch (error) {
@@ -1556,6 +1849,7 @@ body:has(.chat-page:not(.is-empty-state)) {
 
   thread.addEventListener('click', async (event) => {
     const toggleButton = event.target.closest('[data-action="toggle-menu"]');
+    const replyButton = event.target.closest('[data-action="reply-message"]');
     const editButton = event.target.closest('[data-action="edit-message"]');
     const deleteButton = event.target.closest('[data-action="delete-message"]');
     const saveButton = event.target.closest('[data-action="save-edit"]');
@@ -1568,6 +1862,22 @@ body:has(.chat-page:not(.is-empty-state)) {
       const willOpen = !row.classList.contains('is-menu-open');
       closeAllMenus();
       row.classList.toggle('is-menu-open', willOpen);
+      return;
+    }
+
+    if (replyButton) {
+      const row = replyButton.closest('.message-row');
+      closeAllMenus();
+
+      if (!row) {
+        return;
+      }
+
+      setReplyTarget({
+        id: Number(row.dataset.messageId),
+        sender_name: row.dataset.senderName || (row.classList.contains('mine') ? 'Anda' : 'Pengguna'),
+        text: row.dataset.messageText ?? '',
+      });
       return;
     }
 

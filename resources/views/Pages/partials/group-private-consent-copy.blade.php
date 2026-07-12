@@ -2,6 +2,9 @@
     $roomTitle = $consentContext['room_title'] ?? 'grup privat';
     $roomDescription = $consentContext['room_description'] ?? null;
     $inviterName = $consentContext['inviter_name'] ?? 'Konselor';
+    $inviteReason = $consentContext['invite_reason']
+        ?? $roomDescription
+        ?? 'Grup privat ini relevan untuk pendampingan dan diskusi konseling.';
     $groupRules = [
         'Gunakan grup ini hanya untuk diskusi yang relevan dengan tujuan konseling.',
         'Dilarang melakukan spam, promosi, atau mengirim pesan berulang yang mengganggu anggota lain.',
@@ -25,9 +28,8 @@
     <strong>{{ $inviterName }}</strong>
   </div>
   <div class="group-consent-meta-item">
-    <span class="group-consent-meta-label">Visibilitas identitas</span>
-    <strong>Nama asli Anda tampil di grup privat ini.</strong>
-    <span>Identitas tersebut dapat dilihat oleh konselor dan anggota grup yang sudah aktif.</span>
+    <span class="group-consent-meta-label">Alasan diundang</span>
+    <strong>{{ $inviteReason }}</strong>
   </div>
 </div>
 

@@ -40,7 +40,7 @@ public function mahasiswaByNim(string $nim, Request $request, KampusApiService $
     $token = $token ?: null;
 
     try {
-        $result = $kampusApi->getStudentByNim($nim, $token); // ← pass token
+        $result = $kampusApi->getStudentByNim($nim, $token); // 
 
         return response()->json($result);
     } catch (\Throwable $e) {

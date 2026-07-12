@@ -182,7 +182,6 @@
         padding: 34px 14px !important;
     }
 
-    /* MODIFIED: CSS untuk animasi streaming text - efek teks smooth berjalan dari kanan ke kiri baris per baris */
     @keyframes slideInFromRight {
         0% {
             opacity: 0;
@@ -194,19 +193,16 @@
         }
     }
 
-    /* MODIFIED: Animasi untuk setiap baris teks yang di-stream - smooth transition dari kanan ke kiri */
     .streaming-line {
         opacity: 0;
         animation: slideInFromRight 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         display: inline-block;
     }
 
-    /* ADDED: Container untuk text yang sedang di-stream */
     #aiSummaryText {
         display: block;
     }
 
-    /* ADDED: Styling untuk modal sukses AI summary */
     .ai-success-modal {
         display: none;
         position: fixed;
@@ -451,11 +447,10 @@
         @endif
     </div>
 
-    <!-- MODIFIED: Hapus disclaimer text dari section Ringkasan AI -->
     <div class="laporan-card ai-card">
         <div class="ai-head">
             <div>
-                <h6>Ringkasan AI</h6>
+                <h6>Ringkasan Laporan</h6>
             </div>
 
             <form method="POST" action="{{ route('admin.laporan.ai-summary', $mahasiswa->id) }}" class="ai-summary-form">
@@ -472,10 +467,7 @@
                 Ada perubahan pada laporan sesi sejak ringkasan AI terakhir dibuat.
             </div>
         @endif
-
-        <!-- MODIFIED: Hapus informasi Dibuat ... dan menambah container untuk animasi teks berjalan -->
         @if($aiSummary)
-            <!-- ADDED: Container untuk animasi streaming text baris per baris dari kiri ke kanan -->
             <div class="ai-summary-box" id="aiSummaryContainer">
                 <span id="aiSummaryText" data-summary="{{ $aiSummary->summary }}">{!! $formatAiSummary($aiSummary->summary) !!}</span>
             </div>
@@ -493,7 +485,6 @@
     </div>
 </div>
 
-<!-- ADDED: Modal HTML untuk notifikasi sukses AI summary -->
 <div id="aiSuccessModal" class="ai-success-modal">
     <div class="ai-modal-content">
         <div class="ai-modal-header">
@@ -507,7 +498,6 @@
     </div>
 </div>
 
-<!-- Modal fallback jika SweetAlert gagal dimuat -->
 <div id="reportSuccessModal" class="ai-success-modal">
     <div class="ai-modal-content">
         <div class="ai-modal-header">
@@ -522,7 +512,6 @@
 </div>
 
 @push('scripts')
-<!-- ADDED: JavaScript untuk menampilkan modal sukses dan animasi streaming text -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // ADDED: Fungsi untuk menampilkan modal sukses AI summary
@@ -530,12 +519,10 @@
         const modal = document.getElementById('aiSuccessModal');
         if (modal) {
             modal.classList.add('show');
-            // ADDED: Auto-close modal setelah 5 detik
             setTimeout(closeAiSuccessModal, 5000);
         }
     }
 
-    // ADDED: Fungsi untuk menutup modal sukses
     function closeAiSuccessModal() {
         const modal = document.getElementById('aiSuccessModal');
         if (modal) {
@@ -555,7 +542,6 @@
             return;
         }
 
-        // Fallback modal lokal saat SweetAlert tidak tersedia.
         const modal = document.getElementById('reportSuccessModal');
         const messageEl = document.getElementById('reportSuccessMessage');
 
@@ -626,8 +612,6 @@
 
         return formattedLine;
     }
-
-    // MODIFIED: Fungsi untuk animasi streaming text - teks berjalan smooth dari kanan ke kiri baris per baris
     function animateAiSummaryText() {
         const textElement = document.getElementById('aiSummaryText');
         const container = document.getElementById('aiSummaryContainer');
@@ -637,15 +621,11 @@
         // ADDED: Ambil teks asli dan split per baris
         const originalText = textElement.dataset.summary || textElement.textContent;
         const lines = originalText.split('\n');
-        
-        // ADDED: Kosongkan container dan set initial state
         container.innerHTML = '';
         let delayOffset = 0;
 
-        // MODIFIED: Proses setiap baris dengan delay yang dioptimalkan untuk animasi yang smooth (800ms per animasi)
         lines.forEach((line, lineIndex) => {
             if (line.trim() === '') {
-                // ADDED: Buat line break untuk baris kosong
                 const lineBreak = document.createElement('div');
                 lineBreak.style.height = '1em';
                 container.appendChild(lineBreak);
@@ -653,37 +633,30 @@
                 return;
             }
 
-            // ADDED: Buat span untuk setiap baris dengan delay animation
             const lineSpan = document.createElement('span');
             lineSpan.className = 'streaming-line';
             lineSpan.style.animationDelay = `${delayOffset}ms`;
             lineSpan.innerHTML = formatAiSummaryLine(line);
             container.appendChild(lineSpan);
 
-            // ADDED: Buat line break setelah setiap baris
             const br = document.createElement('br');
             container.appendChild(br);
 
-            // MODIFIED: Tambah delay untuk baris berikutnya (800ms animasi + 150ms gap untuk smooth effect)
             delayOffset += 950;
         });
     }
 
-    // ADDED: Cek session flash untuk menampilkan modal dan trigger animasi
+
     document.addEventListener('DOMContentLoaded', function() {
         @if(session('ai_summary_success'))
-            // ADDED: Tampilkan modal sukses jika ada session ai_summary_success
             showAiSuccessModal();
-            // ADDED: Trigger animasi streaming text untuk ringkasan baru
             setTimeout(animateAiSummaryText, 500);
         @endif
 
         @if(session('laporan_success'))
-            // Tampilkan sukses laporan sebagai SweetAlert atau fallback modal.
             showReportSuccessModal(@json(session('laporan_success')));
         @endif
 
-        // ADDED: Close modal ketika user klik di luar modal
         const modal = document.getElementById('aiSuccessModal');
         if (modal) {
             modal.addEventListener('click', function(e) {
@@ -702,15 +675,11 @@
             });
         }
 
-        // ADDED: Trigger animasi text ketika halaman pertama kali dimuat (jika sudah ada summary)
         const textElement = document.getElementById('aiSummaryText');
         if (textElement && textElement.textContent.trim() && !@json(session('ai_summary_success'))) {
-            // ADDED: Tampilkan teks langsung tanpa animasi jika bukan baru dibuat
-            // (untuk menghindari delay ketika halaman di-refresh)
         }
     });
 
-    // ADDED: Handle form submission untuk show loading state pada button
     document.addEventListener('submit', function(e) {
         const form = e.target;
         if (form.classList.contains('ai-summary-form')) {
@@ -723,7 +692,6 @@
     });
 </script>
 
-<!-- ADDED: CSS untuk animasi spinner pada button loading -->
 <style>
     @keyframes spin {
         0% { transform: rotate(0deg); }

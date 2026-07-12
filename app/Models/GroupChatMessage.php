@@ -16,6 +16,7 @@ class GroupChatMessage extends Model
         'room_id',
         'user_id',
         'pesan',
+        'reply_to_message_id',
         'is_system',
         'system_event',
     ];
@@ -34,5 +35,10 @@ class GroupChatMessage extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reply_to_message_id');
     }
 }

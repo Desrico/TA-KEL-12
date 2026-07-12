@@ -418,6 +418,7 @@ class GroupChatAdminController extends Controller
         $validated = $request->validate([
             'group_id' => 'required|integer',
             'pesan' => 'required|string|max:2000',
+            'reply_to_id' => 'nullable|integer',
         ]);
 
         $room = $this->resolveRoom((int) $validated['group_id']);
@@ -429,11 +430,14 @@ class GroupChatAdminController extends Controller
             ], 404);
         }
 
-        $message = DB::transaction(function () use ($room, $request, $validated) {
+        $replyToMessage = $this->resolveReplyMessageForRoom($room, $validated['reply_to_id'] ?? null);
+
+        $message = DB::transaction(function () use ($room, $request, $validated, $replyToMessage) {
             $payload = [
                 'room_id' => $room->id,
                 'user_id' => $request->user()->id,
                 'pesan' => trim($validated['pesan']),
+                'reply_to_message_id' => $replyToMessage?->id,
             ];
 
             if (GroupChatSupport::supportsSystemMessages()) {
@@ -446,6 +450,7 @@ class GroupChatAdminController extends Controller
 
         $message->loadMissing([
             'sender.mahasiswa',
+            'replyTo.sender',
             'room',
         ]);
 
@@ -504,6 +509,23 @@ class GroupChatAdminController extends Controller
             'success' => true,
             'deleted_id' => $message->id,
         ]);
+    }
+
+    private function resolveReplyMessageForRoom(GroupChatRoom $room, mixed $replyToId): ?GroupChatMessage
+    {
+        $replyToId = (int) $replyToId;
+
+        if ($replyToId <= 0) {
+            return null;
+        }
+
+        return GroupChatMessage::query()
+            ->where('room_id', $room->id)
+            ->where(function ($query) {
+                $query->whereNull('is_system')
+                    ->orWhere('is_system', false);
+            })
+            ->find($replyToId);
     }
 
     private function resolveAvailableRooms()
@@ -691,11 +713,16 @@ class GroupChatAdminController extends Controller
     private function transformMessage(GroupChatMessage $message, User $viewer, GroupChatRoom $room): array
     {
         $message->loadMissing([
+            'sender',
             'sender.mahasiswa',
+            'replyTo.sender',
         ]);
 
         $sender = $message->sender;
         $membership = $sender ? GroupChatSupport::resolveRoomMember($sender, $room) : null;
+        $replyTo = $message->replyTo;
+        $replySender = $replyTo?->sender;
+        $replyMembership = $replySender ? GroupChatSupport::resolveRoomMember($replySender, $room) : null;
 
         // Nama pengirim pesan admin juga harus tunduk pada aturan identitas room yang sama.
         return [
@@ -710,6 +737,14 @@ class GroupChatAdminController extends Controller
             'sender_role' => $sender?->role ?? 'pengguna',
             'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
             'text' => $message->pesan,
+            'reply_to' => $replyTo ? [
+                'id' => $replyTo->id,
+                'sender_id' => $replyTo->user_id,
+                'sender_name' => (int) $replyTo->user_id === (int) $viewer->id
+                    ? 'Anda'
+                    : GroupChatSupport::resolveDisplayName($replySender, $room, $replyMembership),
+                'text' => $replyTo->pesan,
+            ] : null,
             'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
             'updated_at' => $this->toDisplayDateTime($message->updated_at)?->toIso8601String(),
@@ -1173,7 +1208,10 @@ class GroupChatAdminController extends Controller
         // Ambil pesan terbaru saja; riwayat lama tetap bisa disediakan belakangan jika dibutuhkan.
         $messageLimit = 80;
         $messageQuery = $room->messages()
-            ->with('sender.mahasiswa')
+            ->with([
+                'sender.mahasiswa',
+                'replyTo.sender',
+            ])
             ->orderByDesc('created_at');
 
         $sessionStartedAt = null;

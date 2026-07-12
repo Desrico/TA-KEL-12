@@ -2542,9 +2542,11 @@ footer a:hover {
                       $notif->group_invite_group_name = $matches[1];
                   }
                   $notif->group_invite_title = 'Undangan ke grup privat "' . $notif->group_invite_group_name . '"';
-                  $notif->group_invite_message = 'Pastikan Anda memahami identitas yang tampil, tujuan grup, dan aturan komunikasi sebelum bergabung.';
+                  $notif->group_invite_message = 'Pastikan Anda memahami alasan undangan, tujuan grup, dan aturan komunikasi sebelum bergabung.';
                   $notif->group_invite_inviter_name = 'Konselor';
-                  $notif->group_invite_identity_visibility = 'Nama asli Anda akan ditampilkan kepada anggota grup privat ini.';
+                  $notif->group_invite_reason = filled($inviteRoom?->description)
+                    ? $inviteRoom->description
+                    : 'Grup privat ini relevan untuk pendampingan dan diskusi konseling.';
                   $notif->group_invite_token = $inviteToken;
                   $notif->group_invite_hidden_fields = json_encode(['invite_token' => $inviteToken]);
                 }
@@ -2764,7 +2766,7 @@ footer a:hover {
                 data-group-description="{{ $notif->group_invite_message }}"
                 data-group-name="{{ $notif->group_invite_group_name }}"
                 data-group-inviter="{{ $notif->group_invite_inviter_name }}"
-                data-group-visibility="{{ $notif->group_invite_identity_visibility }}"
+                data-group-reason="{{ $notif->group_invite_reason }}"
                 data-group-invite-token="{{ $notif->group_invite_token ?? '' }}"
                 data-group-invite-hidden="{{ $notif->group_invite_hidden_fields ?? '' }}"
               >
@@ -3002,7 +3004,6 @@ footer a:hover {
   <div class="group-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="groupConsentTitle">
     <div class="group-consent-head">
       <div class="group-consent-label">
-        <i class="bi bi-shield-check"></i>
         <span>Persetujuan Grup</span>
       </div>
       <button type="button" class="group-consent-close" data-group-consent-close aria-label="Tutup">
@@ -3012,7 +3013,7 @@ footer a:hover {
     <div class="group-consent-body">
       <div class="group-consent-copy">
         <h1 id="groupConsentTitle">Undangan ke grup privat</h1>
-        <p id="groupConsentDescription">Pastikan Anda memahami identitas yang tampil, tujuan grup, dan aturan komunikasi sebelum bergabung.</p>
+        <p id="groupConsentDescription">Pastikan Anda memahami alasan undangan, tujuan grup, dan aturan komunikasi sebelum bergabung.</p>
       </div>
       <div class="group-consent-info">
         <h3>Informasi Undangan</h3>
@@ -3026,8 +3027,8 @@ footer a:hover {
             <p id="groupConsentInviterName">Konselor</p>
           </div>
           <div>
-            <strong>Visibilitas Identitas</strong>
-            <p id="groupConsentIdentityVisibility">Nama asli Anda akan ditampilkan.</p>
+            <strong>Alasan Diundang</strong>
+            <p id="groupConsentIdentityVisibility">Anda di undang di grup privat ini relevan untuk pendampingan dan diskusi konseling.</p>
           </div>
         </div>
       </div>
@@ -3061,7 +3062,6 @@ footer a:hover {
         </div>
         <div class="group-consent-actions">
           <button type="submit" class="group-consent-submit" id="groupConsentSubmit" disabled>
-            <i class="bi bi-check2-circle"></i>
             <span>Setuju dan Gabung Grup</span>
           </button>
         </div>
@@ -3702,19 +3702,19 @@ const closeLetterModal = () => {
   syncBodyScrollLock();
 };
 
-const openGroupConsentModal = ({ title, description, groupName, inviterName, identityVisibility, inviteToken, hiddenFields = {} }) => {
+const openGroupConsentModal = ({ title, description, groupName, inviterName, inviteReason, identityVisibility, inviteToken, hiddenFields = {} }) => {
   if (!groupConsentModal || !groupConsentTitle || !groupConsentDescription || !groupConsentGroupName || !groupConsentInviterName || !groupConsentIdentityVisibility || !groupConsentInviteToken || !groupConsentCheckbox || !groupConsentSubmit) {
     return;
   }
 
   groupConsentTitle.textContent = title || 'Undangan ke grup privat';
-  groupConsentDescription.textContent = description || 'Pastikan Anda memahami tujuan grup ini sebelum bergabung.';
+  groupConsentDescription.textContent = description || 'Pastikan Anda memahami alasan undangan dan tujuan grup ini sebelum bergabung.';
   groupConsentGroupName.textContent = groupName || 'Grup Privat';
   groupConsentInviterName.textContent = inviterName || 'Konselor';
-  groupConsentIdentityVisibility.textContent = identityVisibility || 'Nama asli Anda akan ditampilkan kepada anggota grup privat ini.';
+  groupConsentIdentityVisibility.textContent = inviteReason || identityVisibility || 'Grup privat ini relevan untuk pendampingan dan diskusi konseling.';
   groupConsentInviteToken.value = inviteToken || '';
   groupConsentCheckbox.checked = false;
-  groupConsentSubmit.innerHTML = '<i class="bi bi-check2-circle"></i><span>Setuju dan Gabung Grup</span>';
+  groupConsentSubmit.innerHTML = '<span>Setuju dan Gabung Grup</span>';
   groupConsentSubmitting = false;
   activeGroupInviteToken = inviteToken || '';
   syncGroupConsentSubmitState();
@@ -3891,7 +3891,7 @@ document.querySelectorAll('[data-group-invite="1"]').forEach((button) => {
       description: button.dataset.groupDescription || 'Anda telah menerima undangan grup privat. Baca aturan dan setujui sebelum bergabung.',
       groupName: button.dataset.groupName,
       inviterName: button.dataset.groupInviter,
-      identityVisibility: button.dataset.groupVisibility,
+      inviteReason: button.dataset.groupReason || button.dataset.groupVisibility,
       inviteToken: inviteToken,
       hiddenFields: otherHiddenFields,
     });
@@ -3977,7 +3977,7 @@ if (groupConsentForm && groupConsentSubmit) {
       event.preventDefault();
       groupConsentSubmitting = false;
       groupConsentSubmit.disabled = false;
-      groupConsentSubmit.innerHTML = '<i class="bi bi-check2-circle"></i><span>Setuju dan Gabung Grup</span>';
+      groupConsentSubmit.innerHTML = '<span>Setuju dan Gabung Grup</span>';
       alert('Token undangan grup tidak ditemukan. Silakan buka ulang notifikasi undangan grup.');
       return;
     }

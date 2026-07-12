@@ -76,6 +76,46 @@ test('admin CIS divalidasi menggunakan pegawai id dan jabatan', function () {
         && $request->hasHeader('Authorization', 'Bearer token-cis'));
 });
 
+test('session konselor yang belum lengkap diarahkan kembali ke login', function () {
+    $user = User::create([
+        'nama' => 'Konselor Terputus',
+        'email' => 'konselor.terputus@example.test',
+        'username_cis' => 'malino.sihotang',
+        'password' => bcrypt('password-lokal'),
+        'role' => 'konselor',
+    ]);
+    Konselor::create([
+        'user_id' => $user->id,
+        'spesialisasi' => 'Asisten Akademik D4 TRPL',
+    ]);
+
+    $response = $this->actingAs($user)->get('/login');
+
+    $response->assertRedirect(route('login'));
+    $response->assertSessionHasErrors('username');
+    $this->assertGuest();
+});
+
+test('session konselor yang belum lengkap saat membuka beranda juga diputus', function () {
+    $user = User::create([
+        'nama' => 'Konselor Terputus',
+        'email' => 'konselor.terputus@example.test',
+        'username_cis' => 'malino.sihotang',
+        'password' => bcrypt('password-lokal'),
+        'role' => 'konselor',
+    ]);
+    Konselor::create([
+        'user_id' => $user->id,
+        'spesialisasi' => 'Asisten Akademik D4 TRPL',
+    ]);
+
+    $response = $this->actingAs($user)->get('/');
+
+    $response->assertRedirect(route('login'));
+    $response->assertSessionHasErrors('username');
+    $this->assertGuest();
+});
+
 test('hasil pejabat CIS yang tidak cocok tidak diberi akses admin', function () {
     Http::fake([
         'https://cis.test/api/jwt-api/do-auth' => Http::response([

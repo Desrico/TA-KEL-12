@@ -70,6 +70,7 @@ class ChatAdminController extends Controller
             ->with([
                 'pengirim.profil',
                 'pengirim.mahasiswa',
+                'replyTo.pengirim',
                 'sesi.jadwalKonseling.mahasiswa.user',
             ])
             ->whereIn('sesi_id', $conversationSessionIds)
@@ -113,7 +114,7 @@ class ChatAdminController extends Controller
         
             $hasPendingRegularSchedule = $this->hasPendingRegularSchedule($user, $selectedJadwal);
 
-        if ($hasPendingRegularSchedule) {
+        if ($hasPendingRegularSchedule && ! $canStartNow) {
             $isBlockedBySchedule = true;
             $isReadyToStart = false;
             $chatAccessGranted = false;
@@ -230,6 +231,7 @@ class ChatAdminController extends Controller
                 ->with([
                     'pengirim.profil',
                     'pengirim.mahasiswa',
+                    'replyTo.pengirim',
                     'sesi.jadwalKonseling.mahasiswa.user',
                 ])
                 ->whereIn('sesi_id', $conversationSessionIds)
@@ -252,6 +254,7 @@ class ChatAdminController extends Controller
         $validated = $request->validate([
             'sesi_id' => 'required|integer',
             'pesan' => 'required|string|max:2000',
+            'reply_to_id' => 'nullable|integer',
         ]);
 
         $request->merge(['sesi_id' => (int) $validated['sesi_id']]);
@@ -271,17 +274,21 @@ class ChatAdminController extends Controller
             ], 403);
         }
 
-        $chat = DB::transaction(function () use ($request, $validated, $sesi) {
+        $replyToChat = $this->resolveReplyChatForSession($sesi, $validated['reply_to_id'] ?? null);
+
+        $chat = DB::transaction(function () use ($request, $validated, $sesi, $replyToChat) {
             return Chat::create([
                 'sesi_id' => $sesi->id,
                 'pengirim_id' => $request->user()->id,
                 'pesan' => trim($validated['pesan']),
+                'reply_to_chat_id' => $replyToChat?->id,
             ]);
         });
 
         $chat->loadMissing([
             'pengirim.profil',
             'pengirim.mahasiswa',
+            'replyTo.pengirim',
             'sesi.jadwalKonseling',
         ]);
 
@@ -366,6 +373,19 @@ class ChatAdminController extends Controller
             'success' => true,
             'deleted_id' => $chat->id,
         ]);
+    }
+
+    private function resolveReplyChatForSession(SesiKonseling $sesi, mixed $replyToId): ?Chat
+    {
+        $replyToId = (int) $replyToId;
+
+        if ($replyToId <= 0) {
+            return null;
+        }
+
+        return Chat::query()
+            ->where('sesi_id', $sesi->id)
+            ->find($replyToId);
     }
 
     private function resolveAvailableSchedules(User $user): Collection
@@ -561,18 +581,7 @@ class ChatAdminController extends Controller
             $requested = $this->resolveScheduleForCounselor($user, $jadwalId);
 
             if ($requested) {
-                $isAnonim = filter_var($requested->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
-
-                $matchingRoom = $jadwalList->first(function (JadwalKonseling $jadwal) use ($requested, $isAnonim) {
-                    return filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN) === $isAnonim
-                        && (int) $jadwal->mahasiswa_id === (int) $requested->mahasiswa_id;
-                });
-
-                if ($matchingRoom) {
-                    return $matchingRoom;
-                }
-
-                return $isAnonim ? $requested : null;
+                return $requested;
             }
         }
 
@@ -600,7 +609,9 @@ class ChatAdminController extends Controller
 
     private function resolveSessionFromRequest(User $user, Request $request): ?SesiKonseling
     {
-        $jadwalId = $request->integer('jadwal_konseling_id');
+        $jadwalId = $request->integer('jadwal_konseling_id')
+            ?: $request->integer('jadwal_id')
+            ?: $request->integer('jadwal');
 
         if ($jadwalId) {
             $jadwal = $this->resolveScheduleForCounselor($user, $jadwalId);
@@ -609,13 +620,7 @@ class ChatAdminController extends Controller
                 return null;
             }
 
-            $selected = $this->resolveSelectedSchedule(
-                $user,
-                $this->resolveAvailableSchedules($user),
-                $jadwal->id
-            );
-
-            return $selected ? $this->resolveSessionFromSchedule($selected) : null;
+            return $this->resolveSessionFromSchedule($jadwal);
         }
 
         $sesiId = $request->integer('sesi_id');
@@ -722,12 +727,15 @@ class ChatAdminController extends Controller
     $chat->loadMissing([
         'pengirim.profil',
         'pengirim.mahasiswa',
+        'replyTo.pengirim',
         'sesi.jadwalKonseling.mahasiswa.user',
     ]);
 
     $sender = $chat->pengirim;
     $profil = optional($sender)->profil;
     $jadwal = optional($chat->sesi)->jadwalKonseling;
+    $replyTo = $chat->replyTo;
+    $replySender = $replyTo?->pengirim;
 
     $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
     $isSenderMahasiswa = ($sender?->role ?? null) === 'mahasiswa';
@@ -755,6 +763,14 @@ class ChatAdminController extends Controller
         'sender_role' => $sender?->role ?? 'pengguna',
         'avatar_url' => $avatarUrl,
         'text' => $chat->pesan,
+        'reply_to' => $replyTo ? [
+            'id' => $replyTo->id,
+            'sender_id' => $replyTo->pengirim_id,
+            'sender_name' => (int) $replyTo->pengirim_id === (int) $viewer->id
+                ? 'Anda'
+                : $this->resolveReplySenderName($replySender, $jadwal),
+            'text' => $replyTo->pesan,
+        ] : null,
         'time' => $sentAt->format('H:i'),
         'sent_at' => $sentAt->toIso8601String(),
         'date_key' => $sentAt->format('Y-m-d'),
@@ -782,6 +798,24 @@ class ChatAdminController extends Controller
         }
 
         return 4;
+    }
+
+    private function resolveReplySenderName(?User $sender, ?JadwalKonseling $jadwal): string
+    {
+        if (! $sender) {
+            return 'Pengguna';
+        }
+
+        $isAnonim = filter_var($jadwal->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
+        $isSenderMahasiswa = ($sender->role ?? null) === 'mahasiswa';
+
+        if ($isAnonim && $isSenderMahasiswa) {
+            return method_exists($sender, 'getAnonimDisplayName')
+                ? (trim($sender->getAnonimDisplayName()) ?: 'Anonim')
+                : 'Anonim';
+        }
+
+        return $sender->nama ?? $sender->getNamaDisplay() ?? 'Pengguna';
     }
 
     private function getScheduleDisplayState(JadwalKonseling $jadwal): array
@@ -881,6 +915,7 @@ class ChatAdminController extends Controller
             ->with([
                 'sesiKonseling.chats.pengirim.profil',
                 'sesiKonseling.chats.pengirim.mahasiswa',
+                'sesiKonseling.chats.replyTo.pengirim',
             ])
             ->where('mahasiswa_id', $jadwal->mahasiswa_id)
             ->where('konselor_id', $jadwal->konselor_id)

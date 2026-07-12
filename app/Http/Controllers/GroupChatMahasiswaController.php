@@ -78,6 +78,8 @@ class GroupChatMahasiswaController extends Controller
             'description' => 'Grup publik ini merupakan ruang percakapan anonim untuk mahasiswa dengan topik yang sama. Pastikan Anda setuju dengan aturan grup sebelum bergabung.',
             'group_name' => $topic['topic_label'] ?? 'Grup Publik',
             'inviter_name' => 'Sistem',
+            'reason_label' => 'Alasan Bergabung',
+            'invite_reason' => GroupChatSupport::topicDescription($topic['topic_key'] ?? null),
             'identity_visibility' => 'Nama Anda akan disamarkan saat berpartisipasi dalam grup publik.',
             'submit_label' => 'Setuju dan Gabung Grup',
             'hidden_fields' => [
@@ -101,12 +103,25 @@ class GroupChatMahasiswaController extends Controller
             'description' => 'Anda menerima undangan pribadi untuk bergabung ke grup privat ini. Bacalah aturan grup dengan seksama sebelum menyetujui undangan.',
             'group_name' => $room->title,
             'inviter_name' => $inviterName,
+            'reason_label' => 'Alasan Diundang',
+            'invite_reason' => $this->resolvePrivateInviteReason($room),
             'identity_visibility' => 'Nama Anda akan ditampilkan sesuai identitas asli di grup privat ini.',
             'submit_label' => 'Setuju dan Gabung Grup',
             'hidden_fields' => [
                 'invite_token' => $room->invite_token,
             ],
         ];
+    }
+
+    private function resolvePrivateInviteReason(GroupChatRoom $room): string
+    {
+        $description = trim((string) ($room->description ?? ''));
+
+        if ($description !== '') {
+            return $description;
+        }
+
+        return 'Grup privat ini relevan untuk pendampingan dan diskusi konseling.';
     }
 
     public function invitation(Request $request, string $token)
@@ -185,7 +200,12 @@ class GroupChatMahasiswaController extends Controller
                 ->with('error', 'Anda belum tergabung aktif di grup chat tersebut.');
         }
 
-        $messages = $activeRoom->messages
+        $messages = $activeRoom->messages()
+            ->with([
+                'sender.mahasiswa',
+                'replyTo.sender',
+            ])
+            ->get()
             ->sortBy('created_at')
             ->values()
             ->map(fn(GroupChatMessage $message) => $this->transformMessage($message, $user, $activeRoom))
@@ -267,7 +287,12 @@ class GroupChatMahasiswaController extends Controller
 
         return response()->json([
             'success' => true,
-            'messages' => $room->messages
+            'messages' => $room->messages()
+                ->with([
+                    'sender.mahasiswa',
+                    'replyTo.sender',
+                ])
+                ->get()
                 ->sortBy('created_at')
                 ->values()
                 ->map(fn(GroupChatMessage $message) => $this->transformMessage($message, $request->user(), $room))
@@ -280,6 +305,7 @@ class GroupChatMahasiswaController extends Controller
         $validated = $request->validate([
             'group_id' => 'required|integer',
             'pesan' => 'required|string|max:2000',
+            'reply_to_id' => 'nullable|integer',
         ]);
 
         $user = $request->user();
@@ -301,17 +327,21 @@ class GroupChatMahasiswaController extends Controller
             ], 404);
         }
 
-        $message = DB::transaction(function () use ($room, $user, $validated) {
+        $replyToMessage = $this->resolveReplyMessageForRoom($room, $validated['reply_to_id'] ?? null);
+
+        $message = DB::transaction(function () use ($room, $user, $validated, $replyToMessage) {
             return GroupChatMessage::create([
                 'room_id' => $room->id,
                 'user_id' => $user->id,
                 'pesan' => trim($validated['pesan']),
+                'reply_to_message_id' => $replyToMessage?->id,
             ]);
         });
 
         $message->loadMissing([
             'sender.profil',
             'sender.mahasiswa',
+            'replyTo.sender',
             'room',
         ]);
 
@@ -382,6 +412,23 @@ class GroupChatMahasiswaController extends Controller
             'success' => true,
             'deleted_id' => $message->id,
         ]);
+    }
+
+    private function resolveReplyMessageForRoom(GroupChatRoom $room, mixed $replyToId): ?GroupChatMessage
+    {
+        $replyToId = (int) $replyToId;
+
+        if ($replyToId <= 0) {
+            return null;
+        }
+
+        return GroupChatMessage::query()
+            ->where('room_id', $room->id)
+            ->where(function ($query) {
+                $query->whereNull('is_system')
+                    ->orWhere('is_system', false);
+            })
+            ->find($replyToId);
     }
 
     public function leave(Request $request, GroupChatRoom $group): RedirectResponse
@@ -872,7 +919,7 @@ class GroupChatMahasiswaController extends Controller
             'deleteUrlTemplate' => route('mahasiswa.group-chat.destroy', ['message' => '__MESSAGE_ID__']),
             'roomTitle' => $room->title,
             'roomDescription' => $room->description,
-            'counselorName' => $this->resolveCisCounselorName(),
+            'counselorName' => $this->resolveRoomCounselorName($room, $messages),
             'topicLabel' => $room->topicLabel(),
             'visibilityLabel' => $room->visibilityLabel(),
             'memberCount' => (int) ($room->active_members_count ?? $room->members_count ?? $room->members->count()),
@@ -912,14 +959,42 @@ class GroupChatMahasiswaController extends Controller
 
     private function resolveCisCounselorName(?User $user = null): string
     {
-        // Nama konselor grup mengikuti environment CIS supaya tampil sama di grup privat dan publik.
-        return env(
-            'CIS_KONSELOR_NAME',
-            $user?->getNamaDisplay()
-                ?? $user?->nama
-                ?? $user?->name
-                ?? 'Konselor'
-        );
+        return trim((string) (
+            $user?->nama
+                ?: $user?->name
+                ?: $user?->username_cis
+                ?: $user?->email
+                ?: env('CIS_KONSELOR_NAME', 'Konselor')
+        )) ?: 'Konselor';
+    }
+
+    private function resolveRoomCounselorName(GroupChatRoom $room, array $messages = []): string
+    {
+        $counselor = $room->members
+            ->map(fn (GroupChatMember $member) => $member->user)
+            ->first(function (?User $user) {
+                $role = strtolower((string) ($user?->role ?? ''));
+
+                return in_array($role, ['konselor', 'admin'], true);
+            });
+
+        $memberName = $this->resolveCisCounselorName($counselor);
+
+        if (strtolower($memberName) !== 'konselor') {
+            return $memberName;
+        }
+
+        foreach ($messages as $message) {
+            $isCounselorMessage = (bool) ($message['is_counselor'] ?? false)
+                || in_array(strtolower((string) ($message['sender_role'] ?? '')), ['konselor', 'admin'], true);
+            $messageSenderName = trim((string) ($message['sender_name'] ?? ''));
+
+            if ($isCounselorMessage && $messageSenderName !== '' && strtolower($messageSenderName) !== 'konselor') {
+                return $messageSenderName;
+            }
+        }
+
+        return $memberName;
     }
 
     private function resolveRoomAvatarUrl(?User $user, GroupChatRoom $room, ?GroupChatMember $membership = null): string
@@ -974,14 +1049,21 @@ class GroupChatMahasiswaController extends Controller
     private function transformMessage(GroupChatMessage $message, User $viewer, GroupChatRoom $room): array
     {
         $message->loadMissing([
+            'sender',
             'sender.mahasiswa',
+            'replyTo.sender',
         ]);
 
         $sender = $message->sender;
         $membership = $sender ? GroupChatSupport::resolveRoomMember($sender, $room) : null;
+        $replyTo = $message->replyTo;
+        $replySender = $replyTo?->sender;
+        $replyMembership = $replySender ? GroupChatSupport::resolveRoomMember($replySender, $room) : null;
 
         $senderRole = strtolower((string) ($sender?->role ?? 'pengguna'));
         $isCounselorSender = in_array($senderRole, ['konselor', 'admin'], true);
+        $replySenderRole = strtolower((string) ($replySender?->role ?? 'pengguna'));
+        $isReplyCounselorSender = in_array($replySenderRole, ['konselor', 'admin'], true);
 
         $senderDisplayName = $isCounselorSender
             ? $this->resolveCisCounselorName($sender)
@@ -999,6 +1081,18 @@ class GroupChatMahasiswaController extends Controller
             'is_counselor' => $isCounselorSender,
             'avatar_url' => $this->resolveRoomAvatarUrl($sender, $room, $membership),
             'text' => $message->pesan,
+            'reply_to' => $replyTo ? [
+                'id' => $replyTo->id,
+                'sender_id' => $replyTo->user_id,
+                'sender_name' => (int) $replyTo->user_id === (int) $viewer->id
+                    ? 'Anda'
+                    : ($isReplyCounselorSender
+                        ? $this->resolveCisCounselorName($replySender)
+                        : ($replySender
+                            ? $this->resolveRoomDisplayName($replySender, $room, $replyMembership)
+                            : 'Pengguna')),
+                'text' => $replyTo->pesan,
+            ] : null,
             'time' => $this->toDisplayDateTime($message->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($message->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
             'updated_at' => $this->toDisplayDateTime($message->updated_at)?->toIso8601String(),

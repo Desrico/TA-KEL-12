@@ -44,13 +44,11 @@
 
 <body class="min-h-screen font-[Poppins] relative overflow-hidden">
 
-    <!-- Background -->
     <img src="{{ asset('img/bg.png') }}"
          class="absolute inset-0 w-full h-full object-cover z-0">
 
     <div class="absolute inset-0 bg-white/55 z-10"></div>
 
-    <!-- Logo -->
     <div class="absolute top-6 left-8 z-20 flex items-center gap-3">
         <img src="{{ asset('img/logo.png') }}" class="w-10 h-10 object-contain">
         <div>
@@ -63,7 +61,7 @@
         </div>
     </div>
 
-    <!-- Login Card -->
+
     <div class="relative z-20 min-h-screen flex items-center justify-center">
         <div class="w-full max-w-md px-6">
 
@@ -87,7 +85,7 @@
                     </p>
 
                     <div>
-                        <label class="text-sm text-gray-600">Username CIS</label>
+                        <label class="text-sm text-gray-600">Username</label>
                         <input type="text" name="username"
                             id="loginUsername"
                             value="{{ old('username') }}"
@@ -129,7 +127,6 @@
 <script>
 window.addEventListener('pageshow', function (event) {
     if (event.persisted) {
-        // Form login dari browser back-forward cache harus memeriksa session terbaru.
         window.location.reload();
     }
 });

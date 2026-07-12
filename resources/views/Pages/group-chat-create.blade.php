@@ -395,8 +395,8 @@
                 </div>
 
                 <div>
-                  <span>Visibilitas Identitas</span>
-                  <strong>{{ $consentContext['identity_visibility'] ?? 'Identitas Anda akan ditampilkan sesuai aturan grup.' }}</strong>
+                  <span>{{ $consentContext['reason_label'] ?? 'Alasan Diundang' }}</span>
+                  <strong>{{ $consentContext['invite_reason'] ?? 'Grup privat ini relevan untuk pendampingan dan diskusi konseling.' }}</strong>
                 </div>
               </div>
             </div>

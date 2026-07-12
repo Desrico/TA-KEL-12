@@ -118,6 +118,43 @@
     font-size: .72rem;
     font-weight: 600;
     margin: 2px 4px;
+    cursor: pointer;
+  }
+
+  .fc .fc-daygrid-event,
+  .fc .fc-event-main,
+  .fc .fc-event-title {
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .fc .fc-event-title {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .calendar-hover-tooltip {
+    position: fixed;
+    z-index: 20000;
+    max-width: min(520px, calc(100vw - 32px));
+    padding: 10px 13px;
+    border-radius: 10px;
+    background: #fffdf5;
+    border: 1px solid #e7dcc4;
+    color: #374151;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, .18);
+    font-size: .86rem;
+    font-weight: 600;
+    line-height: 1.45;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .12s ease, transform .12s ease;
+  }
+
+  .calendar-hover-tooltip.show {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .jadwal-legend {
@@ -1342,6 +1379,51 @@
 
     events: '{{ route("admin.jadwal.events") }}',
 
+    eventDidMount: function(info) {
+        const fullTitle = info.event.title || info.event.extendedProps?.nama || '';
+        if (!fullTitle) return;
+
+        info.el.setAttribute('aria-label', fullTitle);
+        info.el.dataset.tooltipTitle = fullTitle;
+
+        const showTooltip = function(event) {
+            const title = info.el.dataset.tooltipTitle;
+            if (!title) return;
+
+            let tooltip = document.getElementById('calendarHoverTooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'calendarHoverTooltip';
+                tooltip.className = 'calendar-hover-tooltip';
+                document.body.appendChild(tooltip);
+            }
+
+            tooltip.textContent = title;
+            tooltip.classList.add('show');
+
+            const rect = tooltip.getBoundingClientRect();
+            const x = Math.min((event.clientX || info.el.getBoundingClientRect().left) + 12, window.innerWidth - rect.width - 12);
+            const y = Math.max((event.clientY || info.el.getBoundingClientRect().top) - rect.height - 12, 12);
+
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+        };
+
+        const hideTooltip = function() {
+            const tooltip = document.getElementById('calendarHoverTooltip');
+            if (tooltip) {
+                tooltip.classList.remove('show');
+            }
+        };
+
+        info.el.addEventListener('mouseenter', showTooltip);
+        info.el.addEventListener('mousemove', showTooltip);
+        info.el.addEventListener('focus', showTooltip);
+        info.el.addEventListener('mouseleave', hideTooltip);
+        info.el.addEventListener('blur', hideTooltip);
+        info.el.addEventListener('click', hideTooltip);
+    },
+
     datesSet: function (info) {
         const titleEl = document.getElementById('calendarTitle');
         if (titleEl) {
@@ -1376,12 +1458,9 @@
         return;
     }
 
-    if (data.detail_url) {
-    window.location.href = '{{ route("admin.riwayat") }}';
-    return;
-}
-
-window.location.href = '{{ route("admin.riwayat") }}';
+    const riwayatUrl = new URL('{{ route("admin.riwayat") }}', window.location.origin);
+    riwayatUrl.searchParams.set('jadwal', data.id || info.event.id);
+    window.location.href = riwayatUrl.toString();
 }
 });
 

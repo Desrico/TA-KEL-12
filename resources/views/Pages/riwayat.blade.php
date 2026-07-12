@@ -62,14 +62,6 @@
 
                 $isActionableStatus = $isPerluSesiLanjutan;
 
-                $topikText = '-';
-
-                if (!empty($item->topik)) {
-                    $topikText = $item->topik;
-                } elseif (!empty($item->catatan) && str_contains($item->catatan, 'Topik:')) {
-                    $parts = explode('|', $item->catatan);
-                    $topikText = trim(str_replace('Topik:', '', $parts[0]));
-                }
             @endphp
 
     <div class="riwayat-card" id="jadwal-{{ $item->id }}" data-highlight-target="{{ request('jadwal') == $item->id ? 'true' : 'false' }}">
@@ -78,26 +70,19 @@
     $userMahasiswa = $item->mahasiswa?->user;
     $isAnonim = filter_var($item->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
 
-    if ($isAnonim) {
-        $namaMahasiswa = method_exists($userMahasiswa, 'getAnonimDisplayName')
-            ? trim($userMahasiswa->getAnonimDisplayName())
-            : 'Anonim';
-
-        $namaMahasiswa = $namaMahasiswa ?: 'Anonim';
-    } else {
-        $namaMahasiswa =
-            $userMahasiswa?->name
-            ?? $userMahasiswa?->nama
-            ?? $userMahasiswa?->nama_lengkap
-            ?? $item->mahasiswa?->nama
-            ?? $item->mahasiswa?->nama_lengkap
-            ?? auth()->user()->name
-            ?? auth()->user()->nama
-            ?? auth()->user()->nama_lengkap
-            ?? 'Mahasiswa';
-    }
+    $namaMahasiswa =
+        $userMahasiswa?->name
+        ?? $userMahasiswa?->nama
+        ?? $userMahasiswa?->nama_lengkap
+        ?? $item->mahasiswa?->nama
+        ?? $item->mahasiswa?->nama_lengkap
+        ?? auth()->user()->name
+        ?? auth()->user()->nama
+        ?? auth()->user()->nama_lengkap
+        ?? 'Mahasiswa';
 
     $inisialMahasiswa = strtoupper(substr($namaMahasiswa, 0, 1));
+    $jenisSesi = ucfirst(strtolower($item->jenis ?? $item->metode ?? 'Online'));
 @endphp
     
 
@@ -106,20 +91,19 @@
             </div>
 
             <div class="info">
-                <h3>{{ $namaMahasiswa }}</h3>
-                <p>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }} • {{ substr($item->waktu ?? '00:00', 0, 5) }} WIB</p>
-            </div>
-        </div>
-
-        <div class="card-middle">
-            <div class="meta-col">
-                <small>DURASI</small>
-                <strong>{{ $item->durasi ?? '60 Menit' }}</strong>
-            </div>
-
-            <div class="meta-col meta-topic">
-                <small>TOPIK</small>
-                <strong>{{ \Illuminate\Support\Str::limit($topikText, 45, '...') }}</strong>
+                <h3>
+                    <span>{{ $namaMahasiswa }}</span>
+                </h3>
+                @if($isAnonim)
+                    <div class="anonim-mode-line">
+                        <span class="anonim-mode-badge">Anonim</span>
+                    </div>
+                @endif
+                <p>
+                    {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}
+                    • {{ substr($item->waktu ?? '00:00', 0, 5) }} WIB
+                    • Sesi {{ $jenisSesi }}
+                </p>
             </div>
         </div>
 
@@ -239,15 +223,15 @@
 /* CARD */
 .riwayat-card {
     display: grid;
-    grid-template-columns: minmax(250px, 280px) minmax(0, 1fr) minmax(340px, 400px);
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 20px;
+    gap: 18px;
     width: 100%;
     box-sizing: border-box;
-    padding: 20px 24px;
-    border-radius: 20px;
+    padding: 18px 26px;
+    border-radius: 18px;
     border: 2px solid #E8F0EB;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     background: #ffffff;
     overflow: visible;
 }
@@ -261,8 +245,8 @@
 }
 
 .avatar {
-    width: 58px;
-    height: 58px;
+    width: 54px;
+    height: 54px;
     flex-shrink: 0;
     background: #A7F3D0;
     color: #064E3B;
@@ -280,14 +264,44 @@
 
 .info h3 {
     margin: 0 0 4px;
-    font-size: 15px;
+    font-size: 15.5px;
     font-weight: 800;
     color: #111827;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.info h3 > span:first-child {
+    min-width: 0;
+}
+
+.anonim-mode-line {
+    display: flex;
+    align-items: center;
+    margin: 2px 0 4px;
+}
+
+.anonim-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: #ECFDF5;
+    border: 1px solid #A7F3D0;
+    color: #047857;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .info p {
     margin: 0;
-    font-size: 13px;
+    font-size: 13.5px;
     color: #6B7280;
     line-height: 1.3;
     white-space: nowrap;
@@ -372,45 +386,6 @@
 .btn-feedback-submit {
     background: #064E3B;
     color: #fff;
-}
-
-/* MIDDLE */
-.card-middle {
-    display: grid;
-    grid-template-columns: 100px minmax(140px, 1fr);
-    gap: 24px;
-    align-items: center;
-    min-width: 0;
-    flex: 1;
-}
-
-.meta-col {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.meta-topic {
-    min-width: 0;
-}
-
-.card-middle small {
-    display: block;
-    font-size: 10px;
-    color: #9CA3AF;
-    font-weight: 700;
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
-
-.card-middle strong {
-    display: block;
-    font-size: 14px;
-    color: #111827;
-    font-weight: 700;
-    line-height: 1.3;
-    word-break: break-word;
 }
 
 /* RIGHT */
@@ -690,14 +665,9 @@
     }
 
     .riwayat-card {
-        grid-template-columns: minmax(240px, 260px) minmax(280px, 1fr) minmax(260px, 320px);
-        gap: 20px;
-        padding: 22px 24px;
-    }
-
-    .card-middle {
-        grid-template-columns: 90px minmax(120px, 1fr);
+        grid-template-columns: minmax(0, 1fr) auto;
         gap: 18px;
+        padding: 18px 24px;
     }
 }
 
@@ -722,11 +692,6 @@
 
     .card-left {
         gap: 12px;
-    }
-
-    .card-middle {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
     }
 
     .card-right {
@@ -755,11 +720,6 @@
 
     .riwayat-card {
         padding: 18px;
-        gap: 12px;
-    }
-
-    .card-middle {
-        grid-template-columns: 1fr;
         gap: 12px;
     }
 

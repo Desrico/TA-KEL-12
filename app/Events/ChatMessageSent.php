@@ -22,6 +22,7 @@ class ChatMessageSent implements ShouldBroadcastNow
         $this->chat->loadMissing([
             'pengirim.profil',
             'pengirim.mahasiswa',
+            'replyTo.pengirim',
             'sesi.jadwalKonseling',
         ]);
     }
@@ -42,6 +43,8 @@ class ChatMessageSent implements ShouldBroadcastNow
     {
         $sender = $this->chat->pengirim;
         $profil = optional($sender)->profil;
+        $replyTo = $this->chat->replyTo;
+        $replySender = $replyTo?->pengirim;
         $createdAt = $this->toDisplayDateTime($this->chat->created_at);
 
         return [
@@ -53,6 +56,12 @@ class ChatMessageSent implements ShouldBroadcastNow
                 'sender_role' => $sender?->role ?? 'pengguna',
                 'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
                 'text' => $this->chat->pesan,
+                'reply_to' => $replyTo ? [
+                    'id' => $replyTo->id,
+                    'sender_id' => $replyTo->pengirim_id,
+                    'sender_name' => $replySender?->getNamaDisplay() ?? 'Pengguna',
+                    'text' => $replyTo->pesan,
+                ] : null,
                 'time' => $createdAt?->format('H:i') ?? Carbon::now($this->displayTimezone())->format('H:i'),
                 'sent_at' => $createdAt?->toIso8601String() ?? Carbon::now($this->displayTimezone())->toIso8601String(),
                 'updated_at' => $this->toDisplayDateTime($this->chat->updated_at)?->toIso8601String(),

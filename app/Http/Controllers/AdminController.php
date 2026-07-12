@@ -423,17 +423,19 @@ public function dashboard()
     ->map(function ($item) {
         $status = strtolower($item->status ?? 'menunggu');
 
-        $userMahasiswa = optional(optional($item->mahasiswa)->user);
+        $userMahasiswa = $item->mahasiswa?->user;
 
         $isAnonim = filter_var($item->anonim ?? false, FILTER_VALIDATE_BOOLEAN);
 
         $namaTampil = $isAnonim
             ? (
-                method_exists($userMahasiswa, 'getAnonimDisplayName')
+                $userMahasiswa && method_exists($userMahasiswa, 'getAnonimDisplayName')
                     ? trim($userMahasiswa->getAnonimDisplayName())
-                    : 'Anonim'
+                    : 'Mahasiswa Anonim'
             )
-            : ($userMahasiswa->nama ?? 'Mahasiswa');
+            : ($userMahasiswa?->nama ?? 'Mahasiswa');
+
+        $namaTampil = $namaTampil ?: ($isAnonim ? 'Mahasiswa Anonim' : 'Mahasiswa');
 
         $warna = match ($status) {
             'menunggu', 'menunggu konfirmasi' => '#E9D98B',

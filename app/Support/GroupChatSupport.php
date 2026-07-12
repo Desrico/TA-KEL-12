@@ -194,7 +194,7 @@ class GroupChatSupport
         }
 
         if ($user->role === 'konselor') {
-            return 'Konselor';
+            return trim((string) ($user->nama ?: $user->name ?: $user->username_cis ?: $user->email)) ?: 'Konselor';
         }
 
         // Mahasiswa hanya memakai alias hewan saat berada di grup publik.

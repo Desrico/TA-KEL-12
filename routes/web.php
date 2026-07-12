@@ -54,10 +54,8 @@ Route::get('/konseling', [JadwalController::class, 'create'])->name('konseling')
 // ═══════════════════════════════
 // AUTH
 // ═══════════════════════════════
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->name('login.post');
-});
+Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 

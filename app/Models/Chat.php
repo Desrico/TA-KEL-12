@@ -13,6 +13,7 @@ class Chat extends Model
         'sesi_id',
         'pengirim_id',
         'pesan',
+        'reply_to_chat_id',
     ];
 
     protected $casts = [
@@ -28,5 +29,10 @@ class Chat extends Model
     public function pengirim(): BelongsTo
     {
         return $this->belongsTo(User::class, 'pengirim_id');
+    }
+
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reply_to_chat_id');
     }
 }

@@ -49,19 +49,29 @@ class SesiKonselingController extends Controller
     {
         $konselor = $this->resolveAuthenticatedKonselor();
         $search = trim((string) $request->query('search', ''));
+        $selectedJadwalId = $request->integer('jadwal');
 
         $jadwalQuery = JadwalKonseling::with(['mahasiswa.user', 'mahasiswa.user.profil', 'sesiKonseling.laporan'])
             ->where('konselor_id', $konselor->id);
 
         if ($search !== '') {
-            $jadwalQuery->where(function ($query) use ($search) {
-                $query->whereHas('mahasiswa.user', function ($userQuery) use ($search) {
-                    $userQuery->where('nama', 'like', '%' . $search . '%');
-                })->orWhereHas('mahasiswa', function ($mahasiswaQuery) use ($search) {
-                    $mahasiswaQuery->where('nim', 'like', '%' . $search . '%')
-                        ->orWhere('jurusan', 'like', '%' . $search . '%');
+            $jadwalQuery
+                ->where(function ($query) {
+                    $query->whereNull('anonim')
+                        ->orWhere('anonim', false);
+                })
+                ->where(function ($query) use ($search) {
+                    $query->whereHas('mahasiswa.user', function ($userQuery) use ($search) {
+                        $userQuery->where('nama', 'like', '%' . $search . '%');
+                    })->orWhereHas('mahasiswa', function ($mahasiswaQuery) use ($search) {
+                        $mahasiswaQuery->where('nim', 'like', '%' . $search . '%')
+                            ->orWhere('jurusan', 'like', '%' . $search . '%');
+                    });
                 });
-            });
+        }
+
+        if ($selectedJadwalId > 0) {
+            $jadwalQuery->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$selectedJadwalId]);
         }
 
         $jadwal = $jadwalQuery

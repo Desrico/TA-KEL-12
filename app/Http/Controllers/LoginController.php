@@ -17,6 +17,14 @@ class LoginController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
+            if ($this->hasIncompleteCounselorSession(request())) {
+                $this->clearAuthenticatedSession(request());
+
+                return redirect()->route('login')->withErrors([
+                    'username' => 'Sesi login konselor sebelumnya belum lengkap. Silakan login ulang.',
+                ]);
+            }
+
             // Menyelaraskan ulang role aktif agar redirect tidak memakai role lama yang tertinggal di database/session.
             $user = $this->syncResolvedRoleForUser(
                 Auth::user(),
@@ -117,6 +125,10 @@ class LoginController extends Controller
 
     public function login(Request $request, KampusApiService $kampusApi)
     {
+        if (Auth::check()) {
+            $this->clearAuthenticatedSession($request);
+        }
+
         $validated = $request->validate([
             'username' => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -266,14 +278,35 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $this->clearAuthenticatedSession($request);
+
+        return redirect()->route('login');
+    }
+
+    private function clearAuthenticatedSession(Request $request): void
+    {
         Auth::logout();
 
         $request->session()->forget('cis');
         $request->session()->forget('security_pin_verified_at');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+    }
 
-        return redirect()->route('login');
+    private function hasIncompleteCounselorSession(Request $request): bool
+    {
+        $user = $request->user();
+
+        if (! $user || $user->role !== 'konselor') {
+            return false;
+        }
+
+        $sessionUsername = trim((string) $request->session()->get('cis.username', ''));
+        $sessionToken = trim((string) $request->session()->get('cis.access_token', ''));
+        $userIdentifier = trim((string) ($user->username_cis ?: $user->email ?: ''));
+
+        return $sessionToken === ''
+            || ($userIdentifier !== '' && $sessionUsername !== '' && strcasecmp($sessionUsername, $userIdentifier) !== 0);
     }
 
     public function showSecurityPin(Request $request)

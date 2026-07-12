@@ -251,11 +251,6 @@
     font-weight: 800;
   }
 
-  .counselor-role {
-    color: #5C7564;
-    font-size: .92rem;
-  }
-
   .info-list {
     display: grid;
     gap: 0;
@@ -1093,8 +1088,8 @@
             <div class="mode-facts">
               <div class="mode-fact">
                 <i class="bi bi-clock"></i>
-                <strong>60 menit</strong>
-                <span>Durasi sesi</span>
+                <strong>Hingga Sesi Selesai</strong>
+                <span>Maks. 24 jam</span>
               </div>
               <div class="mode-fact">
                 <i class="bi bi-chat-dots"></i>
@@ -1157,7 +1152,6 @@
               @endphp
 
               <div class="counselor-name">{{ $namaKonselor }}</div>
-              <div class="counselor-role">Konselor</div>
             </div>
           </div>
 
@@ -1165,12 +1159,12 @@
             <div class="info-row">
               <i class="bi bi-clock"></i>
               <div class="info-label">Durasi</div>
-              <div class="info-value">60 Menit</div>
+              <div class="info-value" id="side-duration">60 Menit</div>
             </div>
             <div class="info-row">
-              <i class="bi bi-headset"></i>
-              <div class="info-label">Media</div>
-              <div class="info-value" id="side-media">Tatap Muka</div>
+              <i class="bi bi-briefcase-fill"></i>
+              <div class="info-label">Jabatan</div>
+              <div class="info-value">Konselor</div>
             </div>
             <div class="info-row">
               <i class="bi bi-geo-alt-fill"></i>
@@ -1459,7 +1453,7 @@ document.addEventListener('DOMContentLoaded', function () {
       label: 'Online',
       icon: 'bi-chat-dots',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling online.',
-      sideMedia: 'Chat',
+      sideDuration: 'Hingga Sesi Selesai<br>(Maks. 24 Jam)',
       sideLocation: 'Jarak Jauh<br>Akses dari ruang personalmu',
       noteClass: 'online',
       note: 'Pastikan kamu berada di tempat yang tenang dan memiliki koneksi internet stabil sebelum sesi dimulai.',
@@ -1469,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', function () {
       label: 'Offline',
       icon: 'bi-geo-alt',
       subtitle: 'Lengkapi tanggal, waktu, dan topik untuk mengajukan konseling offline.',
-      sideMedia: 'Tatap Muka',
+      sideDuration: '60 Menit',
       sideLocation: 'Gedung 5, Lt. 2<br>Antara GD 525 & 526',
       noteClass: '',
       note: 'Harap tiba 10 menit lebih awal sebagai persiapan awal.',
@@ -1904,7 +1898,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const scheduleSubtitleEl = document.getElementById('schedule-subtitle');
     const selectedModePillEl = document.getElementById('selected-mode-pill');
-    const sideMediaEl = document.getElementById('side-media');
+    const sideDurationEl = document.getElementById('side-duration');
     const sideLocationEl = document.getElementById('side-location');
     const sessionNoteEl = document.getElementById('session-note');
     const sessionNoteTextEl = document.getElementById('session-note-text');
@@ -1924,8 +1918,8 @@ document.addEventListener('DOMContentLoaded', function () {
       selectedModePillEl.innerHTML = `<i class="bi ${config.icon}"></i> ${config.label}`;
     }
 
-    if (sideMediaEl) {
-      sideMediaEl.innerHTML = config.sideMedia;
+    if (sideDurationEl) {
+      sideDurationEl.innerHTML = config.sideDuration;
     }
 
     if (sideLocationEl) {

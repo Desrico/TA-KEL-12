@@ -74,9 +74,9 @@
 
   .group-room-main {
     min-width: 0;
-    height: calc(100vh - 160px);
-    min-height: 520px;
-    max-height: calc(100vh - 160px);
+    height: calc(100vh - 112px);
+    min-height: 600px;
+    max-height: calc(100vh - 112px);
     display: flex;
     flex-direction: column;
     background:
@@ -237,29 +237,77 @@
     display: flex;
     gap: .8rem;
     margin-bottom: 1rem;
-    align-items: flex-end;
+    align-items: flex-start;
   }
 
   .group-message-row.mine {
     justify-content: flex-end;
+    gap: .12rem;
   }
 
   .group-message-row.mine .group-message-meta {
     justify-content: flex-end;
   }
 
+  .group-message-row.mine .group-message-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
   .group-message-row.mine .group-message-bubble {
     background: linear-gradient(135deg, #047857, #059669);
     color: #fff;
-    border-bottom-right-radius: 10px;
-    box-shadow: 0 16px 34px rgba(5, 150, 105, 0.2);
+    border-radius: 10px;
+    border-top-right-radius: 4px;
+    box-shadow: 0 1px 1px rgba(15, 23, 42, 0.12);
+    overflow: visible;
+  }
+
+  .group-message-row.mine .group-message-bubble::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -6px;
+    width: 9px;
+    height: 10px;
+    background: #059669;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    pointer-events: none;
   }
 
   .group-message-row.other .group-message-bubble {
     background: #ffffff;
     color: #1f2937;
     border: 1px solid rgba(226, 232, 240, 0.9);
-    border-bottom-left-radius: 10px;
+    border-radius: 10px;
+    border-top-left-radius: 0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    overflow: visible;
+  }
+
+  .group-message-row.other .group-message-bubble::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -9px;
+    width: 9px;
+    height: 11px;
+    background: rgba(226, 232, 240, 0.9);
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    pointer-events: none;
+  }
+
+  .group-message-row.other .group-message-bubble::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -7px;
+    width: 7px;
+    height: 9px;
+    background: #ffffff;
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    pointer-events: none;
   }
 
   .group-message-row.system {
@@ -319,15 +367,22 @@
   }
 
   .group-message-bubble {
-    padding: .95rem 1.15rem 1rem;
-    border-radius: 24px;
-    font-size: .95rem;
-    line-height: 1.72;
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
+    padding: .36rem .58rem;
+    border-radius: 10px;
+    font-size: .86rem;
+    line-height: 1.3;
     word-break: break-word;
+    position: relative;
+    overflow: visible;
   }
 
   .group-message-bubble-shell {
     position: relative;
+    width: fit-content;
+    max-width: 100%;
   }
 
   .group-message-edited {
@@ -345,8 +400,24 @@
     transition: opacity .18s ease;
   }
 
+  .group-message-row.mine .group-message-actions {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-left: -.22rem;
+  }
+
+  .group-message-row.other .group-message-actions {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-left: -.22rem;
+  }
+
   .group-message-row.mine:hover .group-message-actions,
-  .group-message-row.mine.is-menu-open .group-message-actions {
+  .group-message-row.other:hover .group-message-actions,
+  .group-message-row.mine.is-menu-open .group-message-actions,
+  .group-message-row.other.is-menu-open .group-message-actions {
     opacity: 1;
     pointer-events: auto;
   }
@@ -361,6 +432,21 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+  }
+
+  .group-message-row.other .group-message-action-toggle {
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    color: #64748b;
+  }
+
+  .group-message-row.mine .group-message-action-toggle {
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    color: #64748b;
   }
 
   .group-message-action-menu {
@@ -406,6 +492,105 @@
 
   .group-message-action-item.delete {
     color: #b91c1c;
+  }
+
+  .group-message-reply-preview {
+    margin-bottom: 0;
+    padding: .32rem .44rem .28rem;
+    border-left: 3px solid #10b981;
+    border-radius: 8px;
+    background: rgba(236, 253, 245, .92);
+    color: #334155;
+    font-size: .72rem;
+    line-height: 1.16;
+    max-width: 230px;
+    width: fit-content;
+    white-space: normal;
+  }
+
+  .group-message-row.mine .group-message-reply-preview {
+    background: rgba(255, 255, 255, .18);
+    color: rgba(255, 255, 255, .86);
+    border-left-color: rgba(255, 255, 255, .8);
+  }
+
+  .group-message-reply-name {
+    display: block;
+    margin-bottom: .02rem;
+    font-weight: 800;
+    color: #047857;
+  }
+
+  .group-message-bubble:has(.group-message-reply-preview) {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    width: fit-content;
+    padding: .22rem .36rem .18rem;
+    line-height: 1.14;
+  }
+
+  .group-message-text {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  .group-message-bubble:has(.group-message-reply-preview) .group-message-text {
+    line-height: 1.08;
+    margin-top: .2rem;
+  }
+
+  .group-message-row.mine .group-message-bubble:has(.group-message-reply-preview) {
+    padding-right: .38rem;
+  }
+
+  .group-message-row.mine .group-message-reply-name {
+    color: #ffffff;
+  }
+
+  .group-room-reply-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: .8rem;
+    margin-bottom: .65rem;
+    padding: .72rem .85rem;
+    border-left: 4px solid #10b981;
+    border-radius: 16px;
+    background: #ecfdf5;
+    color: #334155;
+  }
+
+  .group-room-reply-bar.is-active {
+    display: flex;
+  }
+
+  .group-room-reply-label {
+    display: block;
+    font-size: .72rem;
+    font-weight: 800;
+    color: #047857;
+    margin-bottom: .12rem;
+  }
+
+  .group-room-reply-text {
+    font-size: .82rem;
+    line-height: 1.35;
+  }
+
+  .group-room-reply-cancel {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(6, 95, 70, .1);
+    color: #065f46;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
   .group-message-row.is-editing .group-message-actions {
@@ -505,17 +690,17 @@
   }
 
   .group-room-compose {
-    padding: 1rem 1.2rem 1.2rem;
+    padding: .55rem .9rem .75rem;
     border-top: 1px solid rgba(221, 239, 231, 0.95);
     background: rgba(255, 255, 255, 0.95);
   }
 
   .group-room-form {
     display: flex;
-    align-items: flex-end;
-    gap: .9rem;
-    padding: .75rem;
-    border-radius: 24px;
+    align-items: center;
+    gap: .55rem;
+    padding: .38rem .45rem .38rem .75rem;
+    border-radius: 20px;
     border: 1px solid rgba(209, 250, 229, 0.96);
     background: linear-gradient(180deg, #ffffff, #f8fffb);
   }
@@ -525,23 +710,24 @@
     border: none;
     resize: none;
     background: transparent;
-    min-height: 56px;
-    max-height: 160px;
-    padding: .6rem .35rem;
+    min-height: 32px;
+    max-height: 96px;
+    padding: .35rem .2rem;
     color: #0f172a;
-    font-size: .95rem;
+    font-size: .84rem;
+    line-height: 1.35;
     outline: none;
   }
 
   .group-room-send {
-    width: 56px;
-    height: 56px;
+    width: 40px;
+    height: 40px;
     border: none;
-    border-radius: 18px;
+    border-radius: 14px;
     background: linear-gradient(135deg, #065f46, #10b981);
     color: #fff;
-    font-size: 1.4rem;
-    box-shadow: 0 16px 30px rgba(6, 95, 70, 0.24);
+    font-size: 1rem;
+    box-shadow: 0 12px 22px rgba(6, 95, 70, 0.2);
   }
 
   .group-message-avatar-fallback {
@@ -990,9 +1176,11 @@
 
                     @foreach(($chatPayload['memberProfiles'] ?? []) as $memberProfile)
                       @php
-                          $memberName = $cleanMemberName($memberProfile['name'] ?? 'Mahasiswa');
                           $memberRole = strtolower((string) ($memberProfile['role'] ?? ''));
                           $isKonselorMember = in_array($memberRole, ['konselor', 'admin'], true);
+                          $memberName = $isKonselorMember
+                              ? $counselorName
+                              : $cleanMemberName($memberProfile['name'] ?? 'Mahasiswa');
                           $avatarUrl = $memberProfile['avatar_url'] ?? null;
                           $initial = strtoupper(mb_substr($memberName, 0, 1));
                       @endphp
@@ -1037,6 +1225,16 @@
           <div class="group-room-thread" id="groupChatThread"></div>
 
           <div class="group-room-compose">
+            <div id="groupChatReplyBar" class="group-room-reply-bar">
+              <div>
+                <span class="group-room-reply-label" id="groupChatReplyLabel">Membalas pesan</span>
+                <div class="group-room-reply-text" id="groupChatReplyText"></div>
+              </div>
+              <button type="button" class="group-room-reply-cancel" id="groupChatReplyCancel" aria-label="Batalkan reply">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+
             <form id="groupChatForm" class="group-room-form">
               <textarea
                 id="groupChatInput"
@@ -1183,6 +1381,11 @@
   const form = document.getElementById('groupChatForm');
   const input = document.getElementById('groupChatInput');
   const sendBtn = document.getElementById('groupChatSendBtn');
+  const replyBar = document.getElementById('groupChatReplyBar');
+  const replyLabel = document.getElementById('groupChatReplyLabel');
+  const replyText = document.getElementById('groupChatReplyText');
+  const replyCancel = document.getElementById('groupChatReplyCancel');
+  let replyTarget = null;
 
   if (!thread || !form || !input || !sendBtn) {
     return;
@@ -1208,6 +1411,16 @@
     }
 
     return `${value} Anonim`;
+  };
+
+  const cleanCounselorName = (name = '') => {
+    const value = String(name || '').trim();
+
+    if (!value || value.toLowerCase() === 'konselor') {
+      return counselorName;
+    }
+
+    return value;
   };
 
   const escapeHtml = (value) => String(value ?? '')
@@ -1287,31 +1500,83 @@
     return String(payload.deleteUrlTemplate || '').replace('__MESSAGE_ID__', String(messageId));
   };
 
+  const limitPreview = (value, max = 68) => {
+    const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+    return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+  };
+
   const closeAllMenus = () => {
     thread.querySelectorAll('.group-message-row.is-menu-open').forEach((element) => {
       element.classList.remove('is-menu-open');
     });
   };
 
-  const buildMessageBubbleMarkup = (message, isMine) => `
-    <div class="group-message-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
-    ${isMine ? `
+  const clearReplyTarget = () => {
+    replyTarget = null;
+    replyBar?.classList.remove('is-active');
+
+    if (replyText) {
+      replyText.textContent = '';
+    }
+  };
+
+  const setReplyTarget = (message) => {
+    if (!message?.id) {
+      return;
+    }
+
+    replyTarget = {
+      id: message.id,
+      sender_name: message.sender_name || 'Pengguna',
+      text: message.text || '',
+    };
+
+    if (replyLabel) {
+      replyLabel.textContent = `Membalas ${replyTarget.sender_name}`;
+    }
+
+    if (replyText) {
+      replyText.textContent = limitPreview(replyTarget.text);
+    }
+
+    replyBar?.classList.add('is-active');
+    input.focus();
+  };
+
+  replyCancel?.addEventListener('click', clearReplyTarget);
+
+  const buildReplyPreviewMarkup = (replyTo) => replyTo
+    ? `<div class="group-message-reply-preview"><span class="group-message-reply-name">${escapeHtml(replyTo.sender_name || 'Pengguna')}</span><span>${escapeHtml(limitPreview(replyTo.text || '')).replace(/\n/g, '<br>')}</span></div>`
+    : '';
+
+  const buildMessageActionsMarkup = (message, isMine) => `
+    ${!message.is_system ? `
       <div class="group-message-actions">
         <button type="button" class="group-message-action-toggle" data-action="toggle-menu" aria-label="Opsi pesan">
-          <i class="bi bi-three-dots"></i>
+          <i class="bi bi-chevron-down"></i>
         </button>
         <div class="group-message-action-menu">
+          <button type="button" class="group-message-action-item" data-action="reply-message" data-message-id="${message.id}">
+            <i class="bi bi-reply-fill"></i>
+            <span>Reply</span>
+          </button>
+          ${isMine ? `
           <button type="button" class="group-message-action-item" data-action="edit-message" data-message-id="${message.id}">
             <i class="bi bi-pencil-square"></i>
-            <span>Edit pesan</span>
+            <span>Edit</span>
           </button>
           <button type="button" class="group-message-action-item delete" data-action="delete-message" data-message-id="${message.id}">
             <i class="bi bi-trash3"></i>
-            <span>Hapus pesan</span>
+            <span>Hapus</span>
           </button>
+          ` : ''}
         </div>
       </div>
     ` : ''}
+  `;
+
+  const buildMessageBubbleMarkup = (message, isMine) => `
+    <div class="group-message-bubble">${buildReplyPreviewMarkup(message.reply_to)}<span class="group-message-text">${escapeHtml(message.text).replace(/\n/g, '<br>')}</span></div>
   `;
 
   const buildInlineEditorMarkup = (text, messageId) => `
@@ -1350,6 +1615,7 @@
     bubbleShell.innerHTML = buildMessageBubbleMarkup({
       id: row.dataset.messageId,
       text: row.dataset.messageText ?? '',
+      reply_to: row.dataset.replyTo ? JSON.parse(row.dataset.replyTo) : null,
     }, isMine);
 
     row.classList.remove('is-editing');
@@ -1403,7 +1669,7 @@
       'Anonim';
 
     const displaySenderName = isCounselorMessage
-      ? counselorName
+      ? cleanCounselorName(rawName)
       : cleanPrivateName(rawName);
 
     const avatarInitial = String(displaySenderName || 'M').charAt(0).toUpperCase();
@@ -1441,6 +1707,8 @@
     row.className = `group-message-row ${isMine ? 'mine' : 'other'}`;
     row.dataset.messageId = message.id;
     row.dataset.messageText = message.text ?? '';
+    row.dataset.senderName = displaySenderName;
+    row.dataset.replyTo = message.reply_to ? JSON.stringify(message.reply_to) : '';
     row.dataset.messageEdited = message.is_edited ? '1' : '0';
 
     row.innerHTML = `
@@ -1451,6 +1719,7 @@
           <span class="group-message-name">${escapeHtml(displaySenderName)}</span>
           <span>${escapeHtml(message.time ?? '')}</span>
           ${message.is_edited ? '<span class="group-message-edited">telah diedit</span>' : ''}
+          ${buildMessageActionsMarkup(message, isMine)}
         </div>
 
         <div class="group-message-bubble-shell">${buildMessageBubbleMarkup(message, isMine)}</div>
@@ -1546,6 +1815,7 @@
 
   thread.addEventListener('click', async (event) => {
     const toggleButton = event.target.closest('[data-action="toggle-menu"]');
+    const replyButton = event.target.closest('[data-action="reply-message"]');
     const editButton = event.target.closest('[data-action="edit-message"]');
     const deleteButton = event.target.closest('[data-action="delete-message"]');
     const saveButton = event.target.closest('[data-action="save-edit"]');
@@ -1563,6 +1833,22 @@
       const willOpen = !row.classList.contains('is-menu-open');
       closeAllMenus();
       row.classList.toggle('is-menu-open', willOpen);
+      return;
+    }
+
+    if (replyButton) {
+      const row = replyButton.closest('.group-message-row');
+      closeAllMenus();
+
+      if (!row) {
+        return;
+      }
+
+      setReplyTarget({
+        id: Number(row.dataset.messageId),
+        sender_name: row.dataset.senderName || (row.classList.contains('mine') ? 'Anda' : 'Pengguna'),
+        text: row.dataset.messageText ?? '',
+      });
       return;
     }
 
@@ -1724,6 +2010,7 @@
 
     isSendingGroupMessage = true;
     sendBtn.disabled = true;
+    const activeReplyTarget = replyTarget;
 
     const tempId = `temp-${Date.now()}`;
 
@@ -1743,6 +2030,7 @@
       sent_at: new Date().toISOString(),
       is_edited: false,
       is_mine: true,
+      reply_to: activeReplyTarget,
     };
 
     const tempRow = renderMessage(tempMessage);
@@ -1764,6 +2052,7 @@
         body: JSON.stringify({
           group_id: payload.roomId,
           pesan,
+          reply_to_id: activeReplyTarget?.id ?? null,
         }),
       });
 
@@ -1796,8 +2085,10 @@
           ...data.message,
           is_mine: true,
         });
+        clearReplyTarget();
         scrollToBottom();
       } else {
+        clearReplyTarget();
         syncMessages(true);
       }
     } catch (error) {

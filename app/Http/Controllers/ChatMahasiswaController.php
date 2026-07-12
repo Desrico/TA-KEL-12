@@ -171,6 +171,7 @@ class ChatMahasiswaController extends Controller
         'sesi_id' => 'nullable|integer',
         'jadwal_id' => 'nullable|integer',
         'pesan' => 'required|string|max:2000',
+        'reply_to_id' => 'nullable|integer',
     ]);
 
     $user = $request->user();
@@ -213,17 +214,21 @@ class ChatMahasiswaController extends Controller
         ], 403);
     }
 
-    $chat = DB::transaction(function () use ($validated, $sesi, $user) {
+    $replyToChat = $this->resolveReplyChatForSession($sesi, $validated['reply_to_id'] ?? null);
+
+    $chat = DB::transaction(function () use ($validated, $sesi, $user, $replyToChat) {
         return Chat::create([
             'sesi_id' => $sesi->id,
             'pengirim_id' => $user->id,
             'pesan' => trim($validated['pesan']),
+            'reply_to_chat_id' => $replyToChat?->id,
         ]);
     });
 
     $chat->loadMissing([
         'pengirim.profil',
         'pengirim.mahasiswa',
+        'replyTo.pengirim',
         'sesi.jadwalKonseling',
     ]);
 
@@ -308,6 +313,19 @@ class ChatMahasiswaController extends Controller
             'success' => true,
             'deleted_id' => $chat->id,
         ]);
+    }
+
+    private function resolveReplyChatForSession(SesiKonseling $sesi, mixed $replyToId): ?Chat
+    {
+        $replyToId = (int) $replyToId;
+
+        if ($replyToId <= 0) {
+            return null;
+        }
+
+        return Chat::query()
+            ->where('sesi_id', $sesi->id)
+            ->find($replyToId);
     }
 
     private function resolveActiveSession(?User $user, ?int $jadwalId = null): ?SesiKonseling
@@ -522,10 +540,13 @@ class ChatMahasiswaController extends Controller
         $chat->loadMissing([
             'pengirim.profil',
             'pengirim.mahasiswa',
+            'replyTo.pengirim',
         ]);
 
         $sender = $chat->pengirim;
         $profil = optional($sender)->profil;
+        $replyTo = $chat->replyTo;
+        $replySender = $replyTo?->pengirim;
 
         return [
             'id' => $chat->id,
@@ -535,6 +556,14 @@ class ChatMahasiswaController extends Controller
             'sender_role' => $sender?->role ?? 'pengguna',
             'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
             'text' => $chat->pesan,
+            'reply_to' => $replyTo ? [
+                'id' => $replyTo->id,
+                'sender_id' => $replyTo->pengirim_id,
+                'sender_name' => (int) $replyTo->pengirim_id === (int) $viewer->id
+                    ? 'Anda'
+                    : ($replySender?->getNamaDisplay() ?? 'Pengguna'),
+                'text' => $replyTo->pesan,
+            ] : null,
             'time' => $this->toDisplayDateTime($chat->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
             'sent_at' => $this->toDisplayDateTime($chat->created_at)?->toIso8601String() ?? $this->nowInDisplayTimezone()->toIso8601String(),
             'updated_at' => $this->toDisplayDateTime($chat->updated_at)?->toIso8601String(),
@@ -573,6 +602,7 @@ class ChatMahasiswaController extends Controller
             ->with([
                 'pengirim.profil',
                 'pengirim.mahasiswa',
+                'replyTo.pengirim',
             ])
             ->whereIn('sesi_id', $sessionIds)
             ->orderBy('created_at')
