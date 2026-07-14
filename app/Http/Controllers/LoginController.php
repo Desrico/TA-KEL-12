@@ -374,19 +374,14 @@ class LoginController extends Controller
                 'pin.confirmed' => 'Konfirmasi PIN tidak sama.',
             ]);
 
-            $user->forceFill([
-                'security_pin_hash' => Hash::make($validated['pin']),
-                'security_pin_set_at' => now(),
-                'security_pin_failed_attempts' => 0,
-                'security_pin_locked_until' => null,
-            ])->save();
+            $user->setSecurityPin($validated['pin']);
 
             $request->session()->put('security_pin_verified_at', now()->toIso8601String());
 
             return redirect()->route('dashboard')->with('success', 'PIN keamanan berhasil dibuat.');
         }
 
-        if ($user->security_pin_locked_until && $user->security_pin_locked_until->isFuture()) {
+        if ($user->securityPinIsLocked()) {
             return back()->withErrors([
                 'pin' => 'Terlalu banyak percobaan salah. Coba lagi pada ' . $user->security_pin_locked_until->format('H:i') . '.',
             ]);
@@ -399,26 +394,18 @@ class LoginController extends Controller
             'pin.digits' => 'PIN keamanan harus terdiri dari tepat 6 digit angka.',
         ]);
 
-        if (! Hash::check($validated['pin'], $user->security_pin_hash)) {
-            $failedAttempts = min(((int) $user->security_pin_failed_attempts) + 1, 5);
-            $lockedUntil = $failedAttempts >= 5 ? now()->addMinutes(10) : null;
-
-            $user->forceFill([
-                'security_pin_failed_attempts' => $failedAttempts,
-                'security_pin_locked_until' => $lockedUntil,
-            ])->save();
+        if (! $user->securityPinMatches($validated['pin'])) {
+            $pinAttempt = $user->recordFailedSecurityPinAttempt();
+            $lockedUntil = $pinAttempt['locked_until'];
 
             $message = $lockedUntil
                 ? 'PIN salah 5 kali. Akun dikunci sementara selama 10 menit.'
-                : 'PIN keamanan salah. Sisa percobaan: ' . (5 - $failedAttempts) . '.';
+                : 'PIN keamanan salah. Sisa percobaan: ' . $pinAttempt['remaining_attempts'] . '.';
 
             return back()->withErrors(['pin' => $message]);
         }
 
-        $user->forceFill([
-            'security_pin_failed_attempts' => 0,
-            'security_pin_locked_until' => null,
-        ])->save();
+        $user->clearSecurityPinFailures();
 
         $request->session()->put('security_pin_verified_at', now()->toIso8601String());
 
@@ -458,12 +445,7 @@ class LoginController extends Controller
             ])->withInput();
         }
 
-        $user->forceFill([
-            'security_pin_hash' => Hash::make($validated['pin']),
-            'security_pin_set_at' => now(),
-            'security_pin_failed_attempts' => 0,
-            'security_pin_locked_until' => null,
-        ])->save();
+        $user->setSecurityPin($validated['pin']);
 
         $request->session()->put('security_pin_verified_at', now()->toIso8601String());
 
@@ -636,7 +618,7 @@ class LoginController extends Controller
 
         // Kredensial tetap sudah diverifikasi oleh do-auth CIS. Fallback ini
         // hanya berlaku saat endpoint list-pejabat gagal secara teknis, bukan
-        // ketika CIS merespons sukses dengan pegawai/jabatan yang tidak cocok.
+        // ketika CIS merespons sukses dengan pegawai/jabatan yang tidak cocok. 
         if (! $receivedCisResponse && $this->hasConfiguredIdentifierMatch($loginIdentifiers)) {
             Log::warning('Validasi admin memakai fallback identifier karena endpoint pejabat CIS tidak tersedia.');
 
@@ -700,7 +682,7 @@ class LoginController extends Controller
         $rowPegawaiId = trim((string) ($row['pegawai_id'] ?? $row['id_pegawai'] ?? ''));
         $rowJabatan = $this->normalizeIdentifier((string) ($row['jabatan'] ?? ''));
         $normalizedJabatans = array_map(
-            fn (string $jabatan) => $this->normalizeIdentifier($jabatan),
+            fn(string $jabatan) => $this->normalizeIdentifier($jabatan),
             $jabatans
         );
 
@@ -726,10 +708,10 @@ class LoginController extends Controller
         }
 
         if (! empty($pegawaiIds)) {
-            return array_map(fn (string $pegawaiId) => ['pegawai_id' => $pegawaiId], $pegawaiIds);
+            return array_map(fn(string $pegawaiId) => ['pegawai_id' => $pegawaiId], $pegawaiIds);
         }
 
-        return array_map(fn (string $jabatan) => ['jabatan' => $jabatan], $jabatans);
+        return array_map(fn(string $jabatan) => ['jabatan' => $jabatan], $jabatans);
     }
 
     private function collectLoginIdentifiers(string $username, array $payload): array
@@ -866,8 +848,10 @@ class LoginController extends Controller
                 return true;
             }
 
-            if (str_contains($normalizedName, $normalizedConfiguredName)
-                || str_contains($normalizedConfiguredName, $normalizedName)) {
+            if (
+                str_contains($normalizedName, $normalizedConfiguredName)
+                || str_contains($normalizedConfiguredName, $normalizedName)
+            ) {
                 return true;
             }
         }
@@ -888,7 +872,7 @@ class LoginController extends Controller
         // dipakai sebagai delimiter nama. Jika perlu beberapa nama, pakai titik
         // koma agar tidak bentrok dengan format gelar.
         return collect(explode(';', $value))
-            ->map(fn (string $item) => trim($item))
+            ->map(fn(string $item) => trim($item))
             ->filter()
             ->unique()
             ->values()
@@ -925,7 +909,7 @@ class LoginController extends Controller
 
     private function looksLikePejabatRow(array $row): bool
     {
-        $keys = array_map(fn ($key) => strtolower((string) $key), array_keys($row));
+        $keys = array_map(fn($key) => strtolower((string) $key), array_keys($row));
 
         return in_array('pegawai_id', $keys, true)
             || in_array('id_pegawai', $keys, true)
@@ -969,7 +953,7 @@ class LoginController extends Controller
     private function normalizeConfigList(array $values): array
     {
         $normalized = array_map(
-            fn (string $value) => $this->normalizeIdentifier($value),
+            fn(string $value) => $this->normalizeIdentifier($value),
             $values
         );
 
@@ -987,7 +971,7 @@ class LoginController extends Controller
         }
 
         return collect(explode(',', $value))
-            ->map(fn (string $item) => $normalize ? $this->normalizeIdentifier($item) : trim($item))
+            ->map(fn(string $item) => $normalize ? $this->normalizeIdentifier($item) : trim($item))
             ->filter()
             ->unique()
             ->values()

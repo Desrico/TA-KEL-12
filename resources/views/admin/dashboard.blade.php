@@ -1203,8 +1203,7 @@
     @endphp
 
     <div class="container-fluid" style="padding: 24px; width: 100%; max-width: 100%; box-sizing: border-box;">
-        <!-- Alert Banner -->
-         <div class="dashboard-heading-row">
+        <div class="dashboard-heading-row">
 
             <div class="dashboard-tabs">
                 <button type="button"

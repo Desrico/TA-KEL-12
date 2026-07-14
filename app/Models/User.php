@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Hash;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class User extends Authenticatable
@@ -21,10 +22,6 @@ class User extends Authenticatable
         'password',
         'role',
         'is_anonim',
-        'security_pin_hash',
-        'security_pin_set_at',
-        'security_pin_failed_attempts',
-        'security_pin_locked_until',
     ];
 
     protected $hidden = [
@@ -47,6 +44,52 @@ class User extends Authenticatable
     public function hasSecurityPin(): bool
     {
         return filled($this->security_pin_hash);
+    }
+
+    public function setSecurityPin(string $pin): void
+    {
+        // Field PIN dikelola internal agar tidak terbuka lewat mass assignment.
+        $this->forceFill([
+            'security_pin_hash' => Hash::make($pin),
+            'security_pin_set_at' => now(),
+            'security_pin_failed_attempts' => 0,
+            'security_pin_locked_until' => null,
+        ])->save();
+    }
+
+    public function securityPinIsLocked(): bool
+    {
+        return $this->security_pin_locked_until && $this->security_pin_locked_until->isFuture();
+    }
+
+    public function securityPinMatches(string $pin): bool
+    {
+        return $this->hasSecurityPin() && Hash::check($pin, $this->security_pin_hash);
+    }
+
+    public function recordFailedSecurityPinAttempt(int $maxAttempts = 5, int $lockMinutes = 10): array
+    {
+        $failedAttempts = min(((int) $this->security_pin_failed_attempts) + 1, $maxAttempts);
+        $lockedUntil = $failedAttempts >= $maxAttempts ? now()->addMinutes($lockMinutes) : null;
+
+        $this->forceFill([
+            'security_pin_failed_attempts' => $failedAttempts,
+            'security_pin_locked_until' => $lockedUntil,
+        ])->save();
+
+        return [
+            'failed_attempts' => $failedAttempts,
+            'locked_until' => $lockedUntil,
+            'remaining_attempts' => max(0, $maxAttempts - $failedAttempts),
+        ];
+    }
+
+    public function clearSecurityPinFailures(): void
+    {
+        $this->forceFill([
+            'security_pin_failed_attempts' => 0,
+            'security_pin_locked_until' => null,
+        ])->save();
     }
 
     public function mahasiswa(): HasOne

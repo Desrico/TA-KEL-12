@@ -309,7 +309,7 @@
 }
 
     .edu-content-media{
-        min-height:165px;
+        min-height:0;
         background: #edf7f1;
         display:flex;
         align-items:center;
@@ -319,7 +319,8 @@
         position:relative;
         width:100%;
         overflow: hidden;
-        height: 220px;
+        height:auto;
+        aspect-ratio:16 / 9;
     }
 
     .edu-content-type{
@@ -340,6 +341,9 @@
     }
 
     .edu-content-body {
+        display:flex;
+        flex:1;
+        flex-direction:column;
         padding: 20px 20px 22px;
         background: #ffffff !important;
     }
@@ -391,6 +395,7 @@
     flex-wrap:wrap;
     gap:.65rem;
     align-items:center;
+    margin-top:auto;
 }
 
 .edu-action-secondary{
@@ -415,6 +420,116 @@
     background:#dff3e8;
     text-decoration:none;
 }
+
+    #contentGrid{
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:1.5rem;
+        position:relative;
+        overflow:visible;
+        width:100%;
+        margin:0;
+        padding:0;
+        border:0;
+        border-radius:0;
+        background:transparent !important;
+        box-shadow:none;
+    }
+
+    #contentGrid > [data-topic-item]{
+        width:auto;
+        max-width:none;
+        min-width:0;
+        margin:0;
+        padding:0;
+        border:0;
+        background:transparent !important;
+        box-shadow:none;
+        opacity:0;
+        visibility:hidden;
+        pointer-events:none;
+        transform:translateX(var(--edu-slide-shift, 64px));
+        transition:opacity .34s ease,
+                   transform .4s cubic-bezier(.22,.61,.36,1),
+                   visibility 0s linear .4s;
+    }
+
+    #contentGrid > .edu-content-item-active{
+        z-index:2;
+        opacity:1;
+        visibility:visible;
+        pointer-events:auto;
+        transform:translateX(0);
+        transition-delay:0s;
+    }
+
+    #contentGrid > .edu-content-item-entering,
+    #contentGrid > .edu-content-item-leaving{
+        z-index:1;
+        visibility:visible;
+        transition-delay:0s;
+    }
+
+    #contentGrid > [data-content-slot="1"]{grid-column:1;grid-row:1;}
+    #contentGrid > [data-content-slot="2"]{grid-column:2;grid-row:1;}
+    #contentGrid > [data-content-slot="3"]{grid-column:3;grid-row:1;}
+    #contentGrid > [data-content-slot="4"]{grid-column:1;grid-row:2;}
+    #contentGrid > [data-content-slot="5"]{grid-column:2;grid-row:2;}
+    #contentGrid > [data-content-slot="6"]{grid-column:3;grid-row:2;}
+
+    .edu-content-pagination{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:.85rem;
+        margin:2.75rem 0 3.25rem;
+    }
+
+    .edu-content-pagination[hidden]{
+        display:none !important;
+    }
+
+    .edu-pagination-btn{
+        width:44px;
+        height:44px;
+        border-radius:999px;
+        border:1px solid rgba(10,82,58,.14);
+        background:#fff;
+        color:#0a523a;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:800;
+        cursor:pointer;
+        transition:.22s ease;
+        box-shadow:0 7px 16px rgba(13,27,42,.08);
+    }
+
+    .edu-pagination-btn:hover:not(:disabled){
+        background:#0a523a;
+        color:#fff;
+        border-color:#0a523a;
+        transform:translateY(-2px);
+    }
+
+    .edu-pagination-btn:focus-visible{
+        outline:3px solid rgba(10,82,58,.2);
+        outline-offset:3px;
+    }
+
+    .edu-pagination-btn:disabled{
+        opacity:.42;
+        cursor:not-allowed;
+        box-shadow:none;
+    }
+
+    .edu-pagination-status{
+        min-width:52px;
+        color:#52616b;
+        font-size:.9rem;
+        font-weight:800;
+        text-align:center;
+    }
 
     .edu-content-selected{
         border-color:rgba(10,82,58,.55) !important;
@@ -806,7 +921,7 @@
     .edu-content-img {
         width: 100%;
         height: 100%;
-        min-height: 190px;
+        min-height: 0;
         object-fit: cover;
         display: block;
     }
@@ -827,6 +942,17 @@
 
 
     @media(max-width:991.98px){
+        #contentGrid{
+            grid-template-columns:repeat(2,minmax(0,1fr));
+        }
+
+        #contentGrid > [data-content-slot="1"]{grid-column:1;grid-row:1;}
+        #contentGrid > [data-content-slot="2"]{grid-column:2;grid-row:1;}
+        #contentGrid > [data-content-slot="3"]{grid-column:1;grid-row:2;}
+        #contentGrid > [data-content-slot="4"]{grid-column:2;grid-row:2;}
+        #contentGrid > [data-content-slot="5"]{grid-column:1;grid-row:3;}
+        #contentGrid > [data-content-slot="6"]{grid-column:2;grid-row:3;}
+
         .edu-hero{
             padding:4rem 0 3rem;
         }
@@ -845,6 +971,17 @@
     }
 
     @media(max-width:767.98px){
+        #contentGrid{
+            grid-template-columns:minmax(0,1fr);
+        }
+
+        #contentGrid > [data-content-slot="1"]{grid-column:1;grid-row:1;}
+        #contentGrid > [data-content-slot="2"]{grid-column:1;grid-row:2;}
+        #contentGrid > [data-content-slot="3"]{grid-column:1;grid-row:3;}
+        #contentGrid > [data-content-slot="4"]{grid-column:1;grid-row:4;}
+        #contentGrid > [data-content-slot="5"]{grid-column:1;grid-row:5;}
+        #contentGrid > [data-content-slot="6"]{grid-column:1;grid-row:6;}
+
         .edu-section{
             padding:3.5rem 0;
         }
@@ -893,6 +1030,10 @@
 
         .edu-inline-close{
             align-self:flex-end;
+        }
+
+        .edu-content-pagination{
+            margin:2.25rem 0 2.75rem;
         }
     }
 </style>
@@ -1022,9 +1163,13 @@
                 </p>
             </div>
 
-            <div class="row g-4" id="contentGrid">
+            <div class="edu-content-carousel" id="contentGrid">
              @foreach($contents as $content)
-    <div class="col-md-6 col-lg-4" data-topic-item="{{ $content['category'] }}">
+    <div class="edu-content-item {{ $loop->index < 6 ? 'edu-content-item-active' : '' }}"
+         data-topic-item="{{ $content['category'] }}"
+         data-content-page="{{ intdiv($loop->index, 6) + 1 }}"
+         data-content-slot="{{ ($loop->index % 6) + 1 }}"
+         aria-hidden="{{ $loop->index < 6 ? 'false' : 'true' }}">
 
         <article
             class="edu-content-card edu-content-button"
@@ -1082,6 +1227,16 @@
 @endforeach
 
             </div>
+
+            <nav class="edu-content-pagination" id="contentPagination" aria-label="Pagination konten edukasi" hidden>
+                <button type="button" class="edu-pagination-btn" id="contentPrevPage" aria-label="Halaman sebelumnya">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </button>
+                <span class="edu-pagination-status" id="contentPaginationStatus" aria-live="polite"></span>
+                <button type="button" class="edu-pagination-btn" id="contentNextPage" aria-label="Halaman berikutnya">
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </button>
+            </nav>
 
             {{-- POPUP KONTEN --}}
             <div class="edu-content-modal" id="contentModal" aria-hidden="true">
@@ -1174,6 +1329,14 @@
         const contentTitle = document.getElementById('contentSectionTitle');
         const contentDesc = document.getElementById('contentSectionDesc');
         const contentSection = document.getElementById('konten-edukasi');
+        const contentGrid = document.getElementById('contentGrid');
+        const contentPagination = document.getElementById('contentPagination');
+        const contentPaginationStatus = document.getElementById('contentPaginationStatus');
+        const contentPrevPage = document.getElementById('contentPrevPage');
+        const contentNextPage = document.getElementById('contentNextPage');
+        const contentItems = Array.from(topicItems);
+        const contentPerPage = 6;
+        let currentContentPage = 1;
 
         const contentModal = document.getElementById('contentModal');
         const contentModalBody = document.getElementById('contentModalBody');
@@ -1190,6 +1353,128 @@
             document.querySelectorAll('.edu-content-card').forEach(function (card) {
                 card.classList.remove('edu-content-selected');
             });
+        }
+
+        function getTotalContentPages() {
+            return Math.max(1, Math.ceil(contentItems.length / contentPerPage));
+        }
+
+        function renderContentPagination() {
+            if (!contentPagination) {
+                return;
+            }
+
+            const totalPages = getTotalContentPages();
+
+            if (totalPages <= 1) {
+                contentPagination.hidden = true;
+                return;
+            }
+
+            contentPagination.hidden = false;
+            updateContentPaginationState();
+        }
+
+        function updateContentPaginationState() {
+            const totalPages = getTotalContentPages();
+
+            if (contentPaginationStatus) {
+                contentPaginationStatus.textContent = currentContentPage + ' / ' + totalPages;
+                contentPaginationStatus.setAttribute(
+                    'aria-label',
+                    'Halaman ' + currentContentPage + ' dari ' + totalPages
+                );
+            }
+
+            if (contentPrevPage) {
+                contentPrevPage.disabled = currentContentPage <= 1;
+            }
+
+            if (contentNextPage) {
+                contentNextPage.disabled = currentContentPage >= totalPages;
+            }
+
+        }
+
+        function applyContentPage() {
+            contentItems.forEach(function (item) {
+                const isVisible = Number(item.getAttribute('data-content-page')) === currentContentPage;
+                const card = item.querySelector('[data-content-card]');
+
+                item.classList.toggle('edu-content-item-active', isVisible);
+                item.classList.remove('edu-content-item-entering', 'edu-content-item-leaving');
+                item.style.removeProperty('--edu-slide-shift');
+                item.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+
+                if (card) {
+                    card.tabIndex = isVisible ? 0 : -1;
+                }
+            });
+
+            updateContentPaginationState();
+        }
+
+        function setContentPage(page) {
+            const totalPages = getTotalContentPages();
+            const nextPage = Math.min(Math.max(page, 1), totalPages);
+
+            if (nextPage === currentContentPage) {
+                return;
+            }
+
+            const previousPage = currentContentPage;
+            const direction = nextPage > previousPage ? 1 : -1;
+            const previousItems = contentItems.filter(function (item) {
+                return Number(item.getAttribute('data-content-page')) === previousPage;
+            });
+            const nextItems = contentItems.filter(function (item) {
+                return Number(item.getAttribute('data-content-page')) === nextPage;
+            });
+
+            currentContentPage = nextPage;
+
+            previousItems.forEach(function (item) {
+                const card = item.querySelector('[data-content-card]');
+                item.style.setProperty('--edu-slide-shift', (-64 * direction) + 'px');
+                item.classList.remove('edu-content-item-active');
+                item.classList.add('edu-content-item-leaving');
+                item.setAttribute('aria-hidden', 'true');
+                if (card) {
+                    card.tabIndex = -1;
+                }
+            });
+
+            nextItems.forEach(function (item) {
+                const card = item.querySelector('[data-content-card]');
+                item.style.setProperty('--edu-slide-shift', (64 * direction) + 'px');
+                item.classList.remove('edu-content-item-leaving');
+                item.classList.add('edu-content-item-entering');
+                item.setAttribute('aria-hidden', 'false');
+                if (card) {
+                    card.tabIndex = 0;
+                }
+            });
+
+            if (contentGrid) {
+                void contentGrid.offsetWidth;
+            }
+
+            requestAnimationFrame(function () {
+                nextItems.forEach(function (item) {
+                    item.classList.add('edu-content-item-active');
+                    item.classList.remove('edu-content-item-entering');
+                    item.style.removeProperty('--edu-slide-shift');
+                });
+            });
+
+            updateContentPaginationState();
+
+            window.setTimeout(function () {
+                previousItems.forEach(function (item) {
+                    item.classList.remove('edu-content-item-leaving');
+                    item.style.removeProperty('--edu-slide-shift');
+                });
+            }, 420);
         }
 
         function resetTopicHighlight() {
@@ -1211,6 +1496,14 @@
             if (contentDesc) {
                 contentDesc.textContent = 'Kumpulan konten singkat yang bisa membantu mahasiswa memahami kondisi mental dan langkah sederhana untuk menjaga kesejahteraan diri.';
             }
+        }
+
+        function getFirstPageForTopic(topic) {
+            const firstIndex = contentItems.findIndex(function (item) {
+                return item.getAttribute('data-topic-item') === topic;
+            });
+
+            return firstIndex >= 0 ? Math.floor(firstIndex / contentPerPage) + 1 : currentContentPage;
         }
 
         function closeModal() {
@@ -1421,6 +1714,8 @@
                 contentDesc.textContent = 'Artikel atau video terkait topik "' + topic + '" diberi highlight. Semua konten tetap ditampilkan agar mahasiswa tetap bisa mengeksplorasi topik lain.';
             }
 
+            setContentPage(getFirstPageForTopic(topic));
+
             if (contentSection) {
                 contentSection.scrollIntoView({
                     behavior: 'smooth',
@@ -1435,6 +1730,21 @@
                 highlightTopic(selectedTopic);
             });
         });
+
+        if (contentPrevPage) {
+            contentPrevPage.addEventListener('click', function () {
+                setContentPage(currentContentPage - 1);
+            });
+        }
+
+        if (contentNextPage) {
+            contentNextPage.addEventListener('click', function () {
+                setContentPage(currentContentPage + 1);
+            });
+        }
+
+        applyContentPage();
+        renderContentPagination();
 
         document.querySelectorAll('[data-content-card]').forEach(function (card) {
             card.addEventListener('click', function (event) {

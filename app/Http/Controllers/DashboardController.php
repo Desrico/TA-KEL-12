@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
@@ -118,7 +119,7 @@ class DashboardController extends Controller
                         ->where('topik', '!=', '');
                 })
                 ->get()
-                ->map(fn ($jadwal) => trim((string) ($jadwal->topik ?? '')))
+                ->map(fn($jadwal) => trim((string) ($jadwal->topik ?? '')))
                 ->filter()
                 ->countBy()
                 ->sortDesc()
@@ -219,13 +220,53 @@ class DashboardController extends Controller
                 'angkatanList' => $angkatanList,
                 'feedbacks'    => $feedbacks,
             ])->render();
-            
+
             return response($view);
         } catch (\Exception $e) {
-            dd("Error found in DashboardController: " . $e->getMessage() . " | Line: " . $e->getLine() . " | File: " . $e->getFile());
+            Log::warning('Dashboard data unavailable.', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response(view('admin.dashboard', $this->dashboardFallbackData())->render());
         }
     }
-    
+
+    private function dashboardFallbackData(): array
+    {
+        $user = Auth::user();
+        $konselor = $user ? Konselor::where('user_id', $user->id)->first() : null;
+
+        return [
+            'students' => collect(),
+            'lastScan' => null,
+            'konselor' => $konselor,
+            'totalPenjadwalan' => 0,
+            'menunggu' => 0,
+            'disetujui' => 0,
+            'ditolak' => 0,
+            'totalSesiSelesai' => 0,
+            'totalDiterima' => 0,
+            'totalDitolak' => 0,
+            'mahasiswaAktif' => 0,
+            'approvalRate' => 0,
+            'monthlyLabels' => [],
+            'monthlyCounts' => [],
+            'topikStats' => collect(),
+            'topikLabels' => collect(),
+            'topikCounts' => collect(),
+            'totalTopik' => 0,
+            'todayScheduled' => 0,
+            'todayInProgress' => 0,
+            'todayCompleted' => 0,
+            'todayWaiting' => 0,
+            'todayJadwals' => collect(),
+            'angkatanList' => collect(),
+            'feedbacks' => collect(),
+        ];
+    }
+
     public function publishFeedback(\App\Models\Feedback $feedback)
     {
         $feedback->is_published = 1;
@@ -273,7 +314,14 @@ class DashboardController extends Controller
         $moodTrend = $grouped->map(function ($entries) {
             $scores = $entries->map(function ($entry) {
                 return match ((int)$entry->mood_id) {
-                    7 => 1, 6 => 2, 5 => 3, 4 => 4, 3 => 5, 2 => 6, 1 => 7, default => 5,
+                    7 => 1,
+                    6 => 2,
+                    5 => 3,
+                    4 => 4,
+                    3 => 5,
+                    2 => 6,
+                    1 => 7,
+                    default => 5,
                 };
             });
             return round($scores->average(), 2);
@@ -358,7 +406,7 @@ class DashboardController extends Controller
         }
 
         $logs = collect();
-        
+
         foreach ($student->journalTexts as $journal) {
             $date = $journal->created_at->format('Y-m-d');
             if (!$logs->has($date)) {
@@ -421,7 +469,8 @@ class DashboardController extends Controller
         return response()->json(['success' => true]);
     }
 
-    private function getFeelingMeta($name) {
+    private function getFeelingMeta($name)
+    {
         $map = [
             'Bahagia' => ['icon' => '😊', 'color' => 'rgba(52,211,153,0.15)', 'desc' => 'Kondisi emosional yang sangat positif.'],
             'Senang' => ['icon' => '😁', 'color' => 'rgba(52,211,153,0.15)', 'desc' => 'Menunjukkan kepuasan dan keceriaan.'],
@@ -545,8 +594,8 @@ class DashboardController extends Controller
 
         // OPTIMASI PERFORMA MongoDB: Hanya memanggil kolom _id dari relasi untuk menghemat RAM
         $students = Student::with(['journalTexts' => function ($q) {
-                $q->select('_id', 'nim');
-            }])
+            $q->select('_id', 'nim');
+        }])
             ->whereNotNull('mental_level')
             ->orderBy('mental_level', 'desc')
             ->orderBy('mental_confidence', 'desc')
@@ -592,7 +641,7 @@ class DashboardController extends Controller
         ];
 
         $student = Student::where('nim', $nim)->firstOrFail();
-        
+
         $level = $request->mental_level;
         $student->update([
             'mental_level'      => $level,
@@ -643,7 +692,7 @@ class DashboardController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->take(14)
                 ->get()
-                ->map(function($checkin) {
+                ->map(function ($checkin) {
                     return [
                         'mood'    => $checkin->mood->mood_name    ?? 'Biasa',
                         'feeling' => $checkin->feeling->feeling_name ?? 'Kalem'
@@ -655,7 +704,7 @@ class DashboardController extends Controller
 
             if ($student->mental_updated_manual_at) {
                 $manualUpdateDate = \Carbon\Carbon::parse($student->mental_updated_manual_at);
-                $journals = $journals->filter(function($j) use ($manualUpdateDate) {
+                $journals = $journals->filter(function ($j) use ($manualUpdateDate) {
                     return \Carbon\Carbon::parse($j->created_at)->gt($manualUpdateDate);
                 });
             }
@@ -806,20 +855,27 @@ class DashboardController extends Controller
         // 4. Tren Mood Bulanan Mahasiswa Prioritas (Level 3)
         $nims = $students->pluck('nim')->toArray();
         $fourMonthsAgo = now()->subMonths(4)->startOfMonth();
-        
+
         $checkins = DailyCheckin::whereIn('nim', $nims)
             ->where('created_at', '>=', $fourMonthsAgo)
             ->get();
 
         $monthlyMoodTrend = $checkins->groupBy(function ($checkin) {
-            $date = $checkin->created_at instanceof \Carbon\Carbon 
-                ? $checkin->created_at 
+            $date = $checkin->created_at instanceof \Carbon\Carbon
+                ? $checkin->created_at
                 : \Carbon\Carbon::parse($checkin->created_at);
             return $date->format('Y-m');
         })->map(function ($group) {
             $avg = $group->map(function ($entry) {
                 return match ((int)$entry->mood_id) {
-                    7 => 1, 6 => 2, 5 => 3, 4 => 4, 3 => 5, 2 => 6, 1 => 7, default => 4
+                    7 => 1,
+                    6 => 2,
+                    5 => 3,
+                    4 => 4,
+                    3 => 5,
+                    2 => 6,
+                    1 => 7,
+                    default => 4
                 };
             })->average();
             return [
@@ -882,7 +938,7 @@ class DashboardController extends Controller
             })
             ->when($search, function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nim', 'like', "%{$search}%");
+                    ->orWhere('nim', 'like', "%{$search}%");
             })
             ->orderBy('mental_level', 'desc')
             ->orderBy('name')
@@ -911,7 +967,7 @@ class DashboardController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->take(14)
                 ->get()
-                ->map(function($checkin) {
+                ->map(function ($checkin) {
                     return [
                         'mood'    => $checkin->mood?->mood_name    ?? 'Biasa',
                         'feeling' => $checkin->feeling?->feeling_name ?? 'Biasa'
@@ -923,7 +979,7 @@ class DashboardController extends Controller
 
             if ($student->mental_updated_manual_at) {
                 $manualUpdateDate = \Carbon\Carbon::parse($student->mental_updated_manual_at);
-                $journals = $journals->filter(function($j) use ($manualUpdateDate) {
+                $journals = $journals->filter(function ($j) use ($manualUpdateDate) {
                     return \Carbon\Carbon::parse($j->created_at)->gt($manualUpdateDate);
                 });
             }
@@ -999,7 +1055,14 @@ class DashboardController extends Controller
         $moodTrendData = $grouped->map(function ($entries) {
             $scores = $entries->map(function ($entry) {
                 return match ((int)$entry->mood_id) {
-                    7 => 1, 6 => 2, 5 => 3, 4 => 4, 3 => 5, 2 => 6, 1 => 7, default => 5,
+                    7 => 1,
+                    6 => 2,
+                    5 => 3,
+                    4 => 4,
+                    3 => 5,
+                    2 => 6,
+                    1 => 7,
+                    default => 5,
                 };
             });
             return round($scores->average(), 2);
@@ -1109,5 +1172,4 @@ class DashboardController extends Controller
             'message' => 'Notifikasi berhasil dikirim ke mahasiswa.',
         ]);
     }
-
 }
