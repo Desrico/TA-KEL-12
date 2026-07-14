@@ -456,10 +456,13 @@ public function dashboard()
             default => ucwords(str_replace('_', ' ', $item->status ?? 'Menunggu')),
         };
 
+        $waktu = $item->waktu ? substr((string) $item->waktu, 0, 5) : null;
+
         return [
             'id' => $item->id,
-            'title' => $namaTampil,
-            'start' => $item->tanggal,
+            'title' => trim(($waktu ? $waktu . ' ' : '') . $namaTampil),
+            'start' => $item->tanggal?->format('Y-m-d'),
+            'allDay' => true,
             'backgroundColor' => $warna,
             'borderColor' => $warna,
             'textColor' => '#1F2937',
@@ -467,7 +470,7 @@ public function dashboard()
             'extendedProps' => [
                 'id' => $item->id,
                 'nama' => $namaTampil,
-                'waktu' => $item->waktu ?? '-',
+                'waktu' => $waktu ?? '-',
                 'jenis' => $item->jenis ?? '-',
                 'topik' => $item->topik ?? '-',
                 'status' => $statusLabel,

@@ -1268,21 +1268,26 @@
                             </div>
 
                             <div>
-                                <h3>Kapan Harus Konseling?</h3>
+                                <h3>Kapan Sebaiknya Konseling?</h3>
                                 <p>
-                                    Kamu bisa mempertimbangkan konseling ketika kondisi yang dirasakan mulai
-                                    mengganggu aktivitas, relasi, tidur, fokus belajar, atau membuatmu merasa
-                                    kesulitan menghadapinya sendiri.
+                                    Konseling dapat membantu ketika pikiran atau perasaanmu mulai mengganggu
+                                    aktivitas, hubungan, tidur, atau proses belajar.
                                 </p>
                             </div>
                         </div>
 
                         <ul class="edu-guide-list">
-                            <li>Gejala terasa berat atau berlangsung cukup lama.</li>
-                            <li>Sulit tidur, sulit fokus, atau kehilangan minat beraktivitas.</li>
-                            <li>Sering merasa kewalahan, sedih, cemas, atau mudah panik.</li>
-                            <li>Butuh ruang aman untuk bercerita tanpa takut dihakimi.</li>
+                            <li>Merasa sedih, cemas, atau kewalahan dalam waktu lama.</li>
+                            <li>Sulit tidur, fokus, atau menjalankan aktivitas sehari-hari.</li>
+                            <li>Menghadapi masalah yang terasa sulit diselesaikan sendiri.</li>
+                            <li>Membutuhkan ruang aman untuk bercerita tanpa dihakimi.</li>
                         </ul>
+
+                        <div class="edu-emergency-action">
+                            <a href="{{ route('konseling') }}" class="edu-btn-primary">
+                                Buat Jadwal Konseling
+                            </a>
+                        </div>
                     </article>
                 </div>
 
@@ -1294,23 +1299,30 @@
                             </div>
 
                             <div>
-                                <h3>Bantuan Darurat / Butuh Bantuan Sekarang</h3>
+                                <h3>Butuh Bantuan Sekarang?</h3>
                                 <p>
-                                    Jika kamu merasa berada dalam kondisi darurat, segera hubungi orang terdekat,
-                                    pihak kampus, atau layanan bantuan profesional yang tersedia di daerahmu.
+                                    Jika kamu merasa tidak aman atau berisiko menyakiti diri sendiri maupun orang
+                                    lain, jangan menghadapinya sendirian.
                                 </p>
                             </div>
                         </div>
 
                         <ul class="edu-guide-list">
-                            <li>Hubungi konselor kampus jika membutuhkan pendampingan.</li>
-                            <li>Hubungi teman, keluarga, atau dosen wali yang kamu percaya.</li>
-                            <li>Jika membahayakan diri sendiri atau orang lain, segera cari bantuan darurat terdekat.</li>
+                            <li>Hubungi orang terdekat yang kamu percaya.</li>
+                            <li>Hubungi konselor atau pihak kampus.</li>
+                            <li>Pergi ke tempat yang aman dan jangan menyendiri.</li>
+                            <li>Hubungi layanan darurat terdekat apabila diperlukan.</li>
                         </ul>
 
                         <div class="edu-emergency-action">
-                            <a href="{{ route('konseling') }}" class="edu-btn-primary">
-                                Buat Jadwal Konseling
+                            <a
+                                href="https://wa.me/"
+                                class="edu-btn-primary"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <i class="bi bi-whatsapp"></i>
+                                Hubungi Bantuan Sekarang
                             </a>
                         </div>
                     </article>

@@ -1087,6 +1087,26 @@
         $name = strtolower((string) $name);
 
         $icons = [
+            'lobster' => '🦞',
+            'kanguru' => '🦘',
+            'gajah' => '🐘',
+            'serigala' => '🐺',
+            'kuda' => '🐴',
+            'zebra' => '🦓',
+            'badak' => '🦏',
+            'jerapah' => '🦒',
+            'bison' => '🦬',
+            'paus' => '🐋',
+            'hiu' => '🦈',
+            'gurita' => '🐙',
+            'kepiting' => '🦀',
+            'penyu' => '🐢',
+            'elang' => '🦅',
+            'flamingo' => '🦩',
+            'bebek' => '🦆',
+            'kupu' => '🦋',
+            'kelelawar' => '🦇',
+            'landak' => '🦔',
             'beruang' => '🐻',
             'kucing' => '🐱',
             'kelinci' => '🐰',
@@ -1098,7 +1118,6 @@
             'anjing' => '🐶',
             'burung' => '🐦',
             'kura' => '🐢',
-            'monyet' => '🐵',
         ];
 
         foreach ($icons as $keyword => $icon) {
@@ -1107,7 +1126,7 @@
             }
         }
 
-        return '👤';
+        return '🐾';
     };
 
     $displayMemberNames = collect($chatPayload['memberNames'] ?? [])
@@ -1626,6 +1645,26 @@
     const value = String(name || '').toLowerCase();
 
     const icons = {
+      lobster: '🦞',
+      kanguru: '🦘',
+      gajah: '🐘',
+      serigala: '🐺',
+      kuda: '🐴',
+      zebra: '🦓',
+      badak: '🦏',
+      jerapah: '🦒',
+      bison: '🦬',
+      paus: '🐋',
+      hiu: '🦈',
+      gurita: '🐙',
+      kepiting: '🦀',
+      penyu: '🐢',
+      elang: '🦅',
+      flamingo: '🦩',
+      bebek: '🦆',
+      kupu: '🦋',
+      kelelawar: '🦇',
+      landak: '🦔',
       beruang: '🐻',
       kucing: '🐱',
       kelinci: '🐰',
@@ -1636,8 +1675,7 @@
       singa: '🦁',
       anjing: '🐶',
       burung: '🐦',
-      kura: '🐢',
-      monyet: '🐵'
+      kura: '🐢'
     };
 
     for (const key in icons) {
@@ -1646,7 +1684,7 @@
       }
     }
 
-    return '👤';
+    return '🐾';
   }
 
   const renderMessage = (message) => {

@@ -2120,7 +2120,7 @@
 footer {
   background: var(--primary);
   color: rgba(255,255,255,.78);
-  padding: 4rem 0 2rem;
+  padding: 3.25rem 0 1.75rem;
   margin-top: 5rem;
 }
 
@@ -2155,11 +2155,45 @@ footer a:hover {
 
 .footer-copy {
   border-top: 1px solid rgba(255,255,255,.14);
-  margin-top: 2.5rem;
-  padding-top: 1.5rem;
+  margin-top: 1.6rem;
+  padding-top: 1.25rem;
   font-size: .78rem;
   color: rgba(255,255,255,.55);
   text-align: center;
+}
+
+.footer-summary {
+  max-width: 760px;
+  font-size: .88rem;
+  line-height: 1.75;
+  margin: 0 0 1.25rem;
+}
+
+.footer-main-grid {
+  margin-top: 0;
+}
+
+.footer-contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  margin-bottom: .65rem;
+  color: rgba(255,255,255,.78);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+
+.footer-contact-item i {
+  color: #A7F3D0;
+  margin-top: .12rem;
+  flex: 0 0 auto;
+}
+
+.footer-hours {
+  margin-top: 1rem;
+  color: rgba(255,255,255,.78);
+  font-size: .84rem;
+  line-height: 1.6;
 }
 
 .footer-social a {
@@ -3106,81 +3140,58 @@ footer a:hover {
 <!-- FOOTER -->
 <footer>
   <div class="container">
-    <div class="row g-4">
-      <div class="col-lg-4">
+    <div class="row g-4 footer-main-grid">
+      <div class="col-lg-5">
         <div class="footer-brand d-flex align-items-center gap-3 mb-3">
-          <img
-            src="{{ asset('img/logo.png') }}"
-            alt="Campus Care"
-            class="footer-logo-img"
-          >
-
+          <img src="{{ asset('img/logo.png') }}" alt="Campus Care" class="footer-logo-img">
           <div>
             <div class="footer-brand-txt">Campus Care</div>
-            <div class="footer-brand-subtitle">IT DEL - MENTAL HEALTH</div>
+            <div class="footer-brand-subtitle">Layanan Bimbingan dan Konseling Mahasiswa · Institut Teknologi Del</div>
           </div>
         </div>
 
-        <p style="font-size:.86rem;line-height:1.75;margin-bottom:1.5rem">
-          Campus Care merupakan platform layanan bimbingan dan konseling digital
-          Institut Teknologi Del yang membantu mahasiswa mengakses layanan
-          konseling, edukasi kesehatan mental, chat konseling, serta riwayat
-          layanan secara aman dan terarah.
+        <p class="footer-summary">
+          Campus Care merupakan platform layanan bimbingan dan konseling digital yang membantu mahasiswa
+          memperoleh layanan konseling, edukasi kesehatan mental, serta pendampingan secara aman, nyaman,
+          dan mudah diakses.
         </p>
 
         <div class="footer-social">
           <a href="#" aria-label="Instagram Campus Care"><i class="bi bi-instagram"></i></a>
-          <a href="#" aria-label="WhatsApp Campus Care"><i class="bi bi-whatsapp"></i></a>
+          <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
           <a href="#" aria-label="YouTube Campus Care"><i class="bi bi-youtube"></i></a>
-          <a href="mailto:bk@del.ac.id" aria-label="Email Campus Care"><i class="bi bi-envelope-fill"></i></a>
         </div>
       </div>
 
-      <div class="col-6 col-lg-2">
-        <h6>Navigasi</h6>
-        <a href="{{ url('/') }}">Beranda</a>
-        <a href="{{ url('/edukasi-mental') }}">Ruang Edukasi</a>
-        <a href="{{ url('/konseling') }}">Konseling</a>
-        <a href="{{ url('/riwayat') }}">Riwayat Konseling</a>
-      </div>
-
-      <div class="col-6 col-lg-3">
-        <h6>Fitur Layanan</h6>
-        <a href="{{ url('/konseling') }}">Penjadwalan Konseling</a>
+      <div class="col-sm-6 col-lg-3">
+        <h6>Layanan</h6>
+        <a href="{{ url('/konseling') }}">Buat Jadwal Konseling</a>
         <a href="{{ url('/chat') }}">Chat Konseling</a>
+        <a href="{{ url('/edukasi-mental') }}">Ruang Edukasi</a>
         <a href="{{ url('/group-chat') }}">Grup Chat</a>
-        <a href="{{ url('/edukasi-mental') }}">Edukasi Kesehatan Mental</a>
-        <a href="{{ url('/riwayat') }}">Detail Riwayat Konseling</a>
       </div>
 
-      <div class="col-lg-3">
-        <h6>Kontak</h6>
-        <a href="mailto:bk@del.ac.id">
-          <i class="bi bi-envelope me-2"></i>bk@del.ac.id
+      <div class="col-sm-6 col-lg-4">
+        <h6>Hubungi Kami</h6>
+        <a href="mailto:bk@del.ac.id" class="footer-contact-item">
+          <i class="bi bi-envelope-fill"></i><span>bk@del.ac.id</span>
         </a>
-
-        <a href="#">
-          <i class="bi bi-telephone me-2"></i>+62 822-8318-4190
+        <a href="tel:+6282283184190" class="footer-contact-item">
+          <i class="bi bi-telephone-fill"></i><span>+62 822-8318-4190</span>
         </a>
-
-        <a href="#">
-          <i class="bi bi-geo-alt me-2"></i>
-          Gedung 5 Lt. 2, antara GD 525 & GD 526, Institut Teknologi Del
-        </a>
-
-        <div class="mt-3 p-3" style="background:rgba(255,255,255,.07);border-radius:10px;">
-          <div style="color:rgba(255,255,255,.4);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">
-            Jam Operasional
-          </div>
-          <div style="color:rgba(255,255,255,.8);font-size:.82rem;">
-            Senin - Jumat: 08.00 - 16.00
-          </div>
+        <div class="footer-contact-item">
+          <i class="bi bi-geo-alt-fill"></i>
+          <span>Gedung 5 Lt. 2, antara GD 525 &amp; GD 526, Institut Teknologi Del</span>
+        </div>
+        <div class="footer-hours">
+          <strong><i class="bi bi-clock me-2"></i>Jam Operasional</strong><br>
+          Senin–Jumat, 08.00–16.00 WIB
         </div>
       </div>
     </div>
 
     <div class="footer-copy">
-      © 2026 Campus Care · Institut Teknologi Del — Digital Mental Health Intervention
+      © 2026 Campus Care · Layanan Bimbingan dan Konseling Mahasiswa · Institut Teknologi Del
     </div>
   </div>
 </footer>

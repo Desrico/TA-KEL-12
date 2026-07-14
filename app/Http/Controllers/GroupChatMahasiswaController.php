@@ -1071,6 +1071,15 @@ class GroupChatMahasiswaController extends Controller
                 ? $this->resolveRoomDisplayName($sender, $room, $membership)
                 : 'Mahasiswa');
 
+        $messageText = (bool) $message->is_system
+            ? match ($message->system_event) {
+                'joined' => $senderDisplayName . ' telah bergabung ke Grup',
+                'left' => $senderDisplayName . ' telah meninggalkan Grup',
+                'removed' => $senderDisplayName . ' telah dikeluarkan dari Grup',
+                default => $message->pesan,
+            }
+            : $message->pesan;
+
         return [
             'id' => $message->id,
             'room_id' => $message->room_id,
@@ -1080,7 +1089,7 @@ class GroupChatMahasiswaController extends Controller
             'sender_role' => $sender?->role ?? 'pengguna',
             'is_counselor' => $isCounselorSender,
             'avatar_url' => $this->resolveRoomAvatarUrl($sender, $room, $membership),
-            'text' => $message->pesan,
+            'text' => $messageText,
             'reply_to' => $replyTo ? [
                 'id' => $replyTo->id,
                 'sender_id' => $replyTo->user_id,

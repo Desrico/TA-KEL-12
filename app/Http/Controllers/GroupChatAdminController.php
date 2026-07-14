@@ -716,6 +716,18 @@ class GroupChatAdminController extends Controller
         $replySender = $replyTo?->sender;
         $replyMembership = $replySender ? GroupChatSupport::resolveRoomMember($replySender, $room) : null;
 
+        $systemDisplayName = $sender
+            ? GroupChatSupport::resolveDisplayName($sender, $room, $membership)
+            : 'Mahasiswa';
+        $messageText = (bool) $message->is_system
+            ? match ($message->system_event) {
+                'joined' => $systemDisplayName . ' telah bergabung ke Grup',
+                'left' => $systemDisplayName . ' telah meninggalkan Grup',
+                'removed' => $systemDisplayName . ' telah dikeluarkan dari Grup',
+                default => $message->pesan,
+            }
+            : $message->pesan;
+
         // Nama pengirim pesan admin juga harus tunduk pada aturan identitas room yang sama.
         return [
             'id' => $message->id,
@@ -728,7 +740,7 @@ class GroupChatAdminController extends Controller
                     : GroupChatSupport::resolveDisplayName($sender, $room, $membership)),
             'sender_role' => $sender?->role ?? 'pengguna',
             'avatar_url' => GroupChatSupport::resolveAvatarUrl(),
-            'text' => $message->pesan,
+            'text' => $messageText,
             'reply_to' => $replyTo ? [
                 'id' => $replyTo->id,
                 'sender_id' => $replyTo->user_id,

@@ -123,11 +123,24 @@ class GroupChatSupport
 
     public static function ensureMemberAlias(GroupChatRoom $room, GroupChatMember $member): GroupChatMember
     {
-        if (filled($member->anonymous_name)) {
+        $user = $member->relationLoaded('user')
+            ? $member->user
+            : User::query()->find($member->user_id);
+
+        // Identitas anonim group chat harus sama dengan identitas anonim konseling.
+        $canonicalAlias = $user?->role === 'mahasiswa'
+            ? $user->getAnonimDisplayName()
+            : null;
+
+        if (! filled($canonicalAlias)) {
+            $canonicalAlias = self::nextAvailableAlias($room, $member);
+        }
+
+        if (trim((string) $member->anonymous_name) === $canonicalAlias) {
             return $member;
         }
 
-        $member->anonymous_name = self::nextAvailableAlias($room, $member);
+        $member->anonymous_name = $canonicalAlias;
 
         if (! self::supportsAnonymousName()) {
             return $member;
@@ -171,14 +184,12 @@ class GroupChatSupport
             $member ??= self::resolveRoomMember($user, $room);
 
             if ($member) {
-                if (! filled($member->anonymous_name)) {
-                    $member = self::ensureMemberAlias($room, $member);
-                }
+                $member = self::ensureMemberAlias($room, $member);
 
-                return $member->anonymous_name ?: 'Mahasiswa Anonim';
+                return $member->anonymous_name ?: $user->getAnonimDisplayName();
             }
 
-            return self::buildDeterministicAlias($room->id, $user->id);
+            return $user->getAnonimDisplayName();
         }
 
         $nim = optional($user->mahasiswa)->nim;
