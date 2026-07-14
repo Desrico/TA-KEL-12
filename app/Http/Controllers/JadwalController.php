@@ -409,8 +409,13 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
 
                 Notifikasi::create([
                     'user_id' => $user->id,
-                    'pesan'   => 'Penjadwalan #' . $jadwal->id . ' berhasil dibuat dan menunggu persetujuan konselor.',
+                    'pesan'   => 'Pengajuan Penjadwalan '
+                        . (strtolower((string) $jadwal->jenis) === 'offline' ? 'offline' : 'online')
+                        . ' pada ' . $jadwal->scheduledStartLabel()
+                        . ' berhasil dibuat dan menunggu persetujuan konselor.',
                     'status'  => 'belum',
+                    'cta_target' => route('detail.riwayat', $jadwal->id),
+                    'cta_label' => 'Lihat Riwayat',
                 ]);
 
                 $konselorUserId = $konselor->user_id;

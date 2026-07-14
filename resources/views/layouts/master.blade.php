@@ -2603,6 +2603,13 @@ footer a:hover {
                   }
                 }
 
+                // ID jadwal adalah data internal dan tidak perlu terlihat pada notifikasi mahasiswa.
+                $notif->pesan = preg_replace(
+                  '/^(Booking|Jadwal|Penjadwalan)\s+#\d+\s+/i',
+                  '$1 ',
+                  (string) $notif->pesan
+                );
+
                 if (
                   ! $notif->is_letter_prompt &&
                   (
@@ -2707,7 +2714,15 @@ footer a:hover {
             </div>
         </a>
 
-    <button class="navbar-toggler mobile-menu-toggle" type="button" id="mobileMenuToggle" aria-label="Toggle navigation" aria-expanded="false">
+    <button
+      class="navbar-toggler mobile-menu-toggle"
+      type="button"
+      id="mobileMenuToggle"
+      aria-label="Buka menu navigasi"
+      aria-controls="navMain"
+      aria-expanded="false"
+      onclick="toggleMobileMenu(this)"
+    >
       <span></span>
       <span></span>
       <span></span>
@@ -2743,6 +2758,7 @@ footer a:hover {
           >
             Grup Chat
           </a>
+        </li>
         @endif
         @endauth
 
@@ -4001,25 +4017,23 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+function toggleMobileMenu(toggleButton) {
+    const navMain = document.getElementById('navMain');
+
+    if (!navMain) {
+        return;
+    }
+
+    const isOpen = navMain.classList.toggle('show');
+    toggleButton.setAttribute('aria-expanded', String(isOpen));
+    toggleButton.setAttribute('aria-label', isOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const toggleButton = document.getElementById('mobileMenuToggle');
     const navMain = document.getElementById('navMain');
 
-    if (!toggleButton || !navMain) {
-        return;
-    }
-
-    toggleButton.addEventListener('click', function () {
-        const isOpen = navMain.classList.contains('show');
-
-        if (isOpen) {
-            navMain.classList.remove('show');
-            toggleButton.setAttribute('aria-expanded', 'false');
-        } else {
-            navMain.classList.add('show');
-            toggleButton.setAttribute('aria-expanded', 'true');
-        }
-    });
+    if (!toggleButton || !navMain) return;
 
     navMain.querySelectorAll('a').forEach(function (link) {
         link.addEventListener('click', function () {

@@ -205,47 +205,51 @@
     }
 
     .confirm-box {
-        width: 380px;
-        max-width: 90%;
+        width: 306px;
+        max-width: calc(100% - 32px);
+        box-sizing: border-box;
         background: #066847;
         color: #ffffff;
-        border-radius: 18px;
-        padding: 1.8rem 1.5rem;
+        border-radius: 16px;
+        padding: 24px 22px;
         text-align: center;
         animation: popFade 0.28s ease both;
         box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
     }
 
     .confirm-icon {
-        width: 60px;
-        height: 60px;
-        border: 4px solid #ff4d4d;
+        width: 58px;
+        height: 58px;
+        border: 4px solid #ff5158;
         color: #ff4d4d;
         border-radius: 50%;
         display: grid;
         place-items: center;
         font-size: 2rem;
-        font-weight: 800;
-        margin: 0 auto 1rem;
+        font-weight: 500;
+        margin: 0 auto 12px;
     }
 
     .confirm-box h3 {
+        color: #ffffff;
         font-size: 1.15rem;
         font-weight: 800;
-        margin-bottom: 0.75rem;
+        line-height: 1.25;
+        margin: 0 0 20px;
     }
 
     .confirm-box p {
-        font-size: 0.82rem;
-        line-height: 1.5;
-        margin-bottom: 1.3rem;
+        color: #ffffff;
+        font-size: 0.72rem;
+        line-height: 1.3;
+        margin: 0 0 20px;
     }
 
     .confirm-actions {
         display: flex;
         justify-content: center;
-        gap: 0.8rem;
-        flex-wrap: wrap;
+        gap: 12px;
+        flex-wrap: nowrap;
     }
 
     .btn-confirm-danger {
@@ -253,9 +257,10 @@
         background: #ff4d4d;
         color: #ffffff;
         font-weight: 800;
-        font-size: 0.78rem;
+        font-size: 0.68rem;
         border-radius: 8px;
-        padding: 0.55rem 1rem;
+        padding: 8px 13px;
+        white-space: nowrap;
         cursor: pointer;
         transition: all 0.2s ease;
     }
@@ -269,9 +274,9 @@
         background: transparent;
         color: #ffffff;
         font-weight: 700;
-        font-size: 0.78rem;
+        font-size: 0.68rem;
         border-radius: 8px;
-        padding: 0.55rem 1rem;
+        padding: 8px 13px;
         cursor: pointer;
         transition: all 0.2s ease;
     }

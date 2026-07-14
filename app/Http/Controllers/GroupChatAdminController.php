@@ -641,10 +641,6 @@ class GroupChatAdminController extends Controller
 
     private function buildChatPayload(GroupChatRoom $room): array
     {
-        $sessionStartedAt = GroupChatSupport::roomUsesSessionReset($room)
-            ? $this->toDisplayDateTime(GroupChatSupport::currentSessionStartedAt($room))
-            : null;
-
         return [
             'roomId' => $room->id,
             'channel' => 'chat.group.' . $room->id,
@@ -670,10 +666,6 @@ class GroupChatAdminController extends Controller
             'canInviteMembers' => GroupChatSupport::supportsPrivateGroups() && $room->isPrivate(),
             'updateAvatarUrl' => route('admin.group-chat.rooms.avatar', ['group' => $room->id]),
             'privateMemberLimit' => GroupChatSupport::privateGroupMemberLimit(),
-            'sessionResetHours' => GroupChatSupport::roomUsesSessionReset($room)
-                ? GroupChatSupport::sessionResetHours()
-                : null,
-            'sessionStartedAt' => $sessionStartedAt?->toIso8601String(),
         ];
     }
 
@@ -1205,57 +1197,15 @@ class GroupChatAdminController extends Controller
 
     private function buildVisibleMessages(GroupChatRoom $room, User $viewer): array
     {
-        // Ambil pesan terbaru saja; riwayat lama tetap bisa disediakan belakangan jika dibutuhkan.
-        $messageLimit = 80;
-        $messageQuery = $room->messages()
+        return $room->messages()
             ->with([
                 'sender.mahasiswa',
                 'replyTo.sender',
             ])
-            ->orderByDesc('created_at');
-
-        $sessionStartedAt = null;
-
-        if (GroupChatSupport::roomUsesSessionReset($room)) {
-            $sessionStartedAt = GroupChatSupport::currentSessionStartedAt($room);
-            $messageQuery->where('created_at', '>=', $sessionStartedAt);
-        }
-
-        $messages = $messageQuery
-            ->limit($messageLimit)
+            ->orderBy('created_at')
             ->get()
-            ->sortBy('created_at')
-            ->values()
             ->map(fn(GroupChatMessage $message) => $this->transformMessage($message, $viewer, $room))
             ->all();
-
-        if ($sessionStartedAt) {
-            array_unshift($messages, $this->buildSessionResetThread($room, $sessionStartedAt));
-        }
-
-        return $messages;
-    }
-
-    private function buildSessionResetThread(GroupChatRoom $room, Carbon $sessionStartedAt): array
-    {
-        $displayTime = $this->toDisplayDateTime($sessionStartedAt) ?? $this->nowInDisplayTimezone();
-
-        return [
-            'id' => 'session-reset-' . $room->id . '-' . $displayTime->timestamp,
-            'room_id' => $room->id,
-            'sender_id' => null,
-            'sender_name' => 'Sistem',
-            'sender_role' => 'system',
-            'avatar_url' => null,
-            'text' => 'Sesi grup baru dimulai. Riwayat percakapan disetel ulang setiap 1 minggu.',
-            'time' => $displayTime->format('H:i'),
-            'sent_at' => $displayTime->toIso8601String(),
-            'updated_at' => null,
-            'is_edited' => false,
-            'is_system' => true,
-            'system_event' => 'weekly_reset',
-            'is_mine' => false,
-        ];
     }
 
     private function createMembershipSystemMessage(GroupChatRoom $room, User $user, string $event): GroupChatMessage

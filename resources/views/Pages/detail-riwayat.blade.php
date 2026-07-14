@@ -213,7 +213,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     flex-wrap: wrap;
     margin-top: 0;
     padding-top: 0;
@@ -224,13 +224,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 260px;
-    height: 58px;
-    padding: 0 32px;
+    min-width: 210px;
+    height: 46px;
+    padding: 0 24px;
     border-radius: 999px;
     background: #047857;
     color: #ffffff !important;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 800;
     text-decoration: none !important;
     box-shadow: 0 18px 35px rgba(4, 120, 87, 0.22);
@@ -405,7 +405,7 @@
     color: #991b1b !important;
     border: 1px solid #fca5a5;
     box-shadow: 0 10px 24px rgba(239, 68, 68, 0.14);
-    min-width: 260px;
+    min-width: 210px;
 }
 
 .btn-action-cancel:hover {
@@ -420,7 +420,7 @@
     color: #ffffff !important;
     border: 1px solid #064e3b;
     box-shadow: 0 14px 28px rgba(6, 78, 59, 0.22);
-    min-width: 260px;
+    min-width: 210px;
 }
 
 .btn-back-riwayat-detail:hover {
@@ -715,6 +715,120 @@
         text-align:left;
     }
 }
+.cancel-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, .28);
+    backdrop-filter: blur(3px);
+}
+
+.cancel-confirm-overlay.show {
+    display: flex;
+}
+
+.cancel-confirm-box {
+    width: 307px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 24px 22px;
+    border-radius: 15px;
+    background: #066847;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, .22);
+    animation: cancelConfirmIn .2s ease both;
+}
+
+.cancel-confirm-icon {
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 12px;
+    border: 4px solid #ffe184;
+    border-radius: 50%;
+    color: #ffe184;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.cancel-success-icon {
+    border-color: #ffe184;
+    color: #ffe184;
+    font-size: 1.65rem;
+    font-weight: 800;
+}
+
+.cancel-success-ok {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 82px;
+    padding: 8px 18px;
+    border-radius: 6px;
+    background: #ffe184;
+    color: #075b42 !important;
+    font-size: .72rem;
+    font-weight: 800;
+    text-decoration: none !important;
+}
+
+.cancel-success-ok:hover {
+    background: #ffd45c;
+}
+
+.cancel-confirm-box h3 {
+    margin: 0 0 20px;
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.cancel-confirm-box p {
+    margin: 0 0 20px;
+    color: #fff;
+    font-size: .72rem;
+    line-height: 1.35;
+}
+
+.cancel-confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+}
+
+.cancel-confirm-actions button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: .68rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.cancel-confirm-submit {
+    border: 0;
+    background: #ffe184;
+    color: #075b42;
+}
+
+.cancel-confirm-close {
+    border: 1px solid rgba(255, 255, 255, .85);
+    background: transparent;
+    color: #fff;
+}
+
+.cancel-confirm-submit:hover { background: #ffd45c; }
+.cancel-confirm-close:hover { background: rgba(255, 255, 255, .12); }
+
+@keyframes cancelConfirmIn {
+    from { opacity: 0; transform: translateY(8px) scale(.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
 </style>
 @endpush
 
@@ -897,20 +1011,29 @@
                     <strong>{{ $statusDetailLabel }}</strong>
                 </div>
 
-                <div class="section-label mt-4">
-                    <span>Tindak Lanjut</span>
-                </div>
-
-                <div class="detail-row">
-                    <span>Status Tindak Lanjut</span>
-                    <strong>{{ $tindakLanjut }}</strong>
-                </div>
-
-                @if($perluSesiLanjutan && trim((string) $tindakLanjutDeskripsi) !== '')
+                @if(strtolower((string) $jadwal->status) === 'ditolak')
                     <div class="detail-row">
-                        <span>Keterangan Sesi Lanjutan</span>
-                        <strong>{{ $tindakLanjutDeskripsi }}</strong>
+                        <span>Alasan Penolakan</span>
+                        <strong>{{ filled($jadwal->alasan_penolakan) ? $jadwal->alasan_penolakan : '-' }}</strong>
                     </div>
+                @endif
+
+                @if($perluSesiLanjutan)
+                    <div class="section-label mt-4">
+                        <span>Tindak Lanjut</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span>Status Tindak Lanjut</span>
+                        <strong>{{ $tindakLanjut }}</strong>
+                    </div>
+
+                    @if(trim((string) $tindakLanjutDeskripsi) !== '')
+                        <div class="detail-row">
+                            <span>Keterangan Sesi Lanjutan</span>
+                            <strong>{{ $tindakLanjutDeskripsi }}</strong>
+                        </div>
+                    @endif
                 @endif
 
                 <div class="detail-action-buttons">
@@ -940,7 +1063,7 @@
                                 <a href="{{ route('riwayat') }}" class="btn-detail-action btn-back-riwayat-detail">
                                     Kembali ke Riwayat
                                 </a>
-                                <form method="POST" action="{{ route('riwayat.batalkan', $jadwal->id) }}" onsubmit="return confirm('Yakin ingin membatalkan penjadwalan ini?');" style="display:inline-flex;">
+                                <form id="cancelScheduleForm" method="POST" action="{{ route('riwayat.batalkan', $jadwal->id) }}" onsubmit="openCancelScheduleModal(event)" style="display:inline-flex;">
                                     @csrf
                                     <button type="submit" class="btn-detail-action btn-action-cancel">
                                         Batalkan Penjadwalan
@@ -1035,11 +1158,67 @@
 </div>
 @endif
 
+<div class="cancel-confirm-overlay" id="cancelScheduleModal" role="dialog" aria-modal="true" aria-labelledby="cancelScheduleTitle" onclick="handleCancelScheduleBackdrop(event)">
+    <div class="cancel-confirm-box">
+        <div class="cancel-confirm-icon" aria-hidden="true">?</div>
+        <h3 id="cancelScheduleTitle">Konfirmasi Pembatalan</h3>
+        <p>
+            Apakah kamu yakin ingin membatalkan penjadwalan sesi konseling ini?<br>
+            Jadwal yang dibatalkan tidak dapat dikembalikan.
+        </p>
+        <div class="cancel-confirm-actions">
+            <button type="button" class="cancel-confirm-submit" onclick="confirmCancelSchedule()">Batalkan Jadwal</button>
+            <button type="button" class="cancel-confirm-close" onclick="closeCancelScheduleModal()">Kembali</button>
+        </div>
+    </div>
+</div>
+
+@if(session('cancel_success'))
+    <div class="cancel-confirm-overlay show" id="cancelScheduleSuccessModal" role="dialog" aria-modal="true" aria-labelledby="cancelScheduleSuccessTitle">
+        <div class="cancel-confirm-box">
+            <div class="cancel-confirm-icon cancel-success-icon" aria-hidden="true">✓</div>
+            <h3 id="cancelScheduleSuccessTitle">Berhasil Dibatalkan</h3>
+            <p>Penjadwalan konseling berhasil dibatalkan.</p>
+            <a href="{{ route('riwayat') }}" class="cancel-success-ok">OK</a>
+        </div>
+    </div>
+@endif
+
 @push('scripts')
 <script>
 let isEditMode = false;
 
+function openCancelScheduleModal(event) {
+    event.preventDefault();
+    document.getElementById('cancelScheduleModal')?.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCancelScheduleModal() {
+    document.getElementById('cancelScheduleModal')?.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function handleCancelScheduleBackdrop(event) {
+    if (event.target.id === 'cancelScheduleModal') {
+        closeCancelScheduleModal();
+    }
+}
+
+function confirmCancelSchedule() {
+    const form = document.getElementById('cancelScheduleForm');
+    if (form) form.submit();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+    if (document.getElementById('cancelScheduleSuccessModal')) {
+        document.body.style.overflow = 'hidden';
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeCancelScheduleModal();
+    });
+
     const hideIds = ['edit-nama', 'edit-nim', 'edit-jurusan', 'edit-angkatan'];
     hideIds.forEach(id => {
         const el = document.getElementById(id);

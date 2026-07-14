@@ -215,18 +215,27 @@ class LaporanController extends Controller
         $konselorUserId = $jadwal->konselor?->user?->id;
 
         if ($konselorUserId) {
-            Notifikasi::create([
-                'user_id' => $konselorUserId,
-                'pesan' => 'Mahasiswa membatalkan penjadwalan konseling yang masih menunggu konfirmasi.',
-                'status' => 'belum',
-                'cta_target' => route('admin.riwayat'),
-                'cta_label' => 'Lihat Riwayat',
-            ]);
+            $target = route('admin.riwayat.detail', $jadwal->id);
+            $namaMahasiswa = $jadwal->mahasiswa?->user?->nama ?? 'Mahasiswa';
+            $tanggal = optional($jadwal->tanggal)->format('d-m-Y') ?: (string) $jadwal->tanggal;
+            $waktu = substr((string) $jadwal->waktu, 0, 5);
+
+            Notifikasi::updateOrCreate(
+                [
+                    'user_id' => $konselorUserId,
+                    'cta_target' => $target,
+                    'cta_label' => 'Lihat Detail Jadwal',
+                ],
+                [
+                    'pesan' => "{$namaMahasiswa} membatalkan penjadwalan konseling tanggal {$tanggal} pukul {$waktu}.",
+                    'status' => 'belum',
+                ]
+            );
         }
 
         return redirect()
-            ->route('riwayat', ['jadwal' => $jadwal->id])
-            ->with('success', 'Penjadwalan berhasil dibatalkan.');
+            ->route('detail.riwayat', $jadwal->id)
+            ->with('cancel_success', true);
     }
 
     public function laporanAdmin(\Illuminate\Http\Request $request)

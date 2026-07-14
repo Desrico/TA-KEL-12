@@ -451,7 +451,8 @@ public function dashboard()
             'disetujui', 'diterima' => 'Diterima',
             'berlangsung', 'sedang berlangsung' => 'Sedang Berlangsung',
             'selesai' => 'Selesai',
-            'ditolak', 'dibatalkan' => 'Ditolak',
+            'ditolak' => 'Ditolak',
+            'dibatalkan' => 'Dibatalkan',
             default => ucwords(str_replace('_', ' ', $item->status ?? 'Menunggu')),
         };
 

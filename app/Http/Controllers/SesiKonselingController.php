@@ -6,6 +6,7 @@ use App\Models\Konselor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use App\Models\JadwalKonseling;
+use App\Models\Notifikasi;
 use App\Models\SesiKonseling;
 
 class SesiKonselingController extends Controller
@@ -75,18 +76,9 @@ class SesiKonselingController extends Controller
         }
 
         $jadwal = $jadwalQuery
-            ->orderByRaw("
-                CASE
-                    WHEN status = 'menunggu' THEN 1
-                    WHEN status = 'disetujui' THEN 2
-                    WHEN status = 'berlangsung' THEN 3
-                    WHEN status = 'selesai' THEN 4
-                    WHEN status = 'ditolak' THEN 5
-                    ELSE 6
-                END
-            ")
-            ->orderBy('tanggal', 'asc')
-            ->orderBy('waktu', 'asc')
+            // Riwayat berfungsi sebagai aktivitas: keputusan terbaru konselor tampil paling atas.
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
@@ -155,22 +147,42 @@ class SesiKonselingController extends Controller
 
     public function kirimTolak(Request $request, $id)
     {
-        $request->validate([
-            'alasan_penolakan' => 'required|string',
+        $validated = $request->validate([
+            'alasan_penolakan' => 'required|string|max:1000',
         ]);
 
         $konselor = $this->resolveAuthenticatedKonselor();
 
-        $jadwal = JadwalKonseling::where('konselor_id', $konselor->id)
+        $jadwal = JadwalKonseling::with('mahasiswa.user')
+            ->where('konselor_id', $konselor->id)
             ->findOrFail($id);
 
         $jadwal->update([
             'status' => 'ditolak',
-            'alasan_penolakan' => $request->alasan_penolakan,
+            'alasan_penolakan' => $validated['alasan_penolakan'],
         ]);
 
+        $mahasiswaUserId = $jadwal->mahasiswa?->user?->id;
+
+        if ($mahasiswaUserId) {
+            $target = route('detail.riwayat', $jadwal->id);
+
+            Notifikasi::updateOrCreate(
+                [
+                    'user_id' => $mahasiswaUserId,
+                    'cta_target' => $target,
+                    'cta_label' => 'Lihat Alasan Penolakan',
+                ],
+                [
+                    'pesan' => 'Permintaan penjadwalan konseling Anda telah ditolak. Alasan: '
+                        . $validated['alasan_penolakan'],
+                    'status' => 'belum',
+                ]
+            );
+        }
+
         return redirect()
-            ->route('admin.riwayat')
+            ->route('admin.riwayat', ['jadwal' => $jadwal->id])
             ->with('success', 'Penjadwalan berhasil ditolak.');
     }
     

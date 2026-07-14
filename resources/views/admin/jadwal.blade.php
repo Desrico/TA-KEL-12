@@ -955,6 +955,10 @@
           <span>Ditolak</span>
         </div>
         <div class="legend-item">
+          <span class="legend-dot" style="background:#F4A6A6;"></span>
+          <span>Dibatalkan Mahasiswa</span>
+        </div>
+        <div class="legend-item">
           <span class="legend-dot" style="background:#D9D9D9;"></span>
           <span>Tidak Tersedia</span>
       </div>

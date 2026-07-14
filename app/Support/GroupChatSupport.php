@@ -15,7 +15,6 @@ class GroupChatSupport
 {
     public const CONSENT_VERSION = 'group-chat-v1';
     public const PRIVATE_GROUP_MEMBER_LIMIT = 12;
-    public const SESSION_RESET_HOURS = 168;
     private static array $schemaSupportCache = [];
 
     public static function consentVersion(): string
@@ -120,40 +119,6 @@ class GroupChatSupport
     public static function privateGroupMemberLimit(): int
     {
         return self::PRIVATE_GROUP_MEMBER_LIMIT;
-    }
-
-    public static function sessionResetHours(): int
-    {
-        return self::SESSION_RESET_HOURS;
-    }
-
-    public static function roomUsesSessionReset(?GroupChatRoom $room): bool
-    {
-        if (! $room) {
-            return false;
-        }
-
-        if (! self::supportsRoomVisibility()) {
-            return true;
-        }
-
-        return $room->isPrivate();
-    }
-
-    public static function currentSessionStartedAt(GroupChatRoom $room, ?Carbon $reference = null): Carbon
-    {
-        if (! self::roomUsesSessionReset($room)) {
-            return ($room->created_at instanceof Carbon ? $room->created_at->copy() : Carbon::parse($room->created_at ?? now()))->startOfSecond();
-        }
-
-        $reference ??= now();
-        $anchor = ($room->created_at instanceof Carbon ? $room->created_at->copy() : Carbon::parse($room->created_at ?? now()))->startOfSecond();
-        $current = ($reference instanceof Carbon ? $reference->copy() : Carbon::parse($reference))->startOfSecond();
-        $hoursElapsed = max(0, $anchor->diffInHours($current));
-        $hoursPerSession = max(1, self::sessionResetHours());
-        $completedSessions = intdiv($hoursElapsed, $hoursPerSession);
-
-        return $anchor->addHours($completedSessions * $hoursPerSession);
     }
 
     public static function ensureMemberAlias(GroupChatRoom $room, GroupChatMember $member): GroupChatMember

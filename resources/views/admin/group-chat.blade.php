@@ -85,8 +85,7 @@
     flex-direction: column;
     min-height: 0;
     height: 100%;
-    overflow-y: auto;
-    overflow-x: visible;
+    overflow: hidden;
     align-self: stretch;
     border-right: 1px solid #edf7f1;
     background: #f7fbf8;
@@ -97,10 +96,19 @@
     padding: .85rem .85rem .75rem;
     border-bottom: 1px solid #edf7f1;
     background: rgba(255, 255, 255, .92);
-    position: sticky;
-    top: 0;
+    flex: 0 0 auto;
+    position: relative;
     z-index: 12;
     overflow: visible;
+  }
+
+  .admin-chat-session-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
   }
 
   .admin-chat-tabs {
@@ -2056,6 +2064,7 @@
       </form>
     </div>
 
+    <div class="admin-chat-session-list">
     @forelse($groupList as $room)
       @php
         $isSelected = optional($activeRoom)->id === $room->id;
@@ -2129,6 +2138,7 @@
         Tidak ada grup chat yang cocok dengan kata kunci pencarian.
       </div>
     @endif
+    </div>
   </aside>
 
   <section class="admin-chat-card">

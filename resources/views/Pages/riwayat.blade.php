@@ -519,8 +519,8 @@
 }
 
 .riwayat-card.is-highlighted {
-    border-color: #7c3aed;
-    box-shadow: 0 14px 32px rgba(91, 33, 182, .14);
+    border-color: #111111;
+    box-shadow: 0 14px 32px rgba(17, 17, 17, .14);
 }
 
 /* LOAD MORE */

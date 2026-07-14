@@ -470,7 +470,7 @@
                             'disetujui', 'diterima' => 'Diterima',
                             'berlangsung' => 'Sedang Berlangsung',
                             'selesai' => 'Selesai',
-                            'ditolak' => 'Dibatalkan',
+                            'ditolak' => 'Ditolak',
                             'dibatalkan' => 'Dibatalkan',
                             'perlu_penjadwalan_ulang' => 'Perlu Penjadwalan Ulang',
                             'perlu_sesi_lanjutan' => 'Perlu Sesi Lanjutan',
