@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureCompleteCounselorSession;
 use App\Http\Middleware\EnsureStudentSecurityPinVerified;
 use App\Http\Middleware\RoleMiddleware; 
 use App\Http\Middleware\PreventBackHistory;
+use App\Http\Middleware\EnsurePublicStudentContext;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
     
     $middleware->alias([
         'role' => RoleMiddleware::class,
+        'student.public' => EnsurePublicStudentContext::class,
     ]);
 })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -152,6 +152,9 @@
     </div>
 </div>
 
+@endsection
+
+@push('styles')
 <style>
 .riwayat-page {
     padding: 60px 60px;
@@ -827,7 +830,9 @@ body > .modal.feedback-modal-wrapper .modal-content {
     pointer-events: auto !important;
 }
 </style>
+@endpush
 
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const highlightedCard = document.querySelector('[data-highlight-target="true"]');
@@ -859,4 +864,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-@endsection
+@endpush

@@ -40,15 +40,19 @@ Route::get('/', function () {
     return view('Pages.beranda', [
         'feedbacks' => $feedbacks,
     ]);
-})->name('beranda');
+})->middleware('student.public')->name('beranda');
 
 Route::get('/edukasi-mental', [EducationController::class, 'show'])
+    ->middleware('student.public')
     ->name('edukasi.mental');
 
 Route::get('/edukasi-mental/konten/{id}/materi', [EducationController::class, 'showMaterial'])
+    ->middleware('student.public')
     ->name('edukasi.mental.material');
 
-Route::get('/konseling', [JadwalController::class, 'create'])->name('konseling');
+Route::get('/konseling', [JadwalController::class, 'create'])
+    ->middleware('student.public')
+    ->name('konseling');
 
 
 // ═══════════════════════════════
