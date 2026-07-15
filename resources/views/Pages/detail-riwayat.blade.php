@@ -6,6 +6,12 @@
     background:#f3faf5;
     min-height:100vh;
     padding:32px 0 90px;
+    overflow-x:hidden;
+}
+
+.detail-riwayat-page,
+.detail-riwayat-page *{
+    box-sizing:border-box;
 }
 
 .detail-wrapper{
@@ -66,6 +72,11 @@
     align-items:start;
 }
 
+.detail-grid > *,
+.counselor-profile > div{
+    min-width:0;
+}
+
 .side-card,
 .main-card{
     background:#ffffff;
@@ -98,6 +109,7 @@
     font-size:22px;
     font-weight:800;
     color:#202020;
+    overflow-wrap:anywhere;
 }
 
 .side-row{
@@ -157,7 +169,7 @@
 }
 
 .main-card h3{
-    font-size 32px;
+    font-size:32px;
     font-weight:900;
     color:#202020;
     margin-bottom:28px;
@@ -207,6 +219,7 @@
     font-size:16px;
     font-weight:700;
     text-align:right;
+    overflow-wrap:anywhere;
 }
 
 .detail-action-wrapper {
@@ -655,7 +668,7 @@
 
 @media (max-width:1200px){
     .detail-hero h1{
-        font-size:54px;
+        font-size:clamp(42px,4.5vw,52px);
     }
 }
 
@@ -682,6 +695,10 @@
         width:calc(100% - 2rem);
     }
 
+    .detail-grid{
+        gap:24px;
+    }
+
     .detail-hero h1{
         font-size:36px;
         line-height:1.1;
@@ -701,6 +718,11 @@
         padding:clamp(1rem,5vw,1.5rem);
     }
 
+    .side-card,
+    .note-card{
+        padding:clamp(1rem,5vw,1.5rem);
+    }
+
     .section-label{
         font-size:22px;
     }
@@ -713,6 +735,13 @@
 
     .detail-row strong{
         text-align:left;
+    }
+
+    .detail-action-wrapper,
+    .detail-action-wrapper form,
+    .btn-detail-action{
+        width:100%;
+        min-width:0;
     }
 
     #feedbackModal .modal-dialog {
@@ -743,6 +772,36 @@
     .fm-star-label {
         flex-basis: 100%;
         margin-left: 0;
+    }
+}
+
+@media (max-width:380px){
+    .detail-wrapper{
+        width:calc(100% - 1.25rem);
+    }
+
+    .detail-hero h1{
+        font-size:30px;
+        letter-spacing:-1px;
+    }
+
+    .counselor-profile{
+        align-items:flex-start;
+    }
+
+    .counselor-profile img,
+    .counselor-avatar{
+        width:60px;
+        height:60px;
+    }
+
+    .cancel-confirm-actions{
+        gap:8px;
+    }
+
+    .cancel-confirm-actions button{
+        flex:1;
+        padding-inline:8px;
     }
 }
 .cancel-confirm-overlay {
