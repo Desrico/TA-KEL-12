@@ -679,7 +679,7 @@
     }
 
     .detail-wrapper{
-        width:94%;
+        width:calc(100% - 2rem);
     }
 
     .detail-hero h1{
@@ -698,7 +698,7 @@
     }
 
     .main-card{
-        padding:24px;
+        padding:clamp(1rem,5vw,1.5rem);
     }
 
     .section-label{
@@ -713,6 +713,36 @@
 
     .detail-row strong{
         text-align:left;
+    }
+
+    #feedbackModal .modal-dialog {
+        margin: .75rem auto;
+    }
+
+    #feedbackModal .modal-body {
+        padding: 1rem 1rem 0;
+    }
+
+    .fm-header {
+        padding: 1rem;
+    }
+
+    #feedbackModal .modal-footer {
+        padding: .85rem 1rem 1rem;
+    }
+
+    .fm-stars {
+        flex-wrap: wrap;
+        row-gap: .65rem;
+    }
+
+    .fm-stars .star-btn {
+        font-size: 28px;
+    }
+
+    .fm-star-label {
+        flex-basis: 100%;
+        margin-left: 0;
     }
 }
 .cancel-confirm-overlay {

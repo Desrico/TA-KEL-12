@@ -923,7 +923,8 @@
   }
 
   .feedback-card {
-    min-width: 340px;
+    width: min(340px, calc(100vw - 3rem));
+    min-width: min(340px, calc(100vw - 3rem));
     max-width: 380px;
     background:
       linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,255,253,.98)),
@@ -1196,7 +1197,8 @@
   }
 
   .feedback-card {
-    min-width: 340px;
+    width: min(340px, calc(100vw - 3rem));
+    min-width: min(340px, calc(100vw - 3rem));
     max-width: 380px;
     background:
       linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,255,253,.98)),

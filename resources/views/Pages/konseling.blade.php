@@ -71,17 +71,51 @@
   }
 
   .mode-panel {
+    position: relative;
     height: 100%;
     border: 1px solid var(--care-border);
     border-radius: 24px;
     background: #fff;
     padding: 1.35rem;
-    transition: border-color .2s ease, box-shadow .2s ease;
+    transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease, background .22s ease;
   }
 
   .mode-panel.active {
-    border-color: rgba(10, 82, 58, .36);
-    box-shadow: 0 18px 42px rgba(10, 82, 58, .1);
+    border: 2px solid var(--care-green);
+    background: linear-gradient(180deg, #f1fcf6 0%, #ffffff 72%);
+    box-shadow: 0 20px 44px rgba(10, 82, 58, .16);
+    transform: translateY(-4px);
+  }
+
+  .mode-panel.online.active {
+    border-color: #1F5F8B;
+    background: linear-gradient(180deg, #eff8ff 0%, #ffffff 72%);
+    box-shadow: 0 20px 44px rgba(31, 95, 139, .16);
+  }
+
+  .service-mode-strip.has-selection .mode-panel:not(.active) {
+    border-color: #d9dfdc;
+    background: #f3f5f4;
+    box-shadow: none;
+    opacity: .62;
+    filter: saturate(.55);
+  }
+
+  .service-mode-strip.has-selection .mode-panel:not(.active):hover,
+  .service-mode-strip.has-selection .mode-panel:not(.active):focus-within {
+    border-color: #aebdb6;
+    opacity: .86;
+    filter: saturate(.8);
+  }
+
+  .mode-panel.selection-pulse {
+    animation: serviceSelectedPulse .5s ease;
+  }
+
+  @keyframes serviceSelectedPulse {
+    0% { transform: translateY(-4px) scale(.985); }
+    55% { transform: translateY(-4px) scale(1.012); }
+    100% { transform: translateY(-4px) scale(1); }
   }
 
   .mode-panel-head {
@@ -89,6 +123,27 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1.1rem;
+  }
+
+  .mode-selected-state {
+    display: none;
+    align-items: center;
+    gap: .35rem;
+    border-radius: 999px;
+    background: var(--care-green);
+    color: #fff;
+    padding: .42rem .72rem;
+    font-size: .72rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .mode-panel.active .mode-selected-state {
+    display: inline-flex;
+  }
+
+  .mode-panel.online.active .mode-selected-state {
+    background: #1F5F8B;
   }
 
   .mode-badge {
@@ -422,10 +477,30 @@
     box-shadow: 0 0 0 4px rgba(10, 82, 58, .08);
   }
 
+  .schedule-input.is-filled:not([disabled]),
+  .schedule-select.is-filled {
+    border-color: #65a982;
+    background-color: #f0fbf5;
+    color: #143d2d;
+    box-shadow: inset 3px 0 0 #159466;
+  }
+
+  .schedule-input.is-filled:not([disabled]):focus,
+  .schedule-select.is-filled:focus {
+    border-color: var(--care-green);
+    box-shadow: inset 3px 0 0 #159466, 0 0 0 4px rgba(10, 82, 58, .09);
+  }
+
   .schedule-input[disabled] {
-    background: #FCFCFC;
-    color: #46514B;
+    border-color: #c8d8d0;
+    background: #eef4f1;
+    color: #52635b;
     cursor: not-allowed;
+  }
+
+  .schedule-input:not([disabled]):hover,
+  .schedule-select:hover {
+    border-color: #9dbdaf;
   }
 
   .input-icon-wrap {
@@ -1023,6 +1098,44 @@
   }
 
   @media (max-width: 767.98px) {
+    .mode-panel.active,
+    .mode-panel.online.active {
+      transform: none;
+    }
+
+    .mode-panel.selection-pulse {
+      animation: none;
+    }
+
+    .mode-panel-head {
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .mode-selected-state {
+      font-size: .68rem;
+    }
+
+    .service-hero {
+      padding-inline: .25rem;
+    }
+
+    .schedule-card,
+    .schedule-summary-card {
+      padding: clamp(1rem, 5vw, 1.35rem);
+      border-radius: 18px;
+    }
+
+    .media-options {
+      grid-template-columns: 1fr;
+    }
+
+    .schedule-input,
+    .schedule-select {
+      min-height: 48px;
+      font-size: 16px;
+    }
+
     .anonim-toggle-row {
       flex-direction: column;
     }
@@ -1082,6 +1195,7 @@
           <article class="mode-panel online" data-panel="online">
             <div class="mode-panel-head">
               <span class="mode-badge"><i class="bi bi-wifi"></i> Online</span>
+              <span class="mode-selected-state">Layanan Terpilih</span>
             </div>
             <h2>Jadwalkan Online</h2>
             <p>Ajukan jadwal konseling online untuk berdiskusi dengan konselor melalui ruang chat. Setelah jadwal disetujui, Anda dapat mengikuti sesi konseling sesuai waktu yang telah dipilih.</p>
@@ -1102,7 +1216,7 @@
                 <span>Akses dari ruang personalmu</span>
               </div>
             </div>
-            <a href="#booking" class="mode-action" data-mode-action="online">Pilih Online <i class="bi bi-arrow-right"></i></a>
+            <a href="#booking" class="mode-action" data-mode-action="online">Pilih Online</a>
           </article>
         </div>
 
@@ -1110,6 +1224,7 @@
           <article class="mode-panel" data-panel="offline">
             <div class="mode-panel-head">
               <span class="mode-badge"><i class="bi bi-person-walking"></i> Offline</span>
+              <span class="mode-selected-state">Layanan Terpilih</span>
             </div>
             <h2>Jadwalkan Offline</h2>
             <p>Ajukan jadwal konseling offline untuk bertemu langsung dengan konselor di kampus. Setelah jadwal disetujui, Anda dapat datang sesuai waktu dan lokasi yang telah ditentukan.</p>
@@ -1130,7 +1245,7 @@
                 <span>Area GD 525 & GD 526</span>
               </div>
             </div>
-            <a href="#booking" class="mode-action" data-mode-action="offline">Pilih Offline <i class="bi bi-arrow-right"></i></a>
+            <a href="#booking" class="mode-action" data-mode-action="offline">Pilih Offline</a>
           </article>
         </div>
       </div>
@@ -1191,7 +1306,7 @@
             </div>
             <span class="selected-mode-pill" id="selected-mode-pill">
               <i class="bi bi-geo-alt"></i>
-              Offline
+              Dipilih: Offline
             </span>
           </div>
 
@@ -1424,6 +1539,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Elements
   const bookingEl = document.getElementById('booking');
+  const serviceModeStripEl = document.querySelector('.service-mode-strip');
   const tanggalEl = document.getElementById('tanggal');
   const waktuEl = document.getElementById('waktu');
   const topikEl = document.getElementById('topik');
@@ -1830,6 +1946,8 @@ document.addEventListener('DOMContentLoaded', function () {
     waktuNote.textContent = isJadwalUlang
       ? 'Pilih waktu baru untuk menjadwalkan ulang sesi konseling.'
       : 'Slot dengan status "Telah Terjadwal" sudah disetujui dan tidak dapat dipilih.';
+
+    syncFieldState(waktuEl);
   }
 
   async function fetchBookedSlots() {
@@ -1882,18 +2000,49 @@ document.addEventListener('DOMContentLoaded', function () {
     submitBtn.textContent = serviceConfig[mode]?.submit || 'Jadwalkan Konseling';
   }
 
+  function syncFieldState(field) {
+    if (!field || field.disabled) return;
+
+    const hasValue = String(field.value ?? '').trim() !== '';
+    field.classList.toggle('is-filled', hasValue);
+    field.setAttribute('data-field-state', hasValue ? 'filled' : 'empty');
+  }
+
+  function syncAllFieldStates() {
+    document.querySelectorAll('.schedule-input:not([disabled]), .schedule-select')
+      .forEach(syncFieldState);
+  }
+
   function setServiceMode(mode, shouldScroll = false) {
     if (!serviceConfig[mode]) return;
 
+    const previousService = document.querySelector('[data-panel].active')?.dataset.panel || null;
+    const alreadySelected = previousService === mode;
     selectedService = mode;
 
     const config = serviceConfig[mode];
 
     bookingEl?.classList.add('is-visible');
+    serviceModeStripEl?.classList.add('has-selection');
     document.body.classList.toggle('is-jadwal-ulang-mode', isJadwalUlang);
 
     document.querySelectorAll('[data-panel]').forEach(panel => {
-      panel.classList.toggle('active', panel.dataset.panel === mode);
+      const isActive = panel.dataset.panel === mode;
+      panel.classList.toggle('active', isActive);
+      panel.setAttribute('aria-selected', String(isActive));
+
+      const action = panel.querySelector('[data-mode-action]');
+      if (action) {
+        const actionLabel = serviceConfig[panel.dataset.panel]?.label || panel.dataset.panel;
+        action.textContent = `Pilih ${actionLabel}`;
+        action.setAttribute('aria-current', isActive ? 'true' : 'false');
+      }
+
+      panel.classList.remove('selection-pulse');
+      if (isActive && shouldScroll && !alreadySelected) {
+        void panel.offsetWidth;
+        panel.classList.add('selection-pulse');
+      }
     });
 
     const scheduleSubtitleEl = document.getElementById('schedule-subtitle');
@@ -1915,7 +2064,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (selectedModePillEl) {
       selectedModePillEl.className = `selected-mode-pill ${mode === 'online' ? 'online' : ''}`;
-      selectedModePillEl.innerHTML = `<i class="bi ${config.icon}"></i> ${config.label}`;
+      selectedModePillEl.innerHTML = `<i class="bi ${config.icon}"></i> Dipilih: ${config.label}`;
     }
 
     if (sideDurationEl) {
@@ -1937,6 +2086,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     setSubmitButtonLabel(mode);
+
+    window.requestAnimationFrame(syncAllFieldStates);
 
     submitBtn?.classList.toggle('online', mode === 'online');
 
@@ -2394,9 +2545,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  document.querySelectorAll('.schedule-input:not([disabled]), .schedule-select').forEach(field => {
+    field.addEventListener('input', () => syncFieldState(field));
+    field.addEventListener('change', () => syncFieldState(field));
+  });
+
   // Initialize
   updateAnonimUI(isAnonim);
   handleTopikChange();
+  syncAllFieldStates();
 
   fetchBookedSlots().then(() => {
     if (isJadwalUlang && jadwalUlangData) {
@@ -2409,6 +2566,8 @@ document.addEventListener('DOMContentLoaded', function () {
       document.querySelectorAll('[data-panel]').forEach(panel => {
         panel.classList.remove('active');
       });
+
+      serviceModeStripEl?.classList.remove('has-selection');
 
       renderTimeOptions();
     }

@@ -188,11 +188,11 @@
       width: 100%;
     }
   }
-  .group-consent-overlay {
+.group-consent-overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 2rem;
   display: flex;
   align-items: center;
@@ -332,7 +332,7 @@
   }
 
   .group-consent-card {
-    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
     border-radius: 24px;
   }
 
@@ -346,6 +346,28 @@
 
   .group-consent-head h1 {
     margin-right: 3rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .group-consent-overlay {
+    align-items: flex-start;
+    padding: .65rem;
+  }
+
+  .group-consent-card {
+    max-height: calc(100dvh - 1.3rem);
+    border-radius: 18px;
+  }
+
+  .group-consent-head,
+  .group-consent-body,
+  .group-consent-footer {
+    padding-inline: 1rem;
+  }
+
+  .group-consent-card .group-create-actions > * {
+    width: 100%;
   }
 }
 </style>

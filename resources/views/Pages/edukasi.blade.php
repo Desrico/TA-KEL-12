@@ -1010,7 +1010,22 @@
         }
 
         .edu-title{
-            font-size:2.4rem;
+            font-size:clamp(2rem,10vw,2.4rem);
+        }
+
+        .edu-hero{
+            padding:2.75rem 0 2.25rem;
+        }
+
+        .edu-hero-card,
+        .edu-card,
+        .edu-guide-card{
+            border-radius:20px;
+        }
+
+        .edu-content-modal-dialog{
+            width:calc(100vw - 1.5rem);
+            max-height:calc(100dvh - 1.5rem);
         }
 
         .edu-guide-top,

@@ -335,6 +335,36 @@
       grid-template-columns: 1fr;
     }
   }
+
+  @media (max-width: 767.98px) {
+    .profil-page {
+      padding-block: 1.5rem 3rem;
+    }
+
+    .profil-side-card,
+    .profil-main-card {
+      border-radius: 20px;
+    }
+
+    .profil-main-card,
+    .profil-side-card {
+      padding: clamp(1rem, 5vw, 1.35rem);
+    }
+
+    .profil-stat-grid {
+      gap: .65rem;
+    }
+
+    .profil-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .profil-actions .btn,
+    .profil-save-btn {
+      width: 100%;
+    }
+  }
 </style>
 @endpush
 

@@ -711,11 +711,11 @@
 
 @media (max-width: 640px) {
     .riwayat-page {
-        padding: 35px 22px;
+        padding: 28px clamp(14px, 4vw, 20px) 48px;
     }
 
     .riwayat-header h1 {
-        font-size: 38px;
+        font-size: clamp(2rem, 10vw, 2.375rem);
     }
 
     .riwayat-card {
@@ -736,6 +736,16 @@
     .feedback-done-badge {
         width: 100%;
         min-width: auto;
+    }
+
+    .feedback-modal {
+        border-radius: 18px;
+    }
+
+    .feedback-modal .modal-header,
+    .feedback-modal .modal-body,
+    .feedback-modal .modal-footer {
+        padding-inline: 1rem;
     }
 }
 

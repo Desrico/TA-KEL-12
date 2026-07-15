@@ -1029,7 +1029,7 @@
     }
 
     .group-room-main {
-      min-height: 680px;
+      min-height: clamp(480px, calc(100dvh - 190px), 680px);
     }
 
     .group-room-head {
@@ -1041,6 +1041,15 @@
     .group-room-active {
       width: 100%;
       justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .group-room-thread {
+      padding-inline: .85rem;
+    }
+
+    .group-room-composer {
+      padding-inline: .75rem;
     }
 
     .group-room-profile {

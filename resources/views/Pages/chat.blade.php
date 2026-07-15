@@ -60,9 +60,9 @@ $inisialKonselorTampil = strtoupper(mb_substr($namaKonselorTampil, 0, 1));
         radial-gradient(circle at top left, rgba(16, 185, 129, 0.18), transparent 30%),
         radial-gradient(circle at top right, rgba(110, 231, 183, 0.18), transparent 24%),
         linear-gradient(180deg, #effcf5 0%, #eefbf4 26%, #e2f7ec 100%);
-      width: 100vw;
-      margin-left: calc(50% - 50vw);
-      margin-right: calc(50% - 50vw);
+      width: 100dvw;
+      margin-left: calc(50% - 50dvw);
+      margin-right: calc(50% - 50dvw);
       padding: 0;
       overflow: hidden;
   }
