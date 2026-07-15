@@ -812,6 +812,57 @@
       }
     }
 
+    /* Mobile admin uses a true off-canvas drawer without leaving a sidebar strip. */
+    @media (max-width: 1024px) {
+      .pc-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        z-index: 1100 !important;
+        width: min(280px, 86vw) !important;
+        min-width: min(280px, 86vw) !important;
+        max-width: min(280px, 86vw) !important;
+        transform: translate3d(-100%, 0, 0) !important;
+        visibility: hidden !important;
+        box-shadow: none !important;
+        transition: transform .24s ease, visibility .24s ease !important;
+      }
+
+      .pc-sidebar.mob-sidebar-active {
+        transform: translate3d(0, 0, 0) !important;
+        visibility: visible !important;
+        box-shadow: 18px 0 45px rgba(15, 23, 42, .18) !important;
+      }
+
+      .pc-sidebar .navbar-wrapper {
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+
+      .pc-sidebar ~ .pc-header {
+        left: 0 !important;
+        width: 100% !important;
+      }
+
+      .pc-sidebar ~ .pc-container,
+      .pc-sidebar ~ .pc-footer {
+        width: 100% !important;
+        margin-left: 0 !important;
+      }
+
+      .pc-container,
+      .pc-content {
+        max-width: 100% !important;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .pc-content {
+        padding-inline: 14px !important;
+      }
+    }
+
     /* Modal confirm override (use on modals with class .modal-confirm) */
     .modal-backdrop.show {
       background: rgba(0,0,0,0.55) !important;
@@ -1550,6 +1601,58 @@ document.addEventListener('DOMContentLoaded', function () {
 
     fetchAllNotificationsWithPush();
     setInterval(fetchAllNotificationsWithPush, 10000);
+  })();
+
+  // Reliable mobile drawer dismissal. The template overlay lives inside the
+  // sidebar, so outside clicks are also handled at document level.
+  (() => {
+    const sidebar = document.querySelector('.pc-sidebar');
+    const mobileToggle = document.getElementById('mobile-collapse');
+
+    if (!sidebar || !mobileToggle) return;
+
+    const closeMobileSidebar = () => {
+      sidebar.classList.remove('mob-sidebar-active');
+      sidebar.querySelectorAll('.pc-menu-overlay').forEach((overlay) => overlay.remove());
+      document.querySelector('.hamburger')?.classList.remove('is-active');
+      mobileToggle.setAttribute('aria-expanded', 'false');
+    };
+
+    mobileToggle.setAttribute('aria-expanded', 'false');
+
+    mobileToggle.addEventListener('click', () => {
+      window.setTimeout(() => {
+        mobileToggle.setAttribute(
+          'aria-expanded',
+          String(sidebar.classList.contains('mob-sidebar-active'))
+        );
+      }, 0);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (window.innerWidth > 1024 || !sidebar.classList.contains('mob-sidebar-active')) return;
+
+      if (event.target.closest('.pc-menu-overlay')) {
+        closeMobileSidebar();
+        return;
+      }
+
+      if (mobileToggle.contains(event.target) || sidebar.contains(event.target)) return;
+
+      closeMobileSidebar();
+    });
+
+    sidebar.querySelectorAll('.pc-navbar .pc-link').forEach((link) => {
+      link.addEventListener('click', closeMobileSidebar);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeMobileSidebar();
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 1024) closeMobileSidebar();
+    });
   })();
 
 </script>

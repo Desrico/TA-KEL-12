@@ -238,7 +238,25 @@
 
             .dashboard-tabs {
                 width: 100%;
-                justify-content: space-between;
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+                gap: 6px;
+                overflow-x: auto;
+                padding: 6px;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .dashboard-tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .dashboard-tab-btn {
+                flex: 1 0 max-content;
+                min-width: 0;
+                padding: 10px 12px;
+                font-size: .82rem;
+                white-space: nowrap;
             }
         }
 
@@ -699,7 +717,7 @@
         @media (max-width: 768px) {
             .alert-header { flex-direction: column; align-items: flex-start; }
             .dashboard-heading-row { flex-direction: column; align-items: flex-start; }
-            .dashboard-tabs { flex-wrap: wrap; }
+            .dashboard-tabs { flex-wrap: nowrap; }
             .topik-wrapper { flex-direction: column; height: auto; align-items: stretch; }
             .topik-chart-container { width: 100%; height: 220px; margin-bottom: 16px; }
             .topik-legend-container { width: 100%; }
@@ -868,7 +886,8 @@
             color: #1f2937;
             font-size: .88rem;
             font-weight: 800;
-            overflow-wrap: anywhere;
+            overflow-wrap: break-word;
+            word-break: normal;
         }
 
         .today-mode {
@@ -1080,23 +1099,48 @@
 
         @media (max-width: 576px) {
             .konseling-stat-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 8px;
             }
 
             .today-row {
-                grid-template-columns: 46px minmax(0, 1fr);
-                gap: 10px 12px;
+                grid-template-columns: 48px minmax(0, 1fr);
+                align-items: start;
+                gap: 8px 12px;
+                padding: 12px;
             }
 
             .today-avatar {
-                grid-row: 1 / span 2;
+                grid-column: 1;
+                grid-row: 2;
+                width: 38px;
+                height: 38px;
             }
 
-            .today-time,
-            .today-status,
+            .today-time {
+                grid-column: 1;
+                grid-row: 1;
+                padding-top: 2px;
+            }
+
+            .today-main {
+                grid-column: 2;
+                grid-row: 1 / span 2;
+                width: 100%;
+            }
+
+            .today-status {
+                grid-column: 2;
+                grid-row: 3;
+                max-width: 100%;
+                min-width: 0;
+                white-space: normal;
+                text-align: center;
+            }
+
             .today-actions {
                 grid-column: 1 / -1;
+                grid-row: 4;
             }
 
             .today-actions {
@@ -1104,7 +1148,18 @@
             }
 
             .today-action {
-                flex: 1 1 130px;
+                flex: 1 1 100%;
+                width: 100%;
+            }
+
+            .today-section-card {
+                padding: 14px 12px 16px;
+                border-radius: 12px;
+            }
+
+            .today-section-header {
+                align-items: flex-start;
+                margin-bottom: 12px;
             }
 
             .konseling-stat-card {

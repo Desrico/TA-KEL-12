@@ -125,10 +125,33 @@
   }
 
   .group-room-subtitle {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .25rem .4rem;
+    max-width: 620px;
     margin: 0;
     color: #4b7a68;
     font-size: .9rem;
     line-height: 1.6;
+  }
+
+  .group-room-member-names {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .group-room-member-more {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    border-radius: 999px;
+    padding: .18rem .5rem;
+    background: #e8f7ef;
+    color: #047857;
+    font-size: .72rem;
+    font-weight: 800;
+    white-space: nowrap;
   }
 
   .group-room-actions {
@@ -1035,13 +1058,50 @@
     .group-room-head {
       flex-direction: column;
       align-items: flex-start;
+      gap: .7rem;
+      padding: 1rem;
+    }
+
+    .group-room-head-main {
+      width: 100%;
+      gap: .8rem;
+    }
+
+    .group-room-head-main > div:last-child {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .group-room-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 15px;
+      font-size: 1.15rem;
+    }
+
+    .group-room-title {
+      font-size: 1.02rem;
+      line-height: 1.25;
+    }
+
+    .group-room-subtitle {
+      max-width: 100%;
+      font-size: .78rem;
+      line-height: 1.45;
     }
 
     .group-room-actions,
     .group-room-active {
-      width: 100%;
+      width: auto;
       justify-content: flex-start;
       flex-wrap: wrap;
+    }
+
+    .group-room-toggle {
+      width: 44px;
+      height: 40px;
+      border-radius: 13px;
+      font-size: 1rem;
     }
 
     .group-room-thread {
@@ -1143,6 +1203,9 @@
         ->filter()
         ->values()
         ->all();
+
+    $previewMemberNames = array_slice($displayMemberNames, 0, 2);
+    $remainingMemberCount = max(count($displayMemberNames) - count($previewMemberNames), 0);
 @endphp
 
 <section class="group-room-page">
@@ -1169,7 +1232,12 @@
               <div>
                 <h1 class="group-room-title">{{ $chatPayload['roomTitle'] }}</h1>
                 <p class="group-room-subtitle">
-                  {{ implode(', ', array_slice($displayMemberNames, 0, 4)) }}{{ count($displayMemberNames) > 4 ? ' dan lainnya' : '' }}
+                  <span class="group-room-member-names">
+                    {{ implode(', ', $previewMemberNames) ?: 'Belum ada anggota' }}
+                  </span>
+                  @if($remainingMemberCount > 0)
+                    <span class="group-room-member-more">+{{ $remainingMemberCount }} lainnya</span>
+                  @endif
                 </p>
               </div>
             </div>
@@ -1414,6 +1482,8 @@
   const replyText = document.getElementById('groupChatReplyText');
   const replyCancel = document.getElementById('groupChatReplyCancel');
   let replyTarget = null;
+  let hasRenderedInitialMessages = false;
+  let lastMessageSignature = '';
 
   if (!thread || !form || !input || !sendBtn) {
     return;
@@ -1494,6 +1564,21 @@
   const scrollToBottom = () => {
     thread.scrollTop = thread.scrollHeight;
   };
+
+  const isNearBottom = (threshold = 120) => {
+    const distanceFromBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight;
+    return distanceFromBottom <= threshold;
+  };
+
+  const buildMessagesSignature = (messages = []) => JSON.stringify(
+    messages.map((message) => [
+      message.id,
+      message.text,
+      message.is_edited,
+      message.sent_at,
+      message.reply_to?.id ?? null,
+    ])
+  );
 
   const autoResize = () => {
     input.style.height = 'auto';
@@ -1784,10 +1869,27 @@
       return;
     }
 
+    const nextSignature = buildMessagesSignature(messages);
+
+    if (!force && hasRenderedInitialMessages && nextSignature === lastMessageSignature) {
+      return;
+    }
+
+    const shouldStickToBottom = !hasRenderedInitialMessages || isNearBottom();
+    const previousScrollTop = thread.scrollTop;
+
     thread.innerHTML = '';
     messages.forEach((message) => renderMessage(message));
     closeAllMenus();
-    scrollToBottom();
+
+    if (shouldStickToBottom) {
+      scrollToBottom();
+    } else {
+      thread.scrollTop = previousScrollTop;
+    }
+
+    hasRenderedInitialMessages = true;
+    lastMessageSignature = nextSignature;
   };
 
   const syncMessages = async (force = false) => {
@@ -1833,12 +1935,17 @@
           return;
         }
 
+        const shouldStickToBottom = isNearBottom();
+        const isOwnMessage = Number(event.message.sender_id) === Number(currentUserId);
+
         renderMessage({
           ...event.message,
-          is_mine: Number(event.message.sender_id) === Number(currentUserId),
+          is_mine: isOwnMessage,
         });
 
-        scrollToBottom();
+        if (shouldStickToBottom || isOwnMessage) {
+          scrollToBottom();
+        }
       });
   }
 
