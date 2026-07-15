@@ -1132,7 +1132,6 @@
         </div>
     </div>
 </section>
-@endsection
 
 @if($bisaFeedback)
 <div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true" aria-labelledby="feedbackModalLabel">
@@ -1213,6 +1212,8 @@
         </div>
     </div>
 @endif
+
+@endsection
 
 @push('scripts')
 <script>
