@@ -142,7 +142,7 @@ class LoginController extends Controller
             Auth::login($localUser, $request->boolean('ingat'));
             $request->session()->regenerate();
             $request->session()->forget('cis');
-            $request->session()->forget('security_pin_verified_at');
+            $request->session()->forget('two_factor_verified_at');
 
             return $this->redirectAfterLogin($localUser);
         }
@@ -251,7 +251,7 @@ class LoginController extends Controller
 
             Auth::login($user, $request->boolean('ingat'));
             $request->session()->regenerate();
-            $request->session()->forget('security_pin_verified_at');
+            $request->session()->forget('two_factor_verified_at');
             $request->session()->put('cis', [
                 'access_token' => $token,
                 'username' => $validated['username'],
@@ -288,7 +288,7 @@ class LoginController extends Controller
         Auth::logout();
 
         $request->session()->forget('cis');
-        $request->session()->forget('security_pin_verified_at');
+        $request->session()->forget('two_factor_verified_at');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
     }
@@ -307,151 +307,6 @@ class LoginController extends Controller
 
         return $sessionToken === ''
             || ($userIdentifier !== '' && $sessionUsername !== '' && strcasecmp($sessionUsername, $userIdentifier) !== 0);
-    }
-
-    public function showSecurityPin(Request $request)
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            return redirect()->route('login');
-        }
-
-        if ($user->role !== 'mahasiswa') {
-            return $this->redirectByRole($user->role);
-        }
-
-        if ($user->hasSecurityPin() && $request->session()->has('security_pin_verified_at')) {
-            return redirect()->route('dashboard');
-        }
-
-        return view('auth.security-pin', [
-            'mode' => $user->hasSecurityPin() ? 'verify' : 'setup',
-            'lockedUntil' => $user->security_pin_locked_until,
-        ]);
-    }
-
-    public function showSecurityPinReset(Request $request)
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            return redirect()->route('login');
-        }
-
-        if ($user->role !== 'mahasiswa') {
-            return $this->redirectByRole($user->role);
-        }
-
-        if (! $user->hasSecurityPin()) {
-            return redirect()->route('security-pin.show');
-        }
-
-        return view('auth.security-pin', [
-            'mode' => 'reset',
-            'lockedUntil' => $user->security_pin_locked_until,
-        ]);
-    }
-
-    public function submitSecurityPin(Request $request)
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            return redirect()->route('login');
-        }
-
-        if ($user->role !== 'mahasiswa') {
-            return $this->redirectByRole($user->role);
-        }
-
-        if (! $user->hasSecurityPin()) {
-            $validated = $request->validate([
-                'pin' => ['required', 'digits:6', 'confirmed'],
-            ], [
-                'pin.required' => 'PIN keamanan wajib diisi.',
-                'pin.digits' => 'PIN keamanan harus terdiri dari tepat 6 digit angka.',
-                'pin.confirmed' => 'Konfirmasi PIN tidak sama.',
-            ]);
-
-            $user->setSecurityPin($validated['pin']);
-
-            $request->session()->put('security_pin_verified_at', now()->toIso8601String());
-
-            return redirect()->route('dashboard')->with('success', 'PIN keamanan berhasil dibuat.');
-        }
-
-        if ($user->securityPinIsLocked()) {
-            return back()->withErrors([
-                'pin' => 'Terlalu banyak percobaan salah. Coba lagi pada ' . $user->security_pin_locked_until->format('H:i') . '.',
-            ]);
-        }
-
-        $validated = $request->validate([
-            'pin' => ['required', 'digits:6'],
-        ], [
-            'pin.required' => 'PIN keamanan wajib diisi.',
-            'pin.digits' => 'PIN keamanan harus terdiri dari tepat 6 digit angka.',
-        ]);
-
-        if (! $user->securityPinMatches($validated['pin'])) {
-            $pinAttempt = $user->recordFailedSecurityPinAttempt();
-            $lockedUntil = $pinAttempt['locked_until'];
-
-            $message = $lockedUntil
-                ? 'PIN salah 5 kali. Akun dikunci sementara selama 10 menit.'
-                : 'PIN keamanan salah. Sisa percobaan: ' . $pinAttempt['remaining_attempts'] . '.';
-
-            return back()->withErrors(['pin' => $message]);
-        }
-
-        $user->clearSecurityPinFailures();
-
-        $request->session()->put('security_pin_verified_at', now()->toIso8601String());
-
-        return redirect()->route('dashboard');
-    }
-
-    public function submitSecurityPinReset(Request $request, KampusApiService $kampusApi)
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            return redirect()->route('login');
-        }
-
-        if ($user->role !== 'mahasiswa') {
-            return $this->redirectByRole($user->role);
-        }
-
-        if (! $user->hasSecurityPin()) {
-            return redirect()->route('security-pin.show');
-        }
-
-        $validated = $request->validate([
-            'password' => ['required', 'string'],
-            'pin' => ['required', 'digits:6'],
-        ], [
-            'password.required' => 'Password CIS wajib diisi untuk reset PIN.',
-            'pin.required' => 'PIN keamanan wajib diisi.',
-            'pin.digits' => 'PIN keamanan harus terdiri dari tepat 6 digit angka.',
-        ]);
-
-        try {
-            $kampusApi->loginWithCredentials($user->username_cis ?? '', $validated['password']);
-        } catch (\Throwable $e) {
-            return back()->withErrors([
-                'password' => 'Password CIS tidak valid. PIN belum diubah.',
-            ])->withInput();
-        }
-
-        $user->setSecurityPin($validated['pin']);
-
-        $request->session()->put('security_pin_verified_at', now()->toIso8601String());
-
-        $request->session()->forget('security_pin_verified_at');
-
-        return redirect()->route('security-pin.reset.show', ['reset_success' => 1]);
     }
 
     private function attemptLocalLogin(string $username, string $password): ?User
@@ -1001,7 +856,9 @@ class LoginController extends Controller
     private function redirectAfterLogin(User $user)
     {
         if ($user->role === 'mahasiswa') {
-            return redirect()->route('security-pin.show');
+            return redirect()->route(
+                $user->hasTwoFactorAuthentication() ? 'two-factor.challenge' : 'two-factor.setup'
+            );
         }
 
         return $this->redirectByRole($user->role);

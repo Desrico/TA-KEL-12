@@ -20,6 +20,7 @@ use App\Http\Controllers\KetidaktersediaanKonselorController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\FeedbackMahasiswaController;
+use App\Http\Controllers\TwoFactorAuthenticationController;
 use App\Models\Feedback;
 
 // ═══════════════════════════════
@@ -64,10 +65,15 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/security-pin', [LoginController::class, 'showSecurityPin'])->name('security-pin.show');
-    Route::post('/security-pin', [LoginController::class, 'submitSecurityPin'])->name('security-pin.submit');
-    Route::get('/security-pin/lupa', [LoginController::class, 'showSecurityPinReset'])->name('security-pin.reset.show');
-    Route::post('/security-pin/lupa', [LoginController::class, 'submitSecurityPinReset'])->name('security-pin.reset.submit');
+    Route::get('/two-factor/setup', [TwoFactorAuthenticationController::class, 'setup'])->name('two-factor.setup');
+    Route::post('/two-factor/setup', [TwoFactorAuthenticationController::class, 'confirm'])
+        ->middleware('throttle:5,1')->name('two-factor.confirm');
+    Route::post('/two-factor/setup/regenerate', [TwoFactorAuthenticationController::class, 'regenerateSetup'])
+        ->middleware('throttle:3,1')->name('two-factor.setup.regenerate');
+    Route::get('/two-factor/challenge', [TwoFactorAuthenticationController::class, 'challenge'])->name('two-factor.challenge');
+    Route::post('/two-factor/challenge', [TwoFactorAuthenticationController::class, 'verify'])
+        ->middleware('throttle:5,1')->name('two-factor.verify');
+
 });
 
 Route::post('/notifikasi/{notifikasi}/baca', function (\App\Models\Notifikasi $notifikasi) {
@@ -86,7 +92,6 @@ Route::post('/notifikasi/{notifikasi}/baca', function (\App\Models\Notifikasi $n
 Route::middleware('auth')->group(function () {
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
     Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
-    Route::post('/profil/anonim', [ProfilController::class, 'toggleAnonim'])->name('profil.anonim');
 });
 
 

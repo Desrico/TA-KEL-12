@@ -333,29 +333,6 @@ class ProfilController extends Controller
         return back()->with('info', 'Profil menggunakan data akun CIS, sehingga tidak dapat diubah dari aplikasi ini.');
     }
 
-    public function toggleAnonim(Request $request)
-    {
-        $request->validate([
-            'anonim' => 'required|boolean',
-        ]);
-
-        $user = auth()->user();
-
-        if (! $user || $user->role !== 'mahasiswa') {
-            abort(403);
-        }
-
-        $user->update([
-            'is_anonim' => $request->boolean('anonim'),
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Mode anonim berhasil diperbarui.',
-            'anonim' => (bool) $user->fresh()->is_anonim,
-        ]);
-    }
-
     public function riwayat()
     {
         $mahasiswa = Auth::user()->mahasiswa;

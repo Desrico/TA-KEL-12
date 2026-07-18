@@ -405,16 +405,12 @@
                 </div>
 
             <div class="profil-user-name" id="nama-header">
-              {{ $user->getNamaDisplay() }}
+              {{ $user->nama }}
             </div>
 
             <div class="profil-user-meta">
-              @if($user->isAnonim())
-                {{ $mahasiswa->jurusan ?? '-' }} · Angkatan {{ $mahasiswa->angkatan ?? '-' }}
-              @else
-                {{ $mahasiswa->nim ?? '-' }}<br>
-                {{ $mahasiswa->jurusan ?? '-' }} · Angkatan {{ $mahasiswa->angkatan ?? '-' }}
-              @endif
+              {{ $mahasiswa->nim ?? '-' }}<br>
+              {{ $mahasiswa->jurusan ?? '-' }} · Angkatan {{ $mahasiswa->angkatan ?? '-' }}
             </div>
           </div>
 
@@ -462,7 +458,7 @@
               <div class="profil-field full">
                 <label class="profil-label">Nama Lengkap</label>
                 <div class="profil-value-box" id="view-nama">
-                  {{ $user->getNamaDisplay() }}
+                  {{ $user->nama }}
                 </div>
                 <input type="text" name="nama" id="edit-nama" class="edit-field" style="display:none" value="{{ $user->nama }}">
               </div>
@@ -470,7 +466,7 @@
               <div class="profil-field">
                 <label class="profil-label">NIM</label>
                 <div class="profil-value-box" id="view-nim">
-                  {{ $user->isAnonim() ? '-' : ($mahasiswa->nim ?? '-') }}
+                  {{ $mahasiswa->nim ?? '-' }}
                 </div>
                 <input type="text" name="nim" id="edit-nim" class="edit-field" style="display:none" value="{{ $mahasiswa->nim ?? '' }}">
               </div>
@@ -506,7 +502,7 @@
 
               <div class="profil-field full">
                 <label class="profil-label">Email</label>
-                <div class="profil-value-box">{{ $user->isAnonim() ? '********' : $user->email }}</div>
+                <div class="profil-value-box">{{ $user->email }}</div>
               </div>
 
               <div class="profil-field full">

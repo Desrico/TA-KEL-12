@@ -225,11 +225,56 @@
         }
 
         .edu-page-wrap {
-            padding: .75rem 16px 40px;
+            padding: .25rem 0 1.5rem;
         }
 
         .edu-card {
             min-height: auto;
+            padding: 1rem;
+            border-radius: 16px;
+        }
+
+        .edu-card-grid {
+            gap: .75rem;
+        }
+
+        .edu-card-top {
+            margin-bottom: .75rem;
+        }
+
+        .edu-card-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            font-size: 1.15rem;
+        }
+
+        .edu-badge {
+            padding: 3px 8px;
+            font-size: .62rem;
+        }
+
+        .edu-card-title {
+            margin-bottom: .4rem;
+            font-size: 1rem;
+        }
+
+        .edu-card-desc {
+            margin-bottom: .8rem;
+            font-size: .76rem;
+            line-height: 1.55;
+        }
+
+        .edu-card-footer {
+            padding-top: .75rem;
+        }
+
+        .edu-cta {
+            font-size: .7rem;
+        }
+
+        .edu-card-bg-icon {
+            font-size: 4.5rem;
         }
     }
 </style>

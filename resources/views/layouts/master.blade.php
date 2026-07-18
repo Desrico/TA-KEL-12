@@ -1927,11 +1927,11 @@
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: 270px;
-  background: white;
-  border-radius: 14px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border);
+  width: 250px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(6, 78, 59, .16);
+  border: 1px solid #DCEBE4;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-8px);
@@ -1947,16 +1947,17 @@
 }
 
 .pd-header {
-  padding: .9rem 1rem;
-  border-bottom: 1px solid #F1F5F9;
+  padding: .85rem .9rem;
+  border-bottom: 1px solid #EAF2EE;
   display: flex;
   align-items: center;
   gap: .75rem;
+  background: linear-gradient(135deg, #F6FFFA 0%, #FFFFFF 72%);
 }
 
 .pd-avatar {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   overflow: hidden;
   background: #f1f5f9;
@@ -2005,10 +2006,11 @@
 
 .pd-info {
     min-width: 0;
+    flex: 1;
 }
 
 .pd-name {
-    max-width: 180px;
+    max-width: 170px;
     white-space: normal;
     word-break: break-word;
 }
@@ -2021,10 +2023,27 @@
 
 .pd-name {
   font-weight: 700;
-  font-size: .92rem;
+  font-size: .88rem;
   color: var(--text-dark);
-  line-height: 1.2;
-  margin-bottom: .15rem;
+  line-height: 1.25;
+  margin-bottom: .3rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pd-role {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: .18rem .5rem;
+  border-radius: 999px;
+  background: #E5F8EF;
+  color: var(--primary);
+  font-size: .66rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .pd-nim {
@@ -2039,8 +2058,9 @@
   align-items: center;
   gap: .7rem;
   width: 100%;
-  padding: .78rem 1rem;
-  font-size: .88rem;
+  min-height: 48px;
+  padding: .7rem .9rem;
+  font-size: .86rem;
   color: var(--text-mid);
   text-decoration: none;
   background: transparent;
@@ -2057,6 +2077,19 @@
   font-size: .98rem;
   width: 18px;
   flex-shrink: 0;
+}
+
+.pd-item .pd-item-arrow {
+  width: auto;
+  margin-left: auto;
+  color: #94A3B8;
+  font-size: .78rem;
+  transition: transform .15s ease, color .15s ease;
+}
+
+.pd-item:hover .pd-item-arrow {
+  color: var(--primary);
+  transform: translateX(2px);
 }
 
 .pd-item.danger {
@@ -2281,6 +2314,7 @@ footer a:hover {
     box-shadow: 0 22px 55px rgba(6, 78, 59, 0.18);
     z-index: 1200;
     max-height: calc(100vh - 100px);
+    max-height: calc(100dvh - 100px);
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -2292,7 +2326,7 @@ footer a:hover {
 
   #navMain.show {
     display: grid !important;
-    grid-template-columns: 44px 44px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     grid-auto-flow: row dense;
     column-gap: .65rem;
     animation: mobileMenuIn .2s ease-out;
@@ -2337,6 +2371,13 @@ footer a:hover {
     padding: .7rem .85rem !important;
     border-radius: 13px;
     font-size: .9rem;
+    line-height: 1.25;
+    overflow: hidden;
+  }
+
+  #navMain .nav-link-custom span {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   #navMain .nav-link-custom.active {
@@ -2538,6 +2579,43 @@ footer a:hover {
   }
 }
 
+@media (max-width: 575.98px) {
+  .navbar-main .container {
+    padding-inline: 12px;
+  }
+
+  #navMain {
+    left: 12px;
+    right: 12px;
+    top: calc(100% + 8px);
+    max-height: calc(100vh - 88px);
+    max-height: calc(100dvh - 88px);
+    padding: .5rem;
+    border-radius: 16px;
+  }
+
+  #navMain .nav-link-custom {
+    min-height: 44px;
+    padding: .65rem .75rem !important;
+    border-radius: 11px;
+    font-size: .86rem;
+  }
+
+  #navMain .profile-btn {
+    min-width: 0;
+    height: 50px;
+  }
+
+  .navbar-main .navbar-notif-mobile {
+    margin-right: .45rem !important;
+  }
+
+  .navbar-main .navbar-notif-mobile .notif-dropdown {
+    left: 12px !important;
+    right: 12px !important;
+  }
+}
+
 /* DESKTOP */
 @media (min-width: 992px) {
   .mobile-profile-name {
@@ -2596,9 +2674,24 @@ footer a:hover {
 
   #navMain .profile-dropdown {
     position: absolute !important;
-    width: 280px !important;
+    width: 250px !important;
     right: 0 !important;
     left: auto !important;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  #navMain .navbar-nav {
+    gap: .2rem !important;
+  }
+
+  #navMain .nav-link-custom {
+    padding: .65rem .55rem !important;
+    font-size: .84rem;
+  }
+
+  #navMain .d-flex.align-items-center.ms-lg-3 {
+    margin-left: .5rem !important;
   }
 }
 
@@ -3093,6 +3186,14 @@ footer a:hover {
         @if(Auth::user()->role === 'mahasiswa')
         <li class="nav-item">
           <a
+            class="nav-link nav-link-custom {{ request()->is('riwayat*') ? 'active' : '' }}"
+            href="{{ route('riwayat') }}"
+          >
+            <span>Riwayat</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
             class="nav-link nav-link-custom {{ request()->routeIs('mahasiswa.chat*') ? 'active' : '' }}"
             href="{{ route('mahasiswa.chat') }}"
           >
@@ -3181,8 +3282,7 @@ footer a:hover {
     $user = Auth::user();
     $mahasiswa = $user?->mahasiswa;
 
-    $namaUser = $user?->getNamaDisplay()
-        ?? $user?->nama
+    $namaUser = $user?->nama
         ?? $user?->name
         ?? 'Mahasiswa';
 
@@ -3191,17 +3291,6 @@ footer a:hover {
         ?? 'Mahasiswa';
 
     $inisialUser = strtoupper(substr($namaAsliUser, 0, 1));
-
-    $nimUser = $mahasiswa?->nim ?? '-';
-
-    $prodiUser = $mahasiswa?->program_studi
-        ?? $mahasiswa?->prodi
-        ?? $mahasiswa?->jurusan
-        ?? '-';
-
-    $angkatanUser = $mahasiswa?->angkatan
-        ?? $mahasiswa?->tahun_masuk
-        ?? '';
 
     $fotoProfil = optional($user?->profil)->foto
         ? \Illuminate\Support\Facades\Storage::url($user->profil->foto)
@@ -3252,26 +3341,13 @@ footer a:hover {
 
             <div class="pd-info">
                 <div class="pd-name">{{ $namaUser }}</div>
-                <div class="pd-nim">
-                    {{ $nimUser }}
-                    @if($prodiUser !== '-')
-                        · {{ $prodiUser }}
-                    @endif
-                    @if($angkatanUser)
-                        {{ $angkatanUser }}
-                    @endif
-                </div>
             </div>
         </div>
 
         <a href="{{ route('profil') }}" class="pd-item">
             <i class="bi bi-person-circle"></i>
             <span>Profil Saya</span>
-        </a>
-
-        <a href="{{ route('riwayat') }}" class="pd-item">
-            <i class="bi bi-calendar2-check"></i>
-            <span>Riwayat Konseling</span>
+            <i class="bi bi-chevron-right pd-item-arrow" aria-hidden="true"></i>
         </a>
 
         <div class="pd-divider"></div>

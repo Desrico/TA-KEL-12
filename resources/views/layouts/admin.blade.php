@@ -646,10 +646,48 @@
     }
 
     @media (max-width: 768px) {
+      .pc-content {
+        padding: .7rem !important;
+      }
+
+      .admin-page-inner {
+        max-width: 100% !important;
+        font-size: .9rem;
+      }
+
       .admin-breadcrumb {
-        margin: 0 0 1rem;
-        font-size: .82rem;
-        padding: .75rem .85rem;
+        gap: .45rem;
+        margin: 0 0 .65rem;
+        font-size: .76rem;
+        padding: .35rem .15rem;
+        white-space: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .admin-breadcrumb::-webkit-scrollbar {
+        display: none;
+      }
+
+      .page-header {
+        margin-bottom: .75rem;
+      }
+
+      .page-header .page-header-title h5 {
+        font-size: 1.35rem;
+        line-height: 1.25;
+      }
+
+      .kons-card,
+      .admin-page-inner > .card,
+      .admin-page-inner > .sesi-card,
+      .admin-page-inner > .table-card {
+        border-radius: 16px;
+      }
+
+      .kons-card-header,
+      .kons-card-body {
+        padding: .85rem;
       }
     }
 
@@ -859,7 +897,7 @@
 
     @media (max-width: 576px) {
       .pc-content {
-        padding-inline: 14px !important;
+        padding: .55rem !important;
       }
     }
 

@@ -41,7 +41,7 @@ class JadwalController extends Controller
             'nimMahasiswa'     => $mahasiswa->nim ?? '-',
             'jurusanMahasiswa' => $mahasiswa->jurusan ?? '-',
             'angkatanMahasiswa' => $mahasiswa->angkatan ?? '-',
-            'isAnonim'         => method_exists($user, 'isAnonim') ? $user->isAnonim() : false,
+            'isAnonim'         => false,
             'followUpJadwal'   => $followUpJadwal,
             'topicOptions'      => GroupChatRoom::schedulingTopicOptions(),
         ]);
@@ -58,6 +58,7 @@ class JadwalController extends Controller
             'waktu'   => 'required|date_format:H:i',
             'jenis'   => 'required|in:online,offline',
             'topik'   => 'required|string|min:3|max:255',
+            'anonim'  => 'nullable|boolean',
         ]);
 
         $user = Auth::user();
@@ -68,7 +69,7 @@ class JadwalController extends Controller
             'nimMahasiswa'      => $mahasiswa->nim ?? '-',
             'jurusanMahasiswa'  => $mahasiswa->jurusan ?? '-',
             'angkatanMahasiswa' => $mahasiswa->angkatan ?? '-',
-            'isAnonim'          => method_exists($user, 'isAnonim') ? $user->isAnonim() : false,
+            'isAnonim'          => $validated['jenis'] === 'online' && (bool) ($validated['anonim'] ?? false),
             'tanggal'           => $validated['tanggal'],
             'waktu'             => $validated['waktu'],
             'jenis'             => $validated['jenis'],
@@ -83,6 +84,7 @@ class JadwalController extends Controller
             'waktu'   => 'required|date_format:H:i',
             'jenis'   => 'required|in:online,offline',
             'topik'   => 'required|string|min:3|max:255',
+            'anonim'  => 'nullable|boolean',
             'follow_up_from' => 'nullable|integer',
         ];
 
@@ -101,6 +103,7 @@ class JadwalController extends Controller
             'topik.required'           => 'Topik konseling wajib diisi.',
             'topik.min'                => 'Topik konseling minimal 3 karakter.',
             'topik.max'                => 'Topik konseling maksimal 255 karakter.',
+            'anonim.boolean'           => 'Pilihan mode anonim tidak valid.',
             'konfirmasi.accepted'      => 'Centang pernyataan konfirmasi sebelum menjadwalkan konseling.',
         ]);
 
@@ -335,7 +338,7 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
         $normalizedWaktu = Carbon::createFromFormat('H:i', $validated['waktu'])
             ->format('H:i:s');
 
-        $isAnonim = $validated['jenis'] === 'online' && $user->isAnonim();
+        $isAnonim = $validated['jenis'] === 'online' && (bool) ($validated['anonim'] ?? false);
         $namaDisplay = $isAnonim
             ? trim($user->getAnonimDisplayName())
             : $user->nama;
@@ -482,8 +485,9 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
         $validated = $request->validate([
             'tanggal' => 'required|date|after_or_equal:today',
             'waktu' => 'required|date_format:H:i',
-            'jenis' => 'required|string',
+            'jenis' => 'required|in:online,offline',
             'topik' => 'required|string|max:255',
+            'anonim' => 'nullable|boolean',
         ]);
 
         $user = auth()->user();
@@ -559,6 +563,7 @@ private function formatKetidaktersediaanResponse(KetidaktersediaanKonselor $data
             'waktu' => $normalizedWaktu,
             'jenis' => $validated['jenis'],
             'topik' => $validated['topik'],
+            'anonim' => $validated['jenis'] === 'online' && (bool) ($validated['anonim'] ?? false),
             'status' => 'menunggu',
             'updated_at' => now(),
         ]);

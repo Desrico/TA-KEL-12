@@ -177,7 +177,9 @@ class ChatController extends Controller
         $sessionData = $canChatNow ? [
             'id' => $jadwal->id,
             'sesi_id' => $sesi->id,
-            'nama' => $jadwal->mahasiswa?->user->getNamaDisplay() ?? 'Mahasiswa',
+            'nama' => (bool) ($jadwal->anonim ?? false)
+                ? ($jadwal->mahasiswa?->user?->getAnonimDisplayName() ?? 'Anonim')
+                : ($jadwal->mahasiswa?->user?->nama ?? 'Mahasiswa'),
         ] : null;
 
         return view('chat.student', compact('sessionData', 'messages'));

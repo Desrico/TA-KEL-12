@@ -138,26 +138,38 @@
         min-height:350px;
         border-radius:24px;
         background:
-            radial-gradient(circle at 22% 20%, rgba(255,255,255,.9) 0 0, rgba(255,255,255,.9) 58px, transparent 60px),
+            radial-gradient(circle at 20% 20%, rgba(255,255,255,.95) 0 0, rgba(255,255,255,.95) 60px, transparent 62px),
+            radial-gradient(circle at 80% 80%, rgba(15,184,122,.15) 0 0, rgba(15,184,122,0) 50%),
             linear-gradient(135deg,#d9f1e6 0%,#f5fbf7 50%,#cde5d7 100%);
         display:flex;
         align-items:center;
         justify-content:center;
         position:relative;
         overflow:hidden;
+        box-shadow: inset 0 0 40px rgba(10,82,58,.04);
     }
 
     .edu-hero-icon{
         width:140px;
         height:140px;
         border-radius:42px;
-        background:linear-gradient(135deg,#315743,#6e8d78);
+        background:linear-gradient(135deg,#0a523a,#2e86c1);
         color:#fff;
         display:flex;
         align-items:center;
         justify-content:center;
         font-size:4rem;
-        box-shadow:0 22px 40px rgba(49,87,67,.25);
+        box-shadow:0 22px 40px rgba(10,82,58,.25);
+        animation: floatIcon 6s ease-in-out infinite;
+    }
+
+    @keyframes floatIcon {
+        0%, 100% {
+            transform: translateY(0) rotate(0deg);
+        }
+        50% {
+            transform: translateY(-10px) rotate(3deg);
+        }
     }
 
     .edu-floating-note{
@@ -165,14 +177,17 @@
         left:1.2rem;
         right:1.2rem;
         bottom:1.2rem;
-        background:rgba(255,255,255,.85);
-        border:1px solid rgba(255,255,255,.85);
-        backdrop-filter:blur(12px);
+        background:rgba(255,255,255,.8);
+        border:1px solid rgba(255,255,255,.5);
+        backdrop-filter:blur(16px);
+        -webkit-backdrop-filter:blur(16px);
         border-radius:20px;
-        padding:1rem;
-        color:#315743;
+        padding:1.1rem 1.3rem;
+        color:#0a523a;
         font-weight:700;
         line-height:1.6;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        font-size: 0.95rem;
     }
 
     .edu-section{
@@ -184,7 +199,6 @@
     }
 
     .edu-section-head{
-        max-width:760px;
         margin-bottom:2.4rem;
     }
 
@@ -209,14 +223,14 @@
         background:#fff;
         border:1px solid rgba(26,58,92,.08);
         box-shadow:0 16px 34px rgba(13,27,42,.07);
-        transition:.25s ease;
+        transition:.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     .edu-topic-card:hover,
     .edu-content-card:hover,
     .edu-guide-card:hover{
-        transform: translateY(-4px);
-    box-shadow: 0 16px 36px rgba(21, 71, 52, 0.12);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(10, 82, 58, 0.12);
     }
 
     .edu-topic-card{
@@ -242,6 +256,13 @@
         justify-content:center;
         font-size:1.45rem;
         margin-bottom:1rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .edu-topic-card:hover .edu-topic-icon {
+        background: #0a523a;
+        color: #fff;
+        transform: scale(1.1) rotate(5deg);
     }
 
     .edu-topic-card h3{
@@ -268,6 +289,10 @@
         color:#0a523a;
     }
 
+    .edu-mobile-swipe-hint{
+        display:none;
+    }
+
     .edu-content-link,
     .edu-content-button{
         width:100%;
@@ -291,22 +316,22 @@
     }
 
     .edu-content-card {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    background: #ffffff !important;
-    border: 1px solid #d9e7df;
-    border-radius: 24px;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    box-shadow: 0 10px 28px rgba(21, 71, 52, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    filter: none !important;
-}
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        background: #ffffff !important;
+        border: 1px solid #d9e7df;
+        border-radius: 24px;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 10px 28px rgba(21, 71, 52, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        filter: none !important;
+    }
 
     .edu-content-media{
         min-height:0;
@@ -315,7 +340,6 @@
         align-items:center;
         justify-content:center;
         color:#0a523a;
-        font-size:3.1rem;
         position:relative;
         width:100%;
         overflow: hidden;
@@ -330,10 +354,10 @@
         z-index:2;
         display:inline-flex;
         align-items:center;
-        gap:.4rem;
+        gap:.35rem;
         border-radius:999px;
-        padding: 8px 14px;
-        font-size: 13px;
+        padding: 6px 12px;
+        font-size: 12px;
         font-weight: 700;
         background:#fff;
         color: #146c43;
@@ -367,64 +391,163 @@
     }
 
     .edu-content-body h3 {
-    margin-bottom: 10px;
-    font-size: 20px;
-    line-height: 1.35;
-    color: #16211d;
-    font-weight: 800;
-}
+        margin-bottom: 10px;
+        font-size: 20px;
+        line-height: 1.35;
+        color: #16211d;
+        font-weight: 800;
+    }
     .edu-content-body p {
-    margin-bottom: 18px;
-    color: #4e5d55;
-    line-height: 1.75;
-    font-size: 15px;
-}
+        margin-bottom: 18px;
+        color: #4e5d55;
+        line-height: 1.75;
+        font-size: 15px;
+    }
 
-.edu-action-btn {
-    display: inline-block;
-    padding: 10px 16px;
-    border-radius: 12px;
-    background: #178754;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 700;
-}
+    .edu-action-btn {
+        display: inline-block;
+        padding: 10px 16px;
+        border-radius: 12px;
+        background: #178754;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        transition: background .2s ease;
+    }
+    
+    .edu-content-card:hover .edu-action-btn {
+        background: #0f6b40;
+    }
 
-.edu-action-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:.65rem;
-    align-items:center;
-    margin-top:auto;
-}
+    .edu-action-row{
+        display:flex;
+        flex-wrap:wrap;
+        gap:.65rem;
+        align-items:center;
+        margin-top:auto;
+    }
 
-.edu-action-secondary{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:.4rem;
-    padding:10px 14px;
-    border-radius:12px;
-    border:1px solid rgba(20,108,67,.22);
-    background:#eef7f1;
-    color:#146c43;
-    font-size:14px;
-    font-weight:700;
-    text-decoration:none;
-    font-family:inherit;
-    cursor:pointer;
-}
+    .edu-action-secondary{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:.4rem;
+        padding:10px 14px;
+        border-radius:12px;
+        border:1px solid rgba(20,108,67,.22);
+        background:#eef7f1;
+        color:#146c43;
+        font-size:14px;
+        font-weight:700;
+        text-decoration:none;
+        font-family:inherit;
+        cursor:pointer;
+        transition: all 0.2s ease;
+    }
 
-.edu-action-secondary:hover{
-    color:#0a523a;
-    background:#dff3e8;
-    text-decoration:none;
-}
+    .edu-action-secondary:hover{
+        color:#0a523a;
+        background:#dff3e8;
+        text-decoration:none;
+    }
+
+    /* Tabs Filter (Artikel & Video) */
+    .edu-tabs-wrapper {
+        flex-shrink: 0;
+    }
+
+    .edu-tabs-container {
+        display: inline-flex;
+        background: #eff5f1;
+        padding: 6px;
+        border-radius: 99px;
+        border: 1px solid rgba(10,82,58,.08);
+        gap: 4px;
+    }
+
+    .edu-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        border: none;
+        background: transparent;
+        color: #52616b;
+        padding: .65rem 1.25rem;
+        font-weight: 800;
+        font-size: .85rem;
+        border-radius: 99px;
+        cursor: pointer;
+        transition: all .25s ease;
+        line-height: 1;
+    }
+
+    .edu-tab-btn i {
+        font-size: 1rem;
+        color: #146c43;
+        transition: color .25s ease;
+    }
+
+    .edu-tab-btn:hover {
+        color: #0a523a;
+    }
+
+    .edu-tab-btn.active {
+        background: #0a523a;
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(10,82,58,.15);
+    }
+
+    .edu-tab-btn.active i {
+        color: #fff;
+    }
+
+    /* Fallback Illustration Style */
+    .edu-content-fallback {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #edf7f1;
+        overflow: hidden;
+    }
+
+    /* Empty state */
+    .edu-no-content {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #fff;
+        border-radius: 24px;
+        border: 1px dashed rgba(10,82,58,.2);
+        max-width: 500px;
+        margin: 2rem auto;
+    }
+
+    .edu-no-content-icon {
+        font-size: 3rem;
+        color: #8caba0;
+        margin-bottom: 1rem;
+    }
+
+    .edu-no-content h3 {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #202020;
+        margin-bottom: .5rem;
+    }
+
+    .edu-no-content p {
+        color: #52616b;
+        font-size: .95rem;
+        line-height: 1.6;
+        margin: 0;
+    }
 
     #contentGrid{
         display:grid;
         grid-template-columns:repeat(3,minmax(0,1fr));
-        gap:1.5rem;
+        gap:2rem;
         position:relative;
         overflow:visible;
         width:100%;
@@ -537,15 +660,6 @@
         transform:translateY(-6px);
     }
 
-    .edu-content-highlight{
-        border-color:rgba(10,82,58,.45) !important;
-        box-shadow:0 22px 45px rgba(10,82,58,.14) !important;
-    }
-
-    .edu-content-highlight .edu-content-media{
-        background:linear-gradient(135deg,#c8f3dc,#f7fbf8);
-    }
-
     .edu-content-modal{
         position:fixed;
         inset:0;
@@ -594,7 +708,6 @@
         padding:0;
     }
 
-    /* Modal video tidak perlu scroll internal karena kontennya selalu rasio 16:9. */
     .edu-content-modal[data-content-mode="video"] .edu-content-modal-body{
         overflow:hidden;
     }
@@ -800,7 +913,7 @@
 
     .edu-guide-card{
         border-radius:26px;
-        padding:1.6rem;
+        padding:2rem;
     }
 
     .edu-guide-card.warning{
@@ -913,9 +1026,9 @@
     }
 
     .edu-content-media.has-image {
-    padding: 0;
-    overflow: hidden;
-    background: #f3f7f3;
+        padding: 0;
+        overflow: hidden;
+        background: #f3f7f3;
     }
 
     .edu-content-img {
@@ -925,21 +1038,6 @@
         object-fit: cover;
         display: block;
     }
-
-    .edu-content-fallback {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #edf7f1;
-    }
-
-    .edu-content-fallback i {
-        font-size: 56px;
-        color: #146c43;
-    }
-
 
     @media(max-width:991.98px){
         #contentGrid{
@@ -968,22 +1066,194 @@
         .edu-inline-detail-grid{
             grid-template-columns:1fr;
         }
+        
+        .edu-section-head {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 1.5rem;
+        }
     }
 
     @media(max-width:767.98px){
-        #contentGrid{
-            grid-template-columns:minmax(0,1fr);
+        .edu-section{
+            padding:2.25rem 0;
         }
 
-        #contentGrid > [data-content-slot="1"]{grid-column:1;grid-row:1;}
-        #contentGrid > [data-content-slot="2"]{grid-column:1;grid-row:2;}
-        #contentGrid > [data-content-slot="3"]{grid-column:1;grid-row:3;}
-        #contentGrid > [data-content-slot="4"]{grid-column:1;grid-row:4;}
-        #contentGrid > [data-content-slot="5"]{grid-column:1;grid-row:5;}
-        #contentGrid > [data-content-slot="6"]{grid-column:1;grid-row:6;}
+        .edu-section-head{
+            gap:.7rem !important;
+            margin-bottom:1rem;
+        }
 
-        .edu-section{
-            padding:3.5rem 0;
+        .edu-section-title{
+            margin-bottom:.35rem;
+            font-size:1.3rem;
+        }
+
+        .edu-section-desc{
+            font-size:.78rem;
+            line-height:1.55;
+        }
+
+        .edu-mobile-swipe-hint{
+            display:inline-flex;
+            align-items:center;
+            gap:.35rem;
+            width:max-content;
+            color:#0a523a;
+            font-size:.7rem;
+            font-weight:800;
+            margin-bottom:.55rem;
+        }
+
+        .edu-topic-scroll{
+            display:flex;
+            flex-wrap:nowrap;
+            gap:.75rem;
+            margin-inline:calc(var(--bs-gutter-x, 1.5rem) * -.5);
+            padding:.15rem calc(var(--bs-gutter-x, 1.5rem) * .5) .7rem;
+            overflow-x:auto;
+            overflow-y:hidden;
+            scroll-snap-type:x mandatory;
+            scroll-padding-inline:calc(var(--bs-gutter-x, 1.5rem) * .5);
+            overscroll-behavior-inline:contain;
+            -webkit-overflow-scrolling:touch;
+            scrollbar-width:none;
+        }
+
+        .edu-topic-scroll::-webkit-scrollbar,
+        #contentGrid::-webkit-scrollbar{
+            display:none;
+        }
+
+        .edu-topic-scroll > [class*="col-"]{
+            width:auto;
+            max-width:none;
+            flex:0 0 min(76vw, 270px);
+            padding:0;
+            scroll-snap-align:start;
+        }
+
+        .edu-topic-card{
+            min-height:176px;
+            padding:1rem;
+            border-radius:17px;
+        }
+
+        .edu-topic-icon{
+            width:42px;
+            height:42px;
+            margin-bottom:.65rem;
+            border-radius:13px;
+            font-size:1.05rem;
+        }
+
+        .edu-topic-card h3{
+            margin-bottom:.35rem;
+            font-size:.92rem;
+        }
+
+        .edu-topic-card p{
+            display:-webkit-box;
+            overflow:hidden;
+            font-size:.72rem;
+            line-height:1.5;
+            -webkit-box-orient:vertical;
+            -webkit-line-clamp:3;
+        }
+
+        .edu-click-note{
+            margin-top:.55rem;
+            font-size:.67rem;
+        }
+
+        #contentGrid{
+            display:flex;
+            grid-template-columns:none;
+            align-items:stretch;
+            gap:.8rem;
+            margin-inline:calc(var(--bs-gutter-x, 1.5rem) * -.5);
+            padding:.15rem calc(var(--bs-gutter-x, 1.5rem) * .5) .8rem;
+            overflow-x:auto;
+            overflow-y:hidden;
+            scroll-snap-type:x mandatory;
+            scroll-padding-inline:calc(var(--bs-gutter-x, 1.5rem) * .5);
+            overscroll-behavior-inline:contain;
+            -webkit-overflow-scrolling:touch;
+        }
+
+        #contentGrid > [data-topic-item]{
+            display:none;
+            width:auto;
+            min-width:0;
+            max-width:none;
+            flex:0 0 min(82vw, 310px);
+            transform:none;
+            transition:opacity .22s ease;
+            scroll-snap-align:start;
+        }
+
+        #contentGrid > .edu-content-item-active{
+            display:block;
+        }
+
+        #noContentMessage{
+            flex:0 0 calc(100% - 1rem);
+            margin:.25rem auto;
+            padding:1.5rem 1rem;
+        }
+
+        .edu-content-card{
+            border-radius:17px;
+        }
+
+        .edu-content-body{
+            padding:.9rem;
+        }
+
+        .edu-content-meta{
+            margin-bottom:.55rem;
+        }
+
+        .edu-chip,
+        .edu-content-type{
+            padding:5px 9px;
+            font-size:10px;
+        }
+
+        .edu-content-body h3{
+            margin-bottom:.4rem;
+            font-size:.95rem;
+        }
+
+        .edu-content-body p{
+            display:-webkit-box;
+            overflow:hidden;
+            margin-bottom:.75rem;
+            font-size:.73rem;
+            line-height:1.55;
+            -webkit-box-orient:vertical;
+            -webkit-line-clamp:3;
+        }
+
+        .edu-action-btn,
+        .edu-action-secondary{
+            padding:7px 10px;
+            border-radius:9px;
+            font-size:.68rem;
+        }
+
+        .edu-tabs-container{
+            padding:4px;
+        }
+
+        .edu-tab-btn{
+            gap:.3rem;
+            padding:.5rem .75rem;
+            font-size:.7rem;
+        }
+
+        .edu-tab-btn i{
+            font-size:.8rem;
         }
 
         .edu-content-modal{
@@ -1048,9 +1318,10 @@
         }
 
         .edu-content-pagination{
-            margin:2.25rem 0 2.75rem;
+            display:none !important;
         }
     }
+
 </style>
 @endpush
 
@@ -1091,6 +1362,137 @@
 
     $contents = $contents ?? collect();
 
+    // Fungsi pembantu untuk merender SVG kustom yang edukatif berdasarkan kategori
+    if (!function_exists('getIllustrativeSvg')) {
+        function getIllustrativeSvg($category) {
+            $category = strtolower($category);
+            
+            // 1. Akademik
+            if (strpos($category, 'akademik') !== false) {
+                return '
+                <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; object-fit:cover; display:block;">
+                  <defs>
+                    <linearGradient id="grad-akademik" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" fill-opacity="1" stop-color="#0a523a" />
+                      <stop offset="100%" fill-opacity="1" stop-color="#2e86c1" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grad-akademik)" opacity="0.15"/>
+                  <circle cx="160" cy="30" r="6" fill="#0fb87a" opacity="0.6"/>
+                  <circle cx="40" cy="80" r="10" fill="#2e86c1" opacity="0.3"/>
+                  <path d="M60 75h80v10H60z" fill="#0a523a" opacity="0.4" rx="2"/>
+                  <path d="M55 80h90v8H55z" fill="#0a523a" opacity="0.6" rx="2"/>
+                  <path d="M100 70c-15-5-35 0-35 0v-30s20-5 35 0c15-5 35 0 35 0v30s-20-5-35 0Z" fill="#fff" stroke="#0a523a" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M100 40v30" stroke="#0a523a" stroke-width="1.5" stroke-dasharray="2 2"/>
+                  <path d="M72 48h16M72 54h12M72 60h16M112 48h16M112 54h12M112 60h16" stroke="#cde5d7" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M90 28l10-4 10 4-10 4-10-4Z" fill="#0a523a"/>
+                  <path d="M94 29.5v5c0 1.5 1.5 2.5 6 2.5s6-1 6-2.5v-5" fill="#0a523a"/>
+                  <path d="M106 28v6l3 1.5" fill="none" stroke="#2e86c1" stroke-width="1"/>
+                </svg>';
+            } 
+            // 2. Intrapersonal
+            elseif (strpos($category, 'intrapersonal') !== false) {
+                return '
+                <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; object-fit:cover; display:block;">
+                  <defs>
+                    <linearGradient id="grad-intra" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#0fb87a" />
+                      <stop offset="100%" stop-color="#2e86c1" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grad-intra)" opacity="0.12"/>
+                  <path d="M85 85c0-15-5-22 5-35 8-10 22-10 30-2 8 8 5 22 5 22s5 3 5 10c0 5-5 5-5 5H90" fill="#fff" opacity="0.5" stroke="#0a523a" stroke-width="2"/>
+                  <path d="M105 45c0-10 5-15 15-20" stroke="#0fb87a" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M120 25c2-2 5 0 5 4s-3 5-5 4z" fill="#0fb87a"/>
+                  <path d="M110 32c-5-5-5-12 0-16" stroke="#2e86c1" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M110 16c-2-2-4 0-4 3s2 3 4 2z" fill="#2e86c1"/>
+                  <path d="M70 30l2 2 2-2-2-2zM140 50l1.5 1.5 1.5-1.5-1.5-1.5z" fill="#0fb87a"/>
+                  <path d="M100 68c-2-2-5-2-7 0s-2 5 0 7l7 7 7-7c2-2 2-5 0-7s-5-2-7 0Z" fill="#0a523a"/>
+                </svg>';
+            } 
+            // 3. Kehidupan di Kampus
+            elseif (strpos($category, 'kampus') !== false) {
+                return '
+                <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; object-fit:cover; display:block;">
+                  <defs>
+                    <linearGradient id="grad-kampus" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#315743" />
+                      <stop offset="100%" stop-color="#6e8d78" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grad-kampus)" opacity="0.12"/>
+                  <circle cx="150" cy="40" r="18" fill="#e8f8ef" stroke="#0fb87a" stroke-width="1" stroke-dasharray="3 3"/>
+                  <circle cx="150" cy="40" r="12" fill="#0fb87a" opacity="0.2"/>
+                  <rect x="50" y="55" width="45" height="35" rx="3" fill="#fff" stroke="#315743" stroke-width="2"/>
+                  <rect x="95" y="45" width="35" height="45" rx="3" fill="#fff" stroke="#315743" stroke-width="2"/>
+                  <polygon points="95,45 112.5,30 130,45" fill="#315743" opacity="0.8"/>
+                  <rect x="60" y="65" width="8" height="8" rx="1" fill="#eff8f2"/>
+                  <rect x="77" y="65" width="8" height="8" rx="1" fill="#eff8f2"/>
+                  <rect x="108" y="55" width="10" height="12" rx="1" fill="#eff8f2"/>
+                  <path d="M30 95c30-5 50-10 65-15" stroke="#0a523a" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/>
+                </svg>';
+            } 
+            // 4. Keluarga
+            elseif (strpos($category, 'keluarga') !== false) {
+                return '
+                <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; object-fit:cover; display:block;">
+                  <defs>
+                    <linearGradient id="grad-keluarga" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#0a523a" />
+                      <stop offset="100%" stop-color="#f5fbf7" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grad-keluarga)" opacity="0.14"/>
+                  <path d="M140 25c-3-3-8-3-11 0s-3 8 0 11l11 11 11-11c3-3 3-8 0-11s-8-3-11 0Z" fill="#0fb87a" opacity="0.7"/>
+                  <path d="M60 40c-2-2-5-2-7 0s-2 5 0 7l7 7 7-7c2-2 2-5 0-7s-5-2-7 0Z" fill="#2e86c1" opacity="0.5"/>
+                  <path d="M70 85V60l30-20 30 20v25H70Z" fill="#fff" stroke="#0a523a" stroke-width="2"/>
+                  <path d="M90 85V70h20v15H90Z" fill="#0a523a"/>
+                  <circle cx="100" cy="52" r="6" fill="#e8f8ef" stroke="#0a523a" stroke-width="1.5"/>
+                </svg>';
+            } 
+            // 5. Masalah di Asrama
+            elseif (strpos($category, 'asrama') !== false) {
+                return '
+                <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; object-fit:cover; display:block;">
+                  <defs>
+                    <linearGradient id="grad-asrama" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#2e86c1" />
+                      <stop offset="100%" stop-color="#eff8f2" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grad-asrama)" opacity="0.12"/>
+                  <rect x="55" y="40" width="80" height="45" rx="2" fill="none" stroke="#2e86c1" stroke-width="2"/>
+                  <line x1="55" y1="62" x2="135" y2="62" stroke="#2e86c1" stroke-width="1.5"/>
+                  <rect x="60" y="52" width="14" height="8" rx="1" fill="#fff" stroke="#2e86c1" stroke-width="1"/>
+                  <rect x="60" y="74" width="14" height="8" rx="1" fill="#fff" stroke="#2e86c1" stroke-width="1"/>
+                  <path d="M80 56h50a5 5 0 0 1 5 5v1h-55v-6Z" fill="#0a523a" opacity="0.4"/>
+                  <path d="M80 78h50a5 5 0 0 1 5 5v1h-55v-6Z" fill="#2e86c1" opacity="0.4"/>
+                  <line x1="115" y1="40" x2="115" y2="85" stroke="#2e86c1" stroke-width="1.5"/>
+                  <line x1="115" y1="50" x2="135" y2="50" stroke="#2e86c1" stroke-width="1.5"/>
+                  <line x1="115" y1="62" x2="135" y2="62" stroke="#2e86c1" stroke-width="1.5"/>
+                  <line x1="115" y1="73" x2="135" y2="73" stroke="#2e86c1" stroke-width="1.5"/>
+                </svg>';
+            } 
+            // 6. Relasi (Default)
+            else {
+                return '
+                <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; object-fit:cover; display:block;">
+                  <defs>
+                    <linearGradient id="grad-relasi" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#0fb87a" />
+                      <stop offset="100%" stop-color="#315743" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grad-relasi)" opacity="0.12"/>
+                  <path d="M55 40h45c6 0 10 4 10 10v18c0 6-4 10-10 10H85l-12 12v-12H55c-6 0-10-4-10-10V50c0-6 4-10 10-10Z" fill="#fff" stroke="#0fb87a" stroke-width="2"/>
+                  <path d="M100 50h45c6 0 10 4 10 10v18c0 6-4 10-10 10h-25l-12 12v-12h-8" fill="none" stroke="#0a523a" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M100 48c-2-2-5-2-7 0s-2 5 0 7l7 7 7-7c2-2 2-5 0-7s-5-2-7 0Z" fill="#0fb87a"/>
+                  <circle cx="115" cy="62" r="2" fill="#0a523a"/>
+                  <circle cx="127" cy="62" r="2" fill="#0a523a"/>
+                </svg>';
+            }
+        }
+    }
 @endphp
 
 <div class="edu-page">
@@ -1100,11 +1502,6 @@
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6">
-                    <div class="edu-badge">
-                        <i class="bi bi-heart-pulse"></i>
-                        Edukasi Mental
-                    </div>
-
                     <h1 class="edu-title">
                         Kesehatan mental sama pentingnya dengan <span>kesehatan fisik.</span>
                     </h1>
@@ -1141,11 +1538,16 @@
                 <h2 class="edu-section-title">Topik Utama Konseling</h2>
                 <p class="edu-section-desc">
                     Pilih topik yang sesuai dengan kondisi yang sedang kamu alami.
-                    Artikel atau video yang berkaitan dengan topik tersebut akan diberi highlight.
+                    Artikel dan video yang berkaitan dengan topik tersebut akan langsung disaring dan ditampilkan di bawah.
                 </p>
             </div>
 
-            <div class="row g-4">
+            <span class="edu-mobile-swipe-hint">
+                <i class="bi bi-arrow-left-right"></i>
+                Geser untuk melihat topik lainnya
+            </span>
+
+            <div class="row g-4 edu-topic-scroll">
                 @foreach($topics as $topic)
                     <div class="col-md-6 col-lg-4">
                         <article class="edu-topic-card" data-topic-card="{{ $topic['title'] }}">
@@ -1158,7 +1560,6 @@
 
                             <span class="edu-click-note">
                                 Lihat Konten
-                                <!-- <i class="bi bi-arrow-down"></i> -->
                             </span>
                         </article>
                     </div>
@@ -1167,79 +1568,118 @@
         </div>
     </section>
 
-  
+    {{-- 3. KONTEN EDUKASI --}}
     <section class="edu-section pt-0" id="konten-edukasi">
         <div class="container">
-            <div class="edu-section-head">
-                <h2 class="edu-section-title" id="contentSectionTitle">Artikel & Video Edukasi</h2>
-                <p class="edu-section-desc" id="contentSectionDesc">
-                    Kumpulan konten singkat yang bisa membantu mahasiswa memahami kondisi mental
-                    dan langkah sederhana untuk menjaga kesejahteraan diri.
-                </p>
+            <div class="edu-section-head d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4">
+                <div>
+                    <h2 class="edu-section-title" id="contentSectionTitle">Artikel & Video Edukasi</h2>
+                    <p class="edu-section-desc" id="contentSectionDesc">
+                        Kumpulan konten singkat yang bisa membantu mahasiswa memahami kondisi mental
+                        dan langkah sederhana untuk menjaga kesejahteraan diri.
+                    </p>
+                    <span class="edu-mobile-swipe-hint">
+                        <i class="bi bi-arrow-left-right"></i>
+                        Geser untuk melihat konten lainnya
+                    </span>
+                </div>
+                
+                {{-- TAB FILTER (Pemisah Artikel & Video) --}}
+                <div class="edu-tabs-wrapper">
+                    <div class="edu-tabs-container">
+                        <button type="button" class="edu-tab-btn active" data-tab-filter="semua">
+                            <i class="bi bi-grid-fill"></i>
+                            <span>Semua</span>
+                        </button>
+                        <button type="button" class="edu-tab-btn" data-tab-filter="Artikel">
+                            <i class="bi bi-file-text-fill"></i>
+                            <span>Artikel</span>
+                        </button>
+                        <button type="button" class="edu-tab-btn" data-tab-filter="Video">
+                            <i class="bi bi-play-btn-fill"></i>
+                            <span>Video</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="edu-content-carousel" id="contentGrid">
-             @foreach($contents as $content)
-    <div class="edu-content-item {{ $loop->index < 6 ? 'edu-content-item-active' : '' }}"
-         data-topic-item="{{ $content['category'] }}"
-         data-content-page="{{ intdiv($loop->index, 6) + 1 }}"
-         data-content-slot="{{ ($loop->index % 6) + 1 }}"
-         aria-hidden="{{ $loop->index < 6 ? 'false' : 'true' }}">
-
-        <article
-            class="edu-content-card edu-content-button"
-            role="button"
-            tabindex="0"
-            data-content-card
-            data-content='@json($content, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)'>
-
-                <div class="edu-content-media">
-                    <span class="edu-content-type">
-                        {{ $content['type'] }}
-                    </span>
-
-                    @if(!empty($content['thumbnail']))
-                        <img src="{{ $content['thumbnail'] }}"
-                             alt="{{ $content['title'] }}"
-                             class="edu-content-img">
-                    @else
-                        <div class="edu-content-fallback">
-                            <i class="bi {{ $content['icon'] }}"></i>
-                        </div>
-                    @endif
+                
+                {{-- State Kosong / Empty State (Akan muncul jika pencarian/filter tidak menghasilkan konten) --}}
+                <div class="edu-no-content" id="noContentMessage" style="display: none;">
+                    <div class="edu-no-content-icon">
+                        <i class="bi bi-folder-x"></i>
+                    </div>
+                    <h3>Belum Ada Konten</h3>
+                    <p>Maaf, saat ini belum ada artikel atau video edukasi untuk topik ini. Silakan pilih kategori atau filter lain.</p>
                 </div>
 
-                <div class="edu-content-body">
-                    <div class="edu-content-meta">
-                        <span class="edu-chip">{{ $content['category'] }}</span>
-                        <span class="edu-chip">{{ $content['time'] }}</span>
+                @foreach($contents as $content)
+                    <div class="edu-content-item {{ $loop->index < 6 ? 'edu-content-item-active' : '' }}"
+                         data-topic-item="{{ $content['category'] }}"
+                         data-content-type="{{ $content['type'] }}"
+                         data-content-page="{{ intdiv($loop->index, 6) + 1 }}"
+                         data-content-slot="{{ ($loop->index % 6) + 1 }}"
+                         aria-hidden="{{ $loop->index < 6 ? 'false' : 'true' }}">
+
+                        <article
+                            class="edu-content-card edu-content-button"
+                            role="button"
+                            tabindex="0"
+                            data-content-card
+                            data-content='@json($content, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)'>
+
+                                <div class="edu-content-media">
+                                    <span class="edu-content-type">
+                                        @if($content['type'] === 'Video')
+                                            <i class="bi bi-play-fill me-1"></i>
+                                        @else
+                                            <i class="bi bi-file-text-fill me-1"></i>
+                                        @endif
+                                        {{ $content['type'] }}
+                                    </span>
+
+                                    @if(!empty($content['thumbnail']))
+                                        <img src="{{ $content['thumbnail'] }}"
+                                             alt="{{ $content['title'] }}"
+                                             class="edu-content-img">
+                                    @else
+                                        <div class="edu-content-fallback">
+                                            {!! getIllustrativeSvg($content['category']) !!}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="edu-content-body">
+                                    <div class="edu-content-meta">
+                                        <span class="edu-chip">{{ $content['category'] }}</span>
+                                    </div>
+
+                                    <h3>{{ $content['title'] }}</h3>
+                                    <p>{{ $content['desc'] }}</p>
+
+                                    <div class="edu-action-row">
+                                        <span class="edu-action-btn">
+                                            {{ $content['type'] === 'Video' ? 'Tonton Video' : 'Baca Artikel' }}
+                                        </span>
+
+                                        @if(!empty($content['material_url']))
+                                            <button type="button"
+                                                class="edu-action-secondary"
+                                                data-pdf-url="{{ $content['material_url'] }}"
+                                                data-pdf-title="{{ $content['title'] }}"
+                                                data-pdf-link>
+                                                <i class="bi bi-file-earmark-pdf"></i>
+                                                Lihat PDF
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+
+                        </article>
+
                     </div>
-
-                    <h3>{{ $content['title'] }}</h3>
-                    <p>{{ $content['desc'] }}</p>
-
-                    <div class="edu-action-row">
-                        <span class="edu-action-btn">
-                            {{ $content['type'] === 'Video' ? 'Tonton Video' : 'Baca Artikel' }}
-                        </span>
-
-                        @if(!empty($content['material_url']))
-                            <button type="button"
-                                class="edu-action-secondary"
-                                data-pdf-url="{{ $content['material_url'] }}"
-                                data-pdf-title="{{ $content['title'] }}"
-                                data-pdf-link>
-                                <i class="bi bi-file-earmark-pdf"></i>
-                                Lihat PDF
-                            </button>
-                        @endif
-                    </div>
-                </div>
-
-        </article>
-
-    </div>
-@endforeach
+                @endforeach
 
             </div>
 
@@ -1272,6 +1712,7 @@
         </div>
     </section>
 
+    {{-- 4. PANDUAN KONSELING --}}
     <section class="edu-section pt-0">
         <div class="container">
             <div class="row g-4">
@@ -1325,7 +1766,7 @@
                         <ul class="edu-guide-list">
                             <li>Hubungi orang terdekat yang kamu percaya.</li>
                             <li>Hubungi konselor atau pihak kampus.</li>
-                            <li>Pergi ke tempat yang aman dan jangan menyendiri.</li>
+                            <li>Pergi ke tempat yang aman and jangan menyendiri.</li>
                             <li>Hubungi layanan darurat terdekat apabila diperlukan.</li>
                         </ul>
 
@@ -1353,18 +1794,24 @@
     document.addEventListener('DOMContentLoaded', function () {
         const topicCards = document.querySelectorAll('[data-topic-card]');
         const topicItems = document.querySelectorAll('[data-topic-item]');
-        const contentTitle = document.getElementById('contentSectionTitle');
-        const contentDesc = document.getElementById('contentSectionDesc');
         const contentSection = document.getElementById('konten-edukasi');
         const contentGrid = document.getElementById('contentGrid');
         const contentPagination = document.getElementById('contentPagination');
         const contentPaginationStatus = document.getElementById('contentPaginationStatus');
         const contentPrevPage = document.getElementById('contentPrevPage');
         const contentNextPage = document.getElementById('contentNextPage');
-        const contentItems = Array.from(topicItems);
-        const contentPerPage = 6;
+        
+        // Simpan semua item konten ke array utama
+        const allContentItems = Array.from(topicItems);
+        const desktopContentPerPage = 6;
+        const mobileCarouselMedia = window.matchMedia('(max-width: 767.98px)');
+        
+        // State Filter dan Pagination Gabungan
         let currentContentPage = 1;
+        let currentTypeFilter = 'semua'; // 'semua', 'Artikel', 'Video'
+        let activeTopic = null; // Menyimpan topik terpilih saat ini
 
+        const tabButtons = document.querySelectorAll('[data-tab-filter]');
         const contentModal = document.getElementById('contentModal');
         const contentModalBody = document.getElementById('contentModalBody');
         const closeContentModal = document.getElementById('closeContentModal');
@@ -1376,20 +1823,68 @@
             document.body.appendChild(contentModal);
         }
 
+        // --- COMBINED FILTER & PAGINATION ENGINE ---
+
+        // Dapatkan item yang aktif berdasarkan gabungan filter Topik + Tab saat ini
+        function getActiveFilteredItems() {
+            return allContentItems.filter(function (item) {
+                // 1. Filter Kategori Topik
+                const matchesTopic = !activeTopic || item.getAttribute('data-topic-item') === activeTopic;
+                
+                // 2. Filter Jenis Konten (Tab)
+                const matchesType = currentTypeFilter === 'semua' || item.getAttribute('data-content-type') === currentTypeFilter;
+                
+                return matchesTopic && matchesType;
+            });
+        }
+
+        // Hitung total halaman berdasarkan jumlah item tersaring saat ini
+        function getTotalContentPages() {
+            const activeItems = getActiveFilteredItems();
+            const contentPerPage = mobileCarouselMedia.matches
+                ? Math.max(activeItems.length, 1)
+                : desktopContentPerPage;
+
+            return Math.max(1, Math.ceil(activeItems.length / contentPerPage));
+        }
+
+        // Atur ulang data-content-page dan data-content-slot secara dinamis untuk item tersaring
+        function updateFilteredLayout() {
+            const activeItems = getActiveFilteredItems();
+            const contentPerPage = mobileCarouselMedia.matches
+                ? Math.max(activeItems.length, 1)
+                : desktopContentPerPage;
+
+            allContentItems.forEach(function (item) {
+                item.removeAttribute('data-content-page');
+                item.removeAttribute('data-content-slot');
+                
+                // Sembunyikan item yang tidak lolos filter
+                if (!activeItems.includes(item)) {
+                    item.classList.remove('edu-content-item-active', 'edu-content-item-entering', 'edu-content-item-leaving');
+                    item.setAttribute('aria-hidden', 'true');
+                    const card = item.querySelector('[data-content-card]');
+                    if (card) card.tabIndex = -1;
+                }
+            });
+
+            // Susun posisi item yang lolos filter agar tidak bercelah di grid
+            activeItems.forEach(function (item, index) {
+                const page = Math.floor(index / contentPerPage) + 1;
+                const slot = (index % contentPerPage) + 1;
+                item.setAttribute('data-content-page', page);
+                item.setAttribute('data-content-slot', slot);
+            });
+        }
+
         function clearSelectedContent() {
             document.querySelectorAll('.edu-content-card').forEach(function (card) {
                 card.classList.remove('edu-content-selected');
             });
         }
 
-        function getTotalContentPages() {
-            return Math.max(1, Math.ceil(contentItems.length / contentPerPage));
-        }
-
         function renderContentPagination() {
-            if (!contentPagination) {
-                return;
-            }
+            if (!contentPagination) return;
 
             const totalPages = getTotalContentPages();
 
@@ -1403,7 +1898,18 @@
         }
 
         function updateContentPaginationState() {
+            const activeItems = getActiveFilteredItems();
             const totalPages = getTotalContentPages();
+            const noContentMessage = document.getElementById('noContentMessage');
+
+            // Tampilkan Empty State jika tidak ada konten sama sekali
+            if (activeItems.length === 0) {
+                if (noContentMessage) noContentMessage.style.display = 'block';
+                if (contentPagination) contentPagination.hidden = true;
+                return;
+            } else {
+                if (noContentMessage) noContentMessage.style.display = 'none';
+            }
 
             if (contentPaginationStatus) {
                 contentPaginationStatus.textContent = currentContentPage + ' / ' + totalPages;
@@ -1420,12 +1926,13 @@
             if (contentNextPage) {
                 contentNextPage.disabled = currentContentPage >= totalPages;
             }
-
         }
 
         function applyContentPage() {
-            contentItems.forEach(function (item) {
-                const isVisible = Number(item.getAttribute('data-content-page')) === currentContentPage;
+            const activeItems = getActiveFilteredItems();
+            
+            allContentItems.forEach(function (item) {
+                const isVisible = activeItems.includes(item) && Number(item.getAttribute('data-content-page')) === currentContentPage;
                 const card = item.querySelector('[data-content-card]');
 
                 item.classList.toggle('edu-content-item-active', isVisible);
@@ -1446,15 +1953,18 @@
             const nextPage = Math.min(Math.max(page, 1), totalPages);
 
             if (nextPage === currentContentPage) {
+                updateContentPaginationState();
                 return;
             }
 
             const previousPage = currentContentPage;
             const direction = nextPage > previousPage ? 1 : -1;
-            const previousItems = contentItems.filter(function (item) {
+            
+            const activeItems = getActiveFilteredItems();
+            const previousItems = activeItems.filter(function (item) {
                 return Number(item.getAttribute('data-content-page')) === previousPage;
             });
-            const nextItems = contentItems.filter(function (item) {
+            const nextItems = activeItems.filter(function (item) {
                 return Number(item.getAttribute('data-content-page')) === nextPage;
             });
 
@@ -1466,9 +1976,7 @@
                 item.classList.remove('edu-content-item-active');
                 item.classList.add('edu-content-item-leaving');
                 item.setAttribute('aria-hidden', 'true');
-                if (card) {
-                    card.tabIndex = -1;
-                }
+                if (card) card.tabIndex = -1;
             });
 
             nextItems.forEach(function (item) {
@@ -1477,9 +1985,7 @@
                 item.classList.remove('edu-content-item-leaving');
                 item.classList.add('edu-content-item-entering');
                 item.setAttribute('aria-hidden', 'false');
-                if (card) {
-                    card.tabIndex = 0;
-                }
+                if (card) card.tabIndex = 0;
             });
 
             if (contentGrid) {
@@ -1504,34 +2010,88 @@
             }, 420);
         }
 
+        // --- TOPIC FILTER LOGIC (DIKLIK LANGSUNG MENYARING GRID) ---
+
+        function highlightTopic(topic) {
+            const isAlreadyActive = Array.from(topicCards).some(function(card){
+                return card.classList.contains('active') && card.getAttribute('data-topic-card') === topic;
+            });
+
+            if (isAlreadyActive) {
+                resetTopicHighlight();
+                return;
+            }
+
+            activeTopic = topic;
+
+            // Beri tanda aktif pada kartu topik yang dipilih
+            topicCards.forEach(function (card) {
+                card.classList.toggle('active', card.getAttribute('data-topic-card') === topic);
+            });
+
+            // Reset ke halaman 1 dan saring ulang grid konten
+            currentContentPage = 1;
+            updateFilteredLayout();
+            applyContentPage();
+            renderContentPagination();
+
+            if (contentGrid) {
+                contentGrid.scrollTo({ left: 0, behavior: 'smooth' });
+            }
+
+            // Scroll ke area konten agar pengguna langsung melihat hasil saringan
+            if (contentSection) {
+                contentSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+
         function resetTopicHighlight() {
             topicCards.forEach(function (card) {
                 card.classList.remove('active');
             });
 
-            topicItems.forEach(function (item) {
-                const contentCard = item.querySelector('.edu-content-card');
-                if (contentCard) {
-                    contentCard.classList.remove('edu-content-highlight');
+            activeTopic = null;
+
+            currentContentPage = 1;
+            updateFilteredLayout();
+            applyContentPage();
+            renderContentPagination();
+
+            if (contentGrid) {
+                contentGrid.scrollTo({ left: 0, behavior: 'smooth' });
+            }
+        }
+
+        // --- TAB FILTERS EVENT LISTENERS ---
+
+        tabButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                const filterValue = button.getAttribute('data-tab-filter');
+                
+                if (filterValue === currentTypeFilter) return;
+
+                // Update kelas aktif pada tombol tab
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                currentTypeFilter = filterValue;
+                currentContentPage = 1;
+
+                // Bangun ulang struktur grid dan pagination
+                updateFilteredLayout();
+                applyContentPage();
+                renderContentPagination();
+
+                if (contentGrid) {
+                    contentGrid.scrollTo({ left: 0, behavior: 'smooth' });
                 }
             });
+        });
 
-            if (contentTitle) {
-                contentTitle.textContent = 'Artikel & Video Edukasi';
-            }
-
-            if (contentDesc) {
-                contentDesc.textContent = 'Kumpulan konten singkat yang bisa membantu mahasiswa memahami kondisi mental dan langkah sederhana untuk menjaga kesejahteraan diri.';
-            }
-        }
-
-        function getFirstPageForTopic(topic) {
-            const firstIndex = contentItems.findIndex(function (item) {
-                return item.getAttribute('data-topic-item') === topic;
-            });
-
-            return firstIndex >= 0 ? Math.floor(firstIndex / contentPerPage) + 1 : currentContentPage;
-        }
+        // --- MODAL & POPUP LOGIC ---
 
         function closeModal() {
             if (contentModal) {
@@ -1553,9 +2113,7 @@
         }
 
         function renderVideoContent(data) {
-            if (!contentModalBody) {
-                return;
-            }
+            if (!contentModalBody) return;
 
             if (!data.embed_url || !data.embed_type) {
                 renderArticleContent({
@@ -1571,6 +2129,8 @@
             if (data.embed_type === 'video') {
                 const video = document.createElement('video');
                 video.controls = true;
+                video.playsInline = true;
+                video.preload = 'metadata';
                 video.src = data.embed_url;
                 embedBox.appendChild(video);
             } else {
@@ -1580,16 +2140,16 @@
                 iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
                 iframe.allowFullscreen = true;
                 iframe.setAttribute('scrolling', 'no');
+                iframe.referrerPolicy = 'strict-origin-when-cross-origin';
                 embedBox.appendChild(iframe);
             }
 
             contentModalBody.appendChild(embedBox);
+
         }
 
         function renderArticleContent(data) {
-            if (!contentModalBody) {
-                return;
-            }
+            if (!contentModalBody) return;
 
             const article = document.createElement('article');
             article.className = 'edu-content-modal-article';
@@ -1607,9 +2167,7 @@
         }
 
         function renderPdfContent(url, title) {
-            if (!contentModalBody) {
-                return;
-            }
+            if (!contentModalBody) return;
 
             const material = document.createElement('section');
             material.className = 'edu-content-detail-material';
@@ -1631,9 +2189,7 @@
         }
 
         function positionContentModal(selectedCard, mode) {
-            if (!contentModal || !selectedCard) {
-                return;
-            }
+            if (!contentModal || !selectedCard) return;
 
             const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
             const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
@@ -1652,9 +2208,7 @@
         }
 
         function openContentModal(data, selectedCard) {
-            if (!contentModal || !contentModalBody) {
-                return;
-            }
+            if (!contentModal || !contentModalBody) return;
 
             window.clearTimeout(modalCloseTimer);
             contentModalBody.innerHTML = '';
@@ -1682,9 +2236,7 @@
         }
 
         function openPdfModal(url, title, selectedCard) {
-            if (!contentModal || !contentModalBody || !url) {
-                return;
-            }
+            if (!contentModal || !contentModalBody || !url) return;
 
             window.clearTimeout(modalCloseTimer);
             contentModalBody.innerHTML = '';
@@ -1706,50 +2258,7 @@
             contentModalBody.scrollTop = 0;
         }
 
-        function highlightTopic(topic) {
-            const isAlreadyActive = Array.from(topicCards).some(function(card){
-                return card.classList.contains('active') && card.getAttribute('data-topic-card') === topic;
-            });
-
-            if (isAlreadyActive) {
-                resetTopicHighlight();
-                return;
-            }
-
-            topicCards.forEach(function (card) {
-                card.classList.toggle('active', card.getAttribute('data-topic-card') === topic);
-            });
-
-            topicItems.forEach(function (item) {
-                const itemTopic = item.getAttribute('data-topic-item');
-                const contentCard = item.querySelector('.edu-content-card');
-
-                if (!contentCard) return;
-
-                contentCard.classList.remove('edu-content-highlight');
-
-                if (itemTopic === topic) {
-                    contentCard.classList.add('edu-content-highlight');
-                }
-            });
-
-            if (contentTitle) {
-                contentTitle.textContent = 'Artikel & Video Edukasi';
-            }
-
-            if (contentDesc) {
-                contentDesc.textContent = 'Artikel atau video terkait topik "' + topic + '" diberi highlight. Semua konten tetap ditampilkan agar mahasiswa tetap bisa mengeksplorasi topik lain.';
-            }
-
-            setContentPage(getFirstPageForTopic(topic));
-
-            if (contentSection) {
-                contentSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        }
+        // --- ATTACH EVENTS ---
 
         topicCards.forEach(function (card) {
             card.addEventListener('click', function () {
@@ -1770,6 +2279,8 @@
             });
         }
 
+        // Inisialisasi awal struktur grid
+        updateFilteredLayout();
         applyContentPage();
         renderContentPagination();
 
@@ -1797,9 +2308,7 @@
             });
 
             card.addEventListener('keydown', function (event) {
-                if (event.target.closest('[data-pdf-link]')) {
-                    return;
-                }
+                if (event.target.closest('[data-pdf-link]')) return;
 
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
@@ -1838,6 +2347,23 @@
                 positionContentModal(activeContentCard, activeModalMode);
             }
         });
+
+        const refreshCarouselMode = function () {
+            currentContentPage = 1;
+            updateFilteredLayout();
+            applyContentPage();
+            renderContentPagination();
+
+            if (contentGrid) {
+                contentGrid.scrollLeft = 0;
+            }
+        };
+
+        if (typeof mobileCarouselMedia.addEventListener === 'function') {
+            mobileCarouselMedia.addEventListener('change', refreshCarouselMode);
+        } else {
+            mobileCarouselMedia.addListener(refreshCarouselMode);
+        }
     });
 </script>
 @endpush

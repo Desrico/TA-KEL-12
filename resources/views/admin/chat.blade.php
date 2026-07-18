@@ -20,6 +20,7 @@
     $statusSesi = strtolower(str_replace(' ', '_', optional($activeSession)->status ?? ''));
 
     $chatSelesai = $statusJadwal === 'selesai' || $statusSesi === 'selesai';
+    $showMobileChat = request()->boolean('mobile_chat') && $activeJadwal && $activeSession;
 @endphp
 
 @section('page-title', 'Chat Konseling')
@@ -69,6 +70,10 @@
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 18px 44px rgba(6, 78, 59, .08);
+  }
+
+  .admin-chat-mobile-back {
+    display: none;
   }
 
   .admin-chat-card,
@@ -1318,11 +1323,32 @@
 
 @media (max-width: 767.98px) {
   .pc-content {
-    padding: .6rem !important;
+    padding: .45rem !important;
   }
 
   .admin-chat-page {
     min-height: 0;
+    display: block;
+    height: 100%;
+    border-radius: 16px;
+  }
+
+  .admin-chat-page .admin-chat-card {
+    display: none;
+  }
+
+  .admin-chat-page .admin-chat-list {
+    display: flex;
+    height: 100%;
+    border: 0;
+  }
+
+  .admin-chat-page.is-mobile-chat-open .admin-chat-list {
+    display: none;
+  }
+
+  .admin-chat-page.is-mobile-chat-open .admin-chat-card {
+    display: block;
   }
 
   .admin-chat-card {
@@ -1330,13 +1356,42 @@
   }
 
   .admin-chat-head {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    gap: .5rem;
+    padding: .55rem .65rem;
+  }
+
+  .admin-chat-mobile-back {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 50%;
+    color: #065f46;
+    text-decoration: none;
+    font-size: 1.15rem;
+  }
+
+  .admin-chat-avatar-fallback {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .admin-chat-title {
+    max-width: 42vw;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: .88rem;
   }
 
   .admin-chat-head-actions {
-    width: 100%;
-    justify-content: flex-start;
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
   }
 
   .admin-message-content {
@@ -1347,7 +1402,7 @@
 @endpush
 
 @section('konten')
-<div class="admin-chat-page">
+<div class="admin-chat-page {{ $showMobileChat ? 'is-mobile-chat-open' : '' }}">
   <aside class="admin-chat-list">
     <div class="admin-chat-list-head">
       <div class="admin-chat-tabs">
@@ -1378,13 +1433,15 @@
       <div class="admin-chat-filter-tabs">
           <button type="button"
               class="admin-chat-filter-btn {{ $activeRoomType === 'biasa' ? 'active' : '' }}"
-              data-room-filter="biasa">
+              data-room-filter="biasa"
+              aria-pressed="{{ $activeRoomType === 'biasa' ? 'true' : 'false' }}">
               Akun Mahasiswa
           </button>
 
           <button type="button"
               class="admin-chat-filter-btn {{ $activeRoomType === 'anonim' ? 'active' : '' }}"
-              data-room-filter="anonim">
+              data-room-filter="anonim"
+              aria-pressed="{{ $activeRoomType === 'anonim' ? 'true' : 'false' }}">
               Anonim
           </button>
       </div>
@@ -1425,7 +1482,7 @@
           $latestChatPreview,
       ])));
   @endphp
-     <a href="{{ route('admin.chat', ['jadwal' => $item->id]) }}"
+     <a href="{{ route('admin.chat', ['jadwal' => $item->id, 'mobile_chat' => 1]) }}"
         class="admin-chat-session {{ $isSelected ? 'active' : '' }}"
         data-room-type="{{ $isItemAnonim ? 'anonim' : 'biasa' }}"
         data-session-search="{{ $sessionSearchText }}">
@@ -1437,7 +1494,7 @@
         </div>
       </a>
     @empty
-      <div style="padding:1.1rem 1rem;color:#64748b;font-size:.84rem;">
+      <div id="adminChatListEmpty" style="padding:1.1rem 1rem;color:#64748b;font-size:.84rem;">
         Belum ada sesi konseling online yang disetujui atau sedang berlangsung.
       </div>
     @endforelse
@@ -1499,6 +1556,9 @@
 @endphp
 
   <div class="admin-chat-head">
+    <a href="{{ route('admin.chat') }}" class="admin-chat-mobile-back" aria-label="Kembali ke daftar percakapan">
+      <i class="ti ti-arrow-left"></i>
+    </a>
     <div class="admin-chat-person">
       <div class="admin-chat-avatar-fallback">
         {{ strtoupper(substr($chatPayload['studentName'] ?? 'M', 0, 1)) }}
@@ -1615,12 +1675,9 @@
 (() => {
   const searchInput = document.getElementById('adminChatSearchInput');
   const searchEmpty = document.getElementById('adminChatSearchEmpty');
+  const listEmpty = document.getElementById('adminChatListEmpty');
   const sessionItems = Array.from(document.querySelectorAll('[data-session-search]'));
   const filterButtons = Array.from(document.querySelectorAll('[data-room-filter]'));
-
-  if (sessionItems.length === 0) {
-    return;
-  }
 
   let activeFilter = document.querySelector('[data-room-filter].active')?.dataset.roomFilter || 'biasa';
 
@@ -1646,6 +1703,17 @@
 
     if (searchEmpty) {
       searchEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
+      searchEmpty.textContent = keyword
+        ? 'Tidak ada percakapan yang cocok dengan kata kunci pencarian.'
+        : activeFilter === 'anonim'
+          ? 'Belum ada percakapan konseling anonim.'
+          : 'Belum ada percakapan dari akun mahasiswa.';
+    }
+
+    if (listEmpty) {
+      listEmpty.textContent = activeFilter === 'anonim'
+        ? 'Belum ada sesi konseling anonim yang aktif.'
+        : 'Belum ada sesi konseling online yang disetujui atau sedang berlangsung.';
     }
   };
 
@@ -1655,6 +1723,9 @@
 
       filterButtons.forEach((btn) => btn.classList.remove('active'));
       button.classList.add('active');
+      filterButtons.forEach((btn) => {
+        btn.setAttribute('aria-pressed', btn === button ? 'true' : 'false');
+      });
 
       syncList();
     });

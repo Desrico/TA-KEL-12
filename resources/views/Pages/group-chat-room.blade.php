@@ -2,6 +2,77 @@
 
 @push('styles')
 <style>
+  @if(request()->boolean('embedded'))
+  html,
+  body {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #mainNav,
+  footer,
+  .group-room-back {
+    display: none !important;
+  }
+
+  .page-in {
+    height: 100% !important;
+    overflow: hidden !important;
+    animation: none !important;
+  }
+
+  .group-room-page {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+  }
+
+  .group-room-page > .container {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .group-room-shell,
+  .group-room-stage {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .group-room-shell {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .group-room-main {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .group-room-head,
+  .group-room-compose {
+    flex: 0 0 auto !important;
+  }
+
+  .group-room-thread {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+  @endif
+
   .group-room-page {
     min-height: calc(100vh - 88px);
     background:
@@ -1113,15 +1184,80 @@
     }
 
     .group-room-profile {
-      left: 0;
-      right: auto;
-      width: 100%;
-      max-width: 100%;
+      top: calc(100% + .35rem);
+      left: .75rem;
+      right: .75rem;
+      width: auto;
+      max-width: none;
+    }
+
+    .group-room-actions {
+      position: static;
+    }
+
+    .group-room-stage.is-profile-open .group-room-profile {
+      max-height: min(460px, calc(100dvh - 150px));
+    }
+
+    .group-room-profile-body {
+      max-height: min(365px, calc(100dvh - 245px));
+      padding: .8rem;
+    }
+
+    .group-member-item {
+      min-width: 0;
+    }
+
+    .group-member-name {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: normal;
     }
 
     .group-message-content {
       max-width: 100%;
     }
+
+    @if(request()->boolean('embedded'))
+    .group-room-head {
+      flex-direction: row;
+      align-items: center;
+      gap: .55rem;
+      padding: .65rem .75rem;
+    }
+
+    .group-room-head-main {
+      min-width: 0;
+      flex: 1 1 auto;
+      gap: .6rem;
+    }
+
+    .group-room-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      font-size: 1rem;
+    }
+
+    .group-room-title {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .group-room-subtitle {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .group-room-actions,
+    .group-room-active {
+      width: auto;
+      flex: 0 0 auto;
+    }
+    @endif
   }
 </style>
 @endpush
@@ -1133,6 +1269,7 @@
         || ($chatPayload['is_private'] ?? false)
         || str_contains(strtolower($chatPayload['topicLabel'] ?? ''), 'privat');
     $counselorName = trim((string) ($chatPayload['counselorName'] ?? env('CIS_KONSELOR_NAME', 'Konselor'))) ?: 'Konselor';
+    $counselorInitial = strtoupper(mb_substr($counselorName, 0, 1));
 
     $cleanMemberName = function ($name) use ($isPrivateRoom) {
         $name = trim((string) $name);
@@ -1266,7 +1403,7 @@
 
                   <div class="group-member-list" id="groupRoomMemberList">
                     <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($counselorName) }}">
-                      <div class="group-member-avatar-fallback">K</div>
+                      <div class="group-member-avatar-fallback">{{ $counselorInitial }}</div>
                       <div class="group-member-name">{{ $counselorName }}</div>
                     </div>
 
@@ -1281,10 +1418,10 @@
                           $initial = strtoupper(mb_substr($memberName, 0, 1));
                       @endphp
 
+                      @continue($isKonselorMember)
+
                       <div class="group-member-item" data-member-name="{{ \Illuminate\Support\Str::lower($memberName) }}">
-                        @if($isKonselorMember)
-                          <div class="group-member-avatar-fallback">K</div>
-                        @elseif(! $isPrivateRoom)
+                        @if(! $isPrivateRoom)
                           <div class="group-animal-avatar">
                             {{ $animalIcon($memberName) }}
                           </div>

@@ -630,6 +630,174 @@
             grid-template-columns: 1fr;
         }
     }
+
+    @media (max-width: 767.98px) {
+        .laporan-card,
+        .laporan-form-container {
+            width: 100%;
+            margin-top: .25rem;
+        }
+
+        .laporan-card,
+        .detail-laporan-card,
+        .laporan-form-card {
+            border-radius: 16px;
+        }
+
+        .laporan-search-area {
+            padding: .75rem .7rem 0;
+        }
+
+        .laporan-toolbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: .5rem;
+        }
+
+        .laporan-search-input,
+        .btn-search-laporan {
+            height: 42px;
+            font-size: .76rem;
+        }
+
+        .btn-search-laporan {
+            padding: 0 .8rem;
+            border-radius: 11px;
+        }
+
+        .laporan-table-wrap {
+            padding: .6rem;
+            overflow: visible;
+        }
+
+        .laporan-table {
+            min-width: 0;
+            border: 0;
+            border-radius: 0;
+            overflow: visible;
+            font-size: .78rem;
+        }
+
+        .laporan-table thead {
+            display: none;
+        }
+
+        .laporan-table tbody,
+        .laporan-table tr,
+        .laporan-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .laporan-table tbody tr {
+            margin-bottom: .7rem;
+            overflow: hidden;
+            border: 1px solid #dceee4;
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 5px 14px rgba(6, 78, 59, .04);
+        }
+
+        .laporan-table tbody td {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: .75rem;
+            padding: .55rem .7rem;
+            border-bottom: 1px solid #edf2ef;
+            text-align: right !important;
+            overflow-wrap: anywhere;
+        }
+
+        .laporan-table tbody td::before {
+            content: attr(data-label);
+            flex: 0 0 76px;
+            color: #64748b;
+            font-size: .67rem;
+            font-weight: 800;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+
+        .laporan-table tbody td:last-child {
+            align-items: center;
+            border-bottom: 0;
+        }
+
+        .topic-text {
+            max-width: 190px;
+        }
+
+        .btn-laporan {
+            min-width: 0;
+            padding: .4rem .65rem;
+            font-size: .68rem;
+        }
+
+        .empty-state {
+            display: block !important;
+            text-align: center !important;
+        }
+
+        .empty-state::before {
+            display: none;
+        }
+
+        .laporan-form-container {
+            gap: .75rem;
+        }
+
+        .detail-laporan-card,
+        .laporan-form-card {
+            padding: 1rem;
+        }
+
+        .info-section,
+        .form-section {
+            margin-bottom: 1rem;
+        }
+
+        .info-group {
+            gap: .75rem;
+            margin-bottom: .65rem;
+        }
+
+        .info-label {
+            min-width: 82px;
+            font-size: .68rem;
+        }
+
+        .info-value {
+            max-width: 190px;
+            font-size: .78rem;
+        }
+
+        .form-section-title,
+        .checkbox-item label,
+        .radio-item label,
+        .date-picker-label,
+        textarea.form-control {
+            font-size: .78rem;
+        }
+
+        textarea.form-control {
+            min-height: 86px;
+            padding: .65rem;
+        }
+
+        .date-picker-group {
+            padding-left: 0;
+            flex-direction: column;
+            gap: .45rem;
+        }
+
+        .btn-simpan {
+            padding: .7rem 1rem;
+            font-size: .78rem;
+            margin-top: .75rem;
+        }
+    }
 </style>
 @endpush
 
@@ -1039,24 +1207,24 @@
                         @endphp
 
                         <tr id="laporan-row-{{ $l->id }}">
-                            <td>
+                            <td data-label="Mahasiswa">
                                 <div class="student-name">{{ $nama }}</div>
                                 <div class="student-sub">{{ $nim }}</div>
                             </td>
-                            <td>{{ \Carbon\Carbon::parse($l->tanggal)->translatedFormat('d M Y') }}</td>
-                            <td>{{ substr($l->waktu, 0, 5) }} WIB</td>
-                            <td>{{ ucfirst($l->jenis ?? 'Online') }}</td>
-                            <td>
+                            <td data-label="Tanggal">{{ \Carbon\Carbon::parse($l->tanggal)->translatedFormat('d M Y') }}</td>
+                            <td data-label="Waktu">{{ substr($l->waktu, 0, 5) }} WIB</td>
+                            <td data-label="Layanan">{{ ucfirst($l->jenis ?? 'Online') }}</td>
+                            <td data-label="Topik">
                                 <div class="topic-text">{{ $topik ?? '-' }}</div>
                             </td>
-                            <td>
+                            <td data-label="Status">
                                 @if($sudahAdaLaporan)
                                     <span class="status-pill status-selesai">Laporan Tersedia</span>
                                 @else
                                     <span class="status-pill status-belum">Belum Dilaporkan</span>
                                 @endif
                             </td>
-                            <td style="text-align:center;">
+                            <td data-label="Aksi" style="text-align:center;">
                                 @if($sudahAdaLaporan)
                                     <a href="{{ route('admin.laporan.laporan', $l->id) }}"
                                        class="btn-laporan btn-lihat">

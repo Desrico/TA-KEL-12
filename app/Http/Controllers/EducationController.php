@@ -524,18 +524,22 @@ private function resolveEmbedUrl(?string $url): ?string
         parse_str($query, $params);
 
         if (!empty($params['v'])) {
-            return 'https://www.youtube.com/embed/' . $params['v'];
+            return 'https://www.youtube-nocookie.com/embed/' . rawurlencode($params['v']) . '?playsinline=1&rel=0';
         }
 
         if (preg_match('/\/(?:embed|shorts)\/([^\/\?]+)/', $path, $matches)) {
-            return 'https://www.youtube.com/embed/' . $matches[1];
+            return 'https://www.youtube-nocookie.com/embed/' . rawurlencode($matches[1]) . '?playsinline=1&rel=0';
         }
     }
 
     if (str_contains($host, 'youtu.be')) {
         $videoId = trim($path, '/');
 
-        return $videoId !== '' ? 'https://www.youtube.com/embed/' . $videoId : null;
+        $videoId = strtok($videoId, '?');
+
+        return $videoId !== ''
+            ? 'https://www.youtube-nocookie.com/embed/' . rawurlencode($videoId) . '?playsinline=1&rel=0'
+            : null;
     }
 
     if (str_contains($host, 'vimeo.com') && preg_match('/\/(\d+)/', $path, $matches)) {

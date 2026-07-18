@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 class GroupChatSupport
 {
     public const CONSENT_VERSION = 'group-chat-v1';
-    public const PRIVATE_GROUP_MEMBER_LIMIT = 12;
+    public const PRIVATE_GROUP_MEMBER_LIMIT = 15;
     private static array $schemaSupportCache = [];
 
     public static function consentVersion(): string

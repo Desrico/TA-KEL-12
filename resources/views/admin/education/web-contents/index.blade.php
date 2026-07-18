@@ -457,7 +457,7 @@
 
     @media (max-width: 768px) {
         .mi-wrap {
-            padding: 0 12px 50px;
+            padding: 0 0 1.5rem;
         }
 
         .mi-header {
@@ -476,6 +476,139 @@
         .mi-sort {
             width: 100%;
             justify-content: space-between;
+        }
+
+        .mi-header {
+            padding: .35rem 0 .75rem;
+        }
+
+        .mi-header-left p {
+            font-size: .72rem;
+            line-height: 1.5;
+        }
+
+        .mi-btn-add {
+            padding: .65rem .8rem;
+            font-size: .76rem;
+        }
+
+        .mi-card {
+            border-radius: 16px;
+        }
+
+        .mi-toolbar {
+            padding: .7rem;
+        }
+
+        .mi-tabs {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: .35rem;
+        }
+
+        .mi-tab {
+            justify-content: center;
+            padding: .45rem .25rem;
+            font-size: .68rem;
+            text-align: center;
+        }
+
+        .mi-sort,
+        .mi-sort-select {
+            font-size: .72rem;
+        }
+
+        .mi-table-wrap {
+            overflow: visible;
+        }
+
+        .mi-table {
+            min-width: 0;
+        }
+
+        .mi-table thead {
+            display: none;
+        }
+
+        .mi-table tbody,
+        .mi-table tr,
+        .mi-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .mi-table tbody {
+            padding: .6rem;
+        }
+
+        .mi-table tbody tr {
+            margin-bottom: .65rem;
+            overflow: hidden;
+            border: 1px solid var(--mi-border);
+            border-radius: 13px;
+            background: #fff;
+        }
+
+        .mi-table td,
+        .mi-table td:first-child,
+        .mi-table td:last-child {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .65rem;
+            padding: .55rem .65rem;
+            font-size: .74rem;
+            text-align: right;
+        }
+
+        .mi-table td::before {
+            content: attr(data-label);
+            flex: 0 0 58px;
+            color: var(--mi-text-3);
+            font-size: .64rem;
+            font-weight: 800;
+            text-align: left;
+            text-transform: uppercase;
+        }
+
+        .mi-table td:first-child {
+            display: block;
+            text-align: left;
+        }
+
+        .mi-table td:first-child::before {
+            display: none;
+        }
+
+        .mi-content-cell {
+            min-width: 0;
+            gap: .7rem;
+        }
+
+        .mi-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 9px;
+        }
+
+        .mi-title {
+            font-size: .78rem;
+        }
+
+        .mi-desc {
+            font-size: .67rem;
+        }
+
+        .mi-topic,
+        .mi-type,
+        .mi-badge {
+            padding: 4px 8px;
+            font-size: .67rem;
+        }
+
+        .mi-footer {
+            padding: .7rem;
         }
     }
 </style>
@@ -553,7 +686,7 @@
                 <tbody>
                     @forelse($webContents as $item)
                         <tr>
-                            <td>
+                            <td data-label="Konten">
                                 <div class="mi-content-cell">
                                     <div class="mi-thumb">
                                         @if($item->thumbnail)
@@ -572,24 +705,24 @@
                                 </div>
                             </td>
 
-                            <td>
+                            <td data-label="Topik">
                                 <span class="mi-topic">{{ $item->topic }}</span>
                             </td>
 
-                            <td>
+                            <td data-label="Jenis">
                                 <span class="mi-type {{ strtolower($item->type) === 'video' ? 'video' : 'artikel' }}">
                                     {{ strtolower($item->type) === 'video' ? '▶' : '▤' }}
                                     {{ $item->type }}
                                 </span>
                             </td>
 
-                            <td>
+                            <td data-label="Status">
                                 <span class="mi-badge {{ $item->status ? 'aktif' : 'draft' }}">
                                     {{ $item->status ? 'Aktif' : 'Draft' }}
                                 </span>
                             </td>
 
-                            <td>
+                            <td data-label="Aksi">
                                 <div class="mi-actions">
                                     <a href="{{ route('counselor.education.web-contents.edit', $item->id) }}"
                                        class="mi-btn-icon"

@@ -3,6 +3,8 @@
 namespace App\Events;
 
 use App\Models\Chat;
+use App\Models\JadwalKonseling;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -43,23 +45,27 @@ class ChatMessageSent implements ShouldBroadcastNow
     {
         $sender = $this->chat->pengirim;
         $profil = optional($sender)->profil;
+        $jadwal = $this->chat->sesi?->jadwalKonseling;
         $replyTo = $this->chat->replyTo;
         $replySender = $replyTo?->pengirim;
         $createdAt = $this->toDisplayDateTime($this->chat->created_at);
+        $isAnonymousStudent = $this->usesAnonymousScheduleIdentity($sender, $jadwal);
 
         return [
             'message' => [
                 'id' => $this->chat->id,
                 'sesi_id' => $this->chat->sesi_id,
                 'sender_id' => $this->chat->pengirim_id,
-                'sender_name' => $sender?->getNamaDisplay() ?? 'Pengguna',
+                'sender_name' => $this->resolveScheduleSenderName($sender, $jadwal),
                 'sender_role' => $sender?->role ?? 'pengguna',
-                'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
+                'avatar_url' => ! $isAnonymousStudent && $profil?->foto
+                    ? Storage::url($profil->foto)
+                    : asset('img/default-avatar.png'),
                 'text' => $this->chat->pesan,
                 'reply_to' => $replyTo ? [
                     'id' => $replyTo->id,
                     'sender_id' => $replyTo->pengirim_id,
-                    'sender_name' => $replySender?->getNamaDisplay() ?? 'Pengguna',
+                    'sender_name' => $this->resolveScheduleSenderName($replySender, $jadwal),
                     'text' => $replyTo->pesan,
                 ] : null,
                 'time' => $createdAt?->format('H:i') ?? Carbon::now($this->displayTimezone())->format('H:i'),
@@ -68,6 +74,25 @@ class ChatMessageSent implements ShouldBroadcastNow
                 'is_edited' => (bool) ($this->chat->updated_at && $this->chat->created_at && $this->chat->updated_at->ne($this->chat->created_at)),
             ],
         ];
+    }
+
+    private function usesAnonymousScheduleIdentity(?User $sender, ?JadwalKonseling $jadwal): bool
+    {
+        return ($sender?->role ?? null) === 'mahasiswa'
+            && (bool) ($jadwal?->anonim ?? false);
+    }
+
+    private function resolveScheduleSenderName(?User $sender, ?JadwalKonseling $jadwal): string
+    {
+        if (! $sender) {
+            return 'Pengguna';
+        }
+
+        if ($this->usesAnonymousScheduleIdentity($sender, $jadwal)) {
+            return trim($sender->getAnonimDisplayName()) ?: 'Anonim';
+        }
+
+        return $sender->nama ?? 'Pengguna';
     }
 
     private function toDisplayDateTime($value): ?Carbon

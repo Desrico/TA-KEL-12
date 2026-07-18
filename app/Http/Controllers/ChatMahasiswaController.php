@@ -541,27 +541,32 @@ class ChatMahasiswaController extends Controller
             'pengirim.profil',
             'pengirim.mahasiswa',
             'replyTo.pengirim',
+            'sesi.jadwalKonseling',
         ]);
 
         $sender = $chat->pengirim;
         $profil = optional($sender)->profil;
+        $jadwal = $chat->sesi?->jadwalKonseling;
         $replyTo = $chat->replyTo;
         $replySender = $replyTo?->pengirim;
+        $isAnonymousStudent = $this->usesAnonymousScheduleIdentity($sender, $jadwal);
 
         return [
             'id' => $chat->id,
             'sesi_id' => $chat->sesi_id,
             'sender_id' => $chat->pengirim_id,
-            'sender_name' => $sender?->getNamaDisplay() ?? 'Pengguna',
+            'sender_name' => $this->resolveScheduleSenderName($sender, $jadwal),
             'sender_role' => $sender?->role ?? 'pengguna',
-            'avatar_url' => $profil?->foto ? Storage::url($profil->foto) : asset('img/default-avatar.png'),
+            'avatar_url' => ! $isAnonymousStudent && $profil?->foto
+                ? Storage::url($profil->foto)
+                : asset('img/default-avatar.png'),
             'text' => $chat->pesan,
             'reply_to' => $replyTo ? [
                 'id' => $replyTo->id,
                 'sender_id' => $replyTo->pengirim_id,
                 'sender_name' => (int) $replyTo->pengirim_id === (int) $viewer->id
                     ? 'Anda'
-                    : ($replySender?->getNamaDisplay() ?? 'Pengguna'),
+                    : $this->resolveScheduleSenderName($replySender, $jadwal),
                 'text' => $replyTo->pesan,
             ] : null,
             'time' => $this->toDisplayDateTime($chat->created_at)?->format('H:i') ?? $this->nowInDisplayTimezone()->format('H:i'),
@@ -570,6 +575,25 @@ class ChatMahasiswaController extends Controller
             'is_edited' => (bool) ($chat->updated_at && $chat->created_at && $chat->updated_at->ne($chat->created_at)),
             'is_mine' => $chat->pengirim_id === $viewer->id,
         ];
+    }
+
+    private function usesAnonymousScheduleIdentity(?User $sender, ?JadwalKonseling $jadwal): bool
+    {
+        return ($sender?->role ?? null) === 'mahasiswa'
+            && (bool) ($jadwal?->anonim ?? false);
+    }
+
+    private function resolveScheduleSenderName(?User $sender, ?JadwalKonseling $jadwal): string
+    {
+        if (! $sender) {
+            return 'Pengguna';
+        }
+
+        if ($this->usesAnonymousScheduleIdentity($sender, $jadwal)) {
+            return trim($sender->getAnonimDisplayName()) ?: 'Anonim';
+        }
+
+        return $sender->nama ?? 'Pengguna';
     }
 
     private function resolveConversationMessages(SesiKonseling $activeSession, User $viewer): Collection

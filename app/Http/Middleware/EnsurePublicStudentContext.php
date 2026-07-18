@@ -20,7 +20,6 @@ class EnsurePublicStudentContext
         Auth::logout();
 
         $request->session()->forget('cis');
-        $request->session()->forget('security_pin_verified_at');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

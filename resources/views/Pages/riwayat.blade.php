@@ -104,6 +104,33 @@
                     • {{ substr($item->waktu ?? '00:00', 0, 5) }} WIB
                     • Sesi {{ $jenisSesi }}
                 </p>
+
+                <div class="riwayat-mobile-meta">
+                    <div class="riwayat-mobile-meta-row">
+                        <span>
+                            <i class="bi bi-calendar3"></i>
+                            {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}
+                        </span>
+                        <span>
+                            <i class="bi bi-clock"></i>
+                            {{ substr($item->waktu ?? '00:00', 0, 5) }} WIB
+                        </span>
+                    </div>
+                    <div class="riwayat-mobile-session-row">
+                        <span class="riwayat-mobile-session">
+                            <i class="bi bi-display"></i>
+                            Sesi {{ $jenisSesi }}
+                        </span>
+
+                        @if($isActionableStatus)
+                            <a href="{{ route('detail.riwayat', $item->id) }}" class="status-pill status-mobile status-link {{ $statusClass }}">
+                                {{ $statusLabel }}
+                            </a>
+                        @else
+                            <span class="status-pill status-mobile {{ $statusClass }}">{{ $statusLabel }}</span>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -308,6 +335,10 @@
     color: #6B7280;
     line-height: 1.3;
     white-space: nowrap;
+}
+
+.riwayat-mobile-meta {
+    display: none;
 }
 
 .btn-feedback {
@@ -722,8 +753,81 @@
     }
 
     .riwayat-card {
-        padding: 18px;
+        padding: 14px;
         gap: 12px;
+        border-width: 1px;
+        border-radius: 15px;
+        box-shadow: 0 5px 16px rgba(15, 23, 42, .05);
+    }
+
+    .card-left {
+        align-items: flex-start;
+        gap: 11px;
+    }
+
+    .avatar {
+        width: 46px;
+        height: 46px;
+        font-size: 16px;
+    }
+
+    .info {
+        flex: 1;
+    }
+
+    .info h3 {
+        margin-bottom: 6px;
+        font-size: 14px;
+        line-height: 1.35;
+    }
+
+    .info > p {
+        display: none;
+    }
+
+    .riwayat-mobile-meta {
+        display: grid;
+        gap: 6px;
+    }
+
+    .riwayat-mobile-meta-row,
+    .riwayat-mobile-session-row {
+        display: flex;
+        align-items: center;
+        gap: 8px 12px;
+        flex-wrap: wrap;
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.35;
+    }
+
+    .riwayat-mobile-meta-row > span,
+    .riwayat-mobile-session {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+
+    .riwayat-mobile-meta i {
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .riwayat-mobile-session-row {
+        flex-wrap: nowrap;
+    }
+
+    .status-pill.status-mobile {
+        width: auto;
+        min-width: 0;
+        height: 24px;
+        max-width: 155px;
+        padding: 0 8px;
+        border-radius: 999px;
+        overflow: hidden;
+        font-size: 9.5px;
+        text-overflow: ellipsis;
     }
 
     .card-right {
@@ -733,7 +837,11 @@
         gap: 10px;
     }
 
-   .status-pill,
+    .card-right > .status-pill,
+    .card-right > .btn-follow-up {
+        display: none;
+    }
+
     .btn-riwayat,
     .btn-feedback,
     .feedback-done-badge {

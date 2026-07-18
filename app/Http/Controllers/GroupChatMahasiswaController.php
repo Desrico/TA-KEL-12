@@ -6,6 +6,7 @@ use App\Events\GroupChatMessageSent;
 use App\Models\GroupChatMember;
 use App\Models\GroupChatMessage;
 use App\Models\GroupChatRoom;
+use App\Models\Konselor;
 use App\Models\User;
 use App\Models\Notifikasi;
 use App\Support\GroupChatSupport;
@@ -27,15 +28,13 @@ class GroupChatMahasiswaController extends Controller
         $user = $request->user();
         $eligibility = GroupChatSupport::syncMemberEligibilityStatus($user);
 
-        if ($request->filled('group')) {
-            return redirect()->route('mahasiswa.group-chat.room', ['group' => $request->integer('group')]);
-        }
-
         return view('Pages.group-chat', [
             'joinedRooms' => $this->resolveJoinedRooms($user),
+            'selectedGroupId' => $request->integer('group') ?: null,
             'pendingInvitations' => $this->resolvePendingInvitations($user),
             'publicTopics' => $this->resolvePublicTopicCards($user),
             'groupRules' => GroupChatSupport::rules(),
+            'consentVersion' => GroupChatSupport::consentVersion(),
             'eligibilityNotice' => $eligibility['eligible'] ? null : $eligibility['reason'],
         ]);
     }
@@ -167,7 +166,7 @@ class GroupChatMahasiswaController extends Controller
 
         if ($membership && (! GroupChatSupport::supportsMembershipStatus() || $membership->membership_status === GroupChatMember::STATUS_ACTIVE)) {
             return redirect()
-                ->route('mahasiswa.group-chat.room', ['group' => $room->id])
+                ->route('mahasiswa.group-chat', ['group' => $room->id])
                 ->with('success', 'Anda sudah tergabung di grup privat tersebut.');
         }
 
@@ -247,7 +246,7 @@ class GroupChatMahasiswaController extends Controller
                 [$room, $member] = $this->joinPrivateRoomByInvite($user, (string) $validated['invite_token']);
 
                 return redirect()
-                    ->route('mahasiswa.group-chat.room', ['group' => $room->id])
+                    ->route('mahasiswa.group-chat', ['group' => $room->id])
                     ->with(
                         'success',
                         $member->wasRecentlyCreated || (GroupChatSupport::supportsMembershipStatus() && $member->getOriginal('membership_status') !== GroupChatMember::STATUS_ACTIVE)
@@ -259,7 +258,7 @@ class GroupChatMahasiswaController extends Controller
             [$room, $member, $topicLabel] = $this->joinPublicRoom($user, $validated);
 
             return redirect()
-                ->route('mahasiswa.group-chat.room', ['group' => $room->id]);
+                ->route('mahasiswa.group-chat', ['group' => $room->id]);
         } catch (ValidationException $exception) {
             throw $exception;
         } catch (\Throwable $exception) {
@@ -444,7 +443,7 @@ class GroupChatMahasiswaController extends Controller
 
         if ($room->isPrivate()) {
             return redirect()
-                ->route('mahasiswa.group-chat.room', ['group' => $room->id])
+                ->route('mahasiswa.group-chat', ['group' => $room->id])
                 ->with('error', 'Keluar grup hanya tersedia untuk grup publik.');
         }
 
@@ -845,7 +844,7 @@ class GroupChatMahasiswaController extends Controller
                 'member_count' => (int) ($room?->active_members_count ?? $room?->members_count ?? 0),
                 'joined' => $room ? in_array($room->id, $joinedRoomIds, true) : false,
                 'join_url' => route('mahasiswa.group-chat.create', ['topic' => $topicKey]),
-                'room_url' => $room ? route('mahasiswa.group-chat.room', ['group' => $room->id]) : null,
+                'room_url' => $room ? route('mahasiswa.group-chat', ['group' => $room->id]) : null,
             ];
         }
 
@@ -970,6 +969,19 @@ class GroupChatMahasiswaController extends Controller
 
     private function resolveRoomCounselorName(GroupChatRoom $room, array $messages = []): string
     {
+        $creator = $room->relationLoaded('creator')
+            ? $room->creator
+            : $room->creator()->first();
+        $creatorRole = strtolower((string) ($creator?->role ?? ''));
+
+        if (in_array($creatorRole, ['konselor', 'admin'], true)) {
+            $creatorName = $this->resolveCisCounselorName($creator);
+
+            if (strtolower($creatorName) !== 'konselor') {
+                return $creatorName;
+            }
+        }
+
         $counselor = $room->members
             ->map(fn (GroupChatMember $member) => $member->user)
             ->first(function (?User $user) {
@@ -992,6 +1004,16 @@ class GroupChatMahasiswaController extends Controller
             if ($isCounselorMessage && $messageSenderName !== '' && strtolower($messageSenderName) !== 'konselor') {
                 return $messageSenderName;
             }
+        }
+
+        $registeredCounselor = Konselor::query()
+            ->with('user')
+            ->whereHas('user', fn ($query) => $query->whereIn('role', ['konselor', 'admin']))
+            ->orderBy('id')
+            ->first()?->user;
+
+        if ($registeredCounselor) {
+            return $this->resolveCisCounselorName($registeredCounselor);
         }
 
         return $memberName;
@@ -1163,7 +1185,7 @@ class GroupChatMahasiswaController extends Controller
         }
 
         if (Schema::hasColumn('notifikasi', 'cta_target')) {
-            $updateData['cta_target'] = route('mahasiswa.group-chat.room', $room->id);
+            $updateData['cta_target'] = route('mahasiswa.group-chat', ['group' => $room->id]);
         }
 
         if ($notifications->isEmpty()) {

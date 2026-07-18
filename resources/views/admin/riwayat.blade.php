@@ -379,6 +379,152 @@
             min-width: 880px;
         }
     }
+
+    @media (max-width: 767.98px) {
+        .sesi-card {
+            width: 100%;
+            margin-top: .25rem;
+            border-radius: 16px;
+        }
+
+        .sesi-toolbar {
+            padding: .75rem;
+        }
+
+        .sesi-search-wrap,
+        .sesi-search {
+            width: 100%;
+        }
+
+        .sesi-search-wrap {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: .5rem;
+        }
+
+        .sesi-search input {
+            width: 100%;
+            min-width: 0;
+            height: 42px;
+            padding-block: .55rem;
+            font-size: .78rem;
+        }
+
+        .sesi-filter-btn {
+            min-height: 42px;
+            padding: .55rem .8rem;
+            font-size: .76rem;
+        }
+
+        .sesi-table-wrap {
+            padding: .15rem .65rem .75rem;
+            overflow: visible;
+        }
+
+        .sesi-table {
+            min-width: 0;
+            border-spacing: 0 .65rem;
+            font-size: .78rem;
+        }
+
+        .sesi-table thead {
+            display: none;
+        }
+
+        .sesi-table tbody,
+        .sesi-table tr,
+        .sesi-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .sesi-table tbody tr {
+            overflow: hidden;
+            border: 1px solid #dceee4;
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 5px 14px rgba(6, 78, 59, .04);
+        }
+
+        .sesi-table tbody td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            padding: .58rem .7rem;
+            border-bottom: 1px solid #edf2ef;
+            text-align: right !important;
+        }
+
+        .sesi-table tbody td::before {
+            content: attr(data-label);
+            flex: 0 0 82px;
+            color: #64748b;
+            font-size: .68rem;
+            font-weight: 800;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+
+        .sesi-table tbody td:first-child {
+            align-items: flex-start;
+            padding-top: .75rem;
+        }
+
+        .sesi-table tbody td:last-child {
+            border-bottom: 0;
+        }
+
+        .mahasiswa-cell {
+            min-width: 0;
+            flex: 1;
+            justify-content: flex-end;
+            gap: .6rem;
+        }
+
+        .mahasiswa-avatar {
+            width: 34px;
+            height: 34px;
+        }
+
+        .mahasiswa-name,
+        .mahasiswa-sub {
+            text-align: right;
+        }
+
+        .waktu-text {
+            min-width: 0;
+        }
+
+        .status-pill {
+            min-width: 0;
+            max-width: 170px;
+            padding: .36rem .65rem;
+            font-size: .68rem;
+        }
+
+        .btn-lihat {
+            min-width: 60px;
+            padding: .42rem .75rem;
+            font-size: .7rem;
+        }
+
+        .empty-row {
+            display: block !important;
+            text-align: center !important;
+        }
+
+        .empty-row::before {
+            display: none;
+        }
+
+        .sesi-pagination {
+            padding: 0 .65rem .8rem;
+            overflow-x: auto;
+            justify-content: flex-start;
+        }
+    }
 </style>
 @endpush
 
@@ -498,7 +644,7 @@
                     @endphp
 
                     <tr class="{{ request()->integer('jadwal') === (int) $item->id ? 'is-selected' : '' }}">
-                        <td>
+                        <td data-label="Mahasiswa">
                             <div class="mahasiswa-cell">
                                 <div class="mahasiswa-avatar">
                                     @if($foto)
@@ -517,24 +663,24 @@
                             </div>
                         </td>
 
-                        <td>
+                        <td data-label="Waktu">
                             <div class="waktu-text">
                                 <div>{{ $tanggal }}</div>
                                 <div>{{ $waktu }}</div>
                             </div>
                         </td>
 
-                        <td>
+                        <td data-label="Layanan">
                             <div class="layanan-text">{{ $layanan }}</div>
                         </td>
 
-                        <td>
+                        <td data-label="Status">
                             <span class="status-pill {{ $statusClass }}">
                                 {{ $statusLabel }}
                             </span>
                         </td>
 
-                        <td style="text-align:center;">
+                        <td data-label="Aksi" style="text-align:center;">
                             <div class="action-stack">
                                 <a href="{{ route('admin.riwayat.detail', $item->id) }}" class="btn-lihat">Lihat</a>
                             </div>

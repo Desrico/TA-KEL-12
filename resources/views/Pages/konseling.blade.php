@@ -575,17 +575,25 @@
 
   .anonim-toggle-card {
     margin-top: 1.2rem;
-    border: 1px solid #D5D5D5;
-    border-radius: 20px;
-    background:  #ffffff;
-    padding: 1rem 1.05rem;
+    border: 1.5px solid #B7E4D2;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #F4FCF8 0%, #FFFFFF 72%);
+    padding: 1.1rem 1.15rem;
+    box-shadow: 0 12px 30px rgba(6, 95, 70, .08);
+    transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+  }
+
+  .anonim-toggle-card.is-active {
+    border-color: #36C995;
+    background: linear-gradient(135deg, #E9FBF3 0%, #F8FFFC 72%);
+    box-shadow: 0 14px 32px rgba(5, 150, 105, .14);
   }
 
   .anonim-toggle-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: .9rem;
   }
 
   .anonim-toggle-copy {
@@ -593,28 +601,65 @@
     min-width: 0;
   }
 
+  .anonim-toggle-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+
   .anonim-toggle-title {
     margin: 0;
-    color: #173428;
-    font-size: .95rem;
-    font-weight: 800;
+    color: #102A20;
+    font-size: 1rem;
+    font-weight: 900;
   }
 
   .anonim-toggle-status {
-    margin-top: .2rem;
-    color: var(--care-green);
-    font-size: .77rem;
-    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    min-height: 26px;
+    border-radius: 999px;
+    background: #E9EEF0;
+    color: #53645D;
+    padding: .25rem .65rem;
+    font-size: .7rem;
+    font-weight: 900;
+    letter-spacing: .02em;
+  }
+
+  .anonim-toggle-status::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .anonim-toggle-card.is-active .anonim-toggle-status {
+    background: #CFF7E7;
+    color: #057A55;
+  }
+
+  .anonim-toggle-description {
+    max-width: 660px;
+    margin: .55rem 0 0;
+    color: #52665E;
+    font-size: .79rem;
+    line-height: 1.55;
   }
 
   .anonim-toggle-status.is-error {
+    background: #FEE4E2;
     color: #B42318;
   }
 
   .anonim-toggle-switch {
     position: relative;
-    width: 52px;
-    height: 30px;
+    width: 58px;
+    height: 34px;
+    margin-top: 7px;
     flex-shrink: 0;
   }
 
@@ -628,9 +673,10 @@
     position: absolute;
     inset: 0;
     border-radius: 999px;
-    background: #D4DAD7;
+    background: #C9D2CE;
     cursor: pointer;
-    transition: background .2s ease;
+    box-shadow: inset 0 0 0 1px rgba(16, 42, 32, .08);
+    transition: background .2s ease, box-shadow .2s ease;
   }
 
   .anonim-toggle-slider::before {
@@ -638,8 +684,8 @@
     position: absolute;
     left: 3px;
     top: 3px;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: #fff;
     box-shadow: 0 4px 14px rgba(15, 23, 42, .14);
@@ -647,11 +693,17 @@
   }
 
   .anonim-toggle-switch input:checked + .anonim-toggle-slider {
-    background: var(--care-green);
+    background: #059669;
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, .12);
   }
 
   .anonim-toggle-switch input:checked + .anonim-toggle-slider::before {
-    transform: translateX(22px);
+    transform: translateX(24px);
+  }
+
+  .anonim-toggle-switch input:focus-visible + .anonim-toggle-slider {
+    outline: 3px solid rgba(5, 150, 105, .24);
+    outline-offset: 3px;
   }
 
   .anonim-toggle-switch input:disabled + .anonim-toggle-slider {
@@ -1136,12 +1188,36 @@
       font-size: 16px;
     }
 
+    .anonim-toggle-card {
+      padding: 1rem;
+    }
+
     .anonim-toggle-row {
-      flex-direction: column;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: .7rem;
+    }
+
+    .anonim-toggle-title {
+      font-size: .92rem;
+    }
+
+    .anonim-toggle-description {
+      font-size: .75rem;
     }
 
     .anonim-toggle-switch {
-      align-self: flex-end;
+      width: 52px;
+      height: 30px;
+      margin-top: 6px;
+    }
+
+    .anonim-toggle-slider::before {
+      width: 24px;
+      height: 24px;
+    }
+
+    .anonim-toggle-switch input:checked + .anonim-toggle-slider::before {
+      transform: translateX(22px);
     }
 
     .service-modal {
@@ -1171,7 +1247,11 @@
   $user = Auth::user();
   $mahasiswa = optional($user)->mahasiswa;
   $profil = optional($user)->profil;
-  $isAnonim = $user ? $user->isAnonim() : false;
+  // Mode anonim merupakan pilihan per jadwal, bukan status profil pengguna.
+  // Jadwal baru selalu dimulai nonaktif; penjadwalan ulang mempertahankan pilihan jadwalnya.
+  $isAnonim = isset($jadwalUlang)
+      && strtolower((string) ($jadwalUlang->jenis ?? '')) === 'online'
+      && (bool) ($jadwalUlang->anonim ?? false);
   $namaMahasiswa = $user?->nama ?? 'Silakan login';
   $anonimDisplayName = $user ? $user->getAnonimDisplayName() : 'Mahasiswa Anonim';
   $nimMahasiswa = optional($mahasiswa)->nim ?? '-';
@@ -1339,15 +1419,17 @@
             </div>
           </div>
 
-           <div class="anonim-toggle-card" id="anonim-toggle-card">
+          <div class="anonim-toggle-card {{ $isAnonim ? 'is-active' : '' }}" id="anonim-toggle-card">
             <div class="anonim-toggle-row">
               <div class="anonim-toggle-copy">
-                <p class="anonim-toggle-title">Mode Anonim</p>
-                <div class="anonim-toggle-status" id="anonim-toggle-status">
-                  {{ $isAnonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.' }}
+                <div class="anonim-toggle-heading">
+                  <p class="anonim-toggle-title">Gunakan Mode Anonim</p>
                 </div>
+                <p class="anonim-toggle-description">
+                  Nama dan NIM disamarkan khusus untuk sesi konseling online.
+                </p>
               </div>
-              <label class="anonim-toggle-switch" aria-label="Toggle mode anonim">
+              <label class="anonim-toggle-switch" aria-label="Aktifkan atau nonaktifkan mode anonim">
                 <input
                   type="checkbox"
                   id="anonim-toggle"
@@ -1735,6 +1817,10 @@ document.addEventListener('DOMContentLoaded', function () {
   function updateAnonimUI(active) {
     isAnonim = Boolean(active);
 
+    if (anonimToggleCardEl) {
+      anonimToggleCardEl.classList.toggle('is-active', isAnonim);
+    }
+
     if (profileNimEl) {
       profileNimEl.value = isAnonim ? '********' : profileDisplay.nim;
     }
@@ -1744,14 +1830,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (anonimStatusEl) {
-      anonimStatusEl.textContent = isAnonim ? 'Mode anonim aktif.' : 'Mode anonim nonaktif.';
+      anonimStatusEl.textContent = isAnonim ? 'Aktif' : 'Nonaktif';
       anonimStatusEl.classList.remove('is-error');
     }
 
     syncAnonimSection();
   }
 
-  async function toggleAnonimMode(checkbox) {
+  function toggleAnonimMode(checkbox) {
     if (!isLoggedIn) {
       checkbox.checked = false;
       window.location.href = '/login';
@@ -1763,59 +1849,8 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    const previousState = isAnonim;
     const requestedState = checkbox.checked;
-
-    checkbox.disabled = true;
-
-    if (anonimStatusEl) {
-      anonimStatusEl.textContent = 'Menyimpan perubahan mode anonim...';
-      anonimStatusEl.classList.remove('is-error');
-    }
-
-    try {
-      const response = await fetch('{{ route('profil.anonim') }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ anonim: requestedState }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        checkbox.checked = previousState;
-        updateAnonimUI(previousState);
-
-        if (anonimStatusEl) {
-          anonimStatusEl.textContent = data.message || 'Gagal memperbarui mode anonim.';
-          anonimStatusEl.classList.add('is-error');
-        }
-
-        return;
-      }
-
-      const newAnonimState = typeof data.anonim !== 'undefined'
-        ? Boolean(data.anonim)
-        : requestedState;
-
-      checkbox.checked = newAnonimState;
-      updateAnonimUI(newAnonimState);
-
-    } catch (error) {
-      checkbox.checked = previousState;
-      updateAnonimUI(previousState);
-
-      if (anonimStatusEl) {
-        anonimStatusEl.textContent = 'Gagal memperbarui mode anonim.';
-        anonimStatusEl.classList.add('is-error');
-      }
-    } finally {
-      checkbox.disabled = false;
-    }
+    updateAnonimUI(requestedState);
   }
 
   function validateDate() {
@@ -2293,6 +2328,7 @@ document.addEventListener('DOMContentLoaded', function () {
       waktu: waktuEl.value,
       jenis: selectedService,
       topik: topikValue,
+      anonim: selectedService === 'online' && isAnonim,
       konfirmasi: checkbox.checked,
     };
 

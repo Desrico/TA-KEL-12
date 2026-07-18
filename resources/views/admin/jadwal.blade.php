@@ -810,9 +810,108 @@
   }
 
   @media (max-width: 768px) {
+    .jadwal-page-wrap {
+      margin-top: .25rem;
+    }
+
+    .jadwal-calendar-card,
+    .jadwal-detail-card {
+      width: 100%;
+      border-width: 1px;
+      border-radius: 16px;
+    }
+
+    .jadwal-head {
+      padding: .85rem;
+      gap: .7rem;
+    }
+
+    .jadwal-head h6 {
+      font-size: 1rem;
+    }
+
+    .jadwal-head p {
+      font-size: .72rem;
+      line-height: 1.5;
+    }
+
+    .btn-ketidaktersediaan {
+      width: 100%;
+      min-height: 40px;
+      justify-content: center;
+      padding: .55rem .75rem;
+      font-size: .75rem;
+    }
+
+    .jadwal-calendar-content {
+      padding: .65rem;
+    }
+
+    #calendar {
+      min-height: 510px;
+    }
+
+    .fc .fc-col-header-cell-cushion {
+      padding: .45rem 0;
+      font-size: .68rem;
+    }
+
+    .fc .fc-daygrid-day-number {
+      padding: .3rem;
+      font-size: .7rem;
+    }
+
+    .fc .fc-daygrid-event {
+      margin: 1px 2px;
+      padding: 1px 4px;
+      font-size: .62rem;
+    }
+
+    .jadwal-legend {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .5rem .7rem;
+      padding: .75rem .65rem 0;
+    }
+
+    .legend-item {
+      gap: .4rem;
+      font-size: .68rem;
+      line-height: 1.35;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 10px;
+    }
+
     .modal-box {
-      padding: 22px 18px;
-      border-radius: 22px;
+      width: calc(100% - 1rem);
+      max-height: calc(100dvh - 1rem);
+      overflow-y: auto;
+      padding: 1rem;
+      border-radius: 16px;
+    }
+
+    .modal-top {
+      gap: .65rem;
+    }
+
+    .modal-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+    }
+
+    .modal-title-wrap h3 {
+      font-size: 1rem;
+    }
+
+    .modal-title-wrap p,
+    .form-group label,
+    .checkbox-inline {
+      font-size: .74rem;
     }
 
     .modal-grid {
@@ -833,30 +932,33 @@
     }
 
     .calendar-toolbar-custom {
-      grid-template-columns: 46px minmax(0, 1fr) 46px;
-      margin-bottom: 16px;
+      grid-template-columns: 38px minmax(0, 1fr) 38px;
+      min-height: 40px;
+      margin-bottom: 10px;
     }
 
     .calendar-nav-btn {
-      width: 46px;
-      height: 46px;
-      font-size: 24px;
-      border-radius: 12px !important;
+      width: 38px;
+      height: 38px;
+      font-size: 20px;
+      border-radius: 10px !important;
     }
 
     .calendar-month-title {
-      font-size: 1rem;
+      font-size: .88rem;
     }
   }
 
   @media (max-width: 576px) {
   .modal-detail-box {
+    width: calc(100% - 1rem);
     max-width: 100%;
-    padding: 24px 22px;
+    padding: 1rem;
+    border-radius: 16px;
   }
 
   .modal-detail-box h3 {
-    font-size: 1.25rem;
+    font-size: 1rem;
   }
 
   .modal-action {

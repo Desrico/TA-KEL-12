@@ -8,7 +8,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Hash;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class User extends Authenticatable
@@ -26,7 +25,8 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password',
-        'security_pin_hash',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
         'remember_token',
     ];
 
@@ -36,60 +36,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_anonim' => 'boolean',
-            'security_pin_set_at' => 'datetime',
-            'security_pin_locked_until' => 'datetime',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'array',
+            'two_factor_confirmed_at' => 'datetime',
         ];
     }
 
-    public function hasSecurityPin(): bool
+    public function hasTwoFactorAuthentication(): bool
     {
-        return filled($this->security_pin_hash);
-    }
-
-    public function setSecurityPin(string $pin): void
-    {
-        // Field PIN dikelola internal agar tidak terbuka lewat mass assignment.
-        $this->forceFill([
-            'security_pin_hash' => Hash::make($pin),
-            'security_pin_set_at' => now(),
-            'security_pin_failed_attempts' => 0,
-            'security_pin_locked_until' => null,
-        ])->save();
-    }
-
-    public function securityPinIsLocked(): bool
-    {
-        return $this->security_pin_locked_until && $this->security_pin_locked_until->isFuture();
-    }
-
-    public function securityPinMatches(string $pin): bool
-    {
-        return $this->hasSecurityPin() && Hash::check($pin, $this->security_pin_hash);
-    }
-
-    public function recordFailedSecurityPinAttempt(int $maxAttempts = 5, int $lockMinutes = 10): array
-    {
-        $failedAttempts = min(((int) $this->security_pin_failed_attempts) + 1, $maxAttempts);
-        $lockedUntil = $failedAttempts >= $maxAttempts ? now()->addMinutes($lockMinutes) : null;
-
-        $this->forceFill([
-            'security_pin_failed_attempts' => $failedAttempts,
-            'security_pin_locked_until' => $lockedUntil,
-        ])->save();
-
-        return [
-            'failed_attempts' => $failedAttempts,
-            'locked_until' => $lockedUntil,
-            'remaining_attempts' => max(0, $maxAttempts - $failedAttempts),
-        ];
-    }
-
-    public function clearSecurityPinFailures(): void
-    {
-        $this->forceFill([
-            'security_pin_failed_attempts' => 0,
-            'security_pin_locked_until' => null,
-        ])->save();
+        return filled($this->two_factor_secret) && $this->two_factor_confirmed_at !== null;
     }
 
     public function mahasiswa(): HasOne

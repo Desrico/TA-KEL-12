@@ -151,7 +151,7 @@ class GroupChatAdminController extends Controller
             return [$room, $inviteSummary];
         });
 
-        return redirect()
+        $redirect = redirect()
             ->route('admin.group-chat', ['group' => $room->id])
             ->with('success', $this->buildInviteFeedbackMessage(
                 'Grup privat berhasil dibuat.',
@@ -162,6 +162,12 @@ class GroupChatAdminController extends Controller
                 'Grup privat "' . $room->title . '" telah berhasil dibuat.',
                 $inviteSummary
             ));
+
+        if (! empty($inviteSummary['capacity_limited_nims'])) {
+            $redirect->with('admin_capacity_limit_modal', $this->buildPrivateCapacityModalPayload());
+        }
+
+        return $redirect;
     }
 
     private function makeUniquePublicTopicKey(string $title): string
@@ -203,19 +209,31 @@ class GroupChatAdminController extends Controller
         $redirect = redirect()->route('admin.group-chat', ['group' => $group->id]);
 
         if (! $this->hasSuccessfulInviteOutcome($inviteSummary)) {
-            return $redirect->with('error', $this->buildInviteFeedbackMessage(
+            $redirect->with('error', $this->buildInviteFeedbackMessage(
                 'Belum ada undangan yang berhasil diproses.',
                 $inviteSummary
             ));
+
+            if (! empty($inviteSummary['capacity_limited_nims'])) {
+                $redirect->with('admin_capacity_limit_modal', $this->buildPrivateCapacityModalPayload());
+            }
+
+            return $redirect;
         }
 
-        return $redirect
+        $redirect
             ->with('success', $this->buildInviteFeedbackMessage(
                 'Undangan grup privat berhasil diproses.',
                 $inviteSummary
             ))
             // modal bahwa berhasil mengundang mahasiswa aktif sekian anggota.
             ->with('admin_invite_success_modal', $this->buildPrivateGroupInviteSuccessModalPayload($group, $inviteSummary));
+
+        if (! empty($inviteSummary['capacity_limited_nims'])) {
+            $redirect->with('admin_capacity_limit_modal', $this->buildPrivateCapacityModalPayload());
+        }
+
+        return $redirect;
     }
 
     public function renameRoom(Request $request, GroupChatRoom $group): RedirectResponse
@@ -1514,6 +1532,16 @@ class GroupChatAdminController extends Controller
         return [
             'title' => 'Berhasil Mengundang ' . (int) ($summary['invited_count'] ?? 0) . ' Anggota',
             'group_id' => $room->id,
+        ];
+    }
+
+    private function buildPrivateCapacityModalPayload(): array
+    {
+        return [
+            'title' => 'Batas Anggota Grup Privat',
+            'message' => 'Grup privat hanya dapat menampung maksimal '
+                . GroupChatSupport::privateGroupMemberLimit()
+                . ' mahasiswa. Mahasiswa ke-16 tidak dapat ditambahkan.',
         ];
     }
 

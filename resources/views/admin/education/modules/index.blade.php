@@ -83,6 +83,152 @@
         .custom-pagination .page-link:hover:not(.disabled):not(.active) { background: #e2e8f0; color: #1e293b; }
         .custom-pagination .page-link.active { background: #047857; color: #ffffff; }
         .custom-pagination .page-link.disabled { color: #cbd5e1; cursor: not-allowed; }
+
+        @media (max-width: 767.98px) {
+            .container-fluid {
+                padding: .25rem !important;
+            }
+
+            .btn-back-link {
+                padding: .4rem .3rem;
+                font-size: .72rem;
+            }
+
+            .mi-btn-add {
+                width: 100%;
+                justify-content: center;
+                padding: .65rem .8rem;
+                font-size: .76rem;
+            }
+
+            .mi-tabs {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                border-radius: 12px;
+            }
+
+            .mi-tab {
+                justify-content: center;
+                padding: .45rem .35rem;
+                border-radius: 9px;
+                font-size: .68rem;
+                text-align: center;
+            }
+
+            #filterForm {
+                width: 100%;
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                justify-content: stretch !important;
+                gap: .5rem !important;
+            }
+
+            #filterForm > div {
+                display: grid !important;
+                grid-template-columns: 70px minmax(0, 1fr);
+                font-size: .7rem;
+            }
+
+            .mi-sort-select {
+                width: 100%;
+                min-height: 38px;
+                font-size: .72rem;
+            }
+
+            .premium-table {
+                min-width: 0 !important;
+                border: 0;
+                border-radius: 0;
+                overflow: visible;
+            }
+
+            .premium-table thead {
+                display: none;
+            }
+
+            .premium-table tbody,
+            .premium-table tr,
+            .premium-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .premium-table tbody {
+                padding: .6rem;
+            }
+
+            .premium-table tbody tr {
+                margin-bottom: .65rem;
+                overflow: hidden;
+                border: 1px solid #e2e8f0;
+                border-radius: 13px;
+                background: #fff;
+            }
+
+            .premium-table td {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .65rem;
+                padding: .55rem .65rem;
+                font-size: .75rem;
+                text-align: right;
+            }
+
+            .premium-table td::before {
+                content: attr(data-label);
+                flex: 0 0 58px;
+                color: #64748b;
+                font-size: .65rem;
+                font-weight: 800;
+                text-align: left;
+                text-transform: uppercase;
+            }
+
+            .premium-table td:first-child {
+                display: block;
+                text-align: left;
+            }
+
+            .premium-table td:first-child::before {
+                display: none;
+            }
+
+            .mi-module-cell {
+                gap: .7rem;
+            }
+
+            .mi-thumb {
+                width: 44px;
+                height: 44px;
+                border-radius: 9px;
+            }
+
+            .mi-title {
+                font-size: .78rem;
+            }
+
+            .mi-desc {
+                font-size: .68rem;
+            }
+
+            .mi-point,
+            .mi-badge {
+                padding: 4px 8px;
+                font-size: .68rem;
+            }
+
+            .mi-btn-icon {
+                width: 32px;
+                height: 32px;
+            }
+
+            .custom-pagination {
+                max-width: 100%;
+                overflow-x: auto;
+            }
+        }
     </style>
 @endpush
 
@@ -176,7 +322,7 @@
                         <tbody>
                             @foreach($modules as $m)
                             <tr>
-                                <td>
+                                <td data-label="Modul">
                                     <div class="mi-module-cell">
                                         <div class="mi-thumb">
                                             @if($m->thumbnail)
@@ -193,18 +339,18 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="Poin">
                                     <span class="mi-point">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="#059669" stroke="#059669" stroke-width="0"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                         {{ $m->reward_point }} Poin
                                     </span>
                                 </td>
-                                <td>
+                                <td data-label="Status">
                                     <span class="mi-badge {{ $m->status ? 'aktif' : 'draft' }}">
                                         {{ $m->status ? 'Aktif' : 'Draft' }}
                                     </span>
                                 </td>
-                                <td>
+                                <td data-label="Aksi">
                                     <div class="mi-actions">
                                         <a href="{{ route('counselor.education.modules.edit', $m->id) }}" class="mi-btn-icon" title="Edit">
                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>

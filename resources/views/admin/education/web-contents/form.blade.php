@@ -589,18 +589,18 @@
 
     @media (max-width: 768px) {
         .f-wrap {
-            padding: 24px 20px 64px;
+            padding: .35rem 0 1.5rem;
         }
 
         .f-section {
-            padding: 24px 20px;
-            border-radius: 16px;
+            padding: 1rem;
+            border-radius: 14px;
         }
 
         .f-row {
             grid-template-columns: 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: .85rem;
+            margin-bottom: .85rem;
         }
 
         .f-row .f-group {
@@ -608,7 +608,7 @@
         }
 
         .f-radio-simple-group {
-            gap: 24px;
+            gap: 1rem;
             min-height: auto;
             padding-top: 6px;
         }
@@ -626,26 +626,26 @@
 
     @media (max-width: 480px) {
         .f-wrap {
-            padding: 22px 16px 56px;
+            padding: .25rem 0 1.25rem;
         }
 
         .f-page-title h1 {
-            font-size: 24px;
+            font-size: 1.15rem;
         }
 
         .f-page-title p {
-            font-size: 14px;
+            font-size: .74rem;
         }
 
         .f-section-title {
-            font-size: 16px;
+            font-size: .9rem;
         }
 
         .f-input,
         .f-select,
         .f-textarea {
-            font-size: 14px;
-            padding: 13px 15px;
+            font-size: .78rem;
+            padding: .65rem .75rem;
         }
 
         .f-radio-simple-group {

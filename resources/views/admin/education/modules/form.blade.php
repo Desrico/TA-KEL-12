@@ -263,7 +263,81 @@
 
     @media (max-width: 580px) {
         .f-row { grid-template-columns: 1fr; }
-        .container-fluid { padding: 16px; }
+        .container-fluid { padding: .25rem; }
+
+        .btn-back-link {
+            margin-left: 0;
+            padding: .4rem 0;
+            font-size: .7rem;
+        }
+
+        .f-page-title {
+            padding: .65rem 0 .85rem;
+        }
+
+        .f-page-title h1 {
+            font-size: 1.15rem;
+        }
+
+        .f-page-title p {
+            font-size: .74rem;
+            line-height: 1.5;
+        }
+
+        .f-section {
+            margin-bottom: .75rem;
+            padding: 1rem;
+            border-radius: 14px;
+        }
+
+        .f-section-title {
+            margin-bottom: .85rem;
+            font-size: .9rem;
+        }
+
+        .f-group {
+            margin-bottom: .85rem;
+        }
+
+        .f-label {
+            margin-bottom: .4rem;
+            font-size: .67rem;
+        }
+
+        .f-input,
+        .f-select,
+        .f-textarea {
+            padding: .65rem .75rem;
+            font-size: .78rem;
+        }
+
+        .f-textarea {
+            min-height: 90px;
+        }
+
+        .f-upload-area {
+            padding: 1.25rem .8rem;
+        }
+
+        .f-upload-icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: .55rem;
+        }
+
+        .f-upload-title {
+            font-size: .78rem;
+        }
+
+        .f-upload-sub {
+            font-size: .68rem;
+        }
+
+        .f-submit {
+            width: 100%;
+            padding: .7rem 1rem;
+            font-size: .78rem;
+        }
     }
 </style>
 @endpush
