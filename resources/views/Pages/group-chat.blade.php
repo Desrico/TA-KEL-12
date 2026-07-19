@@ -786,30 +786,6 @@
     flex-wrap: wrap;
   }
 
-  .group-my-visibility {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    border-radius: 999px;
-    padding: .28rem .62rem;
-    font-size: .68rem;
-    font-weight: 800;
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  .group-my-visibility.is-private {
-    background: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fde68a;
-  }
-
-  .group-my-visibility.is-public {
-    background: #ecfdf5;
-    color: #047857;
-    border: 1px solid #bbf7d0;
-  }
-
   .group-my-meta {
     color: #64748b;
     font-size: .8rem;
@@ -1221,11 +1197,6 @@
       line-height: 1.4;
     }
 
-    .group-my-visibility {
-      width: max-content;
-      max-width: 100%;
-    }
-
     .group-my-meta {
       overflow-wrap: anywhere;
     }
@@ -1438,8 +1409,6 @@
             <div class="group-my-list">
               @foreach($section['rooms'] as $room)
                 @php
-                  $isPrivateRoom = method_exists($room, 'isPrivate') ? $room->isPrivate() : ($room->visibility === 'private');
-
                   $latestPreview = optional($room->latestMessage)->pesan
                     ? \Illuminate\Support\Str::limit($room->latestMessage->pesan, 92)
                     : 'Belum ada pesan di grup ini.';
@@ -1449,9 +1418,6 @@
                     <div>
                       <div class="group-my-title-row">
                         <h3 class="group-my-name">{{ $room->title }}</h3>
-                        <span class="group-my-visibility {{ $isPrivateRoom ? 'is-private' : 'is-public' }}">
-                          <span>{{ $isPrivateRoom ? 'Privat' : 'Publik' }}</span>
-                        </span>
                       </div>
                     </div>
                   </div>
