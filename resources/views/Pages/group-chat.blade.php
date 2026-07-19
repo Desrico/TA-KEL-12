@@ -1440,86 +1440,9 @@
                 @php
                   $isPrivateRoom = method_exists($room, 'isPrivate') ? $room->isPrivate() : ($room->visibility === 'private');
 
-                  $previewMembers = $room->members
-                    ->sortBy(fn ($member) => optional($member->joined_at ?? $member->created_at)?->getTimestamp() ?? PHP_INT_MAX)
-                    ->take(3);
-
-                  $remainingMembers = max(($room->members_count ?? $room->members->count()) - $previewMembers->count(), 0);
-
                   $latestPreview = optional($room->latestMessage)->pesan
                     ? \Illuminate\Support\Str::limit($room->latestMessage->pesan, 92)
                     : 'Belum ada pesan di grup ini.';
-
-                  $resolveMemberName = function ($member) use ($isPrivateRoom) {
-                      $memberUser = $member->user ?? null;
-
-                      if ($isPrivateRoom) {
-                          return $memberUser?->nama
-                              ?? $memberUser?->name
-                              ?? $memberUser?->username_cis
-                              ?? $memberUser?->email
-                              ?? 'Mahasiswa';
-                      }
-
-                      return $memberUser?->getAnonimDisplayName() ?? 'Mahasiswa Anonim';
-                  };
-
-                  $resolveMemberAvatar = function ($member) use ($isPrivateRoom, $resolveMemberName) {
-                      $memberUser = $member->user ?? null;
-
-                      if ($isPrivateRoom) {
-                          $name = $resolveMemberName($member);
-
-                          return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=d9f7e7&color=065f46';
-                      }
-
-                      return $memberUser?->getAnonimAvatarSvg();
-                  };
-
-                  $animalIcon = function ($name) {
-                      $name = strtolower((string) $name);
-                      $icons = [
-                          'lobster' => '🦞',
-                          'kanguru' => '🦘',
-                          'gajah' => '🐘',
-                          'serigala' => '🐺',
-                          'kuda' => '🐴',
-                          'zebra' => '🦓',
-                          'badak' => '🦏',
-                          'jerapah' => '🦒',
-                          'bison' => '🦬',
-                          'paus' => '🐋',
-                          'hiu' => '🦈',
-                          'gurita' => '🐙',
-                          'kepiting' => '🦀',
-                          'penyu' => '🐢',
-                          'elang' => '🦅',
-                          'flamingo' => '🦩',
-                          'bebek' => '🦆',
-                          'kupu' => '🦋',
-                          'kelelawar' => '🦇',
-                          'landak' => '🦔',
-                          'beruang' => '🐻',
-                          'kucing' => '🐱',
-                          'kelinci' => '🐰',
-                          'rubah' => '🦊',
-                          'panda' => '🐼',
-                          'koala' => '🐨',
-                          'harimau' => '🐯',
-                          'singa' => '🦁',
-                          'anjing' => '🐶',
-                          'burung' => '🐦',
-                          'kura' => '🐢',
-                      ];
-
-                      foreach ($icons as $keyword => $icon) {
-                          if (str_contains($name, $keyword)) {
-                              return $icon;
-                          }
-                      }
-
-                      return '🐾';
-                  };
                 @endphp
                 <a href="{{ route('mahasiswa.group-chat.room', ['group' => $room->id, 'embedded' => 1]) }}" target="groupChatFrame" class="group-my-item {{ $initialRoom && (int) $initialRoom->id === (int) $room->id ? 'is-active-room' : '' }}" data-group-lobby-item data-group-search="{{ Illuminate\Support\Str::lower($room->title . ' ' . $latestPreview) }}">
                   <div class="group-my-item-top">
@@ -1535,53 +1458,6 @@
 
                   <div class="group-my-meta">
                     {{ $latestPreview }}
-                  </div>
-
-                  <div class="group-my-footer">
-                    <div class="group-member-preview">
-                      <div class="group-member-avatars">
-                       @forelse($previewMembers as $member)
-                          @php
-                            $memberName = $resolveMemberName($member);
-                            $memberAvatar = $resolveMemberAvatar($member);
-                          @endphp
-
-                          <div class="group-member-avatar">
-                            @if(! $isPrivateRoom)
-                              <div class="group-member-animal" title="{{ $memberName }}">{{ $animalIcon($memberName) }}</div>
-                            @elseif($memberAvatar)
-                              <img src="{{ $memberAvatar }}" alt="{{ $memberName }}">
-                            @else
-                              <div class="group-member-fallback">
-                                <i class="bi bi-person-fill"></i>
-                              </div>
-                            @endif
-                          </div>
-                          @empty
-                          <div class="group-member-avatar">
-                            <div class="group-member-fallback">
-                              <i class="bi bi-people-fill"></i>
-                            </div>
-                          </div>
-                        @endforelse
-                      </div>
-                      <div class="group-member-text">
-                        <strong>
-                          {{ $previewMembers->map(fn ($member) => $resolveMemberName($member))->take(2)->implode(', ') ?: 'Belum ada anggota tampil' }}
-                        </strong>
-                        <span>
-                          @if($remainingMembers > 0)
-                            +{{ $remainingMembers }} anggota lainnya
-                          @else
-                            Semua anggota tampil di preview ini
-                          @endif
-                        </span>
-                      </div>
-                    </div>
-                    <span class="group-card-cta-secondary">
-                      <i class="bi bi-chat-dots-fill"></i>
-                      <span>Buka ruang chat</span>
-                    </span>
                   </div>
                 </a>
               @endforeach
