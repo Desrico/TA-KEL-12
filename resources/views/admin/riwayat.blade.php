@@ -446,6 +446,10 @@
             box-shadow: 0 5px 14px rgba(6, 78, 59, .04);
         }
 
+        .sesi-table tbody tr + tr {
+            margin-top: .8rem;
+        }
+
         .sesi-table tbody td {
             display: flex;
             align-items: center;

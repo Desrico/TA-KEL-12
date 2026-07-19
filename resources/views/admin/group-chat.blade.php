@@ -2017,6 +2017,7 @@
       width: auto;
       margin-left: auto;
       justify-content: flex-end;
+      position: static;
     }
 
     .admin-chat-toggle-text,
@@ -2025,10 +2026,37 @@
     }
 
     .admin-chat-profile {
-      left: 0;
-      right: auto;
-      width: 100%;
-      max-width: 100%;
+      top: calc(100% + .35rem);
+      left: .65rem;
+      right: .65rem;
+      width: auto;
+      max-width: none;
+    }
+
+    .admin-chat-stage.is-profile-open .admin-chat-profile {
+      max-height: min(560px, calc(100dvh - 125px));
+    }
+
+    .admin-chat-profile-body {
+      max-height: min(470px, calc(100dvh - 205px));
+      padding: .75rem;
+    }
+
+    .admin-member-item,
+    .admin-member-item-content,
+    .admin-member-name {
+      min-width: 0;
+    }
+
+    .admin-member-name {
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+
+    .admin-profile-section .admin-create-actions {
+      margin-inline: -.75rem;
+      margin-bottom: -.75rem;
+      padding-inline: .75rem;
     }
 
     .admin-message-content {

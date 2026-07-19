@@ -11,24 +11,10 @@
             </a>
         @endif
 
-        {{-- Pagination Elements --}}
-        @foreach ($elements as $element)
-            {{-- "Three Dots" Separator --}}
-            @if (is_string($element))
-                <span class="page-link disabled" aria-disabled="true">{{ $element }}</span>
-            @endif
-
-            {{-- Array Of Links --}}
-            @if (is_array($element))
-                @foreach ($element as $page => $url)
-                    @if ($page == $paginator->currentPage())
-                        <span class="page-link active" aria-current="page">{{ $page }}</span>
-                    @else
-                        <a href="{{ $url }}" class="page-link">{{ $page }}</a>
-                    @endif
-                @endforeach
-            @endif
-        @endforeach
+        {{-- Hanya nomor halaman aktif yang ditampilkan agar pagination tetap ringkas. --}}
+        <span class="page-link active" aria-current="page" aria-label="Halaman {{ $paginator->currentPage() }}">
+            {{ $paginator->currentPage() }}
+        </span>
 
         {{-- Next Page Link --}}
         @if ($paginator->hasMorePages())

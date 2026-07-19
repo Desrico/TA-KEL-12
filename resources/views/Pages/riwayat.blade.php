@@ -158,21 +158,7 @@
             @endforeach
 
             @if(is_object($riwayat) && method_exists($riwayat, 'hasPages') && $riwayat->hasPages())
-                <div class="simple-pagination">
-
-                    @if(method_exists($riwayat,'onFirstPage') && !$riwayat->onFirstPage())
-                        <a href="{{ $riwayat->previousPageUrl() }}" class="simple-next">
-                        </a>
-                    @endif
-
-                    @for($i = 1; $i <= $riwayat->lastPage(); $i++)
-                        <a href="{{ $riwayat->url($i) }}"
-                        class="simple-page {{ $riwayat->currentPage() == $i ? 'active' : '' }}">
-                            {{ $i }}
-                        </a>
-                    @endfor
-
-                </div>
+                {{ $riwayat->links('pagination::bootstrap-4') }}
             @endif
 
         </div>

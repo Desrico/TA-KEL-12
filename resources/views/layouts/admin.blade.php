@@ -47,7 +47,7 @@
     width: 280px !important;
     min-width: 280px !important;
     max-width: 280px !important;
-    height: 100vh !important;
+    height: 100dvh !important;
     overflow: hidden !important;
     background: var(--admin-soft) !important;
     transition: width .15s ease !important;
@@ -88,8 +88,8 @@
 
 .pc-sidebar .navbar-wrapper {
     width: 280px !important;
-    height: 100vh !important;
-    min-height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
     background: var(--admin-soft) !important;
     border-right: 1px solid var(--admin-border);
     display: flex !important;
@@ -100,11 +100,11 @@
 /* Logo */
 .pc-sidebar .m-header {
     width: 100% !important;
-    height: 175px !important;
-    min-height: 175px !important;
-    max-height: 175px !important;
-    flex: 0 0 175px !important;
-    padding: 20px 16px 8px !important;
+    height: 126px !important;
+    min-height: 126px !important;
+    max-height: 126px !important;
+    flex: 0 0 126px !important;
+    padding: 12px 16px 4px !important;
     background: var(--admin-soft) !important;
     border-bottom: 0 !important;
     display: flex !important;
@@ -122,8 +122,8 @@
 }
 
 .admin-sidebar-logo-full {
-    width: 145px !important;
-    max-width: 145px !important;
+    width: 112px !important;
+    max-width: 112px !important;
     height: auto !important;
     object-fit: contain !important;
     display: block !important;
@@ -333,11 +333,17 @@
 .admin-sidebar-profile {
     position: relative !important;
     flex: 0 0 auto !important;
-    padding: 14px 18px 16px !important;
-    margin-top: 8px !important;
+    padding: 9px 18px 11px !important;
+    margin-top: 0 !important;
     border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
     background: var(--admin-soft) !important;
     z-index: 5 !important;
+}
+
+#cc-sidebar-menu {
+    align-items: flex-start !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
 }
 
 .admin-sidebar-profile-trigger {

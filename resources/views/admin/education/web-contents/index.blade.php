@@ -621,9 +621,6 @@
 
     <div class="mi-header">
         <div class="mi-header-left">
-            <p>
-                Kelola artikel dan video yang akan tampil pada halaman Edukasi Mental di website.
-            </p>
         </div>
 
         <a href="{{ route('counselor.education.web-contents.create') }}" class="mi-btn-add">
@@ -792,11 +789,9 @@
                         </a>
                     @endif
 
-                    @foreach($webContents->getUrlRange(1, $webContents->lastPage()) as $page => $url)
-                        <a href="{{ $url }}" class="mi-page-btn {{ $page == $webContents->currentPage() ? 'active' : '' }}">
-                            {{ $page }}
-                        </a>
-                    @endforeach
+                    <span class="mi-page-btn active" aria-current="page" aria-label="Halaman {{ $webContents->currentPage() }}">
+                        {{ $webContents->currentPage() }}
+                    </span>
 
                     @if($webContents->hasMorePages())
                         <a href="{{ $webContents->nextPageUrl() }}" class="mi-page-btn">

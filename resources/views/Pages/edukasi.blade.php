@@ -1912,7 +1912,7 @@
             }
 
             if (contentPaginationStatus) {
-                contentPaginationStatus.textContent = currentContentPage + ' / ' + totalPages;
+                contentPaginationStatus.textContent = currentContentPage;
                 contentPaginationStatus.setAttribute(
                     'aria-label',
                     'Halaman ' + currentContentPage + ' dari ' + totalPages
